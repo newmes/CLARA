@@ -1,0 +1,710 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}{{ patient_id }} — Patient Record{% endblock %}
+
+{% block extra_head %}
+<style>
+  .back-link { margin-top: 2em; margin-bottom: 1em; }
+  .back-link a { color: var(--accent-cyan); font-size: 0.88em; }
+  .patient-header {
+    background: var(--bg-secondary); border: 1px solid var(--border);
+    padding: 1.5em 2em; border-radius: 6px; margin-bottom: 1.5em;
+  }
+  .patient-header h2 {
+    margin: 0 0 0.3em 0; color: var(--accent-cyan);
+    font-family: 'JetBrains Mono', monospace; font-weight: 700;
+  }
+  .patient-header .diagnosis {
+    font-size: 0.85em; color: var(--accent-purple); font-weight: 500;
+  }
+  .section-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 1.2em 1.5em; margin-bottom: 1em;
+  }
+  .section-card h4 {
+    margin-top: 0; color: var(--accent-blue);
+    border-bottom: 1px solid var(--border); padding-bottom: 0.5em;
+    margin-bottom: 0.8em; font-size: 0.85em; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .info-table { width: 100%; }
+  .info-table td { padding: 4px 8px; font-size: 0.9em; vertical-align: top; }
+  .info-table td:first-child { font-weight: 600; width: 35%; color: var(--text-secondary); }
+  .info-table td:last-child { color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.88em; }
+
+  /* Lab grid */
+  .lab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 6px; }
+  .lab-item {
+    font-size: 0.85em; padding: 6px 10px; background: var(--bg-elevated);
+    border-radius: 4px; border-left: 3px solid var(--border);
+  }
+  .lab-item .lab-name { color: var(--text-muted); font-size: 0.8em; }
+  .lab-item .lab-val { font-weight: 600; display: block; font-family: 'JetBrains Mono', monospace; }
+  .lab-item .lab-trend { font-size: 0.78em; }
+
+  /* AE table */
+  .ae-table { width: 100%; font-size: 0.88em; border-collapse: collapse; }
+  .ae-table th {
+    background: var(--bg-elevated); text-align: left; padding: 6px 8px;
+    font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border);
+    font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .ae-table td { padding: 6px 8px; border-bottom: 1px solid var(--border-light); color: var(--text-primary); }
+  .ae-table .grade-badge {
+    display: inline-block; padding: 1px 8px; border-radius: 3px;
+    font-weight: 700; font-size: 0.82em; color: #fff;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .grade-1 { background: var(--grade-1); }
+  .grade-2 { background: var(--grade-2); }
+  .grade-3 { background: var(--grade-3); }
+  .grade-4 { background: var(--grade-4); }
+  .grade-5 { background: var(--grade-5); }
+
+  /* Drug status */
+  .drug-card {
+    display: inline-block; background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 6px; padding: 10px 14px; margin-right: 8px; margin-bottom: 8px;
+    min-width: 220px; vertical-align: top;
+  }
+  .drug-card h5 { margin: 0 0 6px 0; color: var(--accent-blue); font-size: 0.92em; font-weight: 700; }
+  .drug-card .drug-stat { font-size: 0.82em; margin: 2px 0; color: var(--text-secondary); }
+  .drug-card .drug-stat .label-text { color: var(--text-muted); }
+  .drug-card .held { color: var(--accent-red); font-weight: 700; }
+  .drug-card .active { color: var(--accent-green); font-weight: 700; }
+
+  /* CM list */
+  .cm-list { list-style: none; padding: 0; margin: 0; }
+  .cm-list li { padding: 5px 0; border-bottom: 1px solid var(--border-light); font-size: 0.88em; }
+  .cm-list .cm-name { font-weight: 600; color: var(--text-primary); }
+  .cm-list .cm-indication { color: var(--text-muted); font-size: 0.82em; }
+  .cm-list .cm-badge { font-size: 0.7em; padding: 1px 6px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; }
+  .cm-list .baseline { background: var(--bg-elevated); color: var(--text-muted); border: 1px solid var(--border); }
+  .cm-list .treatment { background: rgba(63,185,80,0.1); color: var(--accent-green); border: 1px solid rgba(63,185,80,0.3); }
+
+  /* Subjective speech */
+  .speech-bubble {
+    background: rgba(88,166,255,0.06); border: 1px solid rgba(88,166,255,0.15);
+    border-radius: 8px; padding: 8px 14px; margin: 6px 0 6px 20px;
+    font-style: italic; font-size: 0.9em; color: var(--text-secondary);
+    position: relative;
+  }
+  .speech-bubble::before { content: ''; position: absolute; left: -14px; top: 10px;
+    border: 6px solid transparent; border-right-color: rgba(88,166,255,0.15); }
+
+  /* Care AI Chat */
+  .care-chat { max-height: 400px; overflow-y: auto; }
+  .chat-bubble { padding: 8px 12px; border-radius: 8px; margin: 5px 0; font-size: 0.88em; max-width: 92%; }
+  .chat-patient { background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.2); }
+  .chat-nurse { background: rgba(63,185,80,0.08); border: 1px solid rgba(63,185,80,0.2); }
+  .chat-role { font-size: 0.72em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; }
+  .chat-patient .chat-role { color: var(--accent-blue); }
+  .chat-nurse .chat-role { color: var(--accent-green); }
+  .severity-badge { display: inline-block; padding: 2px 10px; border-radius: 3px; font-size: 0.78em; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .sev-green { background: rgba(63,185,80,0.15); color: var(--accent-green); border: 1px solid rgba(63,185,80,0.3); }
+  .sev-yellow { background: rgba(227,179,65,0.15); color: #e3b341; border: 1px solid rgba(227,179,65,0.3); }
+  .sev-orange { background: rgba(219,148,54,0.15); color: #db9436; border: 1px solid rgba(219,148,54,0.3); }
+  .sev-red { background: rgba(248,81,73,0.15); color: var(--accent-red); border: 1px solid rgba(248,81,73,0.3); }
+  .action-tag { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 0.75em; margin: 2px; font-family: 'JetBrains Mono', monospace; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-secondary); }
+
+  /* Event log */
+  .event-log-item { padding: 5px 0; border-bottom: 1px solid var(--border-light); font-size: 0.88em; }
+  .event-log-item .day-badge {
+    display: inline-block; background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 3px; padding: 1px 8px; font-size: 0.75em; min-width: 52px;
+    text-align: center; margin-right: 6px; font-weight: 600;
+    font-family: 'JetBrains Mono', monospace; color: var(--accent-cyan);
+  }
+
+  /* AE timeline bars */
+  .ae-bar-container { margin-bottom: 8px; }
+  .ae-bar-label { font-size: 0.82em; font-weight: 600; margin-bottom: 2px; color: var(--text-secondary); }
+  .ae-bar-track { height: 20px; background: var(--bg-elevated); border-radius: 4px; position: relative; overflow: hidden; border: 1px solid var(--border); }
+  .ae-bar-fill {
+    position: absolute; top: 0; height: 100%; border-radius: 3px;
+    font-size: 0.68em; color: #fff; padding: 0 6px; line-height: 20px;
+    font-family: 'JetBrains Mono', monospace; font-weight: 600;
+  }
+
+  /* Risk gauge */
+  .risk-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .risk-item {
+    flex: 1; min-width: 130px; text-align: center;
+    background: var(--bg-elevated); border-radius: 6px; padding: 10px 8px;
+    border: 1px solid var(--border);
+  }
+  .risk-item .risk-label { font-size: 0.7em; color: var(--text-muted); margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+  .risk-item .risk-val { font-size: 1.2em; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .risk-low { color: var(--accent-green); }
+  .risk-med { color: var(--accent-orange); }
+  .risk-high { color: var(--accent-red); }
+
+  /* Vitals grid */
+  .vitals-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; }
+  .vital-item {
+    text-align: center; padding: 10px 8px; background: var(--bg-elevated);
+    border-radius: 6px; border: 1px solid var(--border);
+  }
+  .vital-item .vital-val { font-size: 1.15em; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text-primary); }
+  .vital-item .vital-label { font-size: 0.7em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+</style>
+{% endblock %}
+
+{% block nav_items %}
+<span class="nav-sep">/</span>
+<a href="{% url 'trial_viewer' run_id %}">{{ run_id|truncatechars:30 }}</a>
+<span class="nav-sep">/</span>
+<a href="{% url 'trial_viewer_day' run_id day %}">Day {{ day }}</a>
+<span class="nav-sep">/</span>
+<a class="nav-active">{{ patient_id }}</a>
+<span class="nav-sep">|</span>
+<a href="{% url 'game_landing' run_id %}">Play Game</a>
+{% endblock %}
+
+{% block content %}
+<div class="container" style="max-width: 1000px">
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- PATIENT HEADER                                         -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="patient-header">
+    <div class="row">
+      <div class="col-md-8">
+        <h2>{{ patient_id }}</h2>
+        {% if profile.persona %}
+        <p style="margin:0; font-style:italic; color:var(--text-muted); font-size:0.9em">
+          <strong style="color:var(--accent-orange)">{{ profile.persona.type }}</strong> — {{ profile.persona.description }}
+        </p>
+        {% endif %}
+      </div>
+      <div class="col-md-4 text-right" style="padding-top:0.5em">
+        <span style="font-size:0.82em; color:var(--text-muted); font-family:'JetBrains Mono',monospace">Day {{ day }} / {{ total_days }}</span>
+        {% if profile.emr.diagnosis %}
+        <br><span class="diagnosis">
+          {{ profile.emr.diagnosis.primary }} · Stage {{ profile.emr.diagnosis.stage }}
+        </span>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- ROW 1: Demographics + Persona + Medical History        -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="row">
+    <div class="col-md-4">
+      <div class="section-card">
+        <h4>👤 Demographics</h4>
+        <table class="info-table">
+          {% if profile.DM %}
+          <tr><td>Age</td><td>{{ profile.DM.AGE }}</td></tr>
+          <tr><td>Sex</td><td>{{ profile.DM.SEX }}</td></tr>
+          <tr><td>Race</td><td>{{ profile.DM.RACE }}</td></tr>
+          {% endif %}
+          {% if profile.emr.demographics %}
+          <tr><td>ECOG PS</td><td>{{ profile.emr.demographics.ecog_ps }}</td></tr>
+          <tr><td>BMI</td><td>{{ bmi_display }}</td></tr>
+          <tr><td>Smoking</td><td>{{ profile.emr.demographics.smoking }}</td></tr>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="section-card">
+        <h4>🎭 Persona & Disclosure</h4>
+        {% if profile.persona %}
+        <table class="info-table">
+          <tr><td>Type</td><td><strong>{{ profile.persona.type }}</strong></td></tr>
+          {% for symptom, tendency in profile.persona.disclosure_tendencies.items %}
+          <tr><td>{{ symptom }}</td><td>{{ tendency }}</td></tr>
+          {% endfor %}
+        </table>
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="section-card">
+        <h4>📋 Medical History</h4>
+        {% for mh in profile.MH %}
+        <div style="font-size:0.88em; padding:4px 0; border-bottom:1px solid var(--border-light)">
+          <strong style="color:var(--text-primary)">{{ mh.MHTERM }}</strong>
+          {% if mh.MHONGO %}<span style="color:var(--accent-orange); font-size:0.78em"> (ongoing)</span>{% endif %}
+        </div>
+        {% empty %}
+        <p style="color:var(--text-muted); font-size:0.9em">No medical history recorded</p>
+        {% endfor %}
+        {% if profile.emr.baseline_tumor %}
+        <div style="margin-top:8px; padding-top:6px; border-top:1px solid var(--border)">
+          <strong style="font-size:0.82em; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px">Baseline Tumor</strong>
+          <div style="font-size:0.85em; font-family:'JetBrains Mono',monospace; color:var(--text-primary); margin-top:2px">
+            Sum of diameters: {{ profile.emr.baseline_tumor.sum_of_diameters_mm }}mm
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- DRUG STATUS + TUMOR                                    -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  {% if current_day %}
+  <div class="section-card">
+    <h4>💊 Treatment Status (Day {{ day }})</h4>
+    <div id="drug-status"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- ACTIVE AEs (full detail table)                         -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section-card">
+    <h4>⚠️ Active Adverse Events</h4>
+    <div id="ae-detail-table"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- LABS (full)                                            -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section-card">
+    <h4>🔬 Laboratory Results</h4>
+    <div class="lab-grid" id="lab-full-grid"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- VITALS (full)                                          -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section-card">
+    <h4>❤️ Vital Signs</h4>
+    <div class="vitals-grid" id="vitals-full-grid"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- CONCOMITANT MEDICATIONS                                -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section-card">
+    <h4>💊 Concomitant Medications</h4>
+    <div id="cm-list-container"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- PATIENT SUBJECTIVE (what patient says/feels)           -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section-card">
+    <h4>🗣️ Patient Perception</h4>
+    <div id="subjective-container"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- RISK GAUGES                                            -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section-card">
+    <h4>📊 Risk Assessment</h4>
+    <div class="risk-row" id="risk-gauges"></div>
+  </div>
+  {% endif %}
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- MOOD TRAJECTORY                                         -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section-card">
+    <h4>🧠 Mood Trajectory</h4>
+    <div id="mood-chart-container" style="height:250px; position:relative">
+      <canvas id="mood-chart"></canvas>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- CARE AI VIDEO CALL (today's)                           -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section-card">
+    <h4>📹 Care AI Video Call (Day {{ day }})</h4>
+    <div id="care-call-detail" style="font-size:0.9em">
+      <em style="color:var(--text-muted)">No video call data</em>
+    </div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- AE TIMELINE BARS                                       -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section-card">
+    <h4>📅 AE Timeline</h4>
+    <div id="ae-timeline"></div>
+  </div>
+
+  <!-- ══════════════════════════════════════════════════════ -->
+  <!-- EVENT LOG (Memory Stream)                              -->
+  <!-- ══════════════════════════════════════════════════════ -->
+  <div class="section-card">
+    <h4>📝 Event Log</h4>
+    <div style="max-height:400px; overflow-y:auto">
+      {% for e in event_log reversed %}
+      <div class="event-log-item">
+        <span class="day-badge">Day {{ e.day }}</span>
+        <span class="icon">{{ e.icon }}</span>
+        <span style="color:var(--text-secondary)">{{ e.text }}</span>
+      </div>
+      {% empty %}
+      <p style="color:var(--text-muted)">No events recorded</p>
+      {% endfor %}
+    </div>
+  </div>
+
+</div>
+<div style="margin-bottom:6em"></div>
+{% endblock %}
+
+{% block js_content %}
+<script>
+(function() {
+  const dayData = {{ current_day_json|safe }};
+  const aeTimeline = {{ ae_timeline_json|safe }};
+  const totalDays = {{ total_days }};
+
+  if (!dayData) return;
+
+  // ── Drug Status ──
+  function renderDrugStatus() {
+    const obj = dayData.objective || {};
+    const drugs = ['Padcev', 'Pembrolizumab'];
+    let html = '<div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-start">';
+
+    drugs.forEach(drug => {
+      const info = obj[drug];
+      if (!info) return;
+      const isHeld = info.treatment_held;
+      const isDisc = info.treatment_discontinued;
+      const statusClass = isDisc ? 'held' : (isHeld ? 'held' : 'active');
+      const statusText = isDisc ? '⛔ DISCONTINUED' : (isHeld ? '⏸️ HELD' : '✅ Active');
+
+      html += `<div class="drug-card">
+        <h5>${drug}</h5>
+        <div class="drug-stat"><span class="label-text">Status:</span> <span class="${statusClass}">${statusText}</span></div>
+        <div class="drug-stat"><span class="label-text">Dose level:</span> ${(info.dose_level * 100).toFixed(0)}%</div>
+        <div class="drug-stat"><span class="label-text">Cumulative:</span> ${info.cumulative_dose_mg} mg</div>
+        <div class="drug-stat"><span class="label-text">Last given:</span> Day ${info.last_administered_day}</div>
+        <div class="drug-stat"><span class="label-text">Next scheduled:</span> Day ${info.next_scheduled_day}</div>
+      </div>`;
+    });
+
+    // Tumor
+    const tumor = obj.tumor || {};
+    const pct = tumor.estimated_change_pct;
+    if (pct !== undefined) {
+      const color = pct > 20 ? '#c0392b' : (pct > 0 ? '#e67e22' : (pct > -30 ? '#f39c12' : '#27ae60'));
+      html += `<div class="drug-card">
+        <h5>🎯 Tumor Response</h5>
+        <div style="font-size:1.8em; font-weight:700; color:${color}">${pct > 0 ? '+' : ''}${pct.toFixed(1)}%</div>
+        <div class="drug-stat"><span class="label-text">from baseline</span></div>
+        <div class="drug-stat"><span class="label-text">ECOG:</span> <strong>${obj.ecog}</strong></div>
+      </div>`;
+    }
+
+    html += '</div>';
+    document.getElementById('drug-status').innerHTML = html;
+  }
+
+  // ── AE Detail Table ──
+  function renderAETable() {
+    const aes = dayData.AE || [];
+    const active = aes.filter(a => a.AEONGO || (a._status && a._status.startsWith('active')));
+    if (active.length === 0) {
+      document.getElementById('ae-detail-table').innerHTML = '<p style="color:#999; font-size:0.9em">No active adverse events</p>';
+      return;
+    }
+    let html = `<table class="ae-table">
+      <thead><tr>
+        <th>AE Term</th><th>Grade</th><th>Severity</th><th>Onset</th><th>Duration</th>
+        <th>Related</th><th>Action</th><th>Serious</th>
+      </tr></thead><tbody>`;
+
+    active.forEach(ae => {
+      const g = ae._grade || '?';
+      html += `<tr>
+        <td><strong>${ae.AETERM}</strong></td>
+        <td><span class="grade-badge grade-${g}">G${g}</span></td>
+        <td>${ae.AESEV || '—'}</td>
+        <td>Day ${ae.AESTDAT || '?'}</td>
+        <td>${ae._days_active || '?'} days</td>
+        <td>${ae.AEREL ? '✓ Yes' : '✗ No'}</td>
+        <td style="font-size:0.85em">${ae.AEACN || '—'}</td>
+        <td>${ae.AESER ? '⚠️ Yes' : 'No'}</td>
+      </tr>`;
+    });
+    html += '</tbody></table>';
+    document.getElementById('ae-detail-table').innerHTML = html;
+  }
+
+  // ── Full Labs ──
+  function renderFullLabs() {
+    const results = (dayData.LB || {}).results || {};
+    const grid = document.getElementById('lab-full-grid');
+    let html = '';
+
+    for (const [name, val] of Object.entries(results)) {
+      const value = val.LBORRES;
+      const unit = val.LBORRESU || '';
+      const trend = val._trend || '';
+      const trendIcon = trend.includes('decrease') ? '↓' : (trend.includes('increase') ? '↑' : '→');
+      const trendColor = trend.includes('decrease') ? '#3498db' : (trend.includes('increase') ? '#e74c3c' : '#999');
+
+      html += `<div class="lab-item">
+        <span class="lab-name">${name}</span>
+        <span class="lab-val">${value !== null && value !== undefined ? value : '—'} <span style="font-weight:normal; color:#888; font-size:0.85em">${unit}</span></span>
+        <span class="lab-trend" style="color:${trendColor}">${trendIcon} ${trend.replace('_', ' ')}</span>
+      </div>`;
+    }
+
+    grid.innerHTML = html || '<p style="color:#999">No lab data</p>';
+  }
+
+  // ── Full Vitals ──
+  function renderFullVitals() {
+    const vs = dayData.VS || {};
+    const grid = document.getElementById('vitals-full-grid');
+    const items = [
+      { label: 'Temp', val: vs.TEMP_VSORRES, unit: '°C' },
+      { label: 'SBP', val: vs.SYSBP_VSORRES, unit: 'mmHg' },
+      { label: 'DBP', val: vs.DIABP_VSORRES, unit: 'mmHg' },
+      { label: 'Heart Rate', val: vs.PULSE_VSORRES, unit: 'bpm' },
+      { label: 'Resp Rate', val: vs.RESP_VSORRES, unit: '/min' },
+      { label: 'SpO2', val: vs._SpO2, unit: '%' },
+      { label: 'Weight', val: vs.WEIGHT_VSORRES, unit: 'kg' },
+    ];
+
+    grid.innerHTML = items.map(i => `
+      <div class="vital-item">
+        <div class="vital-val">${i.val !== null && i.val !== undefined ? i.val : '—'}</div>
+        <div class="vital-label">${i.label} (${i.unit})</div>
+      </div>
+    `).join('');
+  }
+
+  // ── Concomitant Meds ──
+  function renderCMs() {
+    const cms = dayData.CM || [];
+    if (cms.length === 0) {
+      document.getElementById('cm-list-container').innerHTML = '<p style="color:#999; font-size:0.9em">No concomitant medications</p>';
+      return;
+    }
+    let html = '<ul class="cm-list">';
+    cms.forEach(cm => {
+      const isBaseline = cm._baseline;
+      const badge = isBaseline
+        ? '<span class="cm-badge baseline">baseline</span>'
+        : '<span class="cm-badge treatment">treatment</span>';
+      html += `<li>
+        <span class="cm-name">${cm.CMTRT}</span> ${badge}
+        <br><span class="cm-indication">${cm.CMINDC} · ${cm.CMDSTXT || '?'} ${cm.CMDOSU || ''} ${cm.CMDOSFRQ || ''} ${cm.CMROUTE || ''}</span>
+      </li>`;
+    });
+    html += '</ul>';
+    document.getElementById('cm-list-container').innerHTML = html;
+  }
+
+  // ── Subjective ──
+  function renderSubjective() {
+    const subj = dayData.subjective || {};
+    const container = document.getElementById('subjective-container');
+    let html = `<p><strong>Awareness:</strong> ${subj.overall_awareness || '—'}</p>`;
+
+    const symptoms = subj.symptoms_patient_perceives || [];
+    if (symptoms.length === 0) {
+      html += '<p style="color:#999; font-style:italic">Patient perceives no symptoms</p>';
+    } else {
+      symptoms.forEach(s => {
+        const symptom = typeof s === 'string' ? s : s.symptom;
+        const expression = typeof s === 'object' ? s.verbal_expression : null;
+        const wouldReport = typeof s === 'object' ? s.would_report : null;
+
+        html += `<div style="margin:8px 0; padding-left:30px">
+          <strong>${symptom}</strong>`;
+        if (wouldReport) html += ` <span style="font-size:0.8em; color:#888">(would report: ${wouldReport})</span>`;
+        if (expression) html += `<div class="speech-bubble">"${expression}"</div>`;
+        html += '</div>';
+      });
+    }
+
+    container.innerHTML = html;
+  }
+
+  // ── Risk Gauges ──
+  function renderRisks() {
+    const sim = dayData._sim || {};
+    const mortality = sim.mortality_risk || 0;
+    const channels = sim.mortality_channels || {};
+    const disc = sim.discontinuation_risks || {};
+
+    function riskClass(val, thresholds) {
+      if (val >= thresholds[1]) return 'risk-high';
+      if (val >= thresholds[0]) return 'risk-med';
+      return 'risk-low';
+    }
+
+    const items = [
+      { label: 'Daily Mortality', val: mortality, display: (mortality * 100).toFixed(3) + '%', thresholds: [0.001, 0.01] },
+      { label: 'CSF (Tumor)', val: channels._csf_tumor || 0, display: ((channels._csf_tumor || 0) * 100).toFixed(1) + '%', thresholds: [0.1, 0.3] },
+      { label: 'CSF (ECOG)', val: channels._csf_ecog || 0, display: ((channels._csf_ecog || 0) * 100).toFixed(1) + '%', thresholds: [0.3, 0.6] },
+      { label: 'CSF (AE)', val: channels._csf_ae || 0, display: ((channels._csf_ae || 0) * 100).toFixed(1) + '%', thresholds: [0.1, 0.3] },
+      { label: 'Pt Withdrawal', val: disc.patient_withdrawal || 0, display: ((disc.patient_withdrawal || 0) * 100).toFixed(2) + '%', thresholds: [0.05, 0.1] },
+      { label: 'MD Decision', val: disc.physician_decision || 0, display: ((disc.physician_decision || 0) * 100).toFixed(2) + '%', thresholds: [0.05, 0.1] },
+    ];
+
+    document.getElementById('risk-gauges').innerHTML = items.map(i => `
+      <div class="risk-item">
+        <div class="risk-label">${i.label}</div>
+        <div class="risk-val ${riskClass(i.val, i.thresholds)}">${i.display}</div>
+      </div>
+    `).join('');
+  }
+
+  // ── AE Timeline Bars ──
+  function renderAEBars() {
+    const grouped = {};
+    aeTimeline.forEach(entry => {
+      if (!grouped[entry.term]) grouped[entry.term] = [];
+      grouped[entry.term].push(entry);
+    });
+
+    let html = '';
+    for (const [term, entries] of Object.entries(grouped)) {
+      let minDay = Infinity, maxDay = 0, maxGrade = 0;
+      entries.forEach(e => {
+        if (e.day < minDay) minDay = e.day;
+        if (e.day > maxDay) maxDay = e.day;
+        if (e.grade > maxGrade) maxGrade = e.grade;
+      });
+      const left = ((minDay - 1) / totalDays * 100).toFixed(1);
+      const width = Math.max(1, ((maxDay - minDay + 1) / totalDays) * 100).toFixed(1);
+      html += `<div class="ae-bar-container">
+        <div class="ae-bar-label">${term} (G${maxGrade}, Day ${minDay}–${maxDay})</div>
+        <div class="ae-bar-track">
+          <div class="ae-bar-fill grade-${maxGrade}" style="left:${left}%; width:${width}%">G${maxGrade}</div>
+        </div>
+      </div>`;
+    }
+    if (!html) html = '<p style="color:#999; font-size:0.9em">No AEs recorded</p>';
+    document.getElementById('ae-timeline').innerHTML = html;
+  }
+
+  // ── Care AI Call ──
+  function renderCareCall() {
+    const el = document.getElementById('care-call-detail');
+    const careRecords = dayData.care_record || [];
+    if (!careRecords.length) { el.innerHTML = '<em style="color:var(--text-muted)">No video call data for this day</em>'; return; }
+    const cr = careRecords[0];
+    const assessment = cr.nurse_assessment || {};
+    const sevLevel = assessment.severity_level || 'green';
+    const sevClass = 'sev-' + sevLevel;
+
+    let html = `<div style="margin-bottom:8px">
+      <span class="severity-badge ${sevClass}">${sevLevel.toUpperCase()}</span>
+      <span style="color:var(--text-secondary); margin-left:8px">${assessment.summary || ''}</span>
+      ${cr.terminated_early ? '<span style="color:var(--accent-orange); font-size:0.8em; margin-left:6px">⚡ Early termination</span>' : ''}
+    </div>`;
+
+    html += '<div class="care-chat">';
+    (cr.turns || []).forEach(t => {
+      const isP = t.role === 'patient';
+      const cls = isP ? 'chat-patient' : 'chat-nurse';
+      const c = t.content || {};
+      let text = '';
+      if (isP && t.turn === 1) {
+        text = c.greeting || '';
+        (c.reported_symptoms || []).forEach(s => { text += `<br>• ${s.symptom || s} <span style="color:var(--text-muted)">(${s.severity_perception || '?'})</span>`; });
+        if ((c.omitted_symptoms||[]).length) text += `<br><span style="color:var(--accent-red);font-size:0.85em">🙈 Hiding: ${c.omitted_symptoms.join(', ')}</span>`;
+        if ((c.video_visible||[]).length) text += `<br><span style="color:var(--accent-purple);font-size:0.85em">👁 Visible: ${c.video_visible.join(', ')}</span>`;
+      } else if (!isP && t.turn === 2) {
+        text = c.acknowledgment || '';
+        (c.questions||[]).forEach(q => { text += `<br><span style="color:var(--accent-blue)">❓</span> ${q.question}`; if(q.target_ae) text += ` <span style="color:var(--text-muted);font-size:0.8em">(→${q.target_ae})</span>`; });
+      } else if (isP && t.turn === 3) {
+        (c.responses||[]).forEach(r => { text += (r.answer || JSON.stringify(r).substring(0,120)) + '<br>'; });
+        if (c.new_info_revealed) text += '<span style="color:var(--accent-green);font-size:0.85em">💡 New info revealed</span>';
+      } else if (!isP && t.turn === 4) {
+        text = (c.assessment||{}).summary || '';
+        (c.actions||[]).forEach(a => { text += `<br><span class="action-tag">${a.action}</span> ${a.reason||''}`; });
+      }
+      if (!text) text = JSON.stringify(c).substring(0,250);
+      html += `<div class="chat-bubble ${cls}"><div class="chat-role">${isP?'👤':'🩺'} T${t.turn} ${t.role}</div><div>${text}</div></div>`;
+    });
+    html += '</div>';
+
+    // Detection summary
+    const det = cr.detection || {};
+    if ((det.aes_detected||[]).length) {
+      html += `<div style="margin-top:8px;font-size:0.85em"><strong style="color:var(--accent-green)">Detected:</strong> ${det.aes_detected.join(', ')}</div>`;
+    }
+    if ((det.early_warning_signs||[]).length) {
+      html += `<div style="font-size:0.85em"><strong style="color:var(--accent-orange)">Early warnings:</strong> ${det.early_warning_signs.join(', ')}</div>`;
+    }
+
+    // Actions
+    if ((cr.actions||[]).length) {
+      html += '<div style="margin-top:6px">';
+      cr.actions.forEach(a => { html += `<span class="action-tag">${a.action}</span> `; });
+      html += '</div>';
+    }
+    el.innerHTML = html;
+  }
+
+  // ── Render All ──
+  renderDrugStatus();
+  renderAETable();
+  renderFullLabs();
+  renderFullVitals();
+  renderCMs();
+  renderSubjective();
+  renderRisks();
+  renderAEBars();
+  renderCareCall();
+})();
+</script>
+
+<!-- Mood Trajectory Chart -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+(function() {
+  const moodData = {{ mood_trajectory_json|safe }};
+  if (!moodData || moodData.length === 0) return;
+
+  const dims = [
+    {key:'anxiety', label:'Anxiety', color:'#e74c3c'},
+    {key:'depression', label:'Depression', color:'#8e44ad'},
+    {key:'irritability', label:'Irritability', color:'#e67e22'},
+    {key:'energy', label:'Energy', color:'#2ecc71'},
+    {key:'cognitive_clarity', label:'Clarity', color:'#3498db'},
+    {key:'trust_in_ai', label:'Trust in AI', color:'#1abc9c'},
+    {key:'defensiveness', label:'Defensiveness', color:'#f39c12'},
+  ];
+
+  const days = moodData.map(d => d.day);
+  const datasets = dims.map(d => ({
+    label: d.label,
+    data: moodData.map(m => m[d.key]),
+    borderColor: d.color,
+    backgroundColor: d.color + '20',
+    borderWidth: 1.5,
+    pointRadius: 0,
+    tension: 0.3,
+  }));
+
+  const ctx = document.getElementById('mood-chart');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'line',
+      data: { labels: days, datasets },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        scales: {
+          x: { title: { display: true, text: 'Day', color: '#888' }, ticks: { color: '#888' }, grid: { color: '#333' } },
+          y: { min: 0, max: 1, title: { display: true, text: 'Value', color: '#888' }, ticks: { color: '#888' }, grid: { color: '#333' } },
+        },
+        plugins: {
+          legend: { position: 'bottom', labels: { color: '#ccc', usePointStyle: true, pointStyle: 'line', font: { size: 10 } } },
+        },
+      },
+    });
+  }
+})();
+</script>
+{% endblock %}

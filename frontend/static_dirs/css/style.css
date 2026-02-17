@@ -1,0 +1,130 @@
+/* ═══════════════════════════════════════════════════════════════
+   Clinical Trial Simulation Viewer — Dark Mode / Game UI
+   ═══════════════════════════════════════════════════════════════ */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+:root {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-card: #1c2128;
+  --bg-card-hover: #252d38;
+  --bg-elevated: #21262d;
+  --border: #30363d;
+  --border-light: #21262d;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+  --accent-blue: #58a6ff;
+  --accent-green: #3fb950;
+  --accent-orange: #d29922;
+  --accent-red: #f85149;
+  --accent-purple: #bc8cff;
+  --accent-cyan: #39d2c0;
+  --accent-pink: #f778ba;
+  --grade-1: #d29922;
+  --grade-2: #e3873e;
+  --grade-3: #f85149;
+  --grade-4: #da3633;
+  --grade-5: #8b1a10;
+  --glow-blue: rgba(88,166,255,0.15);
+  --glow-green: rgba(63,185,80,0.15);
+  --glow-red: rgba(248,81,73,0.15);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent-blue); text-decoration: none; }
+a:hover { color: #79c0ff; text-decoration: none; }
+
+/* Override Bootstrap panels in dark mode */
+.panel, .panel-default, .panel-body {
+  background: var(--bg-card);
+  border-color: var(--border);
+  color: var(--text-primary);
+}
+
+/* ─── Phaser Map Container ─── */
+#map-container {
+  background: var(--bg-surface);
+  border-radius: 8px;
+  position: relative;
+}
+#map-container canvas {
+  display: block;
+  border-radius: 8px;
+  max-width: 100%;
+  height: auto;
+}
+
+/* ─── Scrollbar ─── */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-secondary); }
+::-webkit-scrollbar-thumb { background: #484f58; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #6e7681; }
+
+/* ─── Range Slider (Day) ─── */
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  outline: none;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 16px; height: 16px;
+  background: var(--accent-cyan);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid var(--bg-primary);
+  box-shadow: 0 0 8px rgba(57,210,192,0.4);
+  transition: box-shadow 0.2s;
+}
+input[type=range]::-webkit-slider-thumb:hover {
+  box-shadow: 0 0 14px rgba(57,210,192,0.6);
+}
+input[type=range]::-moz-range-thumb {
+  width: 16px; height: 16px;
+  background: var(--accent-cyan);
+  border-radius: 50%;
+  cursor: pointer;
+  border: 2px solid var(--bg-primary);
+}
+
+/* ─── Buttons (dark) ─── */
+.btn-default {
+  background: var(--bg-elevated);
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
+.btn-default:hover, .btn-default:focus {
+  background: var(--bg-card-hover);
+  border-color: #484f58;
+  color: var(--text-primary);
+}
+.btn-primary {
+  background: var(--accent-cyan);
+  border-color: var(--accent-cyan);
+  color: var(--bg-primary);
+  font-weight: 600;
+}
+.btn-primary:hover, .btn-primary:focus {
+  background: #2ec4b6;
+  border-color: #2ec4b6;
+  color: var(--bg-primary);
+}
+
+/* Glyph icons color */
+.glyphicon { color: var(--text-secondary); }
+.btn-primary .glyphicon { color: var(--bg-primary); }

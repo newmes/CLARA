@@ -1,0 +1,21 @@
+__pycache__/
+*.pyc
+.DS_Store
+*.egg-info/
+.venv/
+.env
+
+# Legacy / unused code
+old/
+
+# Simulation data & logs (large, regenerable)
+data/
+logs/
+
+# IDE / tools
+.claude/
+.cursor/
+.pytest_cache/
+
+# Reference materials (large)
+reference/
