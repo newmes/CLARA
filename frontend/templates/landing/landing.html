@@ -1,0 +1,92 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Clinical Trial Simulations{% endblock %}
+
+{% block extra_head %}
+<style>
+  .landing-container {
+    margin-top: 3em; max-width: 720px; margin-left: auto; margin-right: auto;
+    padding: 0 20px;
+  }
+  .landing-title {
+    font-size: 1.6em; font-weight: 800; color: var(--accent-cyan);
+    margin-bottom: 0.2em;
+  }
+  .landing-sub {
+    color: var(--text-secondary); font-size: 0.95em; margin-bottom: 2em; line-height: 1.6;
+  }
+  .landing-hr { border: none; border-top: 1px solid var(--border); margin: 1.5em 0; }
+  .section-label {
+    color: var(--text-muted); font-size: 0.7em; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1em;
+  }
+  .run-card {
+    display: block; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 14px 18px; margin-bottom: 8px;
+    cursor: pointer; transition: all 0.15s; text-decoration: none; color: var(--text-primary);
+  }
+  .run-card:hover {
+    border-color: var(--accent-cyan); background: var(--bg-card-hover);
+    box-shadow: 0 0 12px rgba(57,210,192,0.1);
+    text-decoration: none; color: var(--text-primary);
+  }
+  .run-card h4 {
+    margin: 0; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9em; font-weight: 600;
+  }
+  .run-card .arrow {
+    color: var(--accent-cyan); float: right; font-size: 1.2em;
+  }
+  .empty-msg {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 6px; padding: 18px; color: var(--text-secondary);
+  }
+  .empty-msg code {
+    background: var(--bg-elevated); color: var(--accent-orange);
+    padding: 2px 6px; border-radius: 3px; font-size: 0.88em;
+  }
+</style>
+{% endblock %}
+
+{% block nav_items %}
+<a href="/" class="nav-active">All Runs</a>
+{% endblock %}
+
+{% block content %}
+<div class="landing-container">
+  <div class="landing-title">Clinical Trial Simulation</div>
+  <p class="landing-sub">
+    Explore day-by-day patient data, adverse events, treatment decisions,
+    and Care AI interactions across simulation runs.
+  </p>
+
+  <hr class="landing-hr">
+
+  {% if runs %}
+  <div class="section-label">Available Runs</div>
+  {% for run in runs %}
+  <div style="display:flex; gap:8px; margin-bottom:8px;">
+    <a href="{% url 'trial_viewer' run.id %}" class="run-card" style="flex:1;">
+      <span class="arrow">→</span>
+      <h4>{{ run.id }}</h4>
+    </a>
+    <a href="{% url 'game_landing' run.id %}" class="run-card"
+       style="flex:0 0 auto; border-color:var(--accent-purple); min-width:80px; text-align:center;">
+      <h4 style="color:var(--accent-purple); font-size:0.82em;">Play</h4>
+    </a>
+    <a href="{% url 'compare_dashboard' run.id %}" class="run-card"
+       style="flex:0 0 auto; border-color:var(--accent-green); min-width:80px; text-align:center;">
+      <h4 style="color:var(--accent-green); font-size:0.82em;">A/B</h4>
+    </a>
+  </div>
+  {% endfor %}
+  {% else %}
+  <div class="empty-msg">
+    <strong>No simulation runs found.</strong><br>
+    Run a simulation first:
+    <code>python src/run_simulation_v2.py --patients 10 --days 84</code>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

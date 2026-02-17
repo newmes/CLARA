@@ -1,0 +1,1073 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Clinical Decision Simulator — {{ patient_id }}{% endblock %}
+
+{% block nav_items %}
+<span class="nav-sep">/</span>
+<a href="{% url 'trial_viewer' run_id %}">{{ run_id|truncatechars:25 }}</a>
+<span class="nav-sep">/</span>
+<a href="{% url 'game_landing' run_id %}">Play Game</a>
+<span class="nav-sep">/</span>
+<a class="nav-active">{{ patient_id }}</a>
+<span class="nav-sep">|</span>
+<a href="{% url 'trial_viewer' run_id %}">Day View</a>
+<span class="nav-sep">|</span>
+<a href="{% url 'patient_state' run_id patient_id %}">Patient Detail</a>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ── Layout ── */
+  .game-wrapper {
+    display: flex; height: calc(100vh - 38px); overflow: hidden;
+  }
+  .sidebar {
+    width: 300px; min-width: 300px; background: var(--bg-secondary);
+    border-right: 1px solid var(--border); display: flex; flex-direction: column;
+    overflow-y: auto;
+  }
+  .main-area {
+    flex: 1; display: flex; flex-direction: column; overflow: hidden;
+  }
+
+  /* ── Top Bar ── */
+  .top-bar {
+    background: var(--bg-secondary); border-bottom: 1px solid var(--border);
+    padding: 10px 20px; display: flex; align-items: center; justify-content: space-between;
+  }
+  .day-display {
+    font-family: 'JetBrains Mono', monospace; font-size: 1.1em; font-weight: 700;
+    color: var(--accent-cyan);
+  }
+  .day-display .cycle { color: var(--text-muted); font-size: 0.8em; margin-left: 8px; }
+  .status-badge {
+    font-size: 0.75em; padding: 3px 10px; border-radius: 12px;
+    font-weight: 600;
+  }
+  .status-badge.hospital { background: rgba(88,166,255,0.15); color: var(--accent-blue); }
+  .status-badge.event { background: rgba(248,81,73,0.15); color: var(--accent-red); }
+  .status-badge.quiet { background: rgba(110,118,129,0.15); color: var(--text-muted); }
+
+  /* ── Sidebar Sections ── */
+  .sidebar-section {
+    padding: 14px 16px; border-bottom: 1px solid var(--border);
+  }
+  .sidebar-section h6 {
+    margin: 0 0 8px; color: var(--text-muted); font-size: 0.68em;
+    text-transform: uppercase; letter-spacing: 1.5px; font-weight: 700;
+  }
+  .patient-header {
+    padding: 16px; border-bottom: 1px solid var(--border);
+  }
+  .patient-header h4 {
+    margin: 0; color: var(--accent-cyan); font-family: 'JetBrains Mono', monospace;
+    font-size: 0.95em;
+  }
+  .patient-header .drug-label {
+    color: var(--text-secondary); font-size: 0.78em; margin-top: 4px;
+  }
+
+  /* AE list in sidebar */
+  .ae-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 4px 0; font-size: 0.85em;
+  }
+  .ae-item .ae-name { color: var(--text-primary); }
+  .ae-grade {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.8em;
+    padding: 1px 6px; border-radius: 4px; font-weight: 600;
+  }
+  .ae-grade.g1 { background: rgba(210,153,34,0.2); color: var(--grade-1); }
+  .ae-grade.g2 { background: rgba(227,135,62,0.2); color: var(--grade-2); }
+  .ae-grade.g3 { background: rgba(248,81,73,0.2); color: var(--grade-3); }
+  .ae-grade.g4 { background: rgba(218,54,51,0.2); color: var(--grade-4); }
+
+  /* Labs in sidebar */
+  .lab-item {
+    display: flex; justify-content: space-between; font-size: 0.82em;
+    padding: 2px 0;
+  }
+  .lab-item .lab-name { color: var(--text-secondary); }
+  .lab-item .lab-val { color: var(--text-primary); font-family: 'JetBrains Mono', monospace; }
+  .lab-item .lab-flag { font-weight: 700; }
+  .lab-item .lab-flag.H { color: var(--accent-red); }
+  .lab-item .lab-flag.L { color: var(--accent-blue); }
+
+  /* Vitals */
+  .vitals-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px;
+    font-size: 0.82em;
+  }
+  .vital-item .vital-label { color: var(--text-muted); }
+  .vital-item .vital-val {
+    color: var(--text-primary); font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* Score tracker */
+  .score-section {
+    padding: 14px 16px;
+  }
+  .score-display {
+    font-family: 'JetBrains Mono', monospace; font-size: 1.5em;
+    color: var(--accent-green); font-weight: 700; text-align: center;
+  }
+  .score-label {
+    text-align: center; color: var(--text-muted); font-size: 0.75em;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+
+  /* ── History toggle ── */
+  .section-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 8px;
+  }
+  .section-header h6 { margin: 0; }
+  .btn-history {
+    background: none; border: 1px solid var(--border); color: var(--text-muted);
+    font-size: 0.65em; padding: 2px 7px; border-radius: 4px; cursor: pointer;
+    transition: all 0.15s; letter-spacing: 0.5px;
+  }
+  .btn-history:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
+  .btn-history.active { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(57,210,192,0.08); }
+
+  /* History table */
+  .history-table {
+    width: 100%; border-collapse: collapse; font-size: 0.75em;
+    font-family: 'JetBrains Mono', monospace; margin-top: 6px;
+  }
+  .history-table th {
+    color: var(--text-muted); font-weight: 600; text-align: left;
+    padding: 3px 4px; border-bottom: 1px solid var(--border);
+    font-size: 0.9em; position: sticky; top: 0; background: var(--bg-secondary);
+  }
+  .history-table td {
+    padding: 2px 4px; border-bottom: 1px solid rgba(110,118,129,0.15);
+    color: var(--text-secondary);
+  }
+  .history-table td.day-col { color: var(--text-muted); width: 36px; }
+  .history-table td.val-col { color: var(--text-primary); }
+  .history-table td .hflag { font-weight: 700; }
+  .history-table td .hflag.H { color: var(--accent-red); }
+  .history-table td .hflag.L { color: var(--accent-blue); }
+  .history-table tr.current-row { background: rgba(57,210,192,0.06); }
+  .history-table tr.current-row td { color: var(--text-primary); }
+  .history-scroll {
+    max-height: 200px; overflow-y: auto; scrollbar-width: thin;
+  }
+  .history-scroll::-webkit-scrollbar { width: 4px; }
+  .history-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+  /* Stale indicator */
+  .stale-badge {
+    font-size: 0.65em; color: var(--text-muted); background: rgba(110,118,129,0.15);
+    padding: 1px 5px; border-radius: 3px; margin-left: 4px;
+  }
+
+  /* ── Chat Area ── */
+  .chat-area {
+    flex: 1; display: flex; flex-direction: column; overflow: hidden;
+  }
+  .chat-messages {
+    flex: 1; overflow-y: auto; padding: 20px; display: flex;
+    flex-direction: column; gap: 12px;
+  }
+  .msg {
+    max-width: 75%; padding: 10px 16px; border-radius: 12px;
+    font-size: 0.92em; line-height: 1.6; word-wrap: break-word;
+  }
+  .msg.patient {
+    align-self: flex-start; background: var(--bg-card);
+    border: 1px solid var(--border); border-bottom-left-radius: 4px;
+  }
+  .msg.nurse {
+    align-self: flex-end; background: rgba(57,210,192,0.12);
+    border: 1px solid rgba(57,210,192,0.3); border-bottom-right-radius: 4px;
+  }
+  .msg.system {
+    align-self: center; background: var(--bg-elevated);
+    border: 1px solid var(--border); color: var(--text-secondary);
+    font-size: 0.82em; max-width: 90%; text-align: center;
+  }
+  .msg .role-tag {
+    font-size: 0.7em; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; margin-bottom: 4px; display: block;
+  }
+  .msg.patient .role-tag { color: var(--accent-orange); }
+  .msg.nurse .role-tag { color: var(--accent-cyan); }
+  .msg .video-obs {
+    margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border);
+    font-size: 0.82em; color: var(--text-muted);
+  }
+  .msg .video-obs::before { content: "📹 "; }
+
+  /* ── Input Area ── */
+  .input-area {
+    border-top: 1px solid var(--border); background: var(--bg-secondary);
+    padding: 12px 20px; display: flex; gap: 10px; align-items: flex-end;
+  }
+  .input-area textarea {
+    flex: 1; background: var(--bg-card); border: 1px solid var(--border);
+    color: var(--text-primary); border-radius: 8px; padding: 10px 14px;
+    font-family: inherit; font-size: 0.92em; resize: none;
+    min-height: 42px; max-height: 120px;
+  }
+  .input-area textarea:focus { outline: none; border-color: var(--accent-cyan); }
+  .input-area textarea::placeholder { color: var(--text-muted); }
+
+  .btn-game {
+    padding: 8px 16px; border-radius: 8px; border: 1px solid;
+    font-size: 0.85em; font-weight: 600; cursor: pointer; transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .btn-game:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-send {
+    background: rgba(57,210,192,0.15); border-color: rgba(57,210,192,0.4);
+    color: var(--accent-cyan);
+  }
+  .btn-send:hover:not(:disabled) { background: rgba(57,210,192,0.25); }
+  .btn-endchat {
+    background: rgba(210,153,34,0.15); border-color: rgba(210,153,34,0.4);
+    color: var(--accent-orange);
+  }
+  .btn-endchat:hover:not(:disabled) { background: rgba(210,153,34,0.25); }
+  .btn-skip {
+    background: rgba(110,118,129,0.15); border-color: rgba(110,118,129,0.4);
+    color: var(--text-secondary);
+  }
+  .btn-skip:hover:not(:disabled) { background: rgba(110,118,129,0.25); }
+  .btn-next {
+    background: rgba(63,185,80,0.15); border-color: rgba(63,185,80,0.4);
+    color: var(--accent-green);
+  }
+  .btn-next:hover:not(:disabled) { background: rgba(63,185,80,0.25); }
+  .btn-reveal {
+    background: rgba(188,140,255,0.15); border-color: rgba(188,140,255,0.4);
+    color: var(--accent-purple); font-size: 0.95em; padding: 10px 24px;
+  }
+  .btn-reveal:hover { background: rgba(188,140,255,0.25); }
+
+  /* ── Action Bar (between chat and input) ── */
+  .action-bar {
+    border-top: 1px solid var(--border); background: var(--bg-secondary);
+    padding: 10px 20px; display: flex; gap: 8px; align-items: center;
+    flex-wrap: wrap;
+  }
+  .action-bar .label {
+    color: var(--text-muted); font-size: 0.75em; text-transform: uppercase;
+    letter-spacing: 1px; margin-right: 4px;
+  }
+
+  /* ── Decision Modal ── */
+  .modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7); display: none; align-items: center;
+    justify-content: center; z-index: 1000;
+  }
+  .modal-overlay.active { display: flex; }
+  .modal-box {
+    background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: 12px; padding: 24px; width: 520px; max-height: 80vh;
+    overflow-y: auto;
+  }
+  .modal-box h3 {
+    margin: 0 0 16px; color: var(--accent-cyan); font-size: 1.1em;
+  }
+  .modal-box label {
+    display: block; color: var(--text-secondary); font-size: 0.85em;
+    margin-bottom: 4px; margin-top: 12px;
+  }
+  .modal-box input, .modal-box select, .modal-box textarea {
+    width: 100%; background: var(--bg-card); border: 1px solid var(--border);
+    color: var(--text-primary); border-radius: 6px; padding: 8px 12px;
+    font-size: 0.9em;
+  }
+  .modal-box textarea { min-height: 60px; resize: vertical; font-family: inherit; }
+  .modal-box select { cursor: pointer; }
+  .modal-actions {
+    margin-top: 18px; display: flex; gap: 10px; justify-content: flex-end;
+  }
+
+  /* ── Observations mini-form ── */
+  .obs-form {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 14px; margin: 8px 20px;
+  }
+  .obs-form h6 {
+    color: var(--text-muted); font-size: 0.72em; text-transform: uppercase;
+    letter-spacing: 1px; margin: 0 0 8px;
+  }
+  .obs-tag {
+    display: inline-block; background: var(--bg-elevated);
+    border: 1px solid var(--border); border-radius: 16px;
+    padding: 3px 10px; margin: 2px 4px 2px 0; font-size: 0.8em;
+    cursor: pointer; transition: all 0.15s;
+  }
+  .obs-tag:hover, .obs-tag.selected {
+    border-color: var(--accent-orange); color: var(--accent-orange);
+    background: rgba(210,153,34,0.12);
+  }
+  .obs-tag.selected::after { content: " ✓"; }
+
+  /* ── Reveal / Scorecard ── */
+  .reveal-container {
+    padding: 30px; max-width: 700px; margin: 0 auto;
+  }
+  .reveal-title {
+    font-size: 1.4em; font-weight: 800; color: var(--accent-purple);
+    margin-bottom: 6px; text-align: center;
+  }
+  .reveal-score {
+    font-family: 'JetBrains Mono', monospace; font-size: 2.2em;
+    color: var(--accent-green); font-weight: 700; text-align: center;
+    margin: 16px 0;
+  }
+  .scorecard-table {
+    width: 100%; border-collapse: collapse; margin-top: 16px;
+  }
+  .scorecard-table th {
+    text-align: left; color: var(--text-muted); font-size: 0.72em;
+    text-transform: uppercase; letter-spacing: 1px; padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .scorecard-table td {
+    padding: 8px 10px; border-bottom: 1px solid var(--border);
+    font-size: 0.88em;
+  }
+  .scorecard-table .detected { color: var(--accent-green); }
+  .scorecard-table .missed { color: var(--accent-red); }
+
+  /* ── Progress bar ── */
+  .progress-bar-container {
+    height: 4px; background: var(--border); width: 100%;
+  }
+  .progress-bar-fill {
+    height: 100%; background: var(--accent-cyan); transition: width 0.3s;
+  }
+
+  /* ── Loading spinner ── */
+  .spinner {
+    display: inline-block; width: 14px; height: 14px;
+    border: 2px solid var(--border); border-top-color: var(--accent-cyan);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+    margin-right: 6px; vertical-align: middle;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .hidden { display: none !important; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="game-wrapper" id="gameWrapper">
+  <!-- Sidebar -->
+  <div class="sidebar">
+    <div class="patient-header">
+      <h4>{{ patient_id }}</h4>
+      <div class="drug-label">{{ drug_name }} — {{ indication }}</div>
+    </div>
+
+    <div class="sidebar-section" id="sidebarAEs">
+      <h6>알려진 부작용 (Hospital Record)</h6>
+      <div id="aeList"><span style="color:var(--text-muted); font-size:0.85em;">아직 없음</span></div>
+    </div>
+
+    <div class="sidebar-section" id="sidebarLabs">
+      <div class="section-header">
+        <h6>검사 결과 <span class="stale-badge" id="labStale" style="display:none;"></span></h6>
+        <button class="btn-history" id="btnLabHistory" onclick="toggleLabHistory()" title="전체 이력 보기">이력</button>
+      </div>
+      <div id="labList"><span style="color:var(--text-muted); font-size:0.85em;">—</span></div>
+      <div id="labHistoryPanel" class="hidden">
+        <div class="history-scroll" id="labHistoryScroll"></div>
+      </div>
+    </div>
+
+    <div class="sidebar-section" id="sidebarVitals">
+      <div class="section-header">
+        <h6>활력징후 <span class="stale-badge" id="vitalsStale" style="display:none;"></span></h6>
+        <button class="btn-history" id="btnVitalsHistory" onclick="toggleVitalsHistory()" title="전체 이력 보기">이력</button>
+      </div>
+      <div id="vitalsList" class="vitals-grid"><span style="color:var(--text-muted); font-size:0.85em;">—</span></div>
+      <div id="vitalsHistoryPanel" class="hidden">
+        <div class="history-scroll" id="vitalsHistoryScroll"></div>
+      </div>
+    </div>
+
+    <div class="sidebar-section">
+      <h6>치료 상태</h6>
+      <div id="treatmentStatus" style="font-size:0.88em; color:var(--accent-green);">준비 중...</div>
+    </div>
+
+    <div class="score-section">
+      <div class="score-label">감지 점수</div>
+      <div class="score-display" id="scoreDisplay">—</div>
+    </div>
+  </div>
+
+  <!-- Main Area -->
+  <div class="main-area">
+    <!-- Top Bar -->
+    <div class="top-bar">
+      <div>
+        <span class="day-display">
+          Day <span id="dayNum">0</span>
+          <span class="cycle" id="cycleInfo"></span>
+        </span>
+        <span class="status-badge quiet" id="dayBadge">준비 중</span>
+      </div>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <span style="color:var(--text-muted); font-size:0.82em;" id="eventsText"></span>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-bar-container">
+      <div class="progress-bar-fill" id="progressBar" style="width:0%"></div>
+    </div>
+
+    <!-- Chat Messages -->
+    <div class="chat-messages" id="chatMessages">
+      <div class="msg system">
+        게임을 시작하려면 아래 "시작" 버튼을 누르세요.<br>
+        당신은 이 환자를 담당하는 간호사입니다.
+      </div>
+    </div>
+
+    <!-- Observation Tags (shown during chat) -->
+    <div class="obs-form hidden" id="obsForm">
+      <h6>발견한 이상징후를 선택하세요 (대화 종료 시 제출됨)</h6>
+      <div id="obsTags"></div>
+    </div>
+
+    <!-- Action Bar -->
+    <div class="action-bar" id="actionBar">
+      <button class="btn-game btn-next" id="btnStart" onclick="startGame()">게임 시작</button>
+      <button class="btn-game btn-next hidden" id="btnAdvance" onclick="advanceDay()">다음 날 →</button>
+      <button class="btn-game btn-skip hidden" id="btnSkip" onclick="skipDay()">대화 스킵</button>
+      <button class="btn-game btn-endchat hidden" id="btnEndChat" onclick="openDecisionModal()">대화 종료 + 판단 제출</button>
+      <button class="btn-game btn-reveal hidden" id="btnReveal" onclick="revealGT()">Ground Truth 공개</button>
+    </div>
+
+    <!-- Input Area -->
+    <div class="input-area hidden" id="inputArea">
+      <textarea id="chatInput" placeholder="환자에게 질문하세요..." rows="1"
+                onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChat();}"></textarea>
+      <button class="btn-game btn-send" id="btnSend" onclick="sendChat()">전송</button>
+    </div>
+  </div>
+</div>
+
+<!-- Decision Modal -->
+<div class="modal-overlay" id="decisionModal">
+  <div class="modal-box">
+    <h3>임상 판단 제출</h3>
+
+    <label>감지한 이상징후 (AE)</label>
+    <div id="modalObsList" style="margin-bottom:8px;"></div>
+    <div style="display:flex; gap:6px; margin-bottom:8px;">
+      <input type="text" id="customAE" placeholder="AE 이름 (예: peripheral_neuropathy)">
+      <select id="customGrade" style="width:80px;">
+        <option value="1">Gr 1</option>
+        <option value="2">Gr 2</option>
+        <option value="3">Gr 3</option>
+      </select>
+      <button class="btn-game btn-send" onclick="addCustomObs()" style="padding:6px 12px;">추가</button>
+    </div>
+
+    <label>조치</label>
+    <select id="actionSelect">
+      <option value="no_action">조치 없음 (no_action)</option>
+      <option value="monitor_closely">면밀히 관찰 (monitor_closely)</option>
+      <option value="recommend_conmed">보조약 추천 (recommend_conmed)</option>
+      <option value="recommend_early_visit">조기 방문 권고 (recommend_early_visit)</option>
+      <option value="recommend_hospital_visit">즉시 내원 권고 (recommend_hospital_visit)</option>
+      <option value="escalate_to_physician">의사 에스컬레이션 (escalate_to_physician)</option>
+    </select>
+
+    <label>사유</label>
+    <textarea id="actionReason" placeholder="판단 근거를 기술하세요..."></textarea>
+
+    <label>보조약 상세 (해당 시)</label>
+    <input type="text" id="actionDetail" placeholder="예: 항구토제 처방">
+
+    <div class="modal-actions">
+      <button class="btn-game btn-skip" onclick="closeDecisionModal()">취소</button>
+      <button class="btn-game btn-next" onclick="submitDecision()">제출</button>
+    </div>
+  </div>
+</div>
+
+<!-- Reveal Overlay -->
+<div class="modal-overlay" id="revealOverlay">
+  <div class="modal-box" style="width:680px;">
+    <div id="revealContent"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block js_content %}
+<script>
+const RUN_ID = "{{ run_id }}";
+const PATIENT_ID = "{{ patient_id }}";
+const TOTAL_DAYS = 84;
+const KNOWN_AE_TERMS = {{ profile|safe }};
+
+let sessionId = null;
+let currentDay = 0;
+let gameState = "idle"; // idle, advancing, chatting, finished
+let detectedObs = [];  // [{ae_term, estimated_grade, source}]
+let totalScore = 0;
+
+// ── History tracking ──
+let labHistory = [];     // [{day, labs: {name: {value, flag}}}]
+let vitalsHistory = [];  // [{day, vitals: {key: value}}]
+let showLabHist = false;
+let showVitalsHist = false;
+
+// AE terms from rule_set (loaded from patient profile)
+const aeTerms = (function() {
+  try {
+    const p = JSON.parse('{{ profile|escapejs }}');
+    return [];
+  } catch(e) { return []; }
+})();
+
+// ── API Helpers ──
+async function api(endpoint, body) {
+  const resp = await fetch('/api/game/' + endpoint, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body),
+  });
+  return resp.json();
+}
+
+// ── Game Flow ──
+async function startGame() {
+  setLoading(true);
+  const data = await api('start', {
+    run_id: RUN_ID, patient_id: PATIENT_ID,
+    total_days: TOTAL_DAYS, seed: Math.floor(Math.random() * 10000),
+  });
+  sessionId = data.session_id;
+  addSystemMsg(`세션 ${sessionId} 생성 완료. Day 1부터 시작합니다.`);
+
+  document.getElementById('btnStart').classList.add('hidden');
+  setLoading(false);
+
+  await advanceDay();
+}
+
+async function advanceDay() {
+  if (!sessionId) return;
+  setLoading(true);
+  gameState = "advancing";
+
+  const data = await api('advance', {session_id: sessionId});
+
+  if (data.is_finished) {
+    gameState = "finished";
+    addSystemMsg("시뮬레이션이 종료되었습니다.");
+    showFinishedUI();
+    setLoading(false);
+    return;
+  }
+
+  currentDay = data.day;
+  updateTopBar(data);
+  updateSidebar(data.hospital_record);
+
+  // 시스템 메시지: Day 시작
+  let dayMsg = `Day ${data.day}`;
+  if (data.is_hospital) dayMsg += " (병원 방문일)";
+  if (data.is_event_day) dayMsg += " — 이벤트 발생";
+  dayMsg += ` | ${data.events_summary}`;
+  addSystemMsg(dayMsg);
+
+  // 환자 인사 요청
+  const greet = await api('greet', {session_id: sessionId});
+  addPatientMsg(greet.display_text, greet.video_visible);
+
+  // UI 모드: 채팅 활성화
+  gameState = "chatting";
+  showChatUI();
+  detectedObs = [];
+  updateObsTags(data.hospital_record);
+  setLoading(false);
+}
+
+async function sendChat() {
+  const input = document.getElementById('chatInput');
+  const msg = input.value.trim();
+  if (!msg || gameState !== "chatting") return;
+
+  input.value = '';
+  addNurseMsg(msg);
+  setLoading(true);
+
+  const data = await api('chat', {session_id: sessionId, message: msg});
+  addPatientMsg(data.display_text, data.video_visible);
+
+  if (data.revealed_new_info) {
+    addSystemMsg("환자가 새로운 정보를 공개했습니다.");
+  }
+  setLoading(false);
+  input.focus();
+}
+
+async function skipDay() {
+  if (!sessionId) return;
+  setLoading(true);
+
+  const data = await api('skip', {session_id: sessionId});
+  addSystemMsg(`Day ${currentDay} 스킵 — 조치 없음`);
+
+  if (data.is_finished) {
+    gameState = "finished";
+    addSystemMsg("시뮬레이션이 종료되었습니다.");
+    showFinishedUI();
+  } else {
+    showAdvanceUI();
+  }
+  setLoading(false);
+}
+
+function openDecisionModal() {
+  // 선택된 obs를 모달에 표시
+  const list = document.getElementById('modalObsList');
+  list.innerHTML = detectedObs.map(o =>
+    `<span class="obs-tag selected">${o.ae_term} Gr${o.estimated_grade}</span>`
+  ).join('') || '<span style="color:var(--text-muted); font-size:0.85em;">선택된 이상징후 없음</span>';
+  document.getElementById('decisionModal').classList.add('active');
+}
+
+function closeDecisionModal() {
+  document.getElementById('decisionModal').classList.remove('active');
+}
+
+function addCustomObs() {
+  const ae = document.getElementById('customAE').value.trim();
+  const grade = parseInt(document.getElementById('customGrade').value);
+  if (!ae) return;
+  detectedObs.push({ae_term: ae, estimated_grade: grade, source: "player_chat"});
+  document.getElementById('customAE').value = '';
+  // 모달 obs 리스트 갱신
+  const list = document.getElementById('modalObsList');
+  list.innerHTML = detectedObs.map(o =>
+    `<span class="obs-tag selected">${o.ae_term} Gr${o.estimated_grade}</span>`
+  ).join('');
+}
+
+async function submitDecision() {
+  closeDecisionModal();
+  setLoading(true);
+
+  const action = document.getElementById('actionSelect').value;
+  const reason = document.getElementById('actionReason').value.trim();
+  const detail = document.getElementById('actionDetail').value.trim();
+
+  const actions = [{action: action, reason: reason || "player decision", detail: detail}];
+
+  const data = await api('end-chat', {
+    session_id: sessionId,
+    observations: detectedObs,
+    actions: actions,
+  });
+
+  // 결과 메시지
+  if (data.applied_interventions && data.applied_interventions.length > 0) {
+    addSystemMsg(`개입 적용: ${data.applied_interventions.join(', ')}`);
+  }
+  if (data.force_hospital_tomorrow) {
+    addSystemMsg("내일 병원 방문이 예약되었습니다.");
+  }
+
+  // 점수 갱신
+  totalScore += detectedObs.length * 5;
+  document.getElementById('scoreDisplay').textContent = totalScore;
+
+  // 다음 단계
+  if (data.is_finished) {
+    gameState = "finished";
+    addSystemMsg("시뮬레이션이 종료되었습니다.");
+    showFinishedUI();
+  } else {
+    showAdvanceUI();
+  }
+  setLoading(false);
+
+  // 폼 초기화
+  document.getElementById('actionReason').value = '';
+  document.getElementById('actionDetail').value = '';
+  document.getElementById('actionSelect').value = 'no_action';
+  detectedObs = [];
+}
+
+async function revealGT() {
+  setLoading(true);
+  const resp = await fetch(`/api/game/reveal/${sessionId}/`);
+  const data = await resp.json();
+
+  let html = `
+    <div class="reveal-title">Ground Truth 공개</div>
+    <div class="reveal-score">${data.score_pct}%</div>
+    <p style="text-align:center; color:var(--text-secondary);">
+      ${data.total_score} / ${data.max_score} 점
+      | ${data.total_days_played}일 플레이
+    </p>
+    <p style="text-align:center; color:var(--text-muted); font-size:0.85em;">
+      종양 반응: ${data.simulator_summary.tumor_response}
+      | ECOG: ${data.simulator_summary.ecog_change}
+      | 발생 AE: ${data.simulator_summary.occurred_aes.join(', ')}
+    </p>
+    <table class="scorecard-table">
+      <thead><tr>
+        <th>AE</th><th>GT 발생일</th><th>감지일</th><th>지연</th><th>점수</th>
+      </tr></thead>
+      <tbody>`;
+
+  for (const row of data.scorecard) {
+    const cls = row.player_detected ? 'detected' : 'missed';
+    const detected = row.player_detected || '—';
+    const delay = row.delay_days !== null ? `${row.delay_days}일` : '미감지';
+    html += `<tr>
+      <td>${row.ae}</td>
+      <td>Day ${row.gt_onset}</td>
+      <td class="${cls}">${detected !== '—' ? 'Day ' + detected : '—'}</td>
+      <td class="${cls}">${delay}</td>
+      <td>${row.score}/10</td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+
+  document.getElementById('revealContent').innerHTML = html;
+  document.getElementById('revealOverlay').classList.add('active');
+  setLoading(false);
+}
+
+// ── UI Helpers ──
+function addSystemMsg(text) {
+  const el = document.createElement('div');
+  el.className = 'msg system';
+  el.textContent = text;
+  const container = document.getElementById('chatMessages');
+  container.appendChild(el);
+  container.scrollTop = container.scrollHeight;
+}
+
+function addPatientMsg(text, videoVisible) {
+  const el = document.createElement('div');
+  el.className = 'msg patient';
+  let html = '<span class="role-tag">환자</span>' + escapeHtml(text).replace(/\n/g, '<br>');
+  if (videoVisible && videoVisible.length > 0) {
+    html += `<div class="video-obs">${videoVisible.join(', ')}</div>`;
+  }
+  el.innerHTML = html;
+  const container = document.getElementById('chatMessages');
+  container.appendChild(el);
+  container.scrollTop = container.scrollHeight;
+}
+
+function addNurseMsg(text) {
+  const el = document.createElement('div');
+  el.className = 'msg nurse';
+  el.innerHTML = '<span class="role-tag">간호사 (당신)</span>' + escapeHtml(text).replace(/\n/g, '<br>');
+  const container = document.getElementById('chatMessages');
+  container.appendChild(el);
+  container.scrollTop = container.scrollHeight;
+}
+
+function updateTopBar(data) {
+  document.getElementById('dayNum').textContent = data.day;
+  document.getElementById('cycleInfo').textContent = `(C${data.cycle}D${data.cycle_day})`;
+  document.getElementById('progressBar').style.width = `${(data.day / TOTAL_DAYS) * 100}%`;
+  document.getElementById('eventsText').textContent = data.events_summary;
+
+  const badge = document.getElementById('dayBadge');
+  badge.className = 'status-badge';
+  if (data.is_hospital) {
+    badge.textContent = '병원 방문일';
+    badge.classList.add('hospital');
+  } else if (data.is_event_day) {
+    badge.textContent = '이벤트';
+    badge.classList.add('event');
+  } else {
+    badge.textContent = '일반';
+    badge.classList.add('quiet');
+  }
+}
+
+function updateSidebar(hr) {
+  if (!hr) return;
+  const obj = hr.objective || {};
+
+  // AEs
+  const aes = obj.active_aes || [];
+  const aeList = document.getElementById('aeList');
+  if (aes.length === 0) {
+    aeList.innerHTML = '<span style="color:var(--text-muted); font-size:0.85em;">없음</span>';
+  } else {
+    aeList.innerHTML = aes.map(ae => {
+      const g = ae.grade || 0;
+      const gcls = g >= 4 ? 'g4' : g >= 3 ? 'g3' : g >= 2 ? 'g2' : 'g1';
+      return `<div class="ae-item">
+        <span class="ae-name">${ae.ae || '?'}</span>
+        <span class="ae-grade ${gcls}">G${g}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // Labs — current view
+  const labs = obj.labs || {};
+  const labList = document.getElementById('labList');
+  const labEntries = Object.entries(labs).filter(([k, v]) => typeof v === 'object');
+  if (labEntries.length === 0) {
+    labList.innerHTML = '<span style="color:var(--text-muted); font-size:0.85em;">—</span>';
+  } else {
+    labList.innerHTML = labEntries.slice(0, 10).map(([name, v]) => {
+      const flag = v.flag || '';
+      const flagCls = flag.includes('H') ? 'H' : flag.includes('L') ? 'L' : '';
+      return `<div class="lab-item">
+        <span class="lab-name">${name}</span>
+        <span class="lab-val">${v.value || '?'} <span class="lab-flag ${flagCls}">${flag}</span></span>
+      </div>`;
+    }).join('');
+  }
+
+  // Labs — record history (only when we have new data with entries)
+  if (labEntries.length > 0) {
+    const lastHist = labHistory.length > 0 ? labHistory[labHistory.length - 1] : null;
+    const isDuplicate = lastHist && lastHist.day === currentDay;
+    const snapshot = {};
+    for (const [name, v] of labEntries) {
+      snapshot[name] = { value: v.value, flag: v.flag || '' };
+    }
+    if (isDuplicate) {
+      labHistory[labHistory.length - 1] = { day: currentDay, labs: snapshot };
+    } else {
+      labHistory.push({ day: currentDay, labs: snapshot });
+    }
+    if (showLabHist) renderLabHistory();
+  }
+
+  // Labs — staleness indicator
+  const labStale = document.getElementById('labStale');
+  const labStaleDays = obj.labs_stale_days;
+  if (labStaleDays && labStaleDays > 0) {
+    labStale.textContent = `${labStaleDays}일 전`;
+    labStale.style.display = 'inline';
+  } else {
+    labStale.style.display = 'none';
+  }
+
+  // Vitals — current view
+  const vitals = obj.vitals || {};
+  const vitalsDiv = document.getElementById('vitalsList');
+  const vKeys = ['BT', 'HR', 'SBP', 'DBP', 'SpO2', 'weight_kg'];
+  const vItems = vKeys.filter(k => vitals[k] != null).map(k =>
+    `<div class="vital-item"><span class="vital-label">${k}</span> <span class="vital-val">${vitals[k]}</span></div>`
+  );
+  vitalsDiv.innerHTML = vItems.length > 0 ? vItems.join('') :
+    '<span style="color:var(--text-muted); font-size:0.85em;">—</span>';
+
+  // Vitals — record history
+  const vData = {};
+  vKeys.forEach(k => { if (vitals[k] != null) vData[k] = vitals[k]; });
+  if (Object.keys(vData).length > 0) {
+    const lastVH = vitalsHistory.length > 0 ? vitalsHistory[vitalsHistory.length - 1] : null;
+    const isDupV = lastVH && lastVH.day === currentDay;
+    if (isDupV) {
+      vitalsHistory[vitalsHistory.length - 1] = { day: currentDay, vitals: vData };
+    } else {
+      vitalsHistory.push({ day: currentDay, vitals: vData });
+    }
+    if (showVitalsHist) renderVitalsHistory();
+  }
+
+  // Vitals — staleness indicator
+  const vitalsStale = document.getElementById('vitalsStale');
+  const vitalsStaleDays = obj.vitals_stale_days;
+  if (vitalsStaleDays && vitalsStaleDays > 0) {
+    vitalsStale.textContent = `${vitalsStaleDays}일 전`;
+    vitalsStale.style.display = 'inline';
+  } else {
+    vitalsStale.style.display = 'none';
+  }
+
+  // Treatment status
+  const tx = obj.treatment_status || 'on_treatment';
+  const txEl = document.getElementById('treatmentStatus');
+  txEl.textContent = tx;
+  txEl.style.color = tx === 'on_treatment' ? 'var(--accent-green)' :
+    tx.includes('hold') || tx.includes('interrupted') ? 'var(--accent-orange)' :
+    tx.includes('discontinue') || tx.includes('withdrawn') ? 'var(--accent-red)' :
+    'var(--text-primary)';
+}
+
+// ── Lab History ──
+function toggleLabHistory() {
+  showLabHist = !showLabHist;
+  const panel = document.getElementById('labHistoryPanel');
+  const btn = document.getElementById('btnLabHistory');
+  const currentView = document.getElementById('labList');
+  if (showLabHist) {
+    panel.classList.remove('hidden');
+    currentView.classList.add('hidden');
+    btn.classList.add('active');
+    btn.textContent = '최근만';
+    renderLabHistory();
+  } else {
+    panel.classList.add('hidden');
+    currentView.classList.remove('hidden');
+    btn.classList.remove('active');
+    btn.textContent = '이력';
+  }
+}
+
+function renderLabHistory() {
+  if (labHistory.length === 0) return;
+  const scroll = document.getElementById('labHistoryScroll');
+  const allLabNames = new Set();
+  labHistory.forEach(h => Object.keys(h.labs).forEach(n => allLabNames.add(n)));
+  const names = Array.from(allLabNames);
+
+  let html = '<table class="history-table"><thead><tr><th>Day</th>';
+  names.forEach(n => { html += `<th>${n}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  for (let i = labHistory.length - 1; i >= 0; i--) {
+    const h = labHistory[i];
+    const isCurrent = (i === labHistory.length - 1);
+    html += `<tr class="${isCurrent ? 'current-row' : ''}">`;
+    html += `<td class="day-col">${h.day}</td>`;
+    names.forEach(n => {
+      const val = h.labs[n];
+      if (val) {
+        const flagCls = val.flag && val.flag.includes('H') ? 'H' : val.flag && val.flag.includes('L') ? 'L' : '';
+        html += `<td class="val-col">${val.value}<span class="hflag ${flagCls}">${val.flag ? ' ' + val.flag : ''}</span></td>`;
+      } else {
+        html += '<td>—</td>';
+      }
+    });
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  scroll.innerHTML = html;
+}
+
+// ── Vitals History ──
+function toggleVitalsHistory() {
+  showVitalsHist = !showVitalsHist;
+  const panel = document.getElementById('vitalsHistoryPanel');
+  const btn = document.getElementById('btnVitalsHistory');
+  const currentView = document.getElementById('vitalsList');
+  if (showVitalsHist) {
+    panel.classList.remove('hidden');
+    currentView.classList.add('hidden');
+    btn.classList.add('active');
+    btn.textContent = '최근만';
+    renderVitalsHistory();
+  } else {
+    panel.classList.add('hidden');
+    currentView.classList.remove('hidden');
+    btn.classList.remove('active');
+    btn.textContent = '이력';
+  }
+}
+
+function renderVitalsHistory() {
+  if (vitalsHistory.length === 0) return;
+  const scroll = document.getElementById('vitalsHistoryScroll');
+  const vKeys = ['BT', 'HR', 'SBP', 'DBP', 'SpO2', 'weight_kg'];
+
+  let html = '<table class="history-table"><thead><tr><th>Day</th>';
+  vKeys.forEach(k => { html += `<th>${k}</th>`; });
+  html += '</tr></thead><tbody>';
+
+  for (let i = vitalsHistory.length - 1; i >= 0; i--) {
+    const h = vitalsHistory[i];
+    const isCurrent = (i === vitalsHistory.length - 1);
+    html += `<tr class="${isCurrent ? 'current-row' : ''}">`;
+    html += `<td class="day-col">${h.day}</td>`;
+    vKeys.forEach(k => {
+      html += `<td class="val-col">${h.vitals[k] != null ? h.vitals[k] : '—'}</td>`;
+    });
+    html += '</tr>';
+  }
+  html += '</tbody></table>';
+  scroll.innerHTML = html;
+}
+
+function updateObsTags(hr) {
+  // AE 용어 태그 생성 (플레이어가 클릭하여 감지 기록)
+  const commonAEs = [
+    'fatigue', 'peripheral_neuropathy', 'rash_maculopapular', 'decreased_appetite',
+    'nausea', 'diarrhea', 'alopecia', 'pruritus', 'hyperglycemia', 'pneumonitis'
+  ];
+  const tagsDiv = document.getElementById('obsTags');
+  tagsDiv.innerHTML = commonAEs.map(ae =>
+    `<span class="obs-tag" data-ae="${ae}" onclick="toggleObsTag(this)">${ae}</span>`
+  ).join('');
+  document.getElementById('obsForm').classList.remove('hidden');
+}
+
+function toggleObsTag(el) {
+  const ae = el.dataset.ae;
+  if (el.classList.contains('selected')) {
+    el.classList.remove('selected');
+    detectedObs = detectedObs.filter(o => o.ae_term !== ae);
+  } else {
+    el.classList.add('selected');
+    detectedObs.push({ae_term: ae, estimated_grade: 1, source: "player_chat"});
+  }
+}
+
+function showChatUI() {
+  document.getElementById('inputArea').classList.remove('hidden');
+  document.getElementById('btnAdvance').classList.add('hidden');
+  document.getElementById('btnSkip').classList.remove('hidden');
+  document.getElementById('btnEndChat').classList.remove('hidden');
+  document.getElementById('btnReveal').classList.add('hidden');
+  document.getElementById('chatInput').focus();
+}
+
+function showAdvanceUI() {
+  document.getElementById('inputArea').classList.add('hidden');
+  document.getElementById('btnAdvance').classList.remove('hidden');
+  document.getElementById('btnSkip').classList.add('hidden');
+  document.getElementById('btnEndChat').classList.add('hidden');
+  document.getElementById('btnReveal').classList.add('hidden');
+  document.getElementById('obsForm').classList.add('hidden');
+  gameState = "idle";
+}
+
+function showFinishedUI() {
+  document.getElementById('inputArea').classList.add('hidden');
+  document.getElementById('btnAdvance').classList.add('hidden');
+  document.getElementById('btnSkip').classList.add('hidden');
+  document.getElementById('btnEndChat').classList.add('hidden');
+  document.getElementById('btnReveal').classList.remove('hidden');
+  document.getElementById('obsForm').classList.add('hidden');
+  gameState = "finished";
+}
+
+function setLoading(on) {
+  document.getElementById('btnSend').disabled = on;
+  document.getElementById('btnAdvance').disabled = on;
+  document.getElementById('btnSkip').disabled = on;
+  document.getElementById('btnEndChat').disabled = on;
+}
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+// Close modals on overlay click
+document.getElementById('revealOverlay').addEventListener('click', function(e) {
+  if (e.target === this) this.classList.remove('active');
+});
+</script>
+{% endblock %}

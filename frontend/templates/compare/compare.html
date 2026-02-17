@@ -1,0 +1,456 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}A/B Comparison — {{ drug_name }}{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  .cmp-wrap { max-width: 1200px; margin: 2em auto; padding: 0 20px; }
+  .cmp-title { font-size: 1.6em; font-weight: 800; color: var(--accent-cyan); margin-bottom: 0.1em; }
+  .cmp-sub { color: var(--text-secondary); font-size: 0.92em; margin-bottom: 1.5em; }
+  .cmp-sub strong { color: var(--accent-orange); }
+
+  /* ── Summary Cards ── */
+  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 1.5em; }
+  .metric-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px; position: relative; overflow: hidden;
+  }
+  .metric-card .label { font-size: 0.72em; text-transform: uppercase; letter-spacing: 1.2px;
+    color: var(--text-muted); font-weight: 700; margin-bottom: 8px; }
+  .metric-card .values { display: flex; justify-content: space-between; align-items: baseline; }
+  .metric-card .val { font-size: 1.4em; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .metric-card .val.nat { color: var(--text-secondary); }
+  .metric-card .val.ai { color: var(--accent-cyan); }
+  .metric-card .delta {
+    position: absolute; top: 8px; right: 10px;
+    font-size: 0.75em; font-weight: 700; padding: 2px 7px; border-radius: 10px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .delta.good { background: rgba(57,210,192,0.15); color: var(--accent-green); }
+  .delta.bad { background: rgba(255,100,100,0.15); color: #ff6b6b; }
+  .delta.neutral { background: rgba(150,150,150,0.1); color: var(--text-muted); }
+  .metric-card .sub { font-size: 0.72em; color: var(--text-muted); margin-top: 6px; }
+
+  /* ── Charts ── */
+  .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 1.5em; }
+  .chart-box {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px;
+  }
+  .chart-box h6 { margin: 0 0 12px; font-size: 0.82em; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+  .chart-box canvas { width: 100% !important; max-height: 320px; }
+
+  /* ── Patient Table ── */
+  .ptable { width: 100%; border-collapse: collapse; font-size: 0.82em; margin-top: 1em; }
+  .ptable th {
+    text-align: left; padding: 8px 10px; font-weight: 700; font-size: 0.72em;
+    text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);
+    border-bottom: 2px solid var(--border);
+  }
+  .ptable td { padding: 6px 10px; border-bottom: 1px solid var(--border); }
+  .ptable tr:hover { background: var(--bg-card-hover); }
+  .ptable .mono { font-family: 'JetBrains Mono', monospace; }
+  .ptable .mode-nat { color: var(--text-secondary); }
+  .ptable .mode-ai { color: var(--accent-cyan); }
+  .ptable .g3 { color: #ff6b6b; font-weight: 700; }
+
+  /* ── Stats Box ── */
+  .stats-box {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px; margin-bottom: 1.5em; font-size: 0.85em;
+  }
+  .stats-box h6 { margin: 0 0 10px; font-size: 0.82em; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+  .stats-box .stat-row { display: flex; justify-content: space-between; padding: 4px 0;
+    border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .stats-box .stat-label { color: var(--text-secondary); }
+  .stats-box .stat-val { font-family: 'JetBrains Mono', monospace; color: var(--text-primary); }
+  .sig { font-weight: 700; }
+  .sig.yes { color: var(--accent-green); }
+  .sig.no { color: var(--text-muted); }
+
+  /* ── Section ── */
+  .sec-title {
+    font-size: 0.72em; text-transform: uppercase; letter-spacing: 2px;
+    color: var(--text-muted); font-weight: 700; margin: 1.5em 0 0.8em; padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* ── AE Timeline ── */
+  .timeline-row { display: flex; align-items: center; margin-bottom: 3px; font-size: 0.78em; }
+  .timeline-label { width: 100px; flex-shrink: 0; font-family: 'JetBrains Mono', monospace;
+    color: var(--text-secondary); text-align: right; padding-right: 8px; }
+  .timeline-bar-wrap { flex: 1; height: 14px; position: relative; background: var(--bg-elevated);
+    border-radius: 3px; overflow: hidden; }
+  .timeline-bar { position: absolute; height: 100%; border-radius: 3px; min-width: 2px; }
+  .timeline-bar.g1 { background: #4ecdc4; }
+  .timeline-bar.g2 { background: #feca57; }
+  .timeline-bar.g3 { background: #ff6b6b; }
+  .timeline-bar.g4 { background: #ee5a24; }
+
+  @media (max-width: 800px) {
+    .chart-row { grid-template-columns: 1fr; }
+    .card-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+{% endblock %}
+
+{% block nav_items %}
+<span class="nav-sep">/</span>
+<a href="{% url 'trial_viewer' run_id %}">{{ run_id|truncatechars:30 }}</a>
+<span class="nav-sep">/</span>
+<a href="{% url 'compare_dashboard' run_id %}" class="nav-active">A/B Compare</a>
+<span class="nav-sep">|</span>
+<a href="{% url 'trial_viewer' run_id %}">Day View</a>
+<span class="nav-sep">|</span>
+<a href="{% url 'game_landing' run_id %}">Game</a>
+{% endblock %}
+
+{% block content %}
+<div class="cmp-wrap">
+  <div class="cmp-title">A/B Comparison Dashboard</div>
+  <p class="cmp-sub">
+    <strong>{{ drug_name }}</strong> — {{ indication }}<br>
+    Natural (Care AI 없음) vs Care AI (매일 영상통화) 시뮬레이션 비교
+  </p>
+
+  <!-- ═══ SUMMARY CARDS ═══ -->
+  <div class="card-grid" id="cards"></div>
+
+  <!-- ═══ CHARTS ═══ -->
+  <div class="sec-title">Charts</div>
+  <div class="chart-row">
+    <div class="chart-box">
+      <h6>AE Detection Delay (days per patient)</h6>
+      <canvas id="chartDelay"></canvas>
+    </div>
+    <div class="chart-box">
+      <h6>AE Burden (grade × days per patient)</h6>
+      <canvas id="chartBurden"></canvas>
+    </div>
+  </div>
+  <div class="chart-row">
+    <div class="chart-box">
+      <h6>Grade 3+ AE Days per Patient</h6>
+      <canvas id="chartG3"></canvas>
+    </div>
+    <div class="chart-box">
+      <h6>ECOG Change (start → end)</h6>
+      <canvas id="chartEcog"></canvas>
+    </div>
+  </div>
+
+  <!-- ═══ CARE AI ACTIVITY ═══ -->
+  <div class="sec-title">Care AI Activity</div>
+  <div class="chart-row">
+    <div class="chart-box">
+      <h6>Intervention Types</h6>
+      <canvas id="chartActions"></canvas>
+    </div>
+    <div class="stats-box">
+      <h6>Care AI Summary</h6>
+      <div id="careStats"></div>
+    </div>
+  </div>
+
+  <!-- ═══ STATISTICAL TESTS ═══ -->
+  <div class="sec-title">Statistical Tests</div>
+  <div class="stats-box" id="statsBox"></div>
+
+  <!-- ═══ PATIENT TABLE ═══ -->
+  <div class="sec-title">Per-Patient Comparison</div>
+  <table class="ptable" id="patientTable">
+    <thead>
+      <tr>
+        <th>Patient</th>
+        <th>Mode</th>
+        <th>AEs</th>
+        <th>AE Burden</th>
+        <th>G3+ Days</th>
+        <th>Detect Delay</th>
+        <th>Tx Days</th>
+        <th>ECOG Δ</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="ptBody"></tbody>
+  </table>
+</div>
+
+<script>
+const R = {{ report_json|safe }};
+const RUN_ID = "{{ run_id }}";
+
+// ── Chart.js defaults ──
+Chart.defaults.color = '#8b949e';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.font.family = "'JetBrains Mono', monospace";
+Chart.defaults.font.size = 11;
+
+// ── Helper ──
+function delta(care, nat, lowerIsBetter) {
+  const d = care - nat;
+  const pct = nat !== 0 ? Math.round((d / Math.abs(nat)) * 100) : 0;
+  const sign = d > 0 ? '+' : '';
+  const cls = (lowerIsBetter ? d < 0 : d > 0) ? 'good' : d === 0 ? 'neutral' : 'bad';
+  return `<span class="delta ${cls}">${sign}${pct}%</span>`;
+}
+
+// ═══ SUMMARY CARDS ═══
+function renderCards() {
+  const cards = [
+    {
+      label: 'AE Detection Delay',
+      nat: R.detection_delay.natural_mean != null ? R.detection_delay.natural_mean + 'd' : 'N/A',
+      ai: R.detection_delay.care_ai_mean != null ? R.detection_delay.care_ai_mean + 'd' : 'N/A',
+      delta: R.deltas.detection_delay != null
+        ? delta(R.detection_delay.care_ai_mean, R.detection_delay.natural_mean, true)
+        : '<span class="delta neutral">—</span>',
+      sub: `Undetected: Nat=${R.detection_delay.natural_undetected}, AI=${R.detection_delay.care_ai_undetected}`
+    },
+    {
+      label: 'AE Burden (grade×days)',
+      nat: R.ae_burden.natural_mean,
+      ai: R.ae_burden.care_ai_mean,
+      delta: delta(R.ae_burden.care_ai_mean, R.ae_burden.natural_mean, true),
+      sub: `Unique AEs: Nat=${R.ae_burden.natural_unique_aes}, AI=${R.ae_burden.care_ai_unique_aes}`
+    },
+    {
+      label: 'Grade 3+ AE Days',
+      nat: R.severe_aes.natural_g3plus_mean,
+      ai: R.severe_aes.care_ai_g3plus_mean,
+      delta: delta(R.severe_aes.care_ai_g3plus_mean, R.severe_aes.natural_g3plus_mean, true),
+      sub: `G4+: Nat=${R.severe_aes.natural_g4plus_mean}, AI=${R.severe_aes.care_ai_g4plus_mean}`
+    },
+    {
+      label: 'Treatment Duration',
+      nat: R.treatment_duration.natural_mean + 'd',
+      ai: R.treatment_duration.care_ai_mean + 'd',
+      delta: delta(R.treatment_duration.care_ai_mean, R.treatment_duration.natural_mean, false),
+      sub: `Δ = ${R.deltas.treatment_duration > 0 ? '+' : ''}${R.deltas.treatment_duration}d`
+    },
+    {
+      label: 'ECOG Change',
+      nat: (R.ecog.natural_mean_delta >= 0 ? '+' : '') + R.ecog.natural_mean_delta,
+      ai: (R.ecog.care_ai_mean_delta >= 0 ? '+' : '') + R.ecog.care_ai_mean_delta,
+      delta: delta(R.ecog.care_ai_mean_delta, R.ecog.natural_mean_delta, true),
+      sub: `End ECOG: Nat=${R.ecog.natural_mean_end}, AI=${R.ecog.care_ai_mean_end}`
+    },
+    {
+      label: 'Discontinued',
+      nat: R.discontinuation.natural_count + '/' + R.cohort_sizes.natural,
+      ai: R.discontinuation.care_ai_count + '/' + R.cohort_sizes.care_ai,
+      delta: delta(R.discontinuation.care_ai_pct, R.discontinuation.natural_pct, true),
+      sub: `Mortality: Nat=${R.mortality.natural_deaths}, AI=${R.mortality.care_ai_deaths}`
+    },
+  ];
+
+  let html = '';
+  for (const c of cards) {
+    html += `<div class="metric-card">
+      ${c.delta}
+      <div class="label">${c.label}</div>
+      <div class="values">
+        <div><span class="val nat">${c.nat}</span><br><span style="font-size:0.65em;color:var(--text-muted)">Natural</span></div>
+        <div><span class="val ai">${c.ai}</span><br><span style="font-size:0.65em;color:var(--text-muted)">Care AI</span></div>
+      </div>
+      <div class="sub">${c.sub}</div>
+    </div>`;
+  }
+  document.getElementById('cards').innerHTML = html;
+}
+
+// ═══ CHARTS ═══
+function pidList() {
+  return R.natural_patients.map(p => p.patient_id);
+}
+
+function renderDelayChart() {
+  const pids = pidList();
+  const natData = pids.map(pid => {
+    const m = R.natural_patients.find(p => p.patient_id === pid);
+    return m && m.mean_detection_delay != null ? m.mean_detection_delay : 0;
+  });
+  const aiData = pids.map(pid => {
+    const m = R.care_ai_patients.find(p => p.patient_id === pid);
+    return m && m.mean_detection_delay != null ? m.mean_detection_delay : 0;
+  });
+
+  new Chart(document.getElementById('chartDelay'), {
+    type: 'bar',
+    data: {
+      labels: pids,
+      datasets: [
+        { label: 'Natural', data: natData, backgroundColor: 'rgba(139,148,158,0.6)', borderRadius: 3 },
+        { label: 'Care AI', data: aiData, backgroundColor: 'rgba(57,210,192,0.6)', borderRadius: 3 },
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'top' } },
+      scales: { y: { title: { display: true, text: 'days' }, beginAtZero: true } } }
+  });
+}
+
+function renderBurdenChart() {
+  const pids = pidList();
+  const natData = pids.map(pid => R.natural_patients.find(p => p.patient_id === pid).total_ae_burden);
+  const aiData = pids.map(pid => R.care_ai_patients.find(p => p.patient_id === pid).total_ae_burden);
+
+  new Chart(document.getElementById('chartBurden'), {
+    type: 'bar',
+    data: {
+      labels: pids,
+      datasets: [
+        { label: 'Natural', data: natData, backgroundColor: 'rgba(139,148,158,0.6)', borderRadius: 3 },
+        { label: 'Care AI', data: aiData, backgroundColor: 'rgba(57,210,192,0.6)', borderRadius: 3 },
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'top' } },
+      scales: { y: { title: { display: true, text: 'grade × days' }, beginAtZero: true } } }
+  });
+}
+
+function renderG3Chart() {
+  const pids = pidList();
+  const natData = pids.map(pid => R.natural_patients.find(p => p.patient_id === pid).grade3plus_ae_days);
+  const aiData = pids.map(pid => R.care_ai_patients.find(p => p.patient_id === pid).grade3plus_ae_days);
+
+  new Chart(document.getElementById('chartG3'), {
+    type: 'bar',
+    data: {
+      labels: pids,
+      datasets: [
+        { label: 'Natural', data: natData, backgroundColor: 'rgba(255,107,107,0.5)', borderRadius: 3 },
+        { label: 'Care AI', data: aiData, backgroundColor: 'rgba(254,202,87,0.5)', borderRadius: 3 },
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'top' } },
+      scales: { y: { title: { display: true, text: 'G3+ AE-days' }, beginAtZero: true } } }
+  });
+}
+
+function renderEcogChart() {
+  const pids = pidList();
+  const natData = pids.map(pid => {
+    const m = R.natural_patients.find(p => p.patient_id === pid);
+    return m.ecog_end - m.ecog_start;
+  });
+  const aiData = pids.map(pid => {
+    const m = R.care_ai_patients.find(p => p.patient_id === pid);
+    return m.ecog_end - m.ecog_start;
+  });
+
+  new Chart(document.getElementById('chartEcog'), {
+    type: 'bar',
+    data: {
+      labels: pids,
+      datasets: [
+        { label: 'Natural', data: natData, backgroundColor: 'rgba(139,148,158,0.6)', borderRadius: 3 },
+        { label: 'Care AI', data: aiData, backgroundColor: 'rgba(57,210,192,0.6)', borderRadius: 3 },
+      ]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'top' } },
+      scales: { y: { title: { display: true, text: 'ECOG Δ' } } } }
+  });
+}
+
+function renderActionsChart() {
+  const types = R.care_ai_activity.intervention_type_totals;
+  const labels = Object.keys(types);
+  const data = Object.values(types);
+  const colors = ['rgba(57,210,192,0.7)', 'rgba(254,202,87,0.7)', 'rgba(255,107,107,0.7)',
+                  'rgba(188,140,255,0.7)', 'rgba(88,166,255,0.7)'];
+
+  new Chart(document.getElementById('chartActions'), {
+    type: 'doughnut',
+    data: {
+      labels: labels,
+      datasets: [{ data: data, backgroundColor: colors.slice(0, labels.length), borderWidth: 0 }]
+    },
+    options: { responsive: true, plugins: { legend: { position: 'right' } } }
+  });
+}
+
+// ═══ CARE AI STATS ═══
+function renderCareStats() {
+  const c = R.care_ai_activity;
+  let html = '';
+  const rows = [
+    ['Mean interventions/patient', c.mean_interventions],
+    ['Mean AE detections/patient', c.mean_detections],
+    ['Mean turns/call', c.mean_turns_per_call],
+    ['Total early terminations', c.total_early_terminations],
+    ['Force-hospital triggers', c.total_force_hospital],
+  ];
+  for (const [label, val] of rows) {
+    html += `<div class="stat-row"><span class="stat-label">${label}</span><span class="stat-val">${val}</span></div>`;
+  }
+  document.getElementById('careStats').innerHTML = html;
+}
+
+// ═══ STATISTICAL TESTS ═══
+function renderStats() {
+  const stats = R.statistics;
+  let html = '<h6>Paired Tests & Confidence Intervals</h6>';
+  for (const [key, val] of Object.entries(stats)) {
+    if (val && val.p_value !== undefined) {
+      const sig = val.p_value < 0.001 ? '***' : val.p_value < 0.01 ? '**' : val.p_value < 0.05 ? '*' : 'ns';
+      const cls = sig !== 'ns' ? 'yes' : 'no';
+      html += `<div class="stat-row">
+        <span class="stat-label">${key.replace(/_/g,' ')}</span>
+        <span class="stat-val">W=${val.statistic}, p=${val.p_value} <span class="sig ${cls}">${sig}</span> (n=${val.n})</span>
+      </div>`;
+    } else if (val && val.ci_lower !== undefined) {
+      html += `<div class="stat-row">
+        <span class="stat-label">${key.replace(/_/g,' ')}</span>
+        <span class="stat-val">${val.mean} [${val.ci_lower}, ${val.ci_upper}] ${Math.round((val.confidence||0.95)*100)}% CI</span>
+      </div>`;
+    }
+  }
+  document.getElementById('statsBox').innerHTML = html;
+}
+
+// ═══ PATIENT TABLE ═══
+function renderPatientTable() {
+  const pids = pidList();
+  let html = '';
+  for (const pid of pids) {
+    const nat = R.natural_patients.find(p => p.patient_id === pid);
+    const ai = R.care_ai_patients.find(p => p.patient_id === pid);
+    for (const [m, mode, cls] of [[nat, 'Natural', 'mode-nat'], [ai, 'Care AI', 'mode-ai']]) {
+      const ecogD = m.ecog_end - m.ecog_start;
+      const delay = m.mean_detection_delay != null ? m.mean_detection_delay + 'd' : '—';
+      const status = m.deceased ? '☠️ Deceased'
+        : m.discontinued ? '⏹ Disc (D' + m.discontinuation_day + ')'
+        : '✓ Completed';
+      const g3cls = m.grade3plus_ae_days > 0 ? ' g3' : '';
+      html += `<tr>
+        <td class="mono">${mode === 'Natural' ? pid : ''}</td>
+        <td class="${cls}">${mode}</td>
+        <td class="mono">${m.unique_ae_count}</td>
+        <td class="mono">${m.total_ae_burden}</td>
+        <td class="mono${g3cls}">${m.grade3plus_ae_days}</td>
+        <td class="mono">${delay}</td>
+        <td class="mono">${m.treatment_days}</td>
+        <td class="mono">${ecogD >= 0 ? '+' : ''}${ecogD}</td>
+        <td>${status}</td>
+      </tr>`;
+    }
+  }
+  document.getElementById('ptBody').innerHTML = html;
+}
+
+// ═══ INIT ═══
+renderCards();
+renderDelayChart();
+renderBurdenChart();
+renderG3Chart();
+renderEcogChart();
+renderActionsChart();
+renderCareStats();
+renderStats();
+renderPatientTable();
+</script>
+{% endblock %}
