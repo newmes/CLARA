@@ -152,6 +152,15 @@ class GameSession:
         self.persona = patient.get("persona", {})
         self.known_aes = [ae["ae_term"] for ae in rule_set.get("ae_profile", [])[:12]]
 
+        # Multimodal bridge (face image + voice TTS)
+        self._mm_bridge = None
+        try:
+            from src.multimodal.game_bridge import MultimodalGameBridge
+            self._mm_bridge = MultimodalGameBridge(patient, enabled=True)
+            _logger.info(f"[GameSession] Multimodal bridge enabled for {pid}")
+        except Exception as e:
+            _logger.warning(f"[GameSession] Multimodal bridge unavailable: {e}")
+
         # 세션 등록
         _active_sessions[self.session_id] = self
         _logger.info(f"[GameSession] Created: {self.session_id} for {pid}, {total_days} days")
@@ -301,7 +310,7 @@ class GameSession:
         wellbeing = result.get("general_wellbeing", "")
         video_visible = result.get("video_visible", [])
 
-        return {
+        response = {
             "role": "patient",
             "greeting": greeting_text,
             "reported_symptoms": symptoms,
@@ -310,6 +319,20 @@ class GameSession:
             "video_visible": video_visible,
             "display_text": self._format_patient_message(result, is_greeting=True),
         }
+
+        if self._mm_bridge:
+            try:
+                media = self._mm_bridge.generate_turn_media(
+                    text=greeting_text,
+                    active_aes=day_result.get("AE", []),
+                    day=day,
+                    mood_snapshot=self.mood.to_dict(),
+                )
+                response.update(media)
+            except Exception as e:
+                _logger.warning(f"[GameSession] Multimodal greet failed: {e}")
+
+        return response
 
     def player_chat(self, message: str) -> dict:
         """플레이어의 메시지에 환자 AI가 응답.
@@ -368,7 +391,7 @@ class GameSession:
         else:
             self.mood.update_turn({"trust_in_ai": +0.01, "defensiveness": -0.01})
 
-        return {
+        response = {
             "role": "patient",
             "response": result.get("response", ""),
             "revealed_new_info": result.get("revealed_new_info", False),
@@ -376,6 +399,20 @@ class GameSession:
             "video_visible": result.get("video_visible", []),
             "display_text": self._format_patient_message(result, is_greeting=False),
         }
+
+        if self._mm_bridge:
+            try:
+                media = self._mm_bridge.generate_turn_media(
+                    text=result.get("response", ""),
+                    active_aes=day_result.get("AE", []),
+                    day=day,
+                    mood_snapshot=self.mood.to_dict(),
+                )
+                response.update(media)
+            except Exception as e:
+                _logger.warning(f"[GameSession] Multimodal chat failed: {e}")
+
+        return response
 
     def end_chat_and_submit(self, observations: list[dict], actions: list[dict]) -> dict:
         """대화 종료 + 관찰 내용/조치 제출.
@@ -514,6 +551,260 @@ class GameSession:
         advance_day()로 GT/HR 생성 후, 대화/판단 없이 바로 finalize.
         """
         return self.end_chat_and_submit(observations=[], actions=[])
+
+    # ── Day Debrief (실시간 피드백) ──────────────────────
+
+    def day_debrief(self) -> dict:
+        """마지막 제출 기준, 플레이어 관찰 vs HR 비교 피드백.
+
+        GT는 노출하지 않고, Hospital Record 기준으로만 비교한다.
+        """
+        if not self.player_actions_log:
+            return {"error": "No submissions yet."}
+
+        last_action = self.player_actions_log[-1]
+        day = last_action["day"]
+        player_obs = last_action.get("observations", [])
+        player_actions = last_action.get("actions", [])
+
+        # HR에서 해당 Day의 active AEs 가져오기
+        hr_entry = None
+        for h in reversed(self.hr_history):
+            if h["day"] == day:
+                hr_entry = h
+                break
+        if not hr_entry:
+            return {"error": "No hospital record for this day."}
+
+        hr = hr_entry["hospital_record"]
+        hr_aes = hr.get("objective", {}).get("active_aes", [])
+
+        # 플레이어가 제출한 AE 이름 세트
+        player_ae_set = {obs.get("ae_term", "").lower().strip() for obs in player_obs}
+        player_ae_map = {
+            obs.get("ae_term", "").lower().strip(): obs
+            for obs in player_obs
+        }
+
+        # 비교 결과 생성
+        ae_results = []
+        matched_hr_aes = set()
+
+        for hr_ae in hr_aes:
+            hr_term = hr_ae.get("ae", "").lower().strip()
+            hr_grade = hr_ae.get("grade", 0)
+
+            if hr_term in player_ae_set:
+                # 플레이어가 감지함
+                p_obs = player_ae_map[hr_term]
+                p_grade = p_obs.get("estimated_grade", 0)
+                grade_match = p_grade == hr_grade
+                ae_results.append({
+                    "ae": hr_ae.get("ae", ""),
+                    "status": "correct",
+                    "hr_grade": hr_grade,
+                    "player_grade": p_grade,
+                    "grade_match": grade_match,
+                    "message": f"정확! G{p_grade}" if grade_match
+                              else f"감지 ✓ (등급: 당신 G{p_grade} vs 병원 G{hr_grade})",
+                })
+                matched_hr_aes.add(hr_term)
+            else:
+                # 플레이어가 놓침
+                ae_results.append({
+                    "ae": hr_ae.get("ae", ""),
+                    "status": "missed",
+                    "hr_grade": hr_grade,
+                    "player_grade": None,
+                    "grade_match": False,
+                    "message": f"놓침: {hr_ae.get('ae', '')} G{hr_grade} (병원 기록에 있음)",
+                })
+
+        # 플레이어가 제출했지만 HR에 없는 AE (오탐)
+        for p_term, p_obs in player_ae_map.items():
+            if p_term not in matched_hr_aes and p_term:
+                ae_results.append({
+                    "ae": p_obs.get("ae_term", ""),
+                    "status": "false_positive",
+                    "hr_grade": None,
+                    "player_grade": p_obs.get("estimated_grade", 0),
+                    "grade_match": False,
+                    "message": f"오탐: {p_obs.get('ae_term', '')} — 병원 기록에 없음",
+                })
+
+        # 조치 적절성 평가 (간단한 휴리스틱)
+        action_feedback = []
+        primary_action = player_actions[0].get("action", "no_action") if player_actions else "no_action"
+        max_hr_grade = max((ae.get("grade", 0) for ae in hr_aes), default=0)
+
+        if max_hr_grade >= 3 and primary_action in ("no_action", "monitor_closely"):
+            action_feedback.append({
+                "status": "warning",
+                "message": f"G{max_hr_grade} AE가 있지만 조치가 소극적입니다. 병원 방문/의사 상담 고려 필요.",
+            })
+        elif max_hr_grade >= 2 and primary_action == "no_action":
+            action_feedback.append({
+                "status": "suggestion",
+                "message": "G2 이상 AE에 대한 모니터링 강화 또는 처방 추천이 도움될 수 있습니다.",
+            })
+        elif primary_action != "no_action":
+            action_feedback.append({
+                "status": "good",
+                "message": f"조치 적절: {primary_action}",
+            })
+        else:
+            action_feedback.append({
+                "status": "ok",
+                "message": "특이사항 없는 날. 관찰 유지 적절.",
+            })
+
+        # 점수 계산 (이번 Day)
+        correct_count = sum(1 for r in ae_results if r["status"] == "correct")
+        missed_count = sum(1 for r in ae_results if r["status"] == "missed")
+        false_pos_count = sum(1 for r in ae_results if r["status"] == "false_positive")
+        grade_match_count = sum(1 for r in ae_results if r.get("grade_match"))
+
+        day_score = correct_count * 10 - false_pos_count * 3
+        day_score = max(0, day_score)
+
+        # 누적 통계
+        total_hr_aes_seen = 0
+        total_player_correct = 0
+        total_grade_matches = 0
+        for entry in self.player_actions_log:
+            d = entry["day"]
+            hr_for_day = None
+            for h in self.hr_history:
+                if h["day"] == d:
+                    hr_for_day = h
+                    break
+            if not hr_for_day:
+                continue
+            hr_day_aes = hr_for_day["hospital_record"].get("objective", {}).get("active_aes", [])
+            hr_set = {ae.get("ae", "").lower().strip() for ae in hr_day_aes}
+            total_hr_aes_seen += len(hr_set)
+            for obs in entry.get("observations", []):
+                t = obs.get("ae_term", "").lower().strip()
+                if t in hr_set:
+                    total_player_correct += 1
+                    # Grade match
+                    for hae in hr_day_aes:
+                        if hae.get("ae", "").lower().strip() == t:
+                            if obs.get("estimated_grade") == hae.get("grade"):
+                                total_grade_matches += 1
+                            break
+
+        detection_rate = round(total_player_correct / total_hr_aes_seen * 100, 1) if total_hr_aes_seen > 0 else 0
+        grade_accuracy = round(total_grade_matches / total_player_correct * 100, 1) if total_player_correct > 0 else 0
+
+        return {
+            "day": day,
+            "ae_results": ae_results,
+            "action_feedback": action_feedback,
+            "day_score": day_score,
+            "correct": correct_count,
+            "missed": missed_count,
+            "false_positive": false_pos_count,
+            "running_stats": {
+                "detection_rate": detection_rate,
+                "grade_accuracy": grade_accuracy,
+                "total_days_played": len(self.player_actions_log),
+            },
+        }
+
+    # ── Gemini Copilot ───────────────────────────────────
+
+    def get_copilot_suggestion(self, mode: str = "on") -> dict:
+        """HR + 대화 내용을 기반으로 Gemini가 질문/관찰 제안.
+
+        Args:
+            mode: "on" (질문 제안만), "auto" (질문 + AE 자동감지)
+        """
+        if not self._current_day_result:
+            return {"suggestions": [], "auto_detections": []}
+
+        day = self.current_day
+        hr = self._current_observed["hospital_record"] if self._current_observed else {}
+        hr_obj = hr.get("objective", {})
+        hr_aes = hr_obj.get("active_aes", [])
+        hr_labs = hr_obj.get("labs", {})
+        hr_vitals = hr_obj.get("vitals", {})
+        treatment = hr_obj.get("treatment_status", "")
+
+        conversation = self._build_conversation_context()
+
+        # 약물 AE 프로필
+        ae_profile = self.rule_set.get("ae_profile", [])
+        common_aes = ", ".join(ae["ae_term"] for ae in ae_profile[:10])
+
+        known_aes_json = json.dumps(
+            [{"ae": a.get("ae"), "grade": a.get("grade")} for a in hr_aes],
+            ensure_ascii=False,
+        )
+        labs_json = json.dumps(hr_labs, ensure_ascii=False)[:500]
+        vitals_json = json.dumps(hr_vitals, ensure_ascii=False)[:300]
+        conv_text = conversation if conversation else "(대화 시작 전)"
+        drug_name = self.rule_set.get("drug_name", "")
+        stale_days = hr_obj.get("labs_stale_days", 0)
+
+        auto_instruction = (
+            "\nAlso identify any AEs you suspect based on labs/vitals/conversation "
+            "that may not be in the hospital record yet. Output as auto_detections."
+            if mode == "auto" else ""
+        )
+        auto_schema = (
+            ',\n    "auto_detections": [{"ae_term": "string", "estimated_grade": 1, "reasoning": "string"}]'
+            if mode == "auto" else ""
+        )
+
+        prompt = (
+            f"You are a clinical nursing copilot assisting a nurse during "
+            f"a video call with a cancer patient on Day {day}.\n\n"
+            f"DRUG: {drug_name}\n"
+            f"COMMON AEs: {common_aes}\n\n"
+            f"HOSPITAL RECORD (what nurse can see):\n"
+            f"- Known AEs: {known_aes_json}\n"
+            f"- Labs: {labs_json}\n"
+            f"- Vitals: {vitals_json}\n"
+            f"- Treatment: {treatment}\n"
+            f"- Labs stale days: {stale_days}\n\n"
+            f"CONVERSATION SO FAR:\n{conv_text}\n\n"
+            "Based on this information, suggest 2-3 specific questions the nurse should ask.\n"
+            "For each suggestion:\n"
+            "1. The exact question in Korean\n"
+            "2. Brief clinical reasoning (why this question matters)\n"
+            "3. What AE or condition this helps detect/monitor\n"
+            f"{auto_instruction}\n\n"
+            "OUTPUT JSON:\n"
+            "{\n"
+            '    "suggestions": [\n'
+            "        {\n"
+            '            "question": "한국어 질문",\n'
+            '            "reasoning": "임상적 근거 (한국어)",\n'
+            '            "target_ae": "관련 AE term (영어)"\n'
+            "        }\n"
+            f"    ]{auto_schema}\n"
+            "}"
+        )
+
+        try:
+            set_caller("game_copilot")
+            result = generate_json(
+                system="You are a clinical nursing AI copilot. Respond in structured JSON only.",
+                user=prompt,
+                model=DEFAULT_MODEL,
+            )
+            suggestions = result.get("suggestions", [])
+            auto_detections = result.get("auto_detections", []) if mode == "auto" else []
+
+            return {
+                "day": day,
+                "suggestions": suggestions[:3],
+                "auto_detections": auto_detections,
+            }
+        except Exception as e:
+            _logger.warning(f"Copilot error: {e}")
+            return {"day": day, "suggestions": [], "auto_detections": [], "error": str(e)}
 
     def reveal_ground_truth(self) -> dict:
         """게임 종료 후 GT 전체 공개 + 성적표."""
@@ -750,11 +1041,22 @@ OUTPUT:
         else:
             ae_burden = "NONE"
 
+        emr = self.patient.get("emr", {})
+        diag = emr.get("diagnosis", {})
+        med_hx = emr.get("medical_history", [])
+        med_hx_str = ", ".join(
+            h.get("condition", "") for h in med_hx if h.get("ongoing")
+        ) if med_hx else "none"
+        ecog = emr.get("baseline_ecog", "?")
+
         return f"""You are a REAL cancer patient responding to a nurse in a video call.
 You are NOT a helpful assistant. You are a sick human being with real emotions.
 
 PATIENT PROFILE:
-- Age: {self.demographics.get('age', '?')}, Sex: {self.demographics.get('sex', '?')}
+- Age: {self.demographics.get('age', '?')}, Sex: {self.demographics.get('sex', '?')}, Race: {self.demographics.get('race', '?')}
+- Diagnosis: {diag.get('disease', '?')} {diag.get('stage', '')} — sites: {', '.join(diag.get('sites_of_metastasis', []))}
+- Ongoing conditions: {med_hx_str}
+- ECOG: {ecog}
 - Persona Type: {persona_type}
 - Personality: {json.dumps(self.persona, ensure_ascii=False)}
 - Drug: {self.rule_set.get('drug_name', '?')} for {self.rule_set.get('indication', '?')}

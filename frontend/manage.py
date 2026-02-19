@@ -3,11 +3,10 @@
 import os
 import sys
 
-# Load .pyc fallback importer (source files may be absent)
+# Ensure project root is on sys.path
 _project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if _project_root not in sys.path:
     sys.path.insert(0, _project_root)
-import pyc_loader  # noqa: F401, E402
 
 
 def main():

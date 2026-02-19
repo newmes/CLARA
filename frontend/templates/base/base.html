@@ -14,11 +14,11 @@
     .global-nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
       background: var(--bg-primary); border-bottom: 1px solid var(--border);
-      height: 38px; display: flex; align-items: center; padding: 0 16px;
-      font-size: 0.78em; gap: 4px;
+      height: 44px; display: flex; align-items: center; padding: 0 20px;
+      font-size: 0.85em; gap: 4px;
     }
     .global-nav a {
-      color: var(--text-muted); text-decoration: none; padding: 4px 10px;
+      color: var(--text-muted); text-decoration: none; padding: 6px 12px;
       border-radius: 4px; transition: all 0.12s; white-space: nowrap;
     }
     .global-nav a:hover {
@@ -39,8 +39,7 @@
       color: var(--text-secondary); font-family: 'JetBrains Mono', monospace;
       font-size: 0.92em;
     }
-    body { padding-top: 38px; }
-    /* game_play은 full-height 레이아웃이라 별도 처리 */
+    body { padding-top: 44px; }
     body.no-nav-pad { padding-top: 0; }
     body.no-nav-pad .global-nav { display: none; }
   </style>
@@ -49,7 +48,7 @@
 <body class="{% block body_class %}{% endblock %}">
   <!-- Global Navigation -->
   <nav class="global-nav">
-    <a href="/" class="nav-brand">CTS</a>
+    <a href="/" class="nav-brand" title="Clinical Trial Simulator">CTS</a>
     <span class="nav-sep">/</span>
     <a href="/">Runs</a>
     {% block nav_items %}{% endblock %}

@@ -1,0 +1,154 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}SAE Documents — {{ run_id }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  .doc-container {
+    margin-top: 2em; max-width: 960px; margin-left: auto; margin-right: auto;
+    padding: 0 20px 3em;
+  }
+  .doc-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.5em; flex-wrap: wrap; gap: 12px;
+  }
+  .doc-title { font-size: 1.4em; font-weight: 800; color: var(--accent-cyan); }
+  .doc-subtitle { color: var(--text-secondary); font-size: 0.92em; margin-top: 4px; }
+  .doc-stats {
+    display: flex; gap: 16px;
+  }
+  .doc-stat {
+    text-align: center; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 8px; padding: 10px 18px;
+  }
+  .doc-stat .val {
+    font: 700 1.5em 'JetBrains Mono', monospace; color: var(--accent-cyan);
+  }
+  .doc-stat .lbl { font-size: 0.78em; color: var(--text-muted); margin-top: 2px; }
+
+  .sae-table { width: 100%; border-collapse: collapse; font-size: 0.92em; }
+  .sae-table th {
+    text-align: left; padding: 10px 12px; font-size: 0.78em; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-muted); border-bottom: 2px solid var(--border);
+    background: var(--bg-secondary); position: sticky; top: 0;
+  }
+  .sae-table td {
+    padding: 10px 12px; border-bottom: 1px solid var(--border);
+    color: var(--text-primary);
+  }
+  .sae-table tr:hover td { background: rgba(57,210,192,0.03); }
+  .grade-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font: 700 0.82em 'JetBrains Mono', monospace; color: #fff;
+  }
+  .grade-3 { background: var(--grade-3); }
+  .grade-4 { background: var(--grade-4); }
+  .grade-5 { background: var(--grade-5); }
+  .grade-2 { background: var(--grade-2); }
+  .grade-1 { background: var(--grade-1); }
+  .btn-report {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600;
+    text-decoration: none; transition: all 0.15s; white-space: nowrap;
+  }
+  .btn-report-new {
+    background: rgba(57,210,192,0.1); border: 1px solid rgba(57,210,192,0.3);
+    color: var(--accent-cyan);
+  }
+  .btn-report-new:hover { background: rgba(57,210,192,0.2); color: var(--accent-cyan); text-decoration: none; }
+  .btn-report-edit {
+    background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.3);
+    color: var(--accent-green);
+  }
+  .btn-report-edit:hover { background: rgba(63,185,80,0.2); color: var(--accent-green); text-decoration: none; }
+  .empty-state {
+    text-align: center; padding: 3em; color: var(--text-muted);
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .empty-state .icon { font-size: 2.5em; margin-bottom: 10px; }
+  .info-bar {
+    display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+    background: rgba(88,166,255,0.06); border: 1px solid rgba(88,166,255,0.2);
+    border-radius: 8px; margin-bottom: 1.5em; font-size: 0.9em; color: var(--text-secondary);
+  }
+  .info-bar .info-icon { font-size: 1.3em; }
+</style>
+{% endblock %}
+
+{% block nav_items %}
+<span class="nav-sep">/</span>
+<a href="{% url 'trial_viewer' run_id %}" title="{{ run_id }}">{{ run_id|truncatechars:25 }}</a>
+<span class="nav-sep">·</span>
+<a href="{% url 'trial_viewer' run_id %}">Simulation</a>
+<a href="{% url 'game_landing' run_id %}">Training</a>
+<a href="{% url 'doc_hub' run_id %}" class="nav-active">Documents</a>
+<a href="{% url 'compare_dashboard' run_id %}">A/B Test</a>
+{% endblock %}
+
+{% block content %}
+<div class="doc-container">
+  <div class="doc-header">
+    <div>
+      <div class="doc-title">SAE Regulatory Documents</div>
+      <div class="doc-subtitle">
+        MedWatch FDA 3500A &amp; E2B(R3) XML reports
+        {% if drug_name %} · <strong style="color:var(--accent-blue)">{{ drug_name }}</strong>{% endif %}
+      </div>
+    </div>
+    <div class="doc-stats">
+      <div class="doc-stat">
+        <div class="val">{{ sae_count }}</div>
+        <div class="lbl">Total SAEs</div>
+      </div>
+      <div class="doc-stat">
+        <div class="val">{{ patient_count }}</div>
+        <div class="lbl">Patients</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="info-bar">
+    <span class="info-icon" style="font-weight:700; color:var(--accent-blue);">i</span>
+    <span>Click <strong>Generate Report</strong> to create an AI-drafted MedWatch 3500A form and E2B XML. You can then review, edit, and export the documents.</span>
+  </div>
+
+  {% if saes %}
+  <table class="sae-table">
+    <thead>
+      <tr>
+        <th>Patient</th>
+        <th>Adverse Event</th>
+        <th>Grade</th>
+        <th>Onset</th>
+        <th>Action Taken</th>
+        <th style="text-align:right;">Report</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for sae in saes %}
+      <tr>
+        <td><strong style="font-family:'JetBrains Mono',monospace;">{{ sae.patient_id }}</strong></td>
+        <td>{{ sae.ae_term }}</td>
+        <td><span class="grade-badge grade-{{ sae.grade }}">G{{ sae.grade }}</span></td>
+        <td>{% if sae.onset_day %}Day {{ sae.onset_day }}{% else %}—{% endif %}</td>
+        <td style="font-size:0.88em; color:var(--text-secondary);">{{ sae.action|default:"—" }}</td>
+        <td style="text-align:right;">
+          <a class="btn-report btn-report-new"
+             href="/doc/{{ run_id }}/{{ sae.patient_id }}/{{ sae.ae_slug }}/?ae_day={{ sae.onset_day|default:'' }}">
+            📋 Open Report
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div class="empty-state">
+    <div class="icon">📋</div>
+    <div style="font-size:1.1em; font-weight:600; margin-bottom:6px;">No Serious Adverse Events Found</div>
+    <div>No Grade ≥ 3 or AESER events detected in this simulation run.</div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

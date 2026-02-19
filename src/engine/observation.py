@@ -453,8 +453,8 @@ class ObservationModel:
             self.last_visit_day = day
 
         # (2) RECIST 스캔 (ground truth에 recist 결과가 있으면)
-        recist = ground_truth.get("_recist_event")
-        if recist or any(e.get("type") == "recist_scan" for e in ground_truth.get("_events_raw", [])):
+        recist = ground_truth.get("recist_scan") or ground_truth.get("_recist_event")
+        if recist:
             observation_events.append({
                 "type": "scheduled_scan",
                 "day": day,
@@ -493,18 +493,18 @@ class ObservationModel:
                 "interaction_quality": interaction_quality,
             })
 
-        # ── Hospital Record 갱신 ──
-        hospital_record = self._update_hospital_record(
-            ground_truth, day, observation_events, active_aes
-        )
-
-        # ── Day 1 초기화: 첫 방문이므로 전체 정보 캡처 ──
+        # ── Day 1 초기화: 첫 방문이므로 전체 정보 캡처 (HR 빌드 전 수행) ──
         if day == 1:
             self.known_labs = copy.deepcopy(labs)
             self.known_vitals = copy.deepcopy(vitals)
             self.known_ecog = obj.get("ecog")
             self.known_tumor = copy.deepcopy(obj.get("tumor"))
             self.last_visit_day = 1
+
+        # ── Hospital Record 갱신 ──
+        hospital_record = self._update_hospital_record(
+            ground_truth, day, observation_events, active_aes
+        )
 
         # is_visit: 병원/클리닉 방문 여부 (dose modification 판단용)
         obs_types_final = {e["type"] for e in observation_events}

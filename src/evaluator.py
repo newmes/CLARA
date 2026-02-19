@@ -661,8 +661,10 @@ def run_evaluation(run_dir: Path) -> dict:
     natural_data = load_simulation_data(sim_dir, "natural")
     care_ai_data = load_simulation_data(sim_dir, "care_ai")
 
-    assert natural_data, f"No natural simulation data in {sim_dir}"
-    assert care_ai_data, f"No care_ai simulation data in {sim_dir}"
+    if not natural_data:
+        raise ValueError(f"No natural simulation data in {sim_dir}")
+    if not care_ai_data:
+        raise ValueError(f"No care_ai simulation data in {sim_dir}")
 
     comparison = compare_cohorts(natural_data, care_ai_data)
 

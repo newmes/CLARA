@@ -1,0 +1,827 @@
+{% extends "base/base.html" %}
+{% block title %}SAE Report — {{ patient_id }} — {{ ae_term }}{% endblock %}
+
+{% block nav_items %}
+<span class="nav-sep">/</span>
+<a href="{% url 'trial_viewer' run_id %}" title="{{ run_id }}">{{ run_id|truncatechars:25 }}</a>
+<span class="nav-sep">·</span>
+<a href="{% url 'trial_viewer' run_id %}">Simulation</a>
+<a href="{% url 'game_landing' run_id %}">Training</a>
+<a href="{% url 'doc_hub' run_id %}" class="nav-active">Documents</a>
+<a href="{% url 'compare_dashboard' run_id %}">A/B Test</a>
+<span class="nav-sep">·</span>
+<span class="nav-crumb">{{ patient_id }} / {{ ae_term }}</span>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+:root {
+  --bg-primary: #0d1117;
+  --bg-secondary: #161b22;
+  --bg-card: #1c2129;
+  --bg-elevated: #21262d;
+  --border: #30363d;
+  --text-primary: #e6edf3;
+  --text-secondary: #8b949e;
+  --text-muted: #6e7681;
+  --accent-blue: #58a6ff;
+  --accent-green: #3fb950;
+  --accent-red: #f85149;
+  --accent-orange: #d29922;
+  --accent-cyan: #39d2c0;
+  --accent-purple: #bc8cff;
+}
+
+body { background: var(--bg-primary); color: var(--text-primary); }
+
+.report-container {
+  max-width: 1400px; margin: 16px auto; padding: 0 20px;
+}
+
+/* Header */
+.report-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 16px 0; border-bottom: 1px solid var(--border); margin-bottom: 20px;
+}
+.report-title { font-size: 1.4em; font-weight: 700; }
+.report-title .ae-badge {
+  background: rgba(248,81,73,0.15); color: var(--accent-red);
+  padding: 2px 10px; border-radius: 6px; font-size: 0.7em; margin-left: 10px;
+  font-weight: 600; vertical-align: middle;
+}
+.report-meta { font-size: 0.88em; color: var(--text-secondary); display: flex; gap: 16px; }
+.report-actions { display: flex; gap: 10px; }
+.btn-rpt {
+  padding: 8px 18px; border-radius: 8px; border: 1px solid var(--border);
+  background: var(--bg-card); color: var(--text-primary); cursor: pointer;
+  font-size: 0.88em; font-weight: 600; transition: all 0.15s; display: flex;
+  align-items: center; gap: 6px;
+}
+.btn-rpt:hover { border-color: var(--accent-blue); background: var(--bg-elevated); }
+.btn-rpt.primary { background: rgba(88,166,255,0.15); border-color: rgba(88,166,255,0.4); color: var(--accent-blue); }
+.btn-rpt.primary:hover { background: rgba(88,166,255,0.25); }
+.btn-rpt.success { background: rgba(63,185,80,0.15); border-color: rgba(63,185,80,0.4); color: var(--accent-green); }
+.btn-rpt.success:hover { background: rgba(63,185,80,0.25); }
+.btn-rpt:disabled { opacity: 0.5; cursor: wait; }
+
+/* Tab bar */
+.tab-bar {
+  display: flex; gap: 2px; border-bottom: 2px solid var(--border); margin-bottom: 20px;
+}
+.tab-item {
+  padding: 10px 20px; cursor: pointer; font-size: 0.92em; font-weight: 600;
+  color: var(--text-muted); border-bottom: 2px solid transparent;
+  margin-bottom: -2px; transition: all 0.15s;
+}
+.tab-item:hover { color: var(--text-secondary); }
+.tab-item.active { color: var(--accent-cyan); border-color: var(--accent-cyan); }
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+
+/* Form sections */
+.form-section {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 12px; margin-bottom: 16px; overflow: hidden;
+}
+.form-section-header {
+  padding: 12px 20px; background: var(--bg-elevated);
+  border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; justify-content: space-between;
+  cursor: pointer; user-select: none;
+}
+.form-section-header h3 {
+  font-size: 1.0em; font-weight: 700; margin: 0; display: flex;
+  align-items: center; gap: 8px;
+}
+.form-section-header .sec-label {
+  font-size: 0.75em; background: rgba(57,210,192,0.15); color: var(--accent-cyan);
+  padding: 2px 8px; border-radius: 4px; font-weight: 600;
+}
+.form-section-header .toggle-icon { color: var(--text-muted); font-size: 0.9em; }
+.form-section-body { padding: 16px 20px; }
+.form-section.collapsed .form-section-body { display: none; }
+.form-section.collapsed .toggle-icon { transform: rotate(-90deg); }
+
+/* Fields */
+.field-row {
+  display: grid; grid-template-columns: 180px 1fr; gap: 8px 16px;
+  align-items: start; padding: 6px 0;
+  border-bottom: 1px solid rgba(48,54,61,0.5);
+}
+.field-row:last-child { border-bottom: none; }
+.field-label {
+  font-size: 0.82em; color: var(--text-muted); font-weight: 600;
+  padding-top: 6px; line-height: 1.3;
+}
+.field-label .field-id {
+  font-family: 'JetBrains Mono', monospace; color: var(--accent-blue);
+  font-size: 0.88em; margin-right: 4px;
+}
+.field-input input,
+.field-input select,
+.field-input textarea {
+  width: 100%; padding: 6px 10px; border-radius: 6px;
+  border: 1px solid var(--border); background: var(--bg-primary);
+  color: var(--text-primary); font-size: 0.9em; font-family: inherit;
+  transition: border-color 0.15s;
+}
+.field-input input:focus,
+.field-input select:focus,
+.field-input textarea:focus {
+  outline: none; border-color: var(--accent-blue);
+  box-shadow: 0 0 0 2px rgba(88,166,255,0.15);
+}
+.field-input textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
+.field-input .checkbox-row {
+  display: flex; align-items: center; gap: 8px; padding: 4px 0;
+}
+.field-input .checkbox-row input[type="checkbox"] { width: auto; }
+
+/* Narrative editor */
+.narrative-editor {
+  background: var(--bg-primary); border: 1px solid var(--border);
+  border-radius: 8px; padding: 14px; min-height: 120px;
+  font-size: 0.92em; line-height: 1.7; position: relative;
+}
+.narrative-editor textarea {
+  width: 100%; min-height: 100px; background: transparent;
+  border: none; color: var(--text-primary); font-size: 0.92em;
+  line-height: 1.7; resize: vertical; font-family: inherit;
+}
+.narrative-editor textarea:focus { outline: none; box-shadow: none; }
+.ai-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.72em; background: rgba(188,140,255,0.15);
+  color: var(--accent-purple); padding: 2px 8px; border-radius: 4px;
+  font-weight: 600;
+}
+
+/* E2B preview */
+.xml-preview {
+  background: var(--bg-primary); border: 1px solid var(--border);
+  border-radius: 8px; padding: 16px; max-height: 600px; overflow: auto;
+}
+.xml-preview pre {
+  color: var(--text-secondary); font-size: 0.82em; font-family: 'JetBrains Mono', monospace;
+  white-space: pre-wrap; word-break: break-all; margin: 0; line-height: 1.6;
+}
+.xml-preview .xml-tag { color: var(--accent-blue); }
+.xml-preview .xml-attr { color: var(--accent-orange); }
+.xml-preview .xml-val { color: var(--accent-green); }
+
+/* Error state */
+.error-box {
+  background: rgba(248,81,73,0.08); border: 1px solid rgba(248,81,73,0.3);
+  border-radius: 12px; padding: 24px; text-align: center; margin: 40px auto;
+  max-width: 600px;
+}
+.error-box h3 { color: var(--accent-red); margin-bottom: 8px; }
+.error-box p { color: var(--text-secondary); }
+
+/* Toast */
+.save-toast {
+  position: fixed; bottom: 24px; right: 24px; z-index: 999;
+  padding: 14px 24px; border-radius: 10px; font-size: 0.92em;
+  font-weight: 600; animation: toastIn 0.3s ease; max-width: 400px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
+}
+.save-toast.success { background: rgba(63,185,80,0.95); color: #fff; }
+.save-toast.error { background: rgba(248,81,73,0.95); color: #fff; }
+@keyframes toastIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* Status bar */
+.status-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 998;
+  background: var(--bg-secondary); border-top: 1px solid var(--border);
+  padding: 8px 20px; display: flex; align-items: center; justify-content: space-between;
+  font-size: 0.82em;
+}
+.status-bar .status-left { display: flex; gap: 16px; color: var(--text-muted); }
+.status-bar .status-right { display: flex; gap: 10px; }
+
+/* Responsive */
+body { padding-bottom: 52px; }
+</style>
+{% endblock %}
+
+{% block content %}
+{% if error %}
+<div class="report-container">
+  <div class="error-box">
+    <h3>Document Generation Failed</h3>
+    <p>{{ error }}</p>
+    <a href="/patient/{{ run_id }}/{{ patient_id }}/" class="btn-rpt" style="display:inline-flex; margin-top:16px;">
+      ← Back to Patient
+    </a>
+  </div>
+</div>
+{% else %}
+<div class="report-container" id="reportApp">
+  <!-- Header -->
+  <div class="report-header">
+    <div>
+      <div class="report-title">
+        MedWatch FDA 3500A
+        <span class="ae-badge">SAE</span>
+      </div>
+      <div class="report-meta">
+        <span>{{ patient_id }} · {{ patient_age }}y {{ patient_sex }}</span>
+        <span>{{ ae_term }}</span>
+        <span>{{ drug_name }}</span>
+      </div>
+    </div>
+    <div class="report-actions">
+      <button class="btn-rpt" onclick="window.open('{{ pdf_url }}', '_blank')" title="Download PDF">
+        📄 PDF
+      </button>
+      <button class="btn-rpt" onclick="window.open('{{ xml_url }}', '_blank')" title="Download E2B XML">
+        📑 E2B XML
+      </button>
+      <button class="btn-rpt primary" id="btnRegenerate" onclick="regenerateAI()" title="Re-generate narrative with MedGemma">
+        🤖 Re-generate AI
+      </button>
+      <button class="btn-rpt success" id="btnSave" onclick="saveReport()">
+        💾 Save &amp; Export
+      </button>
+    </div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab-item active" onclick="switchTab('medwatch')">MedWatch 3500A Form</div>
+    <div class="tab-item" onclick="switchTab('e2b')">E2B(R3) XML Preview</div>
+    <div class="tab-item" onclick="switchTab('summary')">Quick Summary</div>
+  </div>
+
+  <!-- TAB: MedWatch Form -->
+  <div class="tab-panel active" id="tab-medwatch">
+
+    <!-- Section A: Patient Information -->
+    <div class="form-section" id="sec-a">
+      <div class="form-section-header" onclick="toggleSection('sec-a')">
+        <h3><span class="sec-label">A</span> Patient Information</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="form-section-body">
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">A1</span> Patient ID</div>
+          <div class="field-input"><input type="text" data-path="section_a.patient_id"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">A2</span> Age</div>
+          <div class="field-input"><input type="number" data-path="section_a.age"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">A2</span> Date of Birth</div>
+          <div class="field-input"><input type="date" data-path="section_a.dob"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">A3</span> Sex</div>
+          <div class="field-input">
+            <select data-path="section_a.sex">
+              <option value="Male">Male</option>
+              <option value="Female">Female</option>
+              <option value="Unknown">Unknown</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">A4</span> Weight (kg)</div>
+          <div class="field-input"><input type="number" step="0.1" data-path="section_a.weight"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">A5a</span> Ethnicity</div>
+          <div class="field-input"><input type="text" data-path="section_a.ethnicity"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">A5b</span> Race</div>
+          <div class="field-input"><input type="text" data-path="section_a.race"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section B: Adverse Event -->
+    <div class="form-section" id="sec-b">
+      <div class="form-section-header" onclick="toggleSection('sec-b')">
+        <h3><span class="sec-label">B</span> Adverse Event or Product Problem</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="form-section-body">
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">B1</span> Report Type</div>
+          <div class="field-input"><input type="text" data-path="section_b.report_type"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">B2</span> Seriousness</div>
+          <div class="field-input">
+            <div class="checkbox-row"><input type="checkbox" data-path="section_b.seriousness_death"> Death</div>
+            <div class="checkbox-row"><input type="checkbox" data-path="section_b.seriousness_life_threatening"> Life-threatening</div>
+            <div class="checkbox-row"><input type="checkbox" data-path="section_b.seriousness_hospitalization"> Hospitalization</div>
+            <div class="checkbox-row"><input type="checkbox" data-path="section_b.seriousness_disability"> Disability/Incapacity</div>
+            <div class="checkbox-row"><input type="checkbox" data-path="section_b.seriousness_congenital"> Congenital anomaly</div>
+            <div class="checkbox-row"><input type="checkbox" data-path="section_b.seriousness_other"> Other medically important</div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">B3</span> Onset Date</div>
+          <div class="field-input"><input type="date" data-path="section_b.onset_date"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">B4</span> Report Date</div>
+          <div class="field-input"><input type="date" data-path="section_b.report_date"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">B4a</span> Outcome</div>
+          <div class="field-input">
+            <select data-path="section_b.outcome">
+              <option value="recovered/resolved">Recovered/Resolved</option>
+              <option value="recovering/resolving">Recovering/Resolving</option>
+              <option value="not recovered/not resolved">Not Recovered/Not Resolved</option>
+              <option value="recovered/resolved with sequelae">Recovered with Sequelae</option>
+              <option value="fatal">Fatal</option>
+              <option value="unknown">Unknown</option>
+            </select>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">
+            <span class="field-id">B5</span> Narrative
+            <span class="ai-badge" id="aiBadge" style="display:none">🤖 AI</span>
+          </div>
+          <div class="field-input">
+            <div class="narrative-editor">
+              <textarea data-path="section_b.narrative" rows="5"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">B6</span> Lab Data</div>
+          <div class="field-input"><textarea data-path="section_b.lab_data" rows="3"></textarea></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">B7</span> Medical History</div>
+          <div class="field-input"><textarea data-path="section_b.medical_history" rows="3"></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section C: Suspect Product -->
+    <div class="form-section" id="sec-c">
+      <div class="form-section-header" onclick="toggleSection('sec-c')">
+        <h3><span class="sec-label">C</span> Suspect Product(s)</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="form-section-body">
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">C1</span> Drug Name</div>
+          <div class="field-input"><input type="text" data-path="section_c.drug_name"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">C2</span> Dose/Freq/Route</div>
+          <div class="field-input"><input type="text" data-path="section_c.dose_frequency_route"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">C3</span> Therapy Start</div>
+          <div class="field-input"><input type="date" data-path="section_c.therapy_start"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">C3</span> Therapy End</div>
+          <div class="field-input"><input type="date" data-path="section_c.therapy_end"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">C4</span> Indication</div>
+          <div class="field-input"><input type="text" data-path="section_c.indication"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">C5</span> Product Type</div>
+          <div class="field-input"><input type="text" data-path="section_c.product_type"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">
+            <span class="field-id">C7</span> Dechallenge
+            <span class="ai-badge" id="aiBadgeC7" style="display:none">🤖 AI</span>
+          </div>
+          <div class="field-input">
+            <div class="narrative-editor">
+              <textarea data-path="section_c.dechallenge" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label">
+            <span class="field-id">C8</span> Rechallenge
+            <span class="ai-badge" id="aiBadgeC8" style="display:none">🤖 AI</span>
+          </div>
+          <div class="field-input">
+            <div class="narrative-editor">
+              <textarea data-path="section_c.rechallenge" rows="3"></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">C9</span> Concomitant Meds</div>
+          <div class="field-input"><textarea data-path="section_c.concomitant_meds" rows="2"></textarea></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section E: Reporter -->
+    <div class="form-section collapsed" id="sec-e">
+      <div class="form-section-header" onclick="toggleSection('sec-e')">
+        <h3><span class="sec-label">E</span> Initial Reporter</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="form-section-body">
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">E1</span> Name</div>
+          <div class="field-input"><input type="text" data-path="section_e.reporter_name"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">E2</span> Address</div>
+          <div class="field-input"><input type="text" data-path="section_e.reporter_address"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">E2</span> Phone</div>
+          <div class="field-input"><input type="text" data-path="section_e.reporter_phone"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">E2</span> Email</div>
+          <div class="field-input"><input type="email" data-path="section_e.reporter_email"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">E3</span> Qualification</div>
+          <div class="field-input"><input type="text" data-path="section_e.reporter_qualification"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Section G: Manufacturer -->
+    <div class="form-section collapsed" id="sec-g">
+      <div class="form-section-header" onclick="toggleSection('sec-g')">
+        <h3><span class="sec-label">G</span> All Manufacturers</h3>
+        <span class="toggle-icon">▼</span>
+      </div>
+      <div class="form-section-body">
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">G1</span> Contact</div>
+          <div class="field-input"><input type="text" data-path="section_g.sponsor_contact"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">G2</span> Source</div>
+          <div class="field-input"><input type="text" data-path="section_g.source"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">G4</span> IND Type</div>
+          <div class="field-input"><input type="text" data-path="section_g.ind_type"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">G5</span> IND Number</div>
+          <div class="field-input"><input type="text" data-path="section_g.ind_number"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">G7</span> AE Term</div>
+          <div class="field-input"><input type="text" data-path="section_g.ae_term"></div>
+        </div>
+        <div class="field-row">
+          <div class="field-label"><span class="field-id">G8</span> Report Number</div>
+          <div class="field-input"><input type="text" data-path="section_g.report_number"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TAB: E2B XML Preview -->
+  <div class="tab-panel" id="tab-e2b">
+    <div class="form-section">
+      <div class="form-section-header">
+        <h3><span class="sec-label">XML</span> E2B(R3) ICH ICSR</h3>
+        <button class="btn-rpt" onclick="window.open('{{ xml_url }}', '_blank')" style="font-size:0.8em; padding:4px 12px;">
+          Download XML
+        </button>
+      </div>
+      <div class="form-section-body">
+        <p style="font-size:0.85em; color:var(--text-muted); margin-bottom:12px;">
+          The E2B(R3) XML will be regenerated when you save. This is a preview of the current version.
+        </p>
+        <div class="xml-preview" id="xmlPreview">
+          <pre>Loading XML preview...</pre>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TAB: Quick Summary -->
+  <div class="tab-panel" id="tab-summary">
+    <div class="form-section">
+      <div class="form-section-header">
+        <h3><span class="sec-label">Summary</span> SAE Report Overview</h3>
+      </div>
+      <div class="form-section-body" id="summaryContent">
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Status Bar -->
+<div class="status-bar">
+  <div class="status-left">
+    <span id="statusDirty">No unsaved changes</span>
+    <span id="statusMeddra"></span>
+  </div>
+  <div class="status-right">
+    <button class="btn-rpt" onclick="window.open('{{ pdf_url }}', '_blank')" style="font-size:0.78em; padding:4px 12px;">📄 PDF</button>
+    <button class="btn-rpt" onclick="window.open('{{ xml_url }}', '_blank')" style="font-size:0.78em; padding:4px 12px;">📑 XML</button>
+    <button class="btn-rpt success" onclick="saveReport()" style="font-size:0.78em; padding:4px 12px;">💾 Save</button>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block js_content %}
+{% if not error %}
+<script>
+const RUN_ID = "{{ run_id }}";
+const PATIENT_ID = "{{ patient_id }}";
+const AE_SLUG = "{{ ae_slug }}";
+const AI_USED = {{ ai_used|yesno:"true,false" }};
+
+let medwatchData = JSON.parse('{{ medwatch_json|escapejs }}');
+let meddraData = JSON.parse('{{ meddra_json|escapejs }}');
+let isDirty = false;
+
+// ═══════ Init ═══════
+document.addEventListener('DOMContentLoaded', () => {
+  populateForm();
+  if (AI_USED) {
+    document.getElementById('aiBadge').style.display = '';
+    document.getElementById('aiBadgeC7').style.display = '';
+    document.getElementById('aiBadgeC8').style.display = '';
+  }
+  if (meddraData && meddraData.pt) {
+    document.getElementById('statusMeddra').textContent =
+      `MedDRA: ${meddraData.pt} (${meddraData.source || 'lookup'})`;
+  }
+  loadXmlPreview();
+  renderSummary();
+
+  document.querySelectorAll('[data-path]').forEach(el => {
+    el.addEventListener('input', () => markDirty());
+    el.addEventListener('change', () => markDirty());
+  });
+});
+
+// ═══════ Form ↔ Data ═══════
+function getNestedValue(obj, path) {
+  return path.split('.').reduce((o, k) => (o && o[k] !== undefined) ? o[k] : null, obj);
+}
+
+function setNestedValue(obj, path, val) {
+  const keys = path.split('.');
+  let cur = obj;
+  for (let i = 0; i < keys.length - 1; i++) {
+    if (!cur[keys[i]]) cur[keys[i]] = {};
+    cur = cur[keys[i]];
+  }
+  cur[keys[keys.length - 1]] = val;
+}
+
+function populateForm() {
+  document.querySelectorAll('[data-path]').forEach(el => {
+    const path = el.dataset.path;
+    const val = getNestedValue(medwatchData, path);
+    if (el.type === 'checkbox') {
+      el.checked = !!val;
+    } else if (el.tagName === 'SELECT') {
+      if (val !== null && val !== undefined) {
+        for (let opt of el.options) {
+          if (opt.value.toLowerCase() === String(val).toLowerCase()) {
+            opt.selected = true; break;
+          }
+        }
+      }
+    } else {
+      el.value = val !== null && val !== undefined ? val : '';
+    }
+  });
+}
+
+function collectForm() {
+  document.querySelectorAll('[data-path]').forEach(el => {
+    const path = el.dataset.path;
+    let val;
+    if (el.type === 'checkbox') {
+      val = el.checked;
+    } else if (el.type === 'number') {
+      val = el.value ? Number(el.value) : null;
+    } else {
+      val = el.value || '';
+    }
+    setNestedValue(medwatchData, path, val);
+  });
+  return medwatchData;
+}
+
+function markDirty() {
+  isDirty = true;
+  document.getElementById('statusDirty').textContent = '● Unsaved changes';
+  document.getElementById('statusDirty').style.color = 'var(--accent-orange)';
+}
+
+// ═══════ Tabs ═══════
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-item').forEach((t, i) => {
+    const panels = ['medwatch', 'e2b', 'summary'];
+    t.classList.toggle('active', panels[i] === tabId);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p => {
+    p.classList.toggle('active', p.id === 'tab-' + tabId);
+  });
+  if (tabId === 'e2b') loadXmlPreview();
+  if (tabId === 'summary') renderSummary();
+}
+
+// ═══════ Sections ═══════
+function toggleSection(id) {
+  document.getElementById(id).classList.toggle('collapsed');
+}
+
+// ═══════ Save ═══════
+async function saveReport() {
+  const btn = document.getElementById('btnSave');
+  btn.disabled = true;
+  btn.textContent = '⏳ Saving...';
+
+  const data = collectForm();
+
+  try {
+    const res = await fetch('/api/doc/save', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        run_id: RUN_ID,
+        patient_id: PATIENT_ID,
+        ae_slug: AE_SLUG,
+        medwatch_data: data,
+      }),
+    });
+    const result = await res.json();
+
+    if (result.success) {
+      isDirty = false;
+      document.getElementById('statusDirty').textContent = 'Saved ✓';
+      document.getElementById('statusDirty').style.color = 'var(--accent-green)';
+      showToast('success', 'Documents saved and regenerated.');
+      loadXmlPreview();
+    } else {
+      showToast('error', result.error || 'Save failed');
+    }
+  } catch (err) {
+    showToast('error', `Network error: ${err.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '💾 Save & Export';
+  }
+}
+
+// ═══════ Regenerate AI ═══════
+async function regenerateAI() {
+  const btn = document.getElementById('btnRegenerate');
+  btn.disabled = true;
+  btn.textContent = '⏳ Generating...';
+
+  try {
+    const res = await fetch('/api/doc/generate', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        run_id: RUN_ID,
+        patient_id: PATIENT_ID,
+        ae_term: AE_SLUG.replace(/_/g, ' '),
+        use_ai: true,
+      }),
+    });
+    const result = await res.json();
+
+    if (result.success && result.medwatch_data) {
+      const newNarrative = result.medwatch_data.section_b?.narrative;
+      const newDC = result.medwatch_data.section_c?.dechallenge;
+      const newRC = result.medwatch_data.section_c?.rechallenge;
+
+      if (newNarrative) {
+        medwatchData.section_b.narrative = newNarrative;
+        document.querySelector('[data-path="section_b.narrative"]').value = newNarrative;
+      }
+      if (newDC) {
+        medwatchData.section_c.dechallenge = newDC;
+        document.querySelector('[data-path="section_c.dechallenge"]').value = newDC;
+      }
+      if (newRC) {
+        medwatchData.section_c.rechallenge = newRC;
+        document.querySelector('[data-path="section_c.rechallenge"]').value = newRC;
+      }
+
+      document.getElementById('aiBadge').style.display = '';
+      document.getElementById('aiBadgeC7').style.display = '';
+      document.getElementById('aiBadgeC8').style.display = '';
+      markDirty();
+      showToast('success', 'AI narratives regenerated. Review and save.');
+    } else {
+      showToast('error', result.error || 'AI generation failed');
+    }
+  } catch (err) {
+    showToast('error', `Error: ${err.message}`);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🤖 Re-generate AI';
+  }
+}
+
+// ═══════ XML Preview ═══════
+async function loadXmlPreview() {
+  const el = document.getElementById('xmlPreview');
+  try {
+    const res = await fetch(`/api/doc/download/${RUN_ID}/${PATIENT_ID}/e2b_r3_${AE_SLUG}.xml`);
+    if (!res.ok) { el.querySelector('pre').textContent = 'XML not yet generated. Save to generate.'; return; }
+    const xml = await res.text();
+    el.querySelector('pre').textContent = xml;
+  } catch (err) {
+    el.querySelector('pre').textContent = 'Failed to load XML preview.';
+  }
+}
+
+// ═══════ Summary ═══════
+function renderSummary() {
+  const d = medwatchData;
+  const sa = d.section_a || {};
+  const sb = d.section_b || {};
+  const sc = d.section_c || {};
+  const sg = d.section_g || {};
+
+  const seriousness = [];
+  if (sb.seriousness_death) seriousness.push('Death');
+  if (sb.seriousness_life_threatening) seriousness.push('Life-threatening');
+  if (sb.seriousness_hospitalization) seriousness.push('Hospitalization');
+  if (sb.seriousness_disability) seriousness.push('Disability');
+  if (sb.seriousness_congenital) seriousness.push('Congenital anomaly');
+  if (sb.seriousness_other) seriousness.push('Other medically important');
+
+  document.getElementById('summaryContent').innerHTML = `
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:24px;">
+      <div>
+        <h4 style="color:var(--accent-cyan); margin-bottom:12px; font-size:0.95em;">Patient</h4>
+        <div style="font-size:0.9em; line-height:2;">
+          <strong>ID:</strong> ${sa.patient_id || '—'}<br>
+          <strong>Age:</strong> ${sa.age || '—'} · <strong>Sex:</strong> ${sa.sex || '—'}<br>
+          <strong>Weight:</strong> ${sa.weight ? sa.weight + ' kg' : '—'}<br>
+          <strong>Race:</strong> ${sa.race || '—'}
+        </div>
+        <h4 style="color:var(--accent-cyan); margin:16px 0 12px; font-size:0.95em;">Suspect Product</h4>
+        <div style="font-size:0.9em; line-height:2;">
+          <strong>Drug:</strong> ${sc.drug_name || '—'}<br>
+          <strong>Dose:</strong> ${sc.dose_frequency_route || '—'}<br>
+          <strong>Indication:</strong> ${sc.indication || '—'}<br>
+          <strong>Start:</strong> ${sc.therapy_start || '—'} · <strong>End:</strong> ${sc.therapy_end || '—'}
+        </div>
+      </div>
+      <div>
+        <h4 style="color:var(--accent-red); margin-bottom:12px; font-size:0.95em;">Adverse Event</h4>
+        <div style="font-size:0.9em; line-height:2;">
+          <strong>AE Term:</strong> ${sg.ae_term || '—'}<br>
+          <strong>Onset:</strong> ${sb.onset_date || '—'}<br>
+          <strong>Outcome:</strong> ${sb.outcome || '—'}<br>
+          <strong>Seriousness:</strong> ${seriousness.length ? seriousness.join(', ') : 'Not specified'}<br>
+          <strong>MedDRA PT:</strong> ${meddraData.pt || '—'} <span style="font-size:0.8em; color:var(--text-muted);">(${meddraData.source || '?'})</span>
+        </div>
+        <h4 style="color:var(--accent-orange); margin:16px 0 12px; font-size:0.95em;">Dechallenge / Rechallenge</h4>
+        <div style="font-size:0.9em; line-height:1.7;">
+          <strong>C7 (Dechallenge):</strong> ${sc.dechallenge || '—'}<br>
+          <strong>C8 (Rechallenge):</strong> ${sc.rechallenge || '—'}
+        </div>
+      </div>
+    </div>
+    <h4 style="color:var(--accent-purple); margin:20px 0 12px; font-size:0.95em;">Narrative (B5)</h4>
+    <div style="font-size:0.9em; line-height:1.7; background:var(--bg-primary); padding:14px; border-radius:8px; border:1px solid var(--border);">
+      ${sb.narrative || '<em style="color:var(--text-muted);">No narrative yet.</em>'}
+    </div>
+  `;
+}
+
+// ═══════ Toast ═══════
+function showToast(type, msg) {
+  const existing = document.querySelector('.save-toast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.className = `save-toast ${type}`;
+  toast.innerHTML = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+// Warn before leaving with unsaved changes
+window.addEventListener('beforeunload', (e) => {
+  if (isDirty) { e.preventDefault(); e.returnValue = ''; }
+});
+</script>
+{% endif %}
+{% endblock %}

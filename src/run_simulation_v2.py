@@ -164,6 +164,8 @@ def main():
             log_summary()
             return
 
+        runner.write_run_meta(args.patients, args.days, args.mode, 'running')
+
         modes = [args.mode] if args.mode != "both" else ["natural", "care_ai"]
 
         for mode in modes:
@@ -225,6 +227,8 @@ def main():
             print("=" * 60)
             from src.evaluator import run_evaluation
             comparison = run_evaluation(run_dir)
+
+        runner.write_run_meta(args.patients, args.days, args.mode, 'completed')
 
         log_summary()
         print(f"\nAll results saved to: {run_dir}/")

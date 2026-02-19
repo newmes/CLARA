@@ -46,6 +46,62 @@
     background: var(--bg-elevated); color: var(--accent-orange);
     padding: 2px 6px; border-radius: 3px; font-size: 0.88em;
   }
+  /* New Sim button */
+  .new-sim-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 10px 20px; background: rgba(57,210,192,0.1);
+    border: 1px solid var(--accent-cyan); border-radius: 6px;
+    color: var(--accent-cyan); font: 600 0.9em 'JetBrains Mono', monospace;
+    cursor: pointer; transition: all 0.15s; margin-bottom: 16px;
+  }
+  .new-sim-btn:hover { background: rgba(57,210,192,0.2); }
+  /* Run status badges */
+  .run-status {
+    display: inline-block; padding: 2px 8px; border-radius: 3px;
+    font: 600 0.7em 'JetBrains Mono', monospace; text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .run-status.completed { background: rgba(63,185,80,0.12); color: var(--accent-green); }
+  .run-status.running { background: rgba(57,210,192,0.12); color: var(--accent-cyan); animation: pulse 1.5s infinite; }
+  .run-status.failed { background: rgba(248,81,73,0.12); color: var(--accent-red); }
+  .run-status.generating_patients { background: rgba(210,153,34,0.12); color: #d29922; animation: pulse 1.5s infinite; }
+  @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+  .run-meta { font-size: 0.78em; color: var(--text-muted); margin-top: 2px; }
+  /* New sim modal */
+  .sim-modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center;
+    z-index: 1000;
+  }
+  .sim-modal-overlay.visible { display: flex; }
+  .sim-modal {
+    background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: 10px; padding: 24px; width: 420px; max-width: 90vw;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  }
+  .sim-modal h3 { color: var(--accent-cyan); margin-top: 0; font-size: 1.1em; }
+  .sim-form-group { margin-bottom: 12px; }
+  .sim-form-group label {
+    display: block; font-size: 0.78em; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+  }
+  .sim-form-group input, .sim-form-group select {
+    width: 100%; padding: 8px 10px; background: var(--bg-elevated);
+    border: 1px solid var(--border); border-radius: 4px;
+    color: var(--text-primary); font: 0.88em 'JetBrains Mono', monospace;
+  }
+  .sim-form-actions { display: flex; gap: 8px; margin-top: 16px; }
+  .sim-form-actions button {
+    padding: 8px 18px; border-radius: 5px; border: 1px solid var(--border);
+    cursor: pointer; font: 600 0.85em 'JetBrains Mono', monospace;
+    transition: all 0.15s;
+  }
+  .sim-btn-start {
+    background: rgba(57,210,192,0.15); color: var(--accent-cyan);
+    border-color: var(--accent-cyan);
+  }
+  .sim-btn-start:hover { background: rgba(57,210,192,0.3); }
+  .sim-btn-cancel { background: var(--bg-elevated); color: var(--text-secondary); }
 </style>
 {% endblock %}
 
@@ -61,32 +117,201 @@
     and Care AI interactions across simulation runs.
   </p>
 
+  <button class="new-sim-btn" onclick="showSimModal()">+ New Simulation</button>
+
   <hr class="landing-hr">
 
   {% if runs %}
-  <div class="section-label">Available Runs</div>
+  <div class="section-label">Simulation Runs</div>
   {% for run in runs %}
-  <div style="display:flex; gap:8px; margin-bottom:8px;">
+  <div style="display:flex; gap:8px; margin-bottom:8px;" id="run-{{ run.id }}">
+    {% if run.status == 'completed' %}
     <a href="{% url 'trial_viewer' run.id %}" class="run-card" style="flex:1;">
       <span class="arrow">→</span>
-      <h4>{{ run.id }}</h4>
+      <h4>{% if run.drug_name %}{{ run.drug_name }}{% else %}{{ run.id }}{% endif %}</h4>
+      <div style="display:flex; align-items:center; gap:8px; margin-top:4px; flex-wrap:wrap;">
+        <span class="run-status completed">Completed</span>
+        {% if run.indication %}<span class="run-meta" style="color:var(--text-secondary)">{{ run.indication|truncatechars:40 }}</span>{% endif %}
+        {% if run.n_patients %}<span class="run-meta">{{ run.n_patients }} patients</span>{% endif %}
+        {% if run.total_days %}<span class="run-meta">{{ run.total_days }} days</span>{% endif %}
+      </div>
+    </a>
+    <a href="{% url 'trial_viewer' run.id %}" class="run-card"
+       style="flex:0 0 auto; border-color:var(--accent-cyan); min-width:90px; text-align:center;" title="Day-by-day trial dashboard">
+      <h4 style="color:var(--accent-cyan); font-size:0.78em;">Simulation</h4>
     </a>
     <a href="{% url 'game_landing' run.id %}" class="run-card"
-       style="flex:0 0 auto; border-color:var(--accent-purple); min-width:80px; text-align:center;">
-      <h4 style="color:var(--accent-purple); font-size:0.82em;">Play</h4>
+       style="flex:0 0 auto; border-color:var(--accent-purple); min-width:90px; text-align:center;" title="Clinical training for nurses">
+      <h4 style="color:var(--accent-purple); font-size:0.78em;">Training</h4>
+    </a>
+    <a href="{% url 'doc_hub' run.id %}" class="run-card"
+       style="flex:0 0 auto; border-color:var(--accent-blue); min-width:90px; text-align:center;" title="SAE regulatory documents">
+      <h4 style="color:var(--accent-blue); font-size:0.78em;">Documents</h4>
     </a>
     <a href="{% url 'compare_dashboard' run.id %}" class="run-card"
-       style="flex:0 0 auto; border-color:var(--accent-green); min-width:80px; text-align:center;">
-      <h4 style="color:var(--accent-green); font-size:0.82em;">A/B</h4>
+       style="flex:0 0 auto; border-color:var(--accent-green); min-width:90px; text-align:center;" title="Natural vs Care AI comparison">
+      <h4 style="color:var(--accent-green); font-size:0.78em;">A/B Test</h4>
     </a>
+    {% else %}
+    <a href="{% url 'trial_viewer' run.id %}?live=1" class="run-card" style="flex:1;">
+      <h4>{{ run.id }}</h4>
+      <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
+        <span class="run-status {{ run.status }}">{{ run.status }}</span>
+        {% if run.drug_name %}<span class="run-meta">{{ run.drug_name }}</span>{% endif %}
+        {% if run.n_patients %}<span class="run-meta">{{ run.n_patients }} patients</span>{% endif %}
+      </div>
+    </a>
+    <button class="run-card" onclick="stopSim('{{ run.id }}')"
+       style="flex:0 0 auto; border-color:var(--accent-red); min-width:80px; text-align:center; cursor:pointer; background:var(--bg-card);">
+      <h4 style="color:var(--accent-red); font-size:0.82em;">Stop</h4>
+    </button>
+    {% endif %}
   </div>
   {% endfor %}
   {% else %}
   <div class="empty-msg">
     <strong>No simulation runs found.</strong><br>
-    Run a simulation first:
+    Click <strong>+ New Simulation</strong> above to start one, or run from CLI:
     <code>python src/run_simulation_v2.py --patients 10 --days 84</code>
   </div>
   {% endif %}
 </div>
+
+<!-- New Simulation Modal -->
+<div class="sim-modal-overlay" id="sim-modal">
+  <div class="sim-modal">
+    <h3>New Simulation</h3>
+    <div class="sim-form-group">
+      <label>Drug</label>
+      <input type="text" id="sim-drug" value="Padcev + Pembrolizumab">
+    </div>
+    <div class="sim-form-group">
+      <label>Indication</label>
+      <input type="text" id="sim-indication" value="metastatic urothelial carcinoma">
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div class="sim-form-group">
+        <label>Patients</label>
+        <input type="number" id="sim-patients" value="10" min="1" max="100">
+      </div>
+      <div class="sim-form-group">
+        <label>Days</label>
+        <input type="number" id="sim-days" value="126" min="7" max="365">
+      </div>
+    </div>
+    <div class="sim-form-group">
+      <label>Mode</label>
+      <select id="sim-mode">
+        <option value="both">Both (Natural + Care AI)</option>
+        <option value="natural">Natural only</option>
+        <option value="care_ai">Care AI only</option>
+      </select>
+    </div>
+    <div class="sim-form-group">
+      <label>Seed (optional)</label>
+      <input type="number" id="sim-seed" placeholder="Random">
+    </div>
+    <div class="sim-form-actions">
+      <button class="sim-btn-start" id="sim-start-btn" onclick="startSimulation()">Start Simulation</button>
+      <button class="sim-btn-cancel" onclick="hideSimModal()">Cancel</button>
+    </div>
+    <div id="sim-status-msg" style="margin-top:10px; font-size:0.85em; display:none;"></div>
+  </div>
+</div>
+
+<script>
+async function stopSim(runId) {
+  const action = confirm('Stop this simulation?\n\nChoose OK to stop (keep data), or Cancel to abort.');
+  if (!action) return;
+  const del = confirm('Also delete the partial run data?');
+  try {
+    const resp = await fetch(`/api/sim/stop/${runId}/`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({delete: del}),
+    });
+    const data = await resp.json();
+    alert(`Simulation ${data.status}`);
+    location.reload();
+  } catch(e) {
+    alert('Failed to stop: ' + e.message);
+  }
+}
+
+function showSimModal() {
+  document.getElementById('sim-modal').classList.add('visible');
+}
+function hideSimModal() {
+  document.getElementById('sim-modal').classList.remove('visible');
+}
+
+async function startSimulation() {
+  const btn = document.getElementById('sim-start-btn');
+  const msg = document.getElementById('sim-status-msg');
+  btn.disabled = true;
+  btn.textContent = 'Starting...';
+  msg.style.display = 'block';
+  msg.style.color = 'var(--accent-cyan)';
+  msg.textContent = 'Initializing simulation...';
+
+  const body = {
+    drug: document.getElementById('sim-drug').value,
+    indication: document.getElementById('sim-indication').value,
+    patients: parseInt(document.getElementById('sim-patients').value),
+    days: parseInt(document.getElementById('sim-days').value),
+    mode: document.getElementById('sim-mode').value,
+  };
+  const seedVal = document.getElementById('sim-seed').value;
+  if (seedVal) body.seed = parseInt(seedVal);
+
+  try {
+    const resp = await fetch('/api/sim/start', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body),
+    });
+    const data = await resp.json();
+    if (resp.ok) {
+      msg.style.color = 'var(--accent-green)';
+      msg.innerHTML = `Started! Run ID: <code>${data.run_id}</code><br>Redirecting to live view...`;
+      setTimeout(() => {
+        window.location.href = data.url + '?live=1';
+      }, 1500);
+    } else {
+      msg.style.color = 'var(--accent-red)';
+      msg.textContent = data.error || 'Failed to start';
+      btn.disabled = false;
+      btn.textContent = 'Start Simulation';
+    }
+  } catch(e) {
+    msg.style.color = 'var(--accent-red)';
+    msg.textContent = 'Network error: ' + e.message;
+    btn.disabled = false;
+    btn.textContent = 'Start Simulation';
+  }
+}
+
+// Poll running simulations for status updates
+document.addEventListener('DOMContentLoaded', () => {
+  const runningEls = document.querySelectorAll('.run-status.running, .run-status.generating_patients');
+  if (runningEls.length === 0) return;
+
+  setInterval(async () => {
+    try {
+      const resp = await fetch('/api/sim/list');
+      const data = await resp.json();
+      data.runs.forEach(run => {
+        const el = document.getElementById('run-' + run.id);
+        if (!el) return;
+        const badge = el.querySelector('.run-status');
+        if (badge && run.status !== badge.textContent.trim().toLowerCase()) {
+          badge.className = 'run-status ' + run.status;
+          badge.textContent = run.status === 'completed' ? 'Replay' : run.status;
+          if (run.status === 'completed') location.reload();
+        }
+      });
+    } catch(e) {}
+  }, 5000);
+});
+</script>
 {% endblock %}
