@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% block title %}Clinical Trial Simulation{% endblock %}</title>
+  <title>{% block title %}VITAL — Virtual Intelligent Trial Adverse-event Lifecycle{% endblock %}</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css">
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js"></script>
@@ -13,24 +13,45 @@
     /* ── Global Nav Bar ── */
     .global-nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 9999;
-      background: var(--bg-primary); border-bottom: 1px solid var(--border);
+      /* Glassmorphism background */
+      background: rgba(13,17,23,0.85);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      /* No solid border — gradient pseudo-element replaces it */
+      border-bottom: none;
       height: 44px; display: flex; align-items: center; padding: 0 20px;
       font-size: 0.85em; gap: 4px;
     }
+    /* Gradient bottom border via pseudo-element */
+    .global-nav::after {
+      content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue), transparent);
+      opacity: 0.6;
+    }
     .global-nav a {
       color: var(--text-muted); text-decoration: none; padding: 6px 12px;
-      border-radius: 4px; transition: all 0.12s; white-space: nowrap;
+      border-radius: 4px; transition: all 0.2s; white-space: nowrap;
+      position: relative;
     }
     .global-nav a:hover {
       color: var(--text-primary); background: var(--bg-elevated);
       text-decoration: none;
+      box-shadow: inset 0 -2px 0 var(--accent-cyan);
     }
     .global-nav a.nav-active {
       color: var(--accent-cyan); background: rgba(57,210,192,0.1);
+      border-radius: 20px;
+      box-shadow: 0 0 12px rgba(57,210,192,0.1);
     }
     .global-nav .nav-brand {
-      font-weight: 700; color: var(--accent-cyan); font-size: 1.1em;
+      font-weight: 700; font-size: 1.1em;
       margin-right: 8px; letter-spacing: -0.3px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text;
+      display: inline-flex; align-items: center; gap: 6px;
+    }
+    .global-nav .nav-brand img {
+      width: 22px; height: 22px; -webkit-text-fill-color: initial;
     }
     .global-nav .nav-sep {
       color: var(--border); margin: 0 2px; user-select: none;
@@ -42,17 +63,50 @@
     body { padding-top: 44px; }
     body.no-nav-pad { padding-top: 0; }
     body.no-nav-pad .global-nav { display: none; }
+
+    /* ── Run Sidebar ── */
+    .run-sidebar {
+      position: fixed; top: 44px; left: 0; bottom: 0; width: 60px;
+      z-index: 200;
+      background: rgba(13,17,23,0.92);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+      display: flex; flex-direction: column; align-items: center;
+      padding: 14px 0; gap: 4px;
+    }
+    .run-sidebar::after {
+      content: ''; position: absolute; top: 0; right: 0; bottom: 0; width: 1px;
+      background: linear-gradient(180deg, var(--accent-cyan), var(--accent-blue), transparent);
+      opacity: 0.25;
+    }
+    .run-sidebar a {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      gap: 4px; width: 50px; height: 50px; border-radius: 10px;
+      color: var(--text-muted); text-decoration: none;
+      transition: all 0.15s; position: relative;
+    }
+    .run-sidebar a span {
+      font-size: 0.55em; font-weight: 600; letter-spacing: 0.3px;
+      line-height: 1; white-space: nowrap;
+    }
+    .run-sidebar a:hover {
+      color: var(--text-primary); background: var(--bg-elevated);
+      text-decoration: none;
+    }
+    .run-sidebar a.sb-active {
+      color: var(--accent-cyan); background: rgba(57,210,192,0.1);
+    }
+    body.has-sidebar { padding-left: 60px; }
   </style>
   {% block extra_head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
   <!-- Global Navigation -->
   <nav class="global-nav">
-    <a href="/" class="nav-brand" title="Clinical Trial Simulator">CTS</a>
-    <span class="nav-sep">/</span>
-    <a href="/">Runs</a>
+    <a href="/" class="nav-brand" title="Virtual Intelligent Trial Adverse-event Lifecycle">{% load static %}<img src="{% static 'assets/logo.svg' %}" alt="V">VITAL</a>
     {% block nav_items %}{% endblock %}
   </nav>
+
+  {% block run_sidebar %}{% endblock %}
 
   {% block content %}{% endblock %}
   {% block js_content %}{% endblock %}
