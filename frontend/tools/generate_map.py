@@ -1,23 +1,24 @@
-"""Procedural Clinical Trial Map Generator
+"""Procedural Clinical Trial Map Generator (v2: Multi-row layout)
 
-Generates a Tiled-format JSON tilemap and a waypoint metadata file
-for N patients. Layout:
+Generates a Tiled-format JSON tilemap and waypoint metadata for N patients.
+For small counts (<=48), a single horizontal road with side streets.
+For larger counts, multiple rows connected by a vertical avenue.
 
-  Hospital on the left, main horizontal road extending right.
-  Vertical side streets branch off at regular intervals.
-  Houses placed along side streets (above and below main road).
+Layout (multi-row):
+  Row 0:  [houses] ═══ HOSPITAL ═══ [houses]
+                           ║
+  Row 1:  [houses] ═══════╬═══════ [houses]
+                           ║
+  Row 2:  [houses] ═══════╬═══════ [houses]
 
 Tile IDs (Kenney Tiny Town tilemap_packed.png, 12 cols x 11 rows):
   Grass:    1, 2, 3  (variants)
   Road H:   13(top-left), 14(top), 15(top-right),
             25(mid-left), 26(mid), 27(mid-right),
             37(bot-left), 38(bot), 39(bot-right)
-  Road V:   Same tiles rotated conceptually — we use
-            25/26/27 for vertical segments too (center row)
   House A roof:  49, 50, 51   wall: 61, 64, 63
   House B roof:  53, 54, 55   wall: 65, 68, 67
   Hospital roof: 73,74,75,76  wall: 85,86,87,88
-  Hospital alt:  78,79,80     wall: 89,90,92
   Decor: 5,6,7,8,10,19,20,29,30,46,96
 """
 
@@ -29,9 +30,9 @@ from pathlib import Path
 
 # Tile constants
 GRASS = [1, 2, 3]
-ROAD_TOP = [13, 14, 15]  # top edge of horizontal road
-ROAD_MID = [25, 26, 27]  # middle of road
-ROAD_BOT = [37, 38, 39]  # bottom edge of horizontal road
+ROAD_TOP = [13, 14, 15]
+ROAD_MID = [25, 26, 27]
+ROAD_BOT = [37, 38, 39]
 DECOR = [5, 6, 7, 8, 10, 19, 20]
 
 HOUSE_A_ROOF = [49, 50, 51]
@@ -41,62 +42,74 @@ HOUSE_B_WALL = [65, 68, 67]
 
 HOSP_ROOF_A = [73, 74, 75, 76]
 HOSP_WALL_A = [85, 86, 87, 88]
-HOSP_ROOF_B = [78, 79, 80]
-HOSP_WALL_B = [89, 90, 92]
 
 # Layout parameters
 TILE = 16
-ROAD_WIDTH = 3  # 3 tiles tall for horizontal road
-STREET_WIDTH = 3  # 3 tiles wide for vertical streets
-HOUSE_W = 3  # house is 3 tiles wide
-HOUSE_H = 2  # house is 2 tiles tall (roof + wall)
-HOSP_W = 5  # hospital is 5 tiles wide
-HOSP_H = 2  # hospital is 2 tiles tall
-STREET_SPACING = 11  # tiles between side streets (center to center); must be >= 2*HOUSE_W + STREET_WIDTH + 2
-HOUSE_OFFSET = 2  # tiles from road edge to house
+ROAD_WIDTH = 3       # 3 tiles tall for horizontal road
+STREET_WIDTH = 3     # 3 tiles wide for vertical streets
+HOUSE_W = 3          # house is 3 tiles wide
+HOUSE_H = 2          # house is 2 tiles tall (roof + wall)
+HOSP_W = 5           # hospital is 5 tiles wide
+HOSP_H = 2           # hospital is 2 tiles tall
+STREET_SPACING = 11  # tiles between side streets (center to center)
+HOUSE_OFFSET = 2     # tiles from road edge to house
+
+# Multi-row parameters
+MAX_STREETS_PER_ROW = 12  # 48 patients per row before wrapping to next row
+ROW_ABOVE = HOUSE_OFFSET + HOUSE_H + 4  # 8 tiles above road
+ROW_BELOW = HOUSE_OFFSET + HOUSE_H + 4  # 8 tiles below road
+ROW_HEIGHT = ROW_ABOVE + ROAD_WIDTH + ROW_BELOW  # 19 tiles per row
+ROW_GAP = 4  # gap tiles between rows
 
 
 def generate_map(n_patients: int, seed: int = 42) -> tuple[dict, dict]:
     """Generate tilemap JSON and waypoint metadata for N patients.
 
-    Layout: Hospital in CENTER, main road extends left and right,
-    side streets with houses branch off the main road.
+    Hospital centered on row 0. For >48 patients, additional rows
+    are added below, connected by a vertical avenue through the center.
     """
     rng = random.Random(seed)
 
-    # Calculate layout dimensions
-    n_streets = math.ceil(n_patients / 4)  # 4 houses per street (2 above, 2 below)
+    n_streets = math.ceil(n_patients / 4)  # 4 houses per street
     n_streets = max(n_streets, 2)
 
-    # Split streets evenly: left of hospital + right of hospital
-    n_left = n_streets // 2
-    n_right = n_streets - n_left
+    # Determine multi-row layout
+    if n_streets <= MAX_STREETS_PER_ROW:
+        n_rows = 1
+    else:
+        n_rows = math.ceil(n_streets / MAX_STREETS_PER_ROW)
+    streets_per_row = math.ceil(n_streets / n_rows)
 
-    # Map dimensions
-    left_wing_w = n_left * STREET_SPACING + 4
-    right_wing_w = n_right * STREET_SPACING + 4
-    hosp_area_w = HOSP_W + 6  # hospital + margin on each side
-    map_w = left_wing_w + hosp_area_w + right_wing_w
+    # Distribute streets across rows
+    row_street_counts = []
+    remaining = n_streets
+    for _ in range(n_rows):
+        c = min(streets_per_row, remaining)
+        row_street_counts.append(c)
+        remaining -= c
+
+    # Map dimensions based on widest row (symmetric wings)
+    max_spr = max(row_street_counts)
+    max_half = (max_spr + 1) // 2  # larger half for symmetric wings
+
+    wing_w = max_half * STREET_SPACING + 4
+    hosp_area_w = HOSP_W + 6
+    map_w = wing_w + hosp_area_w + wing_w
     map_w = max(map_w, 30)
 
-    above_road = HOUSE_OFFSET + HOUSE_H + 4
-    below_road = HOUSE_OFFSET + HOUSE_H + 4
-    map_h = above_road + ROAD_WIDTH + below_road + 2
+    map_h = n_rows * ROW_HEIGHT + (n_rows - 1) * ROW_GAP + 2
     map_h = max(map_h, 22)
 
-    # Key Y positions
-    road_y = above_road + 1
-    road_center_y = road_y + 1
-
-    # Hospital position (CENTER)
-    hosp_x = left_wing_w + 3
-    hosp_y = road_center_y - 1
+    # Reference positions (hospital centered)
+    hosp_x = wing_w + 3
+    center_x = hosp_x + HOSP_W // 2  # vertical connector x
 
     # Initialize layers
-    ground = [0] * (map_w * map_h)
-    buildings = [0] * (map_w * map_h)
-    roofs = [0] * (map_w * map_h)
-    decor = [0] * (map_w * map_h)
+    size = map_w * map_h
+    ground = [0] * size
+    buildings = [0] * size
+    roofs = [0] * size
+    decor_data = [0] * size
 
     def idx(x, y):
         return y * map_w + x
@@ -110,227 +123,234 @@ def generate_map(n_patients: int, seed: int = 42) -> tuple[dict, dict]:
             return layer[idx(x, y)]
         return 0
 
+    def row_road_y(r):
+        """Top tile Y of the horizontal road in row r."""
+        return 1 + ROW_ABOVE + r * (ROW_HEIGHT + ROW_GAP)
+
     # Fill ground with grass
     for y in range(map_h):
         for x in range(map_w):
             set_tile(ground, x, y, rng.choice(GRASS))
 
-    # Draw main horizontal road (full width)
-    road_start_x = 2
-    road_end_x = map_w - 3
-    for x in range(road_start_x, road_end_x + 1):
-        set_tile(ground, x, road_y, 14)
-        set_tile(ground, x, road_y + 1, 26)
-        set_tile(ground, x, road_y + 2, 38)
-    # Caps
-    set_tile(ground, road_start_x, road_y, 13)
-    set_tile(ground, road_start_x, road_y + 1, 25)
-    set_tile(ground, road_start_x, road_y + 2, 37)
-    set_tile(ground, road_end_x, road_y, 15)
-    set_tile(ground, road_end_x, road_y + 1, 27)
-    set_tile(ground, road_end_x, road_y + 2, 39)
+    # ─── Hospital (row 0) ───
+    row0_road_y = row_road_y(0)
+    hosp_tile_y = row0_road_y  # hospital roof at road top, wall at road center
 
-    # Place hospital building (centered)
     for i in range(HOSP_W):
-        tile = HOSP_ROOF_A[i % len(HOSP_ROOF_A)]
-        set_tile(roofs, hosp_x + i, hosp_y, tile)
-    for i in range(HOSP_W):
-        tile = HOSP_WALL_A[i % len(HOSP_WALL_A)]
-        set_tile(buildings, hosp_x + i, hosp_y + 1, tile)
+        set_tile(roofs, hosp_x + i, hosp_tile_y, HOSP_ROOF_A[i % len(HOSP_ROOF_A)])
+        set_tile(buildings, hosp_x + i, hosp_tile_y + 1, HOSP_WALL_A[i % len(HOSP_WALL_A)])
 
-    # ─── Build street positions: left streets + right streets ───
     homes = []
     waypoints = []
 
-    hosp_entrance_x = hosp_x + HOSP_W // 2
+    # Hospital waypoint (at road center of row 0)
     waypoints.append({
         "id": "hosp",
-        "x": hosp_entrance_x,
-        "y": road_center_y,
+        "x": center_x,
+        "y": row0_road_y + 1,
         "neighbors": [],
     })
 
-    # Compute street X positions
-    # Left streets: from hospital leftward
-    left_street_xs = []
-    for i in range(n_left):
-        sx = hosp_x - 3 - (i + 1) * STREET_SPACING + STREET_SPACING // 2
-        left_street_xs.append(sx)
-    left_street_xs.reverse()  # closest to hospital first in array
+    # ─── Vertical connector between rows (multi-row only) ───
+    if n_rows > 1:
+        # Draw vertical road tiles between each row
+        for r in range(n_rows - 1):
+            bot_of_row = row_road_y(r) + ROAD_WIDTH
+            top_of_next = row_road_y(r + 1)
+            for y in range(bot_of_row, top_of_next):
+                set_tile(ground, center_x - 1, y, 25)
+                set_tile(ground, center_x, y, 26)
+                set_tile(ground, center_x + 1, y, 27)
 
-    # Right streets: from hospital rightward
-    right_street_xs = []
-    for i in range(n_right):
-        sx = hosp_x + HOSP_W + 3 + i * STREET_SPACING + STREET_SPACING // 2
-        right_street_xs.append(sx)
+        # Connector waypoints for rows 1+
+        for r in range(1, n_rows):
+            conn_id = f"conn_{r}"
+            conn_y = row_road_y(r) + 1
+            prev_id = "hosp" if r == 1 else f"conn_{r - 1}"
+            waypoints.append({
+                "id": conn_id,
+                "x": center_x,
+                "y": conn_y,
+                "neighbors": [prev_id],
+            })
+            prev_wp = next(w for w in waypoints if w["id"] == prev_id)
+            prev_wp["neighbors"].append(conn_id)
 
-    all_street_xs = left_street_xs + right_street_xs
-
+    # ─── Process each row ───
     patient_idx = 0
-    prev_road_wp_id = "hosp"
+    global_street_idx = 0
 
-    # Sort streets by distance from hospital (alternating left/right)
-    street_order = []
-    li, ri = 0, 0
-    for _ in range(n_streets):
-        if li < len(left_street_xs) and ri < len(right_street_xs):
-            # Alternate
-            if _ % 2 == 0 and ri < len(right_street_xs):
-                street_order.append(("right", ri))
-                ri += 1
-            else:
-                street_order.append(("left", li))
-                li += 1
-        elif ri < len(right_street_xs):
-            street_order.append(("right", ri))
-            ri += 1
+    for row in range(n_rows):
+        n_row_streets = row_street_counts[row]
+        road_y = row_road_y(row)
+        road_center = road_y + 1
+
+        # Alternate extra street between left/right for odd counts
+        half = n_row_streets // 2
+        extra = n_row_streets % 2
+        if extra and row % 2 == 0:
+            n_left = half
+            n_right = half + 1
+        elif extra:
+            n_left = half + 1
+            n_right = half
         else:
-            street_order.append(("left", li))
-            li += 1
+            n_left = half
+            n_right = half
 
-    # Build linear chain: hosp -> nearest streets -> farther streets
-    # Sort by distance from hospital
-    street_defs = []
-    for side, idx_in_side in street_order:
-        if side == "right":
-            sx = right_street_xs[idx_in_side]
-        else:
-            sx = left_street_xs[idx_in_side]
-        street_defs.append((sx, side, idx_in_side))
+        # Draw horizontal road (full width)
+        road_start_x = 2
+        road_end_x = map_w - 3
+        for x in range(road_start_x, road_end_x + 1):
+            set_tile(ground, x, road_y, 14)
+            set_tile(ground, x, road_y + 1, 26)
+            set_tile(ground, x, road_y + 2, 38)
+        # Caps
+        set_tile(ground, road_start_x, road_y, 13)
+        set_tile(ground, road_start_x, road_y + 1, 25)
+        set_tile(ground, road_start_x, road_y + 2, 37)
+        set_tile(ground, road_end_x, road_y, 15)
+        set_tile(ground, road_end_x, road_y + 1, 27)
+        set_tile(ground, road_end_x, road_y + 2, 39)
 
-    # Sort by x for waypoint chaining (left to right)
-    street_defs.sort(key=lambda s: s[0])
+        # Compute street X positions
+        left_xs = []
+        for i in range(n_left):
+            sx = hosp_x - 3 - (i + 1) * STREET_SPACING + STREET_SPACING // 2
+            left_xs.append(sx)
+        left_xs.reverse()  # sorted left to right
 
-    prev_main_wp = None  # previous street's main road waypoint
+        right_xs = []
+        for i in range(n_right):
+            sx = hosp_x + HOSP_W + 3 + i * STREET_SPACING + STREET_SPACING // 2
+            right_xs.append(sx)
 
-    for si, (street_x, side, _) in enumerate(street_defs):
-        if street_x < road_start_x + 2 or street_x > road_end_x - 2:
-            continue
+        # Row anchor: hospital for row 0, connector for others
+        row_anchor = "hosp" if row == 0 else f"conn_{row}"
 
-        # Draw vertical street (above road)
-        for y in range(road_y - HOUSE_OFFSET - HOUSE_H - 1, road_y):
-            set_tile(ground, street_x - 1, y, 25)
-            set_tile(ground, street_x, y, 26)
-            set_tile(ground, street_x + 1, y, 27)
-        # Draw vertical street (below road)
-        for y in range(road_y + ROAD_WIDTH, road_y + ROAD_WIDTH + HOUSE_OFFSET + HOUSE_H + 1):
-            set_tile(ground, street_x - 1, y, 25)
-            set_tile(ground, street_x, y, 26)
-            set_tile(ground, street_x + 1, y, 27)
+        # Place streets and create waypoints
+        row_street_data = []  # (street_x, street_wp_id)
 
-        # Intersection
-        for ry in [road_y, road_y + 2]:
-            set_tile(ground, street_x - 1, ry, 25)
-            set_tile(ground, street_x, ry, 26)
-            set_tile(ground, street_x + 1, ry, 27)
+        for street_x in (left_xs + right_xs):
+            if street_x < road_start_x + 2 or street_x > road_end_x - 2:
+                continue
 
-        # Waypoints
-        street_main_id = f"road_{si}"
-        street_top_id = f"st_{si}_top"
-        street_bot_id = f"st_{si}_bot"
+            sid = global_street_idx
+            street_id = f"road_{sid}"
+            top_id = f"st_{sid}_top"
+            bot_id = f"st_{sid}_bot"
 
-        top_wp_y = road_y - HOUSE_OFFSET
-        bot_wp_y = road_y + ROAD_WIDTH + HOUSE_OFFSET - 1
+            # Draw vertical street (above road)
+            for y in range(road_y - HOUSE_OFFSET - HOUSE_H - 1, road_y):
+                set_tile(ground, street_x - 1, y, 25)
+                set_tile(ground, street_x, y, 26)
+                set_tile(ground, street_x + 1, y, 27)
+            # Draw vertical street (below road)
+            for y in range(road_y + ROAD_WIDTH,
+                           road_y + ROAD_WIDTH + HOUSE_OFFSET + HOUSE_H + 1):
+                set_tile(ground, street_x - 1, y, 25)
+                set_tile(ground, street_x, y, 26)
+                set_tile(ground, street_x + 1, y, 27)
 
-        waypoints.append({
-            "id": street_main_id,
-            "x": street_x,
-            "y": road_center_y,
-            "neighbors": [street_top_id, street_bot_id],
-        })
-        waypoints.append({
-            "id": street_top_id,
-            "x": street_x,
-            "y": top_wp_y,
-            "neighbors": [street_main_id],
-        })
-        waypoints.append({
-            "id": street_bot_id,
-            "x": street_x,
-            "y": bot_wp_y,
-            "neighbors": [street_main_id],
-        })
+            # Intersection
+            for ry in [road_y, road_y + 2]:
+                set_tile(ground, street_x - 1, ry, 25)
+                set_tile(ground, street_x, ry, 26)
+                set_tile(ground, street_x + 1, ry, 27)
 
-        # Chain to previous waypoint on main road
-        street_wp = next(w for w in waypoints if w["id"] == street_main_id)
-        if prev_main_wp is None:
-            # Connect first street to hospital
-            waypoints[0]["neighbors"].append(street_main_id)
-            street_wp["neighbors"].append("hosp")
-        else:
-            street_wp["neighbors"].append(prev_main_wp)
-            prev = next(w for w in waypoints if w["id"] == prev_main_wp)
-            prev["neighbors"].append(street_main_id)
-        prev_main_wp = street_main_id
+            # Waypoints
+            top_wp_y = road_y - HOUSE_OFFSET
+            bot_wp_y = road_y + ROAD_WIDTH + HOUSE_OFFSET - 1
 
-        # Place houses (up to 4 per street)
-        house_positions = [
-            (street_x - HOUSE_W - 1, road_y - HOUSE_OFFSET - HOUSE_H, "above_left", street_top_id),
-            (street_x + 2, road_y - HOUSE_OFFSET - HOUSE_H, "above_right", street_top_id),
-            (street_x - HOUSE_W - 1, road_y + ROAD_WIDTH + HOUSE_OFFSET, "below_left", street_bot_id),
-            (street_x + 2, road_y + ROAD_WIDTH + HOUSE_OFFSET, "below_right", street_bot_id),
-        ]
+            waypoints.append({
+                "id": street_id, "x": street_x, "y": road_center,
+                "neighbors": [top_id, bot_id],
+            })
+            waypoints.append({
+                "id": top_id, "x": street_x, "y": top_wp_y,
+                "neighbors": [street_id],
+            })
+            waypoints.append({
+                "id": bot_id, "x": street_x, "y": bot_wp_y,
+                "neighbors": [street_id],
+            })
 
-        for hx, hy, pos_label, parent_wp_id in house_positions:
+            row_street_data.append((street_x, street_id))
+
+            # Place houses (up to 4 per street)
+            house_positions = [
+                (street_x - HOUSE_W - 1, road_y - HOUSE_OFFSET - HOUSE_H,
+                 "above_left", top_id),
+                (street_x + 2, road_y - HOUSE_OFFSET - HOUSE_H,
+                 "above_right", top_id),
+                (street_x - HOUSE_W - 1, road_y + ROAD_WIDTH + HOUSE_OFFSET,
+                 "below_left", bot_id),
+                (street_x + 2, road_y + ROAD_WIDTH + HOUSE_OFFSET,
+                 "below_right", bot_id),
+            ]
+
+            for hx, hy, pos_label, parent_wp_id in house_positions:
+                if patient_idx >= n_patients:
+                    break
+
+                if patient_idx % 2 == 0:
+                    roof_tiles, wall_tiles = HOUSE_A_ROOF, HOUSE_A_WALL
+                else:
+                    roof_tiles, wall_tiles = HOUSE_B_ROOF, HOUSE_B_WALL
+
+                for i, t in enumerate(roof_tiles):
+                    set_tile(roofs, hx + i, hy, t)
+                for i, t in enumerate(wall_tiles):
+                    set_tile(buildings, hx + i, hy + 1, t)
+
+                home_wp_id = f"h{patient_idx}"
+                home_wp_x = hx + 1
+                home_wp_y = hy + 2 if "above" in pos_label else hy - 1
+
+                homes.append({
+                    "patient_idx": patient_idx,
+                    "x": home_wp_x, "y": home_wp_y,
+                    "house_x": hx, "house_y": hy,
+                    "waypoint_id": home_wp_id,
+                })
+
+                waypoints.append({
+                    "id": home_wp_id, "x": home_wp_x, "y": home_wp_y,
+                    "neighbors": [parent_wp_id],
+                })
+                parent = next(w for w in waypoints if w["id"] == parent_wp_id)
+                parent["neighbors"].append(home_wp_id)
+
+                patient_idx += 1
+
+            global_street_idx += 1
             if patient_idx >= n_patients:
                 break
 
-            if patient_idx % 2 == 0:
-                roof_tiles, wall_tiles = HOUSE_A_ROOF, HOUSE_A_WALL
-            else:
-                roof_tiles, wall_tiles = HOUSE_B_ROOF, HOUSE_B_WALL
+        # Chain streets along the road through anchor (both sides)
+        left_streets = [(x, wid) for x, wid in row_street_data if x < center_x]
+        right_streets = [(x, wid) for x, wid in row_street_data if x >= center_x]
 
-            for i, t in enumerate(roof_tiles):
-                set_tile(roofs, hx + i, hy, t)
-            for i, t in enumerate(wall_tiles):
-                set_tile(buildings, hx + i, hy + 1, t)
+        def _connect(wp_id_a, wp_id_b):
+            wa = next(w for w in waypoints if w["id"] == wp_id_a)
+            wb = next(w for w in waypoints if w["id"] == wp_id_b)
+            wa["neighbors"].append(wp_id_b)
+            wb["neighbors"].append(wp_id_a)
 
-            home_wp_id = f"h{patient_idx}"
-            home_wp_x = hx + 1
-            home_wp_y = hy + 2 if "above" in pos_label else hy - 1
+        # Left chain: closest to center first (sorted by x descending)
+        prev = row_anchor
+        for _, wp_id in sorted(left_streets, key=lambda s: -s[0]):
+            _connect(prev, wp_id)
+            prev = wp_id
 
-            homes.append({
-                "patient_idx": patient_idx,
-                "x": home_wp_x,
-                "y": home_wp_y,
-                "house_x": hx,
-                "house_y": hy,
-                "waypoint_id": home_wp_id,
-            })
-
-            waypoints.append({
-                "id": home_wp_id,
-                "x": home_wp_x,
-                "y": home_wp_y,
-                "neighbors": [parent_wp_id],
-            })
-            parent = next(w for w in waypoints if w["id"] == parent_wp_id)
-            parent["neighbors"].append(home_wp_id)
-
-            patient_idx += 1
+        # Right chain: closest to center first (sorted by x ascending)
+        prev = row_anchor
+        for _, wp_id in sorted(right_streets, key=lambda s: s[0]):
+            _connect(prev, wp_id)
+            prev = wp_id
 
         if patient_idx >= n_patients:
             break
-
-    # Also connect hospital to nearest street on the other side if not connected
-    # (ensure full connectivity: left streets ← hosp → right streets)
-    hosp_wp = waypoints[0]
-    if len(hosp_wp["neighbors"]) == 1 and len(street_defs) > 1:
-        # Only connected to one side; find nearest street on other side
-        connected_x = None
-        for w in waypoints:
-            if w["id"] == hosp_wp["neighbors"][0]:
-                connected_x = w["x"]
-                break
-        for w in waypoints:
-            if w["id"].startswith("road_") and w["id"] != hosp_wp["neighbors"][0]:
-                if connected_x is not None and (
-                    (w["x"] < hosp_entrance_x and connected_x > hosp_entrance_x) or
-                    (w["x"] > hosp_entrance_x and connected_x < hosp_entrance_x)
-                ):
-                    hosp_wp["neighbors"].append(w["id"])
-                    w["neighbors"].append("hosp")
-                    break
 
     # Scattered decor
     for _ in range(map_w * map_h // 12):
@@ -339,7 +359,7 @@ def generate_map(n_patients: int, seed: int = 42) -> tuple[dict, dict]:
         if (get_tile(ground, dx, dy) in GRASS
                 and get_tile(buildings, dx, dy) == 0
                 and get_tile(roofs, dx, dy) == 0):
-            set_tile(decor, dx, dy, rng.choice(DECOR))
+            set_tile(decor_data, dx, dy, rng.choice(DECOR))
 
     # Build Tiled JSON
     tilemap = {
@@ -373,7 +393,7 @@ def generate_map(n_patients: int, seed: int = 42) -> tuple[dict, dict]:
             _make_layer("Ground", 1, map_w, map_h, ground),
             _make_layer("Buildings", 2, map_w, map_h, buildings),
             _make_layer("Roofs", 3, map_w, map_h, roofs),
-            _make_layer("Decor", 4, map_w, map_h, decor),
+            _make_layer("Decor", 4, map_w, map_h, decor_data),
         ],
     }
 
@@ -384,8 +404,8 @@ def generate_map(n_patients: int, seed: int = 42) -> tuple[dict, dict]:
         "map_height": map_h,
         "tile_size": TILE,
         "hospital": {
-            "x": hosp_x + HOSP_W // 2,
-            "y": hosp_y + 1,
+            "x": center_x,
+            "y": hosp_tile_y + 1,
             "waypoint_id": "hosp",
         },
         "homes": homes,

@@ -8,6 +8,9 @@
 const TILE = 16;
 const STATIC = '/static/assets';
 
+// Available character sprite indices (patient_02 removed — not human)
+const SPRITE_INDICES = [1, 3, 4, 5, 6, 7, 8, 9, 10];
+
 const STATUS_COLORS = {
   severe:   0xf85149,
   moderate: 0xd29922,
@@ -55,17 +58,20 @@ class TrialMap {
     this.hospitalPos = null;
     this.waypointGraph = {};
 
-    const el = document.getElementById(containerId);
-    const w = el ? el.clientWidth : 1200;
-
-    this._loadMapMeta().then(() => {
+    // Wait for both map meta and web font to load before starting Phaser
+    Promise.all([
+      this._loadMapMeta(),
+      document.fonts.load('16px "NeoDunggeunmo"'),
+    ]).then(() => {
       this.game = new Phaser.Game({
         type: Phaser.AUTO,
-        width: w,
-        height: 580,
         parent: containerId,
         backgroundColor: '#63c74d',
         pixelArt: true,
+        scale: {
+          mode: Phaser.Scale.RESIZE,
+          autoCenter: Phaser.Scale.CENTER_BOTH,
+        },
         scene: {
           preload: this._preload.bind(this),
           create:  this._create.bind(this),
@@ -140,12 +146,58 @@ class TrialMap {
     return [];
   }
 
+  /** Max visible patients inside hospital */
+  static HOSP_MAX_VISIBLE = 6;
+
+  /**
+   * Compute position inside hospital building for the n-th visitor.
+   * 3 cols × 2 rows grid inside the building. Returns null if over limit.
+   */
+  _getHospSlot(visitIdx) {
+    if (visitIdx >= TrialMap.HOSP_MAX_VISIBLE) return null; // hide overflow
+    const cols = 3;
+    const spacingX = 12;
+    const spacingY = 11;
+    const col = visitIdx % cols;
+    const row = Math.floor(visitIdx / cols);
+    const baseX = this.hospitalPos.x * TILE + TILE / 2;
+    const baseY = this.hospitalPos.y * TILE - 14;
+    const gridW = (cols - 1) * spacingX;
+    const x = baseX - gridW / 2 + col * spacingX;
+    const y = baseY - row * spacingY;
+    return { x, y };
+  }
+
+  /**
+   * Update the hospital patient count badge.
+   */
+  _updateHospBadge(totalInHosp) {
+    const scene = this._scene;
+    if (!scene) return;
+    if (this._hospBadge) { this._hospBadge.destroy(); this._hospBadge = null; }
+    if (this._hospBadgeBg) { this._hospBadgeBg.destroy(); this._hospBadgeBg = null; }
+    if (totalInHosp <= 0) return;
+
+    const bx = this.hospitalPos.x * TILE + TILE / 2 + 30;
+    const by = this.hospitalPos.y * TILE - 40;
+    const label = totalInHosp > TrialMap.HOSP_MAX_VISIBLE
+      ? `${totalInHosp}` : `${totalInHosp}`;
+
+    this._hospBadgeBg = scene.add.circle(bx, by, 8, 0x0d1117);
+    this._hospBadgeBg.setDepth(25).setAlpha(0.85);
+    this._hospBadge = scene.add.text(bx, by, label, {
+      fontFamily: '"NeoDunggeunmo", monospace', fontSize: '9px', fontStyle: 'bold',
+      color: '#f0f6fc', stroke: '#0d1117', strokeThickness: 1,
+      resolution: 4,
+    });
+    this._hospBadge.setOrigin(0.5, 0.5).setDepth(26);
+  }
+
   // ─── Preload ─────────────────────────────────────────
   _preload() {
     const s = this.game.scene.scenes[0];
-    // Tilemap (still needed for layout/positions data)
-    const cacheBust = this.mapMeta ? `?v=${this.mapMeta.n_patients}` : `?v=${Date.now()}`;
-    s.load.tilemapTiledJSON('map', `${STATIC}/map/clinical_trial.json${cacheBust}`);
+    // Tilemap from per-run API (sized to actual patient count)
+    s.load.tilemapTiledJSON('map', `/api/map/${this.runId}/tilemap/?v=${Date.now()}`);
     s.load.image('tiny-town', `${STATIC}/kenney/tiny-town/Tilemap/tilemap_packed.png`);
     // Custom building sprites
     s.load.image('hospital-building', `${STATIC}/hospital.png`);
@@ -154,12 +206,12 @@ class TrialMap {
     s.load.image('trees-atlas', `${STATIC}/trees.png`);
     s.load.image('plants-atlas', `${STATIC}/plants.png`);
     // Character spritesheets
-    for (let i = 1; i <= 10; i++) {
+    SPRITE_INDICES.forEach(i => {
       const key = `patient_${String(i).padStart(2, '0')}`;
       s.load.spritesheet(key, `${STATIC}/characters/${key}.png`, {
         frameWidth: 32, frameHeight: 32,
       });
-    }
+    });
   }
 
   // ─── Create ──────────────────────────────────────────
@@ -292,20 +344,41 @@ class TrialMap {
     this._createAnimations(scene);
 
     // ── Place patients ──
+    let hospVisitIdx = 0;
+    const totalInHosp = this.patients.filter(p => {
+      const l = (p.location || '').toUpperCase();
+      return l === 'HOSPITAL' || l === 'OUTPATIENT' || l === 'INPATIENT';
+    }).length;
+
     this.patients.forEach((p, i) => {
-      const spriteIdx = (i % 10) + 1;
+      const spriteIdx = SPRITE_INDICES[i % SPRITE_INDICES.length];
       const spriteKey = `patient_${String(spriteIdx).padStart(2, '0')}`;
       const home = this._getHomePos(i);
 
       const loc = (p.location || '').toUpperCase();
       const isHosp = loc === 'HOSPITAL' || loc === 'OUTPATIENT' || loc === 'INPATIENT';
-      const pos = isHosp ? this.hospitalPos : home;
-      const px = pos.x * TILE + TILE / 2 + (isHosp ? (i % 5 - 2) * 12 : 0);
-      const py = pos.y * TILE + TILE / 2 + (isHosp ? Math.floor(i / 5) * 12 : 0);
+      let px, py, hidden = false;
+      if (isHosp) {
+        const slot = this._getHospSlot(hospVisitIdx++);
+        if (slot) {
+          px = slot.x;
+          py = slot.y;
+        } else {
+          // Overflow: park at hospital pos but hide
+          px = this.hospitalPos.x * TILE + TILE / 2;
+          py = this.hospitalPos.y * TILE;
+          hidden = true;
+        }
+      } else {
+        px = home.x * TILE + TILE / 2;
+        py = home.y * TILE + TILE / 2;
+      }
 
       const sprite = scene.add.sprite(px, py, spriteKey, 1);
       sprite.setScale(0.5);
       sprite.setDepth(10);
+      if (hidden) { sprite.setVisible(false); }
+      else if (isHosp) { sprite.setAlpha(0.7); }
       sprite.setInteractive({ useHandCursor: true });
       sprite.on('pointerdown', () => {
         if (this.onPatientClick) this.onPatientClick(p.patient_id);
@@ -313,14 +386,17 @@ class TrialMap {
       });
 
       const label = scene.add.text(px, py - 12, p.patient_id, {
-        font: 'bold 5px monospace', fill: '#ffffff',
-        stroke: '#000000', strokeThickness: 2, align: 'center',
+        fontFamily: '"NeoDunggeunmo", monospace', fontSize: '8px', fontStyle: 'bold',
+        color: '#ffffff', stroke: '#000000', strokeThickness: 2,
+        align: 'center', resolution: 4,
       });
       label.setOrigin(0.5, 1).setDepth(20);
+      if (hidden) label.setVisible(false);
 
       const color = this._getStatusColor(p);
       const dot = scene.add.circle(px + 6, py - 6, 2, color);
       dot.setDepth(21).setStrokeStyle(1, 0x000000);
+      if (hidden) dot.setVisible(false);
 
       const homeWpId = this.homePositions[i]?.waypoint_id || null;
       sprite.setData('homeX', home.x * TILE + TILE / 2);
@@ -334,6 +410,8 @@ class TrialMap {
       this.nameLabels[p.patient_id] = label;
       this.statusDots[p.patient_id] = dot;
     });
+
+    this._updateHospBadge(totalInHosp);
 
     // ── Hospital building sprite ──
     const hospX = this.hospitalPos.x * TILE + TILE / 2;
@@ -358,18 +436,18 @@ class TrialMap {
 
     // HUD
     this.dayText = scene.add.text(8, 8, 'DAY 1', {
-      font: 'bold 14px "JetBrains Mono", monospace',
-      fill: '#39d2c0', stroke: '#0d1117', strokeThickness: 3,
+      fontFamily: '"NeoDunggeunmo", monospace', fontSize: '14px', fontStyle: 'bold',
+      color: '#39d2c0', stroke: '#0d1117', strokeThickness: 3, resolution: 4,
     }).setScrollFactor(0).setDepth(100);
 
-    scene.add.text(8, 26, 'Drag: pan | Scroll: zoom | Click: select', {
-      font: '8px monospace', fill: '#8b949e',
-      stroke: '#0d1117', strokeThickness: 2,
+    scene.add.text(8, 28, 'Drag: pan | Scroll: zoom | Click: select', {
+      fontFamily: '"NeoDunggeunmo", monospace', fontSize: '8px', color: '#8b949e',
+      stroke: '#0d1117', strokeThickness: 2, resolution: 4,
     }).setScrollFactor(0).setDepth(100);
   }
 
   _createAnimations(scene) {
-    for (let i = 1; i <= 10; i++) {
+    SPRITE_INDICES.forEach(i => {
       const key = `patient_${String(i).padStart(2, '0')}`;
       const dirs = [
         ['down',  [0, 1, 2, 1]], ['left',  [3, 4, 5, 4]],
@@ -382,7 +460,7 @@ class TrialMap {
           frameRate: 6, repeat: -1,
         });
       });
-    }
+    });
   }
 
   _update() {}
@@ -407,6 +485,18 @@ class TrialMap {
 
     let maxAnimDuration = 0;
 
+    // Assign hospital slot indices to patients at hospital
+    let hospVisitIdx = 0;
+    const hospSlots = {};
+    patients.forEach(p => {
+      const loc = (p.location || '').toUpperCase();
+      if (loc === 'HOSPITAL' || loc === 'OUTPATIENT' || loc === 'INPATIENT') {
+        hospSlots[p.patient_id] = hospVisitIdx++;
+      }
+    });
+    const totalInHosp = hospVisitIdx;
+    this._updateHospBadge(totalInHosp);
+
     patients.forEach((p, i) => {
       const sprite = this.sprites[p.patient_id];
       if (!sprite) return;
@@ -421,12 +511,31 @@ class TrialMap {
       const isHosp = loc === 'HOSPITAL' || loc === 'OUTPATIENT' || loc === 'INPATIENT';
       const targetWpId = isHosp ? 'hosp' : homeWpId;
 
-      const tx = isHosp
-        ? this.hospitalPos.x * TILE + TILE / 2 + (i % 5 - 2) * 12
-        : home.x * TILE + TILE / 2;
-      const ty = isHosp
-        ? this.hospitalPos.y * TILE + TILE / 2 + Math.floor(i / 5) * 12
-        : home.y * TILE + TILE / 2;
+      let tx, ty;
+      const hidden = isHosp && hospSlots[p.patient_id] >= TrialMap.HOSP_MAX_VISIBLE;
+      if (isHosp) {
+        const slot = this._getHospSlot(hospSlots[p.patient_id]);
+        if (slot) {
+          tx = slot.x;
+          ty = slot.y;
+        } else {
+          tx = this.hospitalPos.x * TILE + TILE / 2;
+          ty = this.hospitalPos.y * TILE;
+        }
+      } else {
+        tx = home.x * TILE + TILE / 2;
+        ty = home.y * TILE + TILE / 2;
+      }
+
+      // Visibility: hide overflow hospital patients, show everyone else
+      sprite.setVisible(!hidden);
+      const label = this.nameLabels[p.patient_id];
+      const dot = this.statusDots[p.patient_id];
+      if (label) label.setVisible(!hidden);
+      if (dot) dot.setVisible(!hidden);
+
+      // Opacity: translucent inside hospital, opaque at home
+      sprite.setAlpha(hidden ? 0 : isHosp ? 0.7 : 1.0);
 
       const dx = tx - sprite.x;
       const dy = ty - sprite.y;
@@ -438,15 +547,14 @@ class TrialMap {
 
         let animDur = 0;
         if (path.length >= 2) {
-          animDur = this._walkAlongPath(sprite, p.patient_id, path, tx, ty, spriteKey);
+          animDur = this._walkAlongPath(sprite, p.patient_id, path, tx, ty, spriteKey, !isHosp);
         } else {
-          animDur = this._directTween(sprite, p.patient_id, tx, ty, spriteKey, dist);
+          animDur = this._directTween(sprite, p.patient_id, tx, ty, spriteKey, dist, !isHosp);
         }
         if (animDur > maxAnimDuration) maxAnimDuration = animDur;
         sprite.setData('currentWpId', targetWpId);
       }
 
-      const dot = this.statusDots[p.patient_id];
       if (dot) dot.setFillStyle(this._getStatusColor(p));
     });
 
@@ -464,7 +572,7 @@ class TrialMap {
   }
 
   /** Returns total animation duration in ms */
-  _walkAlongPath(sprite, pid, path, finalX, finalY, spriteKey) {
+  _walkAlongPath(sprite, pid, path, finalX, finalY, spriteKey, faceDown = false) {
     const points = path.slice(1).map(wp => ({ x: wp.x, y: wp.y }));
     if (points.length > 0) {
       points[points.length - 1] = { x: finalX, y: finalY };
@@ -498,7 +606,7 @@ class TrialMap {
             if (isLast) {
               sprite.stop();
               const idleFrame = { down: 1, left: 4, right: 7, up: 10 };
-              sprite.setFrame(idleFrame[dir]);
+              sprite.setFrame(faceDown ? 1 : idleFrame[dir]);
             }
           },
         });
@@ -518,7 +626,7 @@ class TrialMap {
   }
 
   /** Returns animation duration in ms */
-  _directTween(sprite, pid, tx, ty, spriteKey, dist) {
+  _directTween(sprite, pid, tx, ty, spriteKey, dist, faceDown = false) {
     const dx = tx - sprite.x;
     const dy = ty - sprite.y;
     let dir;
@@ -534,7 +642,7 @@ class TrialMap {
       onComplete: () => {
         sprite.stop();
         const idleFrame = { down: 1, left: 4, right: 7, up: 10 };
-        sprite.setFrame(idleFrame[dir]);
+        sprite.setFrame(faceDown ? 1 : idleFrame[dir]);
       },
     });
     const label = this.nameLabels[pid];
@@ -598,7 +706,7 @@ class TrialMap {
 
     const bx = sprite.x, by = sprite.y - 20;
     const displayText = text.length > 24 ? text.substring(0, 22) + '...' : text;
-    const tempText = this._scene.add.text(0, 0, displayText, { font: '5px monospace', fill: '#fff' });
+    const tempText = this._scene.add.text(0, 0, displayText, { fontFamily: '"NeoDunggeunmo", monospace', fontSize: '8px', color: '#fff', resolution: 4 });
     const tw = tempText.width, th = tempText.height;
     tempText.destroy();
     const padding = 4;
@@ -614,7 +722,8 @@ class TrialMap {
     bg.setDepth(50);
 
     const label = this._scene.add.text(bx, by - bgHeight / 2 - 4, displayText, {
-      font: '5px monospace', fill: '#e6edf3', align: 'center',
+      fontFamily: '"NeoDunggeunmo", monospace', fontSize: '8px', color: '#e6edf3',
+      align: 'center', resolution: 4,
     });
     label.setOrigin(0.5, 0.5).setDepth(51);
 
