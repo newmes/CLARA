@@ -1,0 +1,420 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}CRF Tables — {{ run_id }}{% endblock %}
+
+{% block extra_head %}
+<style>
+  .doc-container {
+    margin-top: 2em; max-width: 1200px; margin-left: auto; margin-right: auto;
+    padding: 0 20px 3em;
+  }
+  /* ── Subtab bar ── */
+  .doc-tab-bar {
+    display: flex; gap: 0; margin-bottom: 1.5em;
+    border-bottom: 2px solid var(--border);
+  }
+  .doc-tab-link {
+    padding: 10px 20px; font-size: 0.92em; font-weight: 600;
+    color: var(--text-muted); text-decoration: none; border-bottom: 2px solid transparent;
+    margin-bottom: -2px; transition: all 0.15s;
+  }
+  .doc-tab-link:hover { color: var(--text-primary); text-decoration: none; }
+  .doc-tab-link.active {
+    color: var(--accent-cyan); border-bottom-color: var(--accent-cyan);
+  }
+  /* ── Header ── */
+  .doc-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.2em; flex-wrap: wrap; gap: 12px;
+  }
+  .doc-title { font-size: 1.4em; font-weight: 800; color: var(--accent-cyan); }
+  .doc-subtitle { color: var(--text-secondary); font-size: 0.92em; margin-top: 4px; }
+  /* ── Control bar ── */
+  .crf-controls {
+    display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+    margin-bottom: 1em; padding: 10px 14px;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
+  }
+  .ctrl-group {
+    display: flex; align-items: center; gap: 4px;
+  }
+  .ctrl-label {
+    font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.5px;
+    color: var(--text-muted); margin-right: 4px; white-space: nowrap;
+  }
+  .ctrl-btn {
+    padding: 4px 12px; border-radius: 4px; font-size: 0.85em; font-weight: 600;
+    border: 1px solid var(--border); background: var(--bg-secondary);
+    color: var(--text-secondary); cursor: pointer; transition: all 0.12s;
+  }
+  .ctrl-btn:hover { border-color: var(--accent-cyan); color: var(--text-primary); }
+  .ctrl-btn.active {
+    background: rgba(57,210,192,0.12); border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+  }
+  .ctrl-select {
+    padding: 4px 10px; border-radius: 4px; font-size: 0.85em;
+    border: 1px solid var(--border); background: var(--bg-secondary);
+    color: var(--text-primary); cursor: pointer;
+  }
+  .ctrl-select:focus { outline: none; border-color: var(--accent-cyan); }
+  .btn-excel {
+    padding: 5px 14px; border-radius: 6px; font-size: 0.85em; font-weight: 600;
+    border: 1px solid rgba(63,185,80,0.3); background: rgba(63,185,80,0.08);
+    color: var(--accent-green); cursor: pointer; transition: all 0.12s;
+    margin-left: auto; white-space: nowrap;
+  }
+  .btn-excel:hover { background: rgba(63,185,80,0.18); }
+  /* ── Domain tabs ── */
+  .domain-tabs {
+    display: flex; gap: 2px; margin-bottom: 1em; flex-wrap: wrap;
+  }
+  .domain-tab {
+    padding: 5px 10px; border-radius: 6px 6px 0 0; font-size: 0.75em;
+    font-weight: 700; font-family: 'JetBrains Mono', monospace;
+    border: 1px solid var(--border); border-bottom: none;
+    background: var(--bg-secondary); color: var(--text-muted);
+    cursor: pointer; transition: all 0.12s; white-space: nowrap;
+  }
+  .domain-tab:hover { color: var(--text-primary); background: var(--bg-card); }
+  .domain-tab.active {
+    background: var(--bg-card); color: var(--accent-cyan);
+    border-color: var(--border); border-bottom: 2px solid var(--bg-card);
+    position: relative; top: 1px;
+  }
+  /* ── Table ── */
+  .crf-table-wrap {
+    border: 1px solid var(--border); border-radius: 0 8px 8px 8px;
+    overflow-x: auto; background: var(--bg-card);
+  }
+  .crf-table {
+    width: 100%; border-collapse: collapse; font-size: 0.88em;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .crf-table th {
+    text-align: left; padding: 10px 12px; font-size: 0.78em; text-transform: uppercase;
+    letter-spacing: 0.5px; color: var(--text-muted); border-bottom: 2px solid var(--border);
+    background: var(--bg-secondary); position: sticky; top: 0; white-space: nowrap;
+    cursor: pointer; user-select: none; transition: color 0.12s;
+  }
+  .crf-table th:hover { color: var(--accent-cyan); }
+  .crf-table th .sort-arrow {
+    display: inline-block; margin-left: 4px; font-size: 0.9em; opacity: 0.3;
+  }
+  .crf-table th.sort-active .sort-arrow { opacity: 1; color: var(--accent-cyan); }
+  .crf-table td {
+    padding: 8px 12px; border-bottom: 1px solid var(--border);
+    color: var(--text-primary); white-space: nowrap;
+  }
+  .crf-table tr:hover td { background: rgba(57,210,192,0.03); }
+  .crf-table .col-patient { font-weight: 700; }
+  /* ── Grade badge ── */
+  .grade-badge {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font: 700 0.82em 'JetBrains Mono', monospace; color: #fff;
+  }
+  .grade-1 { background: var(--grade-1); }
+  .grade-2 { background: var(--grade-2); }
+  .grade-3 { background: var(--grade-3); }
+  .grade-4 { background: var(--grade-4); }
+  .grade-5 { background: var(--grade-5); }
+  /* ── Pagination ── */
+  .crf-pagination {
+    display: flex; align-items: center; justify-content: center;
+    gap: 4px; margin-top: 12px; padding: 8px 0;
+  }
+  .page-btn {
+    padding: 4px 10px; border-radius: 4px; font-size: 0.85em;
+    border: 1px solid var(--border); background: var(--bg-secondary);
+    color: var(--text-secondary); cursor: pointer; transition: all 0.12s;
+  }
+  .page-btn:hover { border-color: var(--accent-cyan); color: var(--text-primary); }
+  .page-btn.active { background: rgba(57,210,192,0.12); border-color: var(--accent-cyan); color: var(--accent-cyan); }
+  .page-btn:disabled { opacity: 0.4; cursor: default; }
+  .page-info { font-size: 0.82em; color: var(--text-muted); margin: 0 8px; }
+  /* ── Loading / empty ── */
+  .crf-loading {
+    text-align: center; padding: 3em; color: var(--text-muted);
+  }
+  .crf-loading .spinner {
+    display: inline-block; width: 24px; height: 24px;
+    border: 3px solid var(--border); border-top-color: var(--accent-cyan);
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .crf-empty {
+    text-align: center; padding: 3em; color: var(--text-muted);
+    font-size: 0.95em;
+  }
+</style>
+{% endblock %}
+
+{% block nav_items %}
+<span class="nav-sep">/</span>
+<a href="{% url 'trial_viewer' run_id %}" title="{{ run_id }}">{{ run_id|truncatechars:25 }}</a>
+<span class="nav-sep">·</span>
+<a href="{% url 'trial_viewer' run_id %}">Simulation</a>
+<a href="{% url 'game_landing' run_id %}">Training</a>
+<a href="{% url 'doc_hub' run_id %}" class="nav-active">Documents</a>
+<a href="{% url 'compare_dashboard' run_id %}">A/B Test</a>
+{% endblock %}
+
+{% block content %}
+<div class="doc-container">
+  <!-- Subtab bar -->
+  <div class="doc-tab-bar">
+    <a href="{% url 'crf_tables' run_id %}" class="doc-tab-link active">CRF Tables</a>
+    <a href="{% url 'doc_hub' run_id %}" class="doc-tab-link">SAE Reports</a>
+  </div>
+
+  <!-- Header -->
+  <div class="doc-header">
+    <div>
+      <div class="doc-title">CRF Tables</div>
+      <div class="doc-subtitle">
+        CDISC-style Case Report Form data viewer
+        {% if drug_name %} · <strong style="color:var(--accent-blue)">{{ drug_name }}</strong>{% endif %}
+        {% if indication %} · {{ indication }}{% endif %}
+      </div>
+    </div>
+  </div>
+
+  <!-- Control bar -->
+  <div class="crf-controls">
+    <div class="ctrl-group">
+      <span class="ctrl-label">Mode</span>
+      {% for m in available_modes %}
+      <button class="ctrl-btn{% if forloop.first %} active{% endif %}" data-mode="{{ m }}" onclick="switchMode('{{ m }}')">
+        {% if m == "natural" %}Natural{% elif m == "care_ai" %}Care AI{% else %}{{ m }}{% endif %}
+      </button>
+      {% endfor %}
+    </div>
+    <div class="ctrl-group">
+      <span class="ctrl-label">Patient</span>
+      <select class="ctrl-select" id="patientFilter" onchange="filterPatient(this.value)">
+        <option value="">All Patients</option>
+        {% for pid in patient_ids %}
+        <option value="{{ pid }}">{{ pid }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <button class="btn-excel" onclick="downloadExcel()">Export Excel</button>
+  </div>
+
+  <!-- Domain tabs -->
+  <div class="domain-tabs" id="domainTabs"></div>
+
+  <!-- Table area -->
+  <div class="crf-table-wrap">
+    <div id="tableArea">
+      <div class="crf-loading"><div class="spinner"></div><div style="margin-top:8px;">Loading...</div></div>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="crf-pagination" id="pagination"></div>
+</div>
+{% endblock %}
+
+{% block js_content %}
+<script>
+(function() {
+  const RUN_ID = "{{ run_id }}";
+  const PATIENTS = {{ patient_ids_json|safe }};
+  const DOMAIN_LABELS = {{ domain_labels_json|safe }};
+  const DOMAIN_ORDER = ["AE","EC","CM","LB","VS","PE","EG","DM","MH","DS","DD","TU","RS"];
+
+  // Build domain tabs
+  (function buildTabs() {
+    const container = document.getElementById('domainTabs');
+    DOMAIN_ORDER.forEach((code, i) => {
+      const tab = document.createElement('div');
+      tab.className = 'domain-tab' + (i === 0 ? ' active' : '');
+      tab.dataset.domain = code;
+      tab.onclick = () => switchDomain(code);
+      tab.textContent = DOMAIN_LABELS[code] || code;
+      container.appendChild(tab);
+    });
+  })();
+
+  // State
+  let currentDomain = "AE";
+  let currentSource = "hr";
+  let currentMode = "{{ available_modes.0|default:'natural' }}";
+  let currentPatient = "";
+  let currentPage = 1;
+  const PER_PAGE = 100;
+
+  // Sort state
+  let sortKey = null;    // column key to sort by
+  let sortDir = 'asc';   // 'asc' or 'desc'
+  let lastData = null;    // cache last API response for client-side re-sort
+
+  // Grade/severity fields for badge rendering
+  const GRADE_KEYS = new Set(["_grade", "grade", "AETOXGR"]);
+
+  function resetSort() { sortKey = null; sortDir = 'asc'; lastData = null; }
+
+  window.switchDomain = function(domain) {
+    currentDomain = domain;
+    currentPage = 1;
+    resetSort();
+    document.querySelectorAll('.domain-tab').forEach(t => t.classList.toggle('active', t.dataset.domain === domain));
+    loadDomainData();
+  };
+
+  window.switchMode = function(mode) {
+    currentMode = mode;
+    currentPage = 1;
+    resetSort();
+    document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+    loadDomainData();
+  };
+
+  window.filterPatient = function(pid) {
+    currentPatient = pid;
+    currentPage = 1;
+    resetSort();
+    loadDomainData();
+  };
+
+  window.goToPage = function(p) {
+    currentPage = p;
+    loadDomainData();
+  };
+
+  window.downloadExcel = function() {
+    const url = `/api/crf/${RUN_ID}/excel/?source=${currentSource}&mode=${currentMode}`;
+    window.open(url, '_blank');
+  };
+
+  function loadDomainData() {
+    const area = document.getElementById('tableArea');
+    area.innerHTML = '<div class="crf-loading"><div class="spinner"></div><div style="margin-top:8px;">Loading...</div></div>';
+    document.getElementById('pagination').innerHTML = '';
+
+    let url = `/api/crf/${RUN_ID}/${currentDomain.toLowerCase()}/?source=${currentSource}&mode=${currentMode}&page=${currentPage}&per_page=${PER_PAGE}`;
+    if (currentPatient) url += `&patient=${currentPatient}`;
+
+    fetch(url)
+      .then(r => r.json())
+      .then(data => {
+        if (data.error) {
+          area.innerHTML = `<div class="crf-empty">${data.error}</div>`;
+          return;
+        }
+        lastData = data;
+        if (sortKey) applySortToData(data);
+        renderTable(data);
+        renderPagination(data);
+      })
+      .catch(err => {
+        area.innerHTML = `<div class="crf-empty">Error loading data</div>`;
+      });
+  }
+
+  window.sortBy = function(key) {
+    if (sortKey === key) {
+      sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortKey = key;
+      sortDir = 'asc';
+    }
+    if (lastData) {
+      applySortToData(lastData);
+      renderTable(lastData);
+    }
+  };
+
+  function applySortToData(data) {
+    if (!sortKey || !data.rows) return;
+    data.rows.sort((a, b) => {
+      let va = a[sortKey], vb = b[sortKey];
+      // nulls always last
+      if (va == null && vb == null) return 0;
+      if (va == null) return 1;
+      if (vb == null) return -1;
+      // numeric
+      if (typeof va === 'number' && typeof vb === 'number') {
+        return sortDir === 'asc' ? va - vb : vb - va;
+      }
+      // boolean
+      if (typeof va === 'boolean') { va = va ? 1 : 0; vb = vb ? 1 : 0; return sortDir === 'asc' ? va - vb : vb - va; }
+      // string
+      va = String(va).toLowerCase(); vb = String(vb).toLowerCase();
+      if (va < vb) return sortDir === 'asc' ? -1 : 1;
+      if (va > vb) return sortDir === 'asc' ? 1 : -1;
+      return 0;
+    });
+  }
+
+  function renderTable(data) {
+    const area = document.getElementById('tableArea');
+    if (!data.rows || data.rows.length === 0) {
+      area.innerHTML = '<div class="crf-empty">No data for this domain / filter combination.</div>';
+      return;
+    }
+
+    const cols = data.columns;
+    let html = '<table class="crf-table"><thead><tr>';
+    for (const col of cols) {
+      const isActive = sortKey === col.key;
+      const arrow = isActive ? (sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;';
+      const cls = isActive ? ' class="sort-active"' : '';
+      html += `<th${cls} onclick="sortBy('${col.key}')">${col.label}<span class="sort-arrow">${arrow}</span></th>`;
+    }
+    html += '</tr></thead><tbody>';
+
+    for (const row of data.rows) {
+      html += '<tr>';
+      for (const col of cols) {
+        let val = row[col.key];
+        const isGrade = GRADE_KEYS.has(col.key);
+        const isPatient = col.key === 'patient_id';
+        let cls = isPatient ? ' class="col-patient"' : '';
+
+        if (val === null || val === undefined) {
+          val = '<span style="color:var(--text-muted);">—</span>';
+        } else if (isGrade && typeof val === 'number') {
+          val = `<span class="grade-badge grade-${val}">G${val}</span>`;
+        } else if (typeof val === 'boolean') {
+          val = val ? 'Yes' : 'No';
+        }
+        html += `<td${cls}>${val}</td>`;
+      }
+      html += '</tr>';
+    }
+    html += '</tbody></table>';
+    area.innerHTML = html;
+  }
+
+  function renderPagination(data) {
+    const pag = document.getElementById('pagination');
+    if (data.total_pages <= 1) { pag.innerHTML = ''; return; }
+
+    let html = '';
+    html += `<button class="page-btn" onclick="goToPage(1)" ${data.page <= 1 ? 'disabled' : ''}>&#171;</button>`;
+    html += `<button class="page-btn" onclick="goToPage(${data.page - 1})" ${data.page <= 1 ? 'disabled' : ''}>&lsaquo;</button>`;
+
+    // Show up to 7 page numbers
+    let start = Math.max(1, data.page - 3);
+    let end = Math.min(data.total_pages, start + 6);
+    if (end - start < 6) start = Math.max(1, end - 6);
+
+    for (let i = start; i <= end; i++) {
+      html += `<button class="page-btn${i === data.page ? ' active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+    }
+
+    html += `<button class="page-btn" onclick="goToPage(${data.page + 1})" ${data.page >= data.total_pages ? 'disabled' : ''}>&rsaquo;</button>`;
+    html += `<button class="page-btn" onclick="goToPage(${data.total_pages})" ${data.page >= data.total_pages ? 'disabled' : ''}>&#187;</button>`;
+    html += `<span class="page-info">${data.total_rows.toLocaleString()} rows</span>`;
+
+    pag.innerHTML = html;
+  }
+
+  // Initial load
+  loadDomainData();
+})();
+</script>
+{% endblock %}

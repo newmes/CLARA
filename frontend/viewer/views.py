@@ -504,7 +504,7 @@ def _patient_summary(profile: dict, day_data: dict | None,
                 "temp": vs.get("TEMP_VSORRES"),
                 "bp": f"{vs.get('SYSBP_VSORRES', '?')}/{vs.get('DIABP_VSORRES', '?')}",
                 "hr": vs.get("PULSE_VSORRES"),
-                "spo2": vs.get("OXYSAT_VSORRES"),
+                "spo2": vs.get("_SpO2") or vs.get("OXYSAT_VSORRES"),
                 "rr": vs.get("RESP_VSORRES"),
                 "weight": vs.get("WEIGHT_VSORRES"),
             }
@@ -812,6 +812,7 @@ def patient_state(request, run_id: str, patient_id: str, day: int = None):
                 "PULSE_VSORRES": hr_vitals.get("HR"),
                 "RESP_VSORRES": hr_vitals.get("RR"),
                 "OXYSAT_VSORRES": hr_vitals.get("SpO2"),
+                "WEIGHT_VSORRES": hr_vitals.get("weight_kg"),
                 "vitals_stale_days": hr_obj.get("vitals_stale_days", 0),
             }
 
@@ -881,6 +882,12 @@ def patient_state(request, run_id: str, patient_id: str, day: int = None):
                            for k, v in ae.items()}
                 safe_aes.append(safe_ae)
             current_day_data["safe_AE"] = safe_aes
+
+            # GT mode: normalise VS keys for template compatibility
+            gt_vs = current_day_data.get("VS")
+            if isinstance(gt_vs, dict):
+                if "_SpO2" in gt_vs and "OXYSAT_VSORRES" not in gt_vs:
+                    gt_vs["OXYSAT_VSORRES"] = gt_vs["_SpO2"]
 
             # Location for display
             gt_obj = current_day_data.get("objective", {})
@@ -2041,6 +2048,29 @@ def api_doc_generate(request):
         use_ai=use_ai,
     )
 
+    # Record ai_fields in status file when AI is used
+    if use_ai and result.get("success"):
+        from datetime import datetime
+        ae_slug = ae_term.replace(" ", "_").replace("/", "_")
+        ai_fields = {
+            "section_b.narrative": True,
+            "section_c.dechallenge": True,
+            "section_c.rechallenge": True,
+        }
+        status_data = _read_status(run_id, patient_id, ae_slug)
+        status_data["ai_fields"] = ai_fields
+        # Store MedDRA info if available
+        meddra = result.get("meddra", {})
+        if meddra:
+            status_data["meddra_confidence"] = meddra.get("confidence")
+            status_data["meddra_source"] = meddra.get("source")
+        status_data["updated_at"] = datetime.utcnow().isoformat()
+        if "created_at" not in status_data:
+            status_data["created_at"] = datetime.utcnow().isoformat()
+        if "status" not in status_data:
+            status_data["status"] = "draft"
+        _write_status(run_id, patient_id, ae_slug, status_data)
+
     return JsonResponse(result)
 
 
@@ -2236,12 +2266,135 @@ def api_doc_save(request):
     pdf_url = f"/api/doc/download/{run_id}/{patient_id}/{pdf_path.name}"
     xml_url = f"/api/doc/download/{run_id}/{patient_id}/{xml_path.name}"
 
+    # Auto-create status file if missing
+    from src.doc_agent.service import DOCS_OUTPUT_DIR as _DOCS_DIR
+    status_path = _DOCS_DIR / run_id / patient_id / f"report_status_{ae_slug}.json"
+    if not status_path.exists():
+        from datetime import datetime
+        status_path.parent.mkdir(parents=True, exist_ok=True)
+        status_data = {
+            "status": "draft",
+            "ai_fields": {},
+            "meddra_confidence": None,
+            "meddra_source": None,
+            "reviewed_by": None,
+            "reviewed_at": None,
+            "created_at": datetime.utcnow().isoformat(),
+            "updated_at": datetime.utcnow().isoformat(),
+        }
+        status_path.write_text(
+            json.dumps(status_data, indent=2, ensure_ascii=False),
+            encoding="utf-8",
+        )
+
     return JsonResponse({
         "success": True,
         "pdf_url": pdf_url,
         "xml_url": xml_url,
         "message": "Documents saved and regenerated.",
     })
+
+
+# ─── SAE Status Management ──────────────────────────────────────────
+
+def _get_status_path(run_id: str, patient_id: str, ae_slug: str) -> Path:
+    """Return path to the report status JSON file."""
+    from src.doc_agent.service import DOCS_OUTPUT_DIR
+    return DOCS_OUTPUT_DIR / run_id / patient_id / f"report_status_{ae_slug}.json"
+
+
+def _read_status(run_id: str, patient_id: str, ae_slug: str) -> dict:
+    """Read status file, returning default draft status if missing."""
+    status_path = _get_status_path(run_id, patient_id, ae_slug)
+    if status_path.exists():
+        try:
+            return json.loads(status_path.read_text(encoding="utf-8"))
+        except Exception:
+            pass
+    return {"status": "draft"}
+
+
+def _write_status(run_id: str, patient_id: str, ae_slug: str, data: dict):
+    """Write status file."""
+    status_path = _get_status_path(run_id, patient_id, ae_slug)
+    status_path.parent.mkdir(parents=True, exist_ok=True)
+    status_path.write_text(
+        json.dumps(data, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
+
+
+@require_GET
+def api_doc_get_status(request, run_id: str, patient_id: str, ae_slug: str):
+    """GET /api/doc/status/<run_id>/<patient_id>/<ae_slug>/ — return report status."""
+    data = _read_status(run_id, patient_id, ae_slug)
+    return JsonResponse(data)
+
+
+@csrf_exempt
+@require_POST
+def api_doc_update_status(request):
+    """POST /api/doc/status — transition SAE report status.
+
+    Body: {
+        "run_id": str,
+        "patient_id": str,
+        "ae_slug": str,
+        "status": "draft" | "under_review" | "accepted",
+        "reviewed_by": str (optional),
+    }
+    """
+    try:
+        body = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    run_id = body.get("run_id", "")
+    patient_id = body.get("patient_id", "")
+    ae_slug = body.get("ae_slug", "")
+    new_status = body.get("status", "")
+    reviewed_by = body.get("reviewed_by")
+
+    if not all([run_id, patient_id, ae_slug, new_status]):
+        return JsonResponse(
+            {"error": "run_id, patient_id, ae_slug, status required"}, status=400
+        )
+
+    valid_statuses = {"draft", "under_review", "accepted"}
+    if new_status not in valid_statuses:
+        return JsonResponse(
+            {"error": f"Invalid status. Must be one of: {', '.join(sorted(valid_statuses))}"}, status=400
+        )
+
+    from datetime import datetime
+
+    data = _read_status(run_id, patient_id, ae_slug)
+
+    # Validate transitions
+    current = data.get("status", "draft")
+    allowed_transitions = {
+        "draft": {"under_review"},
+        "under_review": {"accepted", "draft"},
+        "accepted": {"draft"},
+    }
+    if new_status != current and new_status not in allowed_transitions.get(current, set()):
+        return JsonResponse(
+            {"error": f"Cannot transition from '{current}' to '{new_status}'"}, status=400
+        )
+
+    data["status"] = new_status
+    data["updated_at"] = datetime.utcnow().isoformat()
+
+    if new_status == "accepted":
+        data["reviewed_by"] = reviewed_by or "Reviewer"
+        data["reviewed_at"] = datetime.utcnow().isoformat()
+    elif new_status == "draft":
+        data["reviewed_by"] = None
+        data["reviewed_at"] = None
+
+    _write_status(run_id, patient_id, ae_slug, data)
+
+    return JsonResponse({"success": True, **data})
 
 
 def sae_report_editor(request, run_id: str, patient_id: str, ae_slug: str):
@@ -2372,6 +2525,8 @@ def doc_hub(request, run_id: str):
             ae = sae["ae_record"]
             ae_term = ae.get("AETERM", "")
             ae_slug = ae_term.replace(" ", "_").replace("/", "_")
+            # Read report status
+            report_status = _read_status(run_id, pid, ae_slug)
             all_saes.append({
                 "patient_id": pid,
                 "ae_term": ae_term,
@@ -2381,6 +2536,7 @@ def doc_hub(request, run_id: str):
                 "severity": ae.get("AESEV", ""),
                 "action": ae.get("AEACN", ""),
                 "serious": ae.get("AESER", False),
+                "report_status": report_status.get("status", "draft"),
             })
 
     from src.doc_agent.service import DOCS_OUTPUT_DIR
@@ -2412,3 +2568,235 @@ def doc_hub(request, run_id: str):
         "indication": meta.get("indication", ""),
     }
     return render(request, "doc/doc_hub.html", context)
+
+
+# ─── CRF Tables ─────────────────────────────────────────────────────────
+
+import math
+from .crf_aggregator import aggregate_domain, export_domain_to_excel, DOMAIN_COLUMNS, DOMAIN_LABELS
+
+VALID_DOMAINS = {"dm", "mh", "ae", "ec", "cm", "vs", "lb", "ds", "dd", "tu", "rs", "pe", "eg"}
+
+
+def crf_tables(request, run_id: str):
+    """CRF Tables page — renders the main shell, data loaded via AJAX."""
+    run_path = _get_run_path(run_id)
+    if not run_path.exists():
+        return JsonResponse({"error": "Run not found"}, status=404)
+
+    patient_ids = _list_patients(run_path)
+    sim_dir = run_path / "simulations"
+    available_modes = []
+    if sim_dir.exists():
+        if list(sim_dir.glob("*_natural.jsonl")):
+            available_modes.append("natural")
+        if list(sim_dir.glob("*_care_ai.jsonl")):
+            available_modes.append("care_ai")
+
+    # Load run meta
+    drug_name = ""
+    indication = ""
+    meta_path = run_path / "run_meta.json"
+    if meta_path.exists():
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            drug_name = meta.get("drug_name", "")
+            indication = meta.get("indication", "")
+        except Exception:
+            pass
+
+    context = {
+        "run_id": run_id,
+        "patient_ids": patient_ids,
+        "patient_ids_json": json.dumps(patient_ids),
+        "available_modes": available_modes,
+        "drug_name": drug_name,
+        "indication": indication,
+        "domain_labels_json": json.dumps(DOMAIN_LABELS),
+    }
+    return render(request, "doc/crf_tables.html", context)
+
+
+def _get_sim_start_date(run_path: Path):
+    """Read sim_start_date from run_meta.json, default 2026-01-06."""
+    from datetime import date, timedelta
+    meta_path = run_path / "run_meta.json"
+    if meta_path.exists():
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            d = meta.get("sim_start_date")
+            if d:
+                return date.fromisoformat(d)
+        except Exception:
+            pass
+    return date(2026, 1, 6)
+
+
+def _inject_dates(rows, columns, start_date):
+    """Replace day-number columns with calendar date columns in CRF rows."""
+    from datetime import timedelta
+
+    # Map of day-number keys → date label
+    DAY_KEY_LABELS = {
+        "day": "Date",
+        "AESTDAT": "Start Date", "AEENDAT": "End Date",
+        "ECSTDAT": "Start Date", "ECENDAT": "End Date",
+        "CMSTDAT": "Start Date", "CMENDAT": "End Date",
+        "MHSTDAT": "Start Date", "MHENDAT": "End Date",
+        "onset_day": "Onset Date", "detected_day": "Detected Date",
+        "PEDAT": "Exam Date", "EGDAT": "ECG Date",
+        "TUDAT": "Assessment Date",
+        "DSSTDAT": "Disposition Date", "DTHDAT": "Date of Death",
+    }
+
+    # Find which day-number columns exist
+    day_col_keys = [col["key"] for col in columns if col["key"] in DAY_KEY_LABELS]
+    if not day_col_keys:
+        return rows, columns
+
+    # Replace day columns with date columns
+    new_columns = []
+    for col in columns:
+        if col["key"] in DAY_KEY_LABELS:
+            new_columns.append({
+                "key": col["key"] + "_date",
+                "label": DAY_KEY_LABELS[col["key"]],
+            })
+        else:
+            new_columns.append(col)
+
+    # Convert day numbers to date strings
+    for row in rows:
+        for k in day_col_keys:
+            v = row.pop(k, None)
+            if isinstance(v, (int, float)) and v > 0:
+                row[k + "_date"] = str(start_date + timedelta(days=int(v) - 1))
+            else:
+                row[k + "_date"] = None
+
+    return rows, new_columns
+
+
+@require_GET
+def api_crf_domain_data(request, run_id: str, domain: str):
+    """JSON API: return domain-specific CRF rows with pagination."""
+    if domain.lower() not in VALID_DOMAINS:
+        return JsonResponse({"error": f"Invalid domain: {domain}"}, status=400)
+
+    run_path = _get_run_path(run_id)
+    if not run_path.exists():
+        return JsonResponse({"error": "Run not found"}, status=404)
+
+    source = request.GET.get("source", "hr")
+    mode = request.GET.get("mode", "natural")
+    patient_filter = request.GET.get("patient", "")
+    page = int(request.GET.get("page", 1))
+    per_page = int(request.GET.get("per_page", 100))
+
+    patient_ids = None
+    if patient_filter:
+        patient_ids = [p.strip() for p in patient_filter.split(",") if p.strip()]
+
+    rows, total, columns = aggregate_domain(
+        domain, run_path, patient_ids, mode, source, page, per_page,
+    )
+
+    # Inject calendar dates next to day-number columns
+    start_date = _get_sim_start_date(run_path)
+    rows, columns = _inject_dates(rows, columns, start_date)
+
+    total_pages = math.ceil(total / per_page) if per_page > 0 else 1
+
+    return JsonResponse({
+        "domain": domain.upper(),
+        "source": source,
+        "mode": mode,
+        "columns": columns,
+        "rows": rows,
+        "total_rows": total,
+        "page": page,
+        "per_page": per_page,
+        "total_pages": total_pages,
+    })
+
+
+@require_GET
+def api_crf_excel_download(request, run_id: str):
+    """Download CRF data as Excel file."""
+    run_path = _get_run_path(run_id)
+    if not run_path.exists():
+        return JsonResponse({"error": "Run not found"}, status=404)
+
+    source = request.GET.get("source", "hr")
+    mode = request.GET.get("mode", "natural")
+    domains_param = request.GET.get("domains", "")
+
+    if domains_param:
+        domains = [d.strip().upper() for d in domains_param.split(",") if d.strip()]
+    else:
+        domains = [d.upper() for d in VALID_DOMAINS]
+
+    # Multi-domain export: one sheet per domain
+    import io
+    from openpyxl import Workbook
+    from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+
+    wb = Workbook()
+    # Remove default sheet
+    wb.remove(wb.active)
+
+    header_font = Font(bold=True, color="FFFFFF")
+    header_fill = PatternFill(start_color="4472C4", end_color="4472C4", fill_type="solid")
+    thin_border = Border(
+        left=Side(style="thin"), right=Side(style="thin"),
+        top=Side(style="thin"), bottom=Side(style="thin"),
+    )
+
+    start_date = _get_sim_start_date(run_path)
+
+    for dom in domains:
+        if dom.lower() not in VALID_DOMAINS:
+            continue
+        rows, total, columns = aggregate_domain(
+            dom, run_path, None, mode, source, page=1, per_page=0,
+        )
+        rows, columns = _inject_dates(rows, columns, start_date)
+        ws = wb.create_sheet(title=dom)
+        col_keys = [c["key"] for c in columns]
+
+        # Headers
+        for ci, col in enumerate(columns, 1):
+            cell = ws.cell(row=1, column=ci, value=col["label"])
+            cell.font = header_font
+            cell.fill = header_fill
+            cell.alignment = Alignment(horizontal="center")
+            cell.border = thin_border
+
+        # Data
+        for ri, row in enumerate(rows, 2):
+            for ci, key in enumerate(col_keys, 1):
+                val = row.get(key)
+                if isinstance(val, bool):
+                    val = "Yes" if val else "No"
+                cell = ws.cell(row=ri, column=ci, value=val)
+                cell.border = thin_border
+
+        # Auto-width
+        for ci, col in enumerate(columns, 1):
+            max_len = len(col["label"])
+            for ri in range(2, min(len(rows) + 2, 102)):  # sample first 100 rows
+                val = ws.cell(row=ri, column=ci).value
+                if val is not None:
+                    max_len = max(max_len, len(str(val)))
+            ws.column_dimensions[ws.cell(row=1, column=ci).column_letter].width = min(max_len + 2, 40)
+
+    buf = io.BytesIO()
+    wb.save(buf)
+    xlsx_bytes = buf.getvalue()
+
+    response = HttpResponse(
+        xlsx_bytes,
+        content_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+    )
+    response["Content-Disposition"] = f'attachment; filename="CRF_{run_id}_{source}.xlsx"'
+    return response

@@ -178,6 +178,67 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 .error-box h3 { color: var(--accent-red); margin-bottom: 8px; }
 .error-box p { color: var(--text-secondary); }
 
+/* AI badge enhanced */
+.ai-badge-review {
+  display: inline-flex; align-items: center; gap: 4px;
+  font-size: 0.75em; padding: 3px 10px; border-radius: 5px;
+  font-weight: 600;
+}
+.ai-badge-review.needs-review {
+  background: rgba(210,153,34,0.15); color: var(--accent-orange);
+  animation: aiBadgePulse 2s ease-in-out infinite;
+}
+.ai-badge-review.reviewed {
+  background: rgba(63,185,80,0.15); color: var(--accent-green);
+  animation: none;
+}
+@keyframes aiBadgePulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.6; }
+}
+
+/* MedDRA confidence */
+.meddra-confidence {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.82em; font-weight: 600;
+}
+.meddra-warning {
+  padding: 10px 16px; border-radius: 8px; margin-bottom: 16px;
+  background: rgba(210,153,34,0.08); border: 1px solid rgba(210,153,34,0.3);
+  color: var(--accent-orange); font-size: 0.88em; font-weight: 600;
+}
+
+/* Status badge */
+.report-status-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 4px 14px; border-radius: 6px; font-size: 0.82em;
+  font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;
+}
+.report-status-badge.status-draft {
+  background: rgba(110,118,129,0.15); color: var(--text-muted);
+}
+.report-status-badge.status-under_review {
+  background: rgba(210,153,34,0.15); color: var(--accent-orange);
+}
+.report-status-badge.status-accepted {
+  background: rgba(63,185,80,0.15); color: var(--accent-green);
+}
+
+/* Workflow buttons */
+.btn-workflow {
+  padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border);
+  background: var(--bg-card); color: var(--text-primary); cursor: pointer;
+  font-size: 0.84em; font-weight: 600; transition: all 0.15s;
+  display: inline-flex; align-items: center; gap: 5px;
+}
+.btn-workflow:hover { border-color: var(--accent-blue); background: var(--bg-elevated); }
+.btn-workflow.submit { background: rgba(210,153,34,0.12); border-color: rgba(210,153,34,0.35); color: var(--accent-orange); }
+.btn-workflow.submit:hover { background: rgba(210,153,34,0.22); }
+.btn-workflow.accept { background: rgba(63,185,80,0.12); border-color: rgba(63,185,80,0.35); color: var(--accent-green); }
+.btn-workflow.accept:hover { background: rgba(63,185,80,0.22); }
+.btn-workflow.revert { background: rgba(110,118,129,0.1); border-color: rgba(110,118,129,0.3); color: var(--text-muted); }
+.btn-workflow.revert:hover { background: rgba(110,118,129,0.2); }
+
 /* Toast */
 .save-toast {
   position: fixed; bottom: 24px; right: 24px; z-index: 999;
@@ -217,12 +278,18 @@ body { padding-bottom: 52px; }
 </div>
 {% else %}
 <div class="report-container" id="reportApp">
+  <!-- MedDRA Low-Confidence Warning (hidden by default) -->
+  <div class="meddra-warning" id="meddraWarning" style="display:none;">
+    &#9888; Low MedDRA Confidence — Manual Review Required
+  </div>
+
   <!-- Header -->
   <div class="report-header">
     <div>
       <div class="report-title">
         MedWatch FDA 3500A
         <span class="ae-badge">SAE</span>
+        <span class="report-status-badge status-draft" id="reportStatusBadge">Draft</span>
       </div>
       <div class="report-meta">
         <span>{{ patient_id }} · {{ patient_age }}y {{ patient_sex }}</span>
@@ -231,6 +298,12 @@ body { padding-bottom: 52px; }
       </div>
     </div>
     <div class="report-actions">
+      <!-- Workflow buttons -->
+      <span id="workflowButtons">
+        <button class="btn-workflow submit" id="btnSubmitReview" onclick="submitForReview()" style="display:none;">&#x1F4DD; Submit for Review</button>
+        <button class="btn-workflow accept" id="btnAccept" onclick="acceptReport()" style="display:none;">&#10003; Accept</button>
+        <button class="btn-workflow revert" id="btnRevert" onclick="revertToDraft()" style="display:none;">&#x21A9; Revert to Draft</button>
+      </span>
       <button class="btn-rpt" onclick="window.open('{{ pdf_url }}', '_blank')" title="Download PDF">
         📄 PDF
       </button>
@@ -347,6 +420,7 @@ body { padding-bottom: 52px; }
           <div class="field-label">
             <span class="field-id">B5</span> Narrative
             <span class="ai-badge" id="aiBadge" style="display:none">🤖 AI</span>
+            <span class="ai-badge-review needs-review" id="aiBadgeReviewB5" style="display:none">&#x1F916; AI Generated — Review Required</span>
           </div>
           <div class="field-input">
             <div class="narrative-editor">
@@ -400,6 +474,7 @@ body { padding-bottom: 52px; }
           <div class="field-label">
             <span class="field-id">C7</span> Dechallenge
             <span class="ai-badge" id="aiBadgeC7" style="display:none">🤖 AI</span>
+            <span class="ai-badge-review needs-review" id="aiBadgeReviewC7" style="display:none">&#x1F916; AI Generated — Review Required</span>
           </div>
           <div class="field-input">
             <div class="narrative-editor">
@@ -411,6 +486,7 @@ body { padding-bottom: 52px; }
           <div class="field-label">
             <span class="field-id">C8</span> Rechallenge
             <span class="ai-badge" id="aiBadgeC8" style="display:none">🤖 AI</span>
+            <span class="ai-badge-review needs-review" id="aiBadgeReviewC8" style="display:none">&#x1F916; AI Generated — Review Required</span>
           </div>
           <div class="field-input">
             <div class="narrative-editor">
@@ -528,6 +604,7 @@ body { padding-bottom: 52px; }
   <div class="status-left">
     <span id="statusDirty">No unsaved changes</span>
     <span id="statusMeddra"></span>
+    <span class="meddra-confidence" id="meddraConfidence" style="display:none;"></span>
   </div>
   <div class="status-right">
     <button class="btn-rpt" onclick="window.open('{{ pdf_url }}', '_blank')" style="font-size:0.78em; padding:4px 12px;">📄 PDF</button>
@@ -549,6 +626,7 @@ const AI_USED = {{ ai_used|yesno:"true,false" }};
 let medwatchData = JSON.parse('{{ medwatch_json|escapejs }}');
 let meddraData = JSON.parse('{{ meddra_json|escapejs }}');
 let isDirty = false;
+let reportStatus = { status: 'draft' };
 
 // ═══════ Init ═══════
 document.addEventListener('DOMContentLoaded', () => {
@@ -564,6 +642,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   loadXmlPreview();
   renderSummary();
+  loadReportStatus();
 
   document.querySelectorAll('[data-path]').forEach(el => {
     el.addEventListener('input', () => markDirty());
@@ -805,6 +884,109 @@ function renderSummary() {
       ${sb.narrative || '<em style="color:var(--text-muted);">No narrative yet.</em>'}
     </div>
   `;
+}
+
+// ═══════ Status Workflow ═══════
+async function loadReportStatus() {
+  try {
+    const res = await fetch(`/api/doc/status/${RUN_ID}/${PATIENT_ID}/${AE_SLUG}/`);
+    if (res.ok) {
+      reportStatus = await res.json();
+      updateStatusUI(reportStatus);
+    }
+  } catch (err) {
+    console.warn('Failed to load report status:', err);
+  }
+}
+
+function updateStatusUI(data) {
+  const badge = document.getElementById('reportStatusBadge');
+  const btnSubmit = document.getElementById('btnSubmitReview');
+  const btnAccept = document.getElementById('btnAccept');
+  const btnRevert = document.getElementById('btnRevert');
+  const status = data.status || 'draft';
+
+  // Status badge
+  badge.className = 'report-status-badge status-' + status;
+  if (status === 'under_review') badge.textContent = 'Under Review';
+  else if (status === 'accepted') badge.textContent = 'Accepted';
+  else badge.textContent = 'Draft';
+
+  // Workflow buttons
+  btnSubmit.style.display = status === 'draft' ? '' : 'none';
+  btnAccept.style.display = status === 'under_review' ? '' : 'none';
+  btnRevert.style.display = (status === 'under_review' || status === 'accepted') ? '' : 'none';
+
+  // AI badges — show enhanced badges for AI fields
+  const aiFields = data.ai_fields || {};
+  const isAccepted = status === 'accepted';
+
+  ['B5', 'C7', 'C8'].forEach(fieldId => {
+    const key = fieldId === 'B5' ? 'section_b.narrative'
+              : fieldId === 'C7' ? 'section_c.dechallenge'
+              : 'section_c.rechallenge';
+    const reviewBadge = document.getElementById('aiBadgeReview' + fieldId);
+    if (reviewBadge && (aiFields[key] || AI_USED)) {
+      reviewBadge.style.display = '';
+      if (isAccepted) {
+        reviewBadge.className = 'ai-badge-review reviewed';
+        reviewBadge.innerHTML = '&#10003; AI Generated — Reviewed';
+      } else {
+        reviewBadge.className = 'ai-badge-review needs-review';
+        reviewBadge.innerHTML = '&#x1F916; AI Generated — Review Required';
+      }
+    }
+  });
+
+  // MedDRA confidence
+  const conf = data.meddra_confidence;
+  const confEl = document.getElementById('meddraConfidence');
+  const warnEl = document.getElementById('meddraWarning');
+  if (conf !== null && conf !== undefined) {
+    confEl.style.display = '';
+    const pct = Math.round(conf * 100);
+    const color = pct >= 85 ? 'var(--accent-green)' : 'var(--accent-orange)';
+    confEl.innerHTML = `MedDRA Confidence: <span style="color:${color}">${pct}%</span>`;
+    warnEl.style.display = pct < 85 ? '' : 'none';
+  }
+}
+
+async function submitForReview() {
+  await updateReportStatus('under_review');
+}
+
+async function acceptReport() {
+  await updateReportStatus('accepted');
+}
+
+async function revertToDraft() {
+  await updateReportStatus('draft');
+}
+
+async function updateReportStatus(newStatus) {
+  try {
+    const res = await fetch('/api/doc/status', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        run_id: RUN_ID,
+        patient_id: PATIENT_ID,
+        ae_slug: AE_SLUG,
+        status: newStatus,
+      }),
+    });
+    const result = await res.json();
+    if (result.success) {
+      reportStatus = result;
+      updateStatusUI(result);
+      const labels = { draft: 'Draft', under_review: 'Under Review', accepted: 'Accepted' };
+      showToast('success', `Status changed to ${labels[newStatus] || newStatus}`);
+    } else {
+      showToast('error', result.error || 'Status update failed');
+    }
+  } catch (err) {
+    showToast('error', `Error: ${err.message}`);
+  }
 }
 
 // ═══════ Toast ═══════
