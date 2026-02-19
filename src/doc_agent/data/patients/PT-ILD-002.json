@@ -1,0 +1,251 @@
+{
+  "dm": {
+    "SUBJID": "PT-ILD-002",
+    "AGE": 65,
+    "SEX": "Female",
+    "RACE": "Black or African American",
+    "ETHNIC": "Not Hispanic or Latino",
+    "BRTHDAT": "1960-05-10"
+  },
+  "ae": {
+    "AETERM": "Pneumonitis",
+    "AESTDAT": "2025-11-06",
+    "AEENDAT": null,
+    "AESEV": "MODERATE",
+    "AESER": "Y",
+    "AETOXGR": "1",
+    "AEREL": "Related",
+    "AEACN": "DRUG INTERRUPTED",
+    "AEOUT": "RECOVERING/RESOLVING",
+    "AESDTH": "N",
+    "AESLIFE": "N",
+    "AESHOSP": "N",
+    "AESDISAB": "N",
+    "AESCONG": "N",
+    "AESMIE": "Y",
+    "AEHOSPSTDAT": null,
+    "AEHOSPENDAT": null
+  },
+  "ec": [
+    {
+      "ECDSTXT": "5.4 mg/kg",
+      "ECDOSFRQ": "Q3W",
+      "ECROUTE": "Intravenous",
+      "ECSTDAT": "2025-08-15",
+      "ECENDAT": "2025-11-06",
+      "ECDOSADJ": "Drug interrupted due to pneumonitis"
+    },
+    {
+      "ECDSTXT": "4.4 mg/kg",
+      "ECDOSFRQ": "Q3W",
+      "ECROUTE": "Intravenous",
+      "ECSTDAT": "2025-12-01",
+      "ECENDAT": null,
+      "ECDOSADJ": "Dose reduced upon rechallenge after pneumonitis resolution"
+    }
+  ],
+  "lb": {
+    "records": [
+      {
+        "LBTESTCD": "KL6",
+        "LBTEST": "Krebs von den Lungen-6",
+        "LBORRES": "620",
+        "LBORRESU": "U/mL",
+        "LBORNRLO": "0",
+        "LBORNRHI": "500",
+        "LBDAT": "2025-11-07"
+      },
+      {
+        "LBTESTCD": "LDH",
+        "LBTEST": "Lactate Dehydrogenase",
+        "LBORRES": "260",
+        "LBORRESU": "U/L",
+        "LBORNRLO": "120",
+        "LBORNRHI": "246",
+        "LBDAT": "2025-11-07"
+      },
+      {
+        "LBTESTCD": "SPO2",
+        "LBTEST": "Oxygen Saturation",
+        "LBORRES": "97",
+        "LBORRESU": "%",
+        "LBORNRLO": "95",
+        "LBORNRHI": "100",
+        "LBDAT": "2025-11-07"
+      },
+      {
+        "LBTESTCD": "CRP",
+        "LBTEST": "C-Reactive Protein",
+        "LBORRES": "0.8",
+        "LBORRESU": "mg/dL",
+        "LBORNRLO": "0",
+        "LBORNRHI": "0.5",
+        "LBDAT": "2025-11-07"
+      },
+      {
+        "LBTESTCD": "WBC",
+        "LBTEST": "White Blood Cell Count",
+        "LBORRES": "5.8",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "4.0",
+        "LBORNRHI": "11.0",
+        "LBDAT": "2025-11-07"
+      },
+      {
+        "LBTESTCD": "NEUT",
+        "LBTEST": "Neutrophil Count",
+        "LBORRES": "3.2",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "1.5",
+        "LBORNRHI": "8.0",
+        "LBDAT": "2025-11-07"
+      }
+    ]
+  },
+  "cm": {
+    "records": [
+      {
+        "CMTRT": "Prednisone",
+        "CMINDC": "Treatment of pneumonitis",
+        "CMDSTXT": "0.5 mg/kg PO daily",
+        "CMSTDAT": "2025-11-07",
+        "CMENDAT": null,
+        "CMCAT": "AE_TREATMENT"
+      },
+      {
+        "CMTRT": "Lisinopril",
+        "CMINDC": "Hypertension",
+        "CMDSTXT": "10 mg QD",
+        "CMSTDAT": "2018-01-15",
+        "CMENDAT": null,
+        "CMCAT": "BASELINE"
+      },
+      {
+        "CMTRT": "Atorvastatin",
+        "CMINDC": "Hyperlipidemia",
+        "CMDSTXT": "20 mg QD",
+        "CMSTDAT": "2019-03-01",
+        "CMENDAT": null,
+        "CMCAT": "BASELINE"
+      }
+    ]
+  },
+  "mh": {
+    "records": [
+      {
+        "MHTERM": "Hypertension",
+        "MHSTDAT": "2016-06-01",
+        "MHENDAT": null,
+        "MHONGO": "Y"
+      },
+      {
+        "MHTERM": "Hyperlipidemia",
+        "MHSTDAT": "2018-01-01",
+        "MHENDAT": null,
+        "MHONGO": "Y"
+      },
+      {
+        "MHTERM": "HER2-positive metastatic breast cancer",
+        "MHSTDAT": "2025-03-10",
+        "MHENDAT": null,
+        "MHONGO": "Y"
+      }
+    ]
+  },
+  "vs": {
+    "records": [
+      {
+        "VSTESTCD": "TEMP",
+        "VSORRES": "36.9",
+        "VSORRESU": "C",
+        "VSDAT": "2025-11-07"
+      },
+      {
+        "VSTESTCD": "RESP",
+        "VSORRES": "18",
+        "VSORRESU": "breaths/min",
+        "VSDAT": "2025-11-07"
+      },
+      {
+        "VSTESTCD": "SYSBP",
+        "VSORRES": "134",
+        "VSORRESU": "mmHg",
+        "VSDAT": "2025-11-07"
+      },
+      {
+        "VSTESTCD": "DIABP",
+        "VSORRES": "84",
+        "VSORRESU": "mmHg",
+        "VSDAT": "2025-11-07"
+      }
+    ],
+    "WEIGHT": 78.0,
+    "HEIGHT": 165.0
+  },
+  "dd": {
+    "DTHDAT": null,
+    "PRCDTH": null,
+    "AUTOPIND": null
+  },
+  "da": {
+    "LOT_NUMBER": "TDX-2025-C003",
+    "EXPIRY_DATE": "2026-07-31"
+  },
+  "imaging": {
+    "records": [
+      {
+        "IMG_MODALITY": "HRCT",
+        "IMG_REGION": "Chest",
+        "IMG_DAT": "2025-11-07",
+        "IMG_FINDINGS": "Minimal patchy ground-glass opacity involving less than 10% of lung parenchyma, faint right lower lobe. No consolidation. No pleural effusion.",
+        "IMG_IMPRESSION": "Subtle findings suggestive of early drug-induced ILD. Clinical correlation recommended.",
+        "IMG_PLEFF": "N",
+        "IMG_CONSOL": "N",
+        "IMG_READER": "Dr. Robert Kim, Radiology"
+      }
+    ]
+  },
+  "pft": {
+    "records": [
+      {
+        "PFT_TESTCD": "DLCO",
+        "PFT_TEST": "Diffusing Capacity of the Lungs for Carbon Monoxide",
+        "PFT_RESULT": 78.0,
+        "PFT_UNIT": "%predicted",
+        "PFT_REFLO": 75.0,
+        "PFT_REFHI": 120.0,
+        "PFT_DAT": "2025-11-08",
+        "PFT_BLFL": "N"
+      }
+    ]
+  },
+  "microbiology": {
+    "records": []
+  },
+  "consultation": {
+    "records": [
+      {
+        "CONSULT_SPECIALTY": "Pulmonology",
+        "CONSULT_DAT": "2025-11-05",
+        "CONSULT_IMPRESSION": "Incidental HRCT findings of minimal GGO, asymptomatic. Likely early drug-induced ILD (Grade 1). Recommend close monitoring with repeat HRCT in 6-8 weeks. May continue T-DXd with caution.",
+        "CONSULT_PHYSICIAN": "Dr. James O'Brien"
+      }
+    ]
+  },
+  "investigator": {
+    "name": "Sarah K. Chen, MD",
+    "institution": "Massachusetts General Hospital",
+    "address": "55 Fruit Street, Boston, MA 02114",
+    "phone": "617-555-0142",
+    "email": "schen@mgh-clinical.example.com"
+  },
+  "sentinel_output": {
+    "ild_detected": true,
+    "ild_grade": 2,
+    "ild_confidence": 0.72,
+    "cxr_findings": "Faint ground-glass opacity (GGO) in right lower lobe, subtle, initially discovered on routine imaging. Mild progression noted on follow-up. No consolidation. No pleural effusion.",
+    "differential_diagnosis": "Primary: Drug-induced ILD (T-DXd) — Grade 2 (symptomatic, limiting instrumental ADL). Differential: Early infectious process (less likely, CRP near-normal, afebrile), atelectasis (less likely, no volume loss). Supporting evidence: Mildly elevated KL-6 (620 U/mL), temporal correlation with T-DXd (Cycle 4, Day 83), mild dyspnea on exertion consistent with Grade 2 ILD.",
+    "kl6_value": 620.0,
+    "spo2_value": 97.0
+  }
+}

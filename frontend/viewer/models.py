@@ -1,0 +1,1 @@
+# No database models needed — all data comes from simulation JSONL files.
