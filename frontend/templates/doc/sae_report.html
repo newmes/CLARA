@@ -54,14 +54,18 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 .btn-rpt {
   padding: 8px 18px; border-radius: 8px; border: 1px solid var(--border);
   background: var(--bg-card); color: var(--text-primary); cursor: pointer;
-  font-size: 0.88em; font-weight: 600; transition: all 0.15s; display: flex;
-  align-items: center; gap: 6px;
+  font-size: 0.88em; font-weight: 600; transition: all 0.18s ease; display: inline-flex;
+  align-items: center; gap: 7px; white-space: nowrap;
 }
-.btn-rpt:hover { border-color: var(--accent-blue); background: var(--bg-elevated); }
-.btn-rpt.primary { background: rgba(88,166,255,0.15); border-color: rgba(88,166,255,0.4); color: var(--accent-blue); }
-.btn-rpt.primary:hover { background: rgba(88,166,255,0.25); }
-.btn-rpt.success { background: rgba(63,185,80,0.15); border-color: rgba(63,185,80,0.4); color: var(--accent-green); }
-.btn-rpt.success:hover { background: rgba(63,185,80,0.25); }
+.btn-rpt:hover { border-color: var(--accent-cyan); background: var(--bg-elevated); transform: translateY(-1px); }
+.btn-rpt:active { transform: translateY(0); }
+@keyframes spin { to { transform: rotate(360deg); } }
+.btn-rpt.primary { background: rgba(88,166,255,0.1); border-color: rgba(88,166,255,0.3); color: var(--accent-blue); }
+.btn-rpt.primary:hover { background: rgba(88,166,255,0.2); border-color: var(--accent-blue); }
+.btn-rpt.success { background: rgba(63,185,80,0.1); border-color: rgba(63,185,80,0.3); color: var(--accent-green); }
+.btn-rpt.success:hover { background: rgba(63,185,80,0.2); border-color: var(--accent-green); }
+.btn-rpt.xml { background: rgba(163,113,247,0.1); border-color: rgba(163,113,247,0.3); color: var(--accent-purple); }
+.btn-rpt.xml:hover { background: rgba(163,113,247,0.2); border-color: var(--accent-purple); }
 .btn-rpt:disabled { opacity: 0.5; cursor: wait; }
 
 /* Tab bar */
@@ -118,7 +122,7 @@ body { background: var(--bg-primary); color: var(--text-primary); }
   font-size: 0.88em; margin-right: 4px;
 }
 .field-row.human-review {
-  background: rgba(255,180,50,0.08);
+  background: rgba(255,180,50,0.06);
   border-left: 3px solid #ffb432;
   padding-left: 12px; margin-left: -15px;
   border-radius: 4px;
@@ -127,31 +131,18 @@ body { background: var(--bg-primary); color: var(--text-primary); }
   color: #ffb432;
 }
 .human-review-tag {
-  display: inline-block; font-size: 0.7em; font-weight: 700;
-  background: rgba(255,180,50,0.15); color: #ffb432;
-  padding: 1px 6px; border-radius: 3px; margin-left: 6px;
-  vertical-align: middle;
+  grid-column: 1 / -1;
+  font-size: 0.72em; font-weight: 700; color: #ffb432;
+  letter-spacing: 0.5px; text-transform: uppercase;
+  padding-bottom: 0; margin-bottom: -4px;
+  display: flex; align-items: center; gap: 6px;
 }
-/* Action bar */
-.action-bar {
-  display: flex; gap: 12px; justify-content: center;
-  margin: 24px 0; padding: 20px;
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: 12px;
+.human-review-tag::before {
+  content: ''; display: inline-block; width: 6px; height: 6px;
+  background: #ffb432; border-radius: 50%;
 }
-.action-btn {
-  padding: 14px 32px; border-radius: 10px; font-size: 1em; font-weight: 700;
-  border: 2px solid var(--border); background: var(--bg-secondary);
-  color: var(--text-primary); cursor: pointer; transition: all 0.15s;
-  display: flex; align-items: center; gap: 8px;
-}
-.action-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
-.action-btn.export-pdf { border-color: rgba(88,166,255,0.4); background: rgba(88,166,255,0.1); color: var(--accent-blue); }
-.action-btn.export-pdf:hover { background: rgba(88,166,255,0.2); }
-.action-btn.export-xml { border-color: rgba(163,113,247,0.4); background: rgba(163,113,247,0.1); color: var(--accent-purple); }
-.action-btn.export-xml:hover { background: rgba(163,113,247,0.2); }
-.action-btn.save { border-color: rgba(63,185,80,0.4); background: rgba(63,185,80,0.15); color: var(--accent-green); }
-.action-btn.save:hover { background: rgba(63,185,80,0.25); }
+/* SVG icon in buttons */
+.btn-rpt svg, .btn-workflow svg { width: 15px; height: 15px; flex-shrink: 0; }
 .field-input input,
 .field-input select,
 .field-input textarea {
@@ -166,7 +157,7 @@ body { background: var(--bg-primary); color: var(--text-primary); }
   outline: none; border-color: var(--accent-blue);
   box-shadow: 0 0 0 2px rgba(88,166,255,0.15);
 }
-.field-input textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
+.field-input textarea { min-height: 44px; resize: vertical; line-height: 1.5; overflow: hidden; }
 .field-input .checkbox-row {
   display: flex; align-items: center; gap: 8px; padding: 4px 0;
 }
@@ -181,15 +172,9 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 .narrative-editor textarea {
   width: 100%; min-height: 100px; background: transparent;
   border: none; color: var(--text-primary); font-size: 0.92em;
-  line-height: 1.7; resize: vertical; font-family: inherit;
+  line-height: 1.7; resize: vertical; font-family: inherit; overflow: hidden;
 }
 .narrative-editor textarea:focus { outline: none; box-shadow: none; }
-.ai-badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 0.72em; background: rgba(188,140,255,0.15);
-  color: var(--accent-purple); padding: 2px 8px; border-radius: 4px;
-  font-weight: 600;
-}
 
 /* E2B preview */
 .xml-preview {
@@ -213,24 +198,6 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 .error-box h3 { color: var(--accent-red); margin-bottom: 8px; }
 .error-box p { color: var(--text-secondary); }
 
-/* AI badge enhanced */
-.ai-badge-review {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 0.75em; padding: 3px 10px; border-radius: 5px;
-  font-weight: 600;
-}
-.ai-badge-review.needs-review {
-  background: rgba(210,153,34,0.15); color: var(--accent-orange);
-  animation: aiBadgePulse 2s ease-in-out infinite;
-}
-.ai-badge-review.reviewed {
-  background: rgba(63,185,80,0.15); color: var(--accent-green);
-  animation: none;
-}
-@keyframes aiBadgePulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
 
 /* MedDRA confidence */
 .meddra-confidence {
@@ -334,12 +301,22 @@ body { padding-bottom: 52px; }
     </div>
     <div class="report-actions">
       <button class="btn-rpt primary" id="btnRegenerate" onclick="regenerateAI()" title="Re-generate narrative with MedGemma">
-        🤖 Re-generate AI
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg>
+        Re-generate AI
       </button>
       <span id="workflowButtons">
-        <button class="btn-workflow submit" id="btnSubmitReview" onclick="submitForReview()" style="display:none;">&#x1F4DD; Submit for Review</button>
-        <button class="btn-workflow accept" id="btnAccept" onclick="acceptReport()" style="display:none;">&#10003; Accept</button>
-        <button class="btn-workflow revert" id="btnRevert" onclick="revertToDraft()" style="display:none;">&#x21A9; Revert to Draft</button>
+        <button class="btn-workflow submit" id="btnSubmitReview" onclick="submitForReview()" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          Submit for Review
+        </button>
+        <button class="btn-workflow accept" id="btnAccept" onclick="acceptReport()" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Accept
+        </button>
+        <button class="btn-workflow revert" id="btnRevert" onclick="revertToDraft()" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+          Revert to Draft
+        </button>
       </span>
     </div>
   </div>
@@ -442,10 +419,9 @@ body { padding-bottom: 52px; }
           </div>
         </div>
         <div class="field-row human-review">
+          <span class="human-review-tag">Review Required</span>
           <div class="field-label">
-            <span class="field-id">B5</span> Narrative <span class="human-review-tag">Review Required</span>
-            <span class="ai-badge" id="aiBadge" style="display:none">🤖 AI</span>
-            <span class="ai-badge-review needs-review" id="aiBadgeReviewB5" style="display:none">&#x1F916; AI Generated — Review Required</span>
+            <span class="field-id">B5</span> Narrative
           </div>
           <div class="field-input">
             <div class="narrative-editor">
@@ -496,10 +472,9 @@ body { padding-bottom: 52px; }
           <div class="field-input"><input type="text" data-path="section_c.product_type"></div>
         </div>
         <div class="field-row human-review">
+          <span class="human-review-tag">Review Required</span>
           <div class="field-label">
-            <span class="field-id">C7</span> Dechallenge <span class="human-review-tag">Review Required</span>
-            <span class="ai-badge" id="aiBadgeC7" style="display:none">🤖 AI</span>
-            <span class="ai-badge-review needs-review" id="aiBadgeReviewC7" style="display:none">&#x1F916; AI Generated — Review Required</span>
+            <span class="field-id">C7</span> Dechallenge
           </div>
           <div class="field-input">
             <div class="narrative-editor">
@@ -508,10 +483,9 @@ body { padding-bottom: 52px; }
           </div>
         </div>
         <div class="field-row human-review">
+          <span class="human-review-tag">Review Required</span>
           <div class="field-label">
-            <span class="field-id">C8</span> Rechallenge <span class="human-review-tag">Review Required</span>
-            <span class="ai-badge" id="aiBadgeC8" style="display:none">🤖 AI</span>
-            <span class="ai-badge-review needs-review" id="aiBadgeReviewC8" style="display:none">&#x1F916; AI Generated — Review Required</span>
+            <span class="field-id">C8</span> Rechallenge
           </div>
           <div class="field-input">
             <div class="narrative-editor">
@@ -598,7 +572,8 @@ body { padding-bottom: 52px; }
     <div class="form-section">
       <div class="form-section-header">
         <h3><span class="sec-label">XML</span> E2B(R3) ICH ICSR</h3>
-        <button class="btn-rpt" onclick="window.open('{{ xml_url }}', '_blank')" style="font-size:0.8em; padding:4px 12px;">
+        <button class="btn-rpt xml" onclick="window.open('{{ xml_url }}', '_blank')" style="font-size:0.8em; padding:4px 12px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Download XML
         </button>
       </div>
@@ -633,9 +608,18 @@ body { padding-bottom: 52px; }
     <span class="meddra-confidence" id="meddraConfidence" style="display:none;"></span>
   </div>
   <div class="status-right">
-    <button class="btn-rpt" onclick="window.open('{{ pdf_url }}', '_blank')" style="font-size:0.88em; padding:8px 18px;">📄 PDF</button>
-    <button class="btn-rpt" onclick="window.open('{{ xml_url }}', '_blank')" style="font-size:0.88em; padding:8px 18px;">📑 XML</button>
-    <button class="btn-rpt success" onclick="saveReport()" style="font-size:0.88em; padding:8px 18px;">💾 Save</button>
+    <button class="btn-rpt" onclick="window.open('{{ pdf_url }}', '_blank')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      PDF
+    </button>
+    <button class="btn-rpt xml" onclick="window.open('{{ xml_url }}', '_blank')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      XML
+    </button>
+    <button class="btn-rpt success" id="btnSave" onclick="saveReport()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Save
+    </button>
   </div>
 </div>
 {% endif %}
@@ -657,11 +641,6 @@ let reportStatus = { status: 'draft' };
 // ═══════ Init ═══════
 document.addEventListener('DOMContentLoaded', () => {
   populateForm();
-  if (AI_USED) {
-    document.getElementById('aiBadge').style.display = '';
-    document.getElementById('aiBadgeC7').style.display = '';
-    document.getElementById('aiBadgeC8').style.display = '';
-  }
   if (meddraData && meddraData.pt) {
     document.getElementById('statusMeddra').textContent =
       `MedDRA: ${meddraData.pt} (${meddraData.source || 'lookup'})`;
@@ -671,7 +650,10 @@ document.addEventListener('DOMContentLoaded', () => {
   loadReportStatus();
 
   document.querySelectorAll('[data-path]').forEach(el => {
-    el.addEventListener('input', () => markDirty());
+    el.addEventListener('input', () => {
+      markDirty();
+      if (el.tagName === 'TEXTAREA') autoGrow(el);
+    });
     el.addEventListener('change', () => markDirty());
   });
 });
@@ -691,6 +673,11 @@ function setNestedValue(obj, path, val) {
   cur[keys[keys.length - 1]] = val;
 }
 
+function autoGrow(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.max(44, el.scrollHeight) + 'px';
+}
+
 function populateForm() {
   document.querySelectorAll('[data-path]').forEach(el => {
     const path = el.dataset.path;
@@ -707,6 +694,7 @@ function populateForm() {
       }
     } else {
       el.value = val !== null && val !== undefined ? val : '';
+      if (el.tagName === 'TEXTAREA') autoGrow(el);
     }
   });
 }
@@ -755,7 +743,7 @@ function toggleSection(id) {
 async function saveReport() {
   const btn = document.getElementById('btnSave');
   btn.disabled = true;
-  btn.textContent = '⏳ Saving...';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg> Saving...';
 
   const data = collectForm();
 
@@ -785,7 +773,7 @@ async function saveReport() {
     showToast('error', `Network error: ${err.message}`);
   } finally {
     btn.disabled = false;
-    btn.textContent = '💾 Save & Export';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save';
   }
 }
 
@@ -793,7 +781,7 @@ async function saveReport() {
 async function regenerateAI() {
   const btn = document.getElementById('btnRegenerate');
   btn.disabled = true;
-  btn.textContent = '⏳ Generating...';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg> Generating...';
 
   try {
     const res = await fetch('/api/doc/generate', {
@@ -826,9 +814,6 @@ async function regenerateAI() {
         document.querySelector('[data-path="section_c.rechallenge"]').value = newRC;
       }
 
-      document.getElementById('aiBadge').style.display = '';
-      document.getElementById('aiBadgeC7').style.display = '';
-      document.getElementById('aiBadgeC8').style.display = '';
       markDirty();
       showToast('success', 'AI narratives regenerated. Review and save.');
     } else {
@@ -838,7 +823,7 @@ async function regenerateAI() {
     showToast('error', `Error: ${err.message}`);
   } finally {
     btn.disabled = false;
-    btn.textContent = '🤖 Re-generate AI';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v4m0 12v4M4.93 4.93l2.83 2.83m8.48 8.48l2.83 2.83M2 12h4m12 0h4M4.93 19.07l2.83-2.83m8.48-8.48l2.83-2.83"/></svg> Re-generate AI';
   }
 }
 
@@ -943,26 +928,6 @@ function updateStatusUI(data) {
   btnAccept.style.display = status === 'under_review' ? '' : 'none';
   btnRevert.style.display = (status === 'under_review' || status === 'accepted') ? '' : 'none';
 
-  // AI badges — show enhanced badges for AI fields
-  const aiFields = data.ai_fields || {};
-  const isAccepted = status === 'accepted';
-
-  ['B5', 'C7', 'C8'].forEach(fieldId => {
-    const key = fieldId === 'B5' ? 'section_b.narrative'
-              : fieldId === 'C7' ? 'section_c.dechallenge'
-              : 'section_c.rechallenge';
-    const reviewBadge = document.getElementById('aiBadgeReview' + fieldId);
-    if (reviewBadge && (aiFields[key] || AI_USED)) {
-      reviewBadge.style.display = '';
-      if (isAccepted) {
-        reviewBadge.className = 'ai-badge-review reviewed';
-        reviewBadge.innerHTML = '&#10003; AI Generated — Reviewed';
-      } else {
-        reviewBadge.className = 'ai-badge-review needs-review';
-        reviewBadge.innerHTML = '&#x1F916; AI Generated — Review Required';
-      }
-    }
-  });
 
   // MedDRA confidence
   const conf = data.meddra_confidence;
