@@ -105,6 +105,18 @@ def _load_patient_profile(run_path: Path, patient_id: str) -> dict:
     return {}
 
 
+def _load_run_meta(run_path: Path) -> dict:
+    """Load run_meta.json for this run."""
+    f = run_path / "run_meta.json"
+    if f.exists():
+        try:
+            with open(f) as fh:
+                return json.load(fh)
+        except Exception:
+            pass
+    return {}
+
+
 def _load_rule_set(run_path: Path) -> dict:
     """Load rule_set.json for this run."""
     f = run_path / "rule_set.json"
@@ -672,6 +684,7 @@ def trial_viewer(request, run_id: str, day: int = 1):
         "patient_ids": patient_ids,
         "patient_ids_json": json.dumps(patient_ids),
         "is_live": is_live,
+        "model_name": _load_run_meta(run_path).get("model", ""),
     }
     return render(request, "trial/trial.html", context)
 
@@ -1037,6 +1050,7 @@ def patient_state(request, run_id: str, patient_id: str, day: int = None):
         "event_log": event_log,
         "total_days": len(all_days),
         "bmi_display": bmi_display,
+        "model_name": _load_run_meta(run_path).get("model", ""),
     }
     return render(request, "patient_state/patient_state.html", context)
 
@@ -1209,6 +1223,7 @@ def game_landing(request, run_id: str):
         "patients": patients,
         "drug_name": rule_set.get("drug_name", ""),
         "indication": rule_set.get("indication", ""),
+        "model_name": _load_run_meta(run_path).get("model", ""),
     })
 
 
@@ -1238,6 +1253,7 @@ def game_play(request, run_id: str, patient_id: str):
         "patient_ecog": demo.get("ecog_ps", "?"),
         "persona_type": persona.get("type", ""),
         "persona_desc": persona.get("description", "")[:200],
+        "model_name": _load_run_meta(run_path).get("model", ""),
     })
 
 
@@ -1497,6 +1513,7 @@ def compare_dashboard(request, run_id: str):
     run_path = _get_run_path(run_id)
     report_path = run_path / "comparison_report.json"
     sim_dir = run_path / "simulations"
+    _run_model = _load_run_meta(run_path).get("model", "")
 
     # 기본 검증: simulations 디렉토리 존재 여부
     if not sim_dir.exists():
@@ -1504,6 +1521,7 @@ def compare_dashboard(request, run_id: str):
             "run_id": run_id, "drug_name": "Unknown", "indication": "",
             "report_json": json.dumps({"error": "Simulation directory not found"}),
             "error": "시뮬레이션 디렉토리가 존재하지 않습니다.",
+            "model_name": _run_model,
         })
 
     # natural / care_ai 파일 존재 확인
@@ -1523,6 +1541,7 @@ def compare_dashboard(request, run_id: str):
             "report_json": json.dumps({"error": f"Missing data: {', '.join(missing)}"}),
             "error": f"A/B 비교에 필요한 데이터가 부족합니다: {', '.join(missing)} 모드 데이터 없음. "
                      f"(Natural: {len(natural_files)}명, Care AI: {len(care_ai_files)}명)",
+            "model_name": _run_model,
         })
 
     # comparison_report.json이 없거나 낡았으면 재생성
@@ -1549,6 +1568,7 @@ def compare_dashboard(request, run_id: str):
             "indication": rule_set.get("indication", ""),
             "report_json": json.dumps({"error": str(e)}),
             "error": f"비교 리포트 생성 중 오류: {e}",
+            "model_name": _run_model,
         })
 
     rule_set = _load_rule_set(run_path)
@@ -1558,6 +1578,7 @@ def compare_dashboard(request, run_id: str):
         "drug_name": rule_set.get("drug_name", "Unknown"),
         "indication": rule_set.get("indication", ""),
         "report_json": json.dumps(report, ensure_ascii=False),
+        "model_name": _run_model,
     })
 
 
@@ -2500,6 +2521,7 @@ def sae_report_editor(request, run_id: str, patient_id: str, ae_slug: str):
         "indication": rule_set.get("indication", ""),
         "patient_age": demo.get("age", "?"),
         "patient_sex": demo.get("sex", "?"),
+        "model_name": _load_run_meta(run_path).get("model", ""),
     }
     return render(request, "doc/sae_report.html", context)
 
@@ -2566,6 +2588,7 @@ def doc_hub(request, run_id: str):
         "existing_docs": existing_docs,
         "drug_name": meta.get("drug_name", ""),
         "indication": meta.get("indication", ""),
+        "model_name": _load_run_meta(run_path).get("model", ""),
     }
     return render(request, "doc/doc_hub.html", context)
 
@@ -2613,6 +2636,7 @@ def crf_tables(request, run_id: str):
         "drug_name": drug_name,
         "indication": indication,
         "domain_labels_json": json.dumps(DOMAIN_LABELS),
+        "model_name": _load_run_meta(run_path).get("model", ""),
     }
     return render(request, "doc/crf_tables.html", context)
 
