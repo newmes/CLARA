@@ -1,21 +1,49 @@
+# Python
 __pycache__/
 *.pyc
-.DS_Store
+*.pyo
 *.egg-info/
-.venv/
-.env
+*.egg
+dist/
+build/
 
-# Legacy / unused code
-old/
+# Virtual environment
+.venv/
+venv/
+env/
+
+# Environment variables & secrets
+.env
+.env.*
+
+# IDE / tools
+.claude/
+.cursor/
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# OS
+.DS_Store
+Thumbs.db
 
 # Simulation data & logs (large, regenerable)
 data/
 logs/
 
-# IDE / tools
-.claude/
-.cursor/
-.pytest_cache/
+# Generated output (regenerable)
+cache/
+output/
+
+# Legacy / unused code
+old/
 
 # Reference materials (large)
 reference/
