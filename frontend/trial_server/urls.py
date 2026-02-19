@@ -84,10 +84,21 @@ urlpatterns = [
     path('api/doc/list/<str:run_id>/',
          views.api_doc_list, name='api_doc_list'),
     path('api/doc/save', views.api_doc_save, name='api_doc_save'),
+    path('api/doc/status', views.api_doc_update_status, name='api_doc_update_status'),
+    path('api/doc/status/<str:run_id>/<str:patient_id>/<str:ae_slug>/',
+         views.api_doc_get_status, name='api_doc_get_status'),
 
     # Doc Agent — Documents Hub & SAE Report Editor
     path('doc/<str:run_id>/',
          views.doc_hub, name='doc_hub'),
     path('doc/<str:run_id>/<str:patient_id>/<str:ae_slug>/',
          views.sae_report_editor, name='sae_report_editor'),
+
+    # CRF Tables
+    path('doc/<str:run_id>/crf/',
+         views.crf_tables, name='crf_tables'),
+    path('api/crf/<str:run_id>/excel/',
+         views.api_crf_excel_download, name='api_crf_excel_download'),
+    path('api/crf/<str:run_id>/<str:domain>/',
+         views.api_crf_domain_data, name='api_crf_domain_data'),
 ]
