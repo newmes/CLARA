@@ -1329,7 +1329,7 @@
   });
 
   // ── Initialize Phaser Map ──
-  const trialMap = new TrialMap('game-container', currentPatients, function(pid) {
+  window.trialMap = new TrialMap('game-container', currentPatients, function(pid) {
     // Callback when patient clicked on map
     const p = currentPatients.find(x => x.patient_id === pid);
     if (p) showPatientDetail(p);

@@ -64,7 +64,7 @@ class TrialMap {
         width: w,
         height: 580,
         parent: containerId,
-        backgroundColor: '#2d5a1e',
+        backgroundColor: '#63c74d',
         pixelArt: true,
         scene: {
           preload: this._preload.bind(this),
@@ -143,14 +143,17 @@ class TrialMap {
   // ─── Preload ─────────────────────────────────────────
   _preload() {
     const s = this.game.scene.scenes[0];
-    // Cache-bust: append timestamp from map_meta to prevent stale tilemap
+    // Tilemap (still needed for layout/positions data)
     const cacheBust = this.mapMeta ? `?v=${this.mapMeta.n_patients}` : `?v=${Date.now()}`;
     s.load.tilemapTiledJSON('map', `${STATIC}/map/clinical_trial.json${cacheBust}`);
     s.load.image('tiny-town', `${STATIC}/kenney/tiny-town/Tilemap/tilemap_packed.png`);
+    // Custom building sprites
     s.load.image('hospital-building', `${STATIC}/hospital.png`);
-    const houseColors = ['green', 'orange', 'purple', 'red'];
-    houseColors.forEach(c => s.load.image(`house-${c}`, `${STATIC}/house_${c}.png`));
-
+    ['green', 'orange', 'purple', 'red'].forEach(c => s.load.image(`house-${c}`, `${STATIC}/house_${c}.png`));
+    // Custom environment sprites
+    s.load.image('trees-atlas', `${STATIC}/trees.png`);
+    s.load.image('plants-atlas', `${STATIC}/plants.png`);
+    // Character spritesheets
     for (let i = 1; i <= 10; i++) {
       const key = `patient_${String(i).padStart(2, '0')}`;
       s.load.spritesheet(key, `${STATIC}/characters/${key}.png`, {
@@ -164,17 +167,104 @@ class TrialMap {
     this._scene = this.game.scene.scenes[0];
     const scene = this._scene;
 
+    // Load tilemap for layout data (positions, tile types)
     const map = scene.make.tilemap({ key: 'map' });
     const tileset = map.addTilesetImage('tiny-town', 'tiny-town', 16, 16, 0, 0);
     if (!tileset) { console.error('Failed to load tileset'); return; }
 
+    // Create layers (hidden — we draw custom visuals on top)
     const layers = {};
     ['Ground', 'Buildings', 'Roofs', 'Decor'].forEach((name, i) => {
       try {
         const layer = map.createLayer(name, tileset, 0, 0);
-        if (layer) { layer.setDepth(i); layers[name] = layer; }
+        if (layer) { layer.setDepth(i); layer.setVisible(false); layers[name] = layer; }
       } catch (e) { console.warn(`Layer "${name}":`, e.message); }
     });
+
+    // ── Custom environment rendering ──
+    const ROAD_IDS = new Set([13,14,15,25,26,27,37,38,39]);
+
+    // Grass background
+    const grassBg = scene.add.rectangle(
+      map.widthInPixels / 2, map.heightInPixels / 2,
+      map.widthInPixels, map.heightInPixels, 0x63c74d
+    );
+    grassBg.setDepth(-2);
+
+    // Grass variation patches (darker spots)
+    let rng = 42;
+    const nextRng = () => { rng = (rng * 1103515245 + 12345) & 0x7fffffff; return rng; };
+    for (let i = 0; i < map.widthInPixels * map.heightInPixels / 600; i++) {
+      const gx = (nextRng() % map.widthInPixels);
+      const gy = (nextRng() % map.heightInPixels);
+      const gs = 4 + (nextRng() % 8);
+      const shade = (nextRng() % 2 === 0) ? 0x5fc14c : 0x51ac69;
+      const patch = scene.add.rectangle(gx, gy, gs, gs, shade);
+      patch.setAlpha(0.4 + (nextRng() % 40) / 100);
+      patch.setDepth(-1);
+    }
+
+    // Roads from Ground layer data
+    const groundLayer = layers['Ground'];
+    if (groundLayer) {
+      const gData = groundLayer.layer.data;
+      for (let y = 0; y < map.height; y++) {
+        for (let x = 0; x < map.width; x++) {
+          const tile = gData[y][x];
+          if (tile && ROAD_IDS.has(tile.index)) {
+            const rx = x * TILE + TILE / 2;
+            const ry = y * TILE + TILE / 2;
+            // Road fill
+            scene.add.rectangle(rx, ry, TILE, TILE, 0xe4a672).setDepth(0);
+            // Subtle edge lines for top/bottom road edges
+            if (tile.index >= 13 && tile.index <= 15) {
+              scene.add.rectangle(rx, ry - TILE / 2 + 0.5, TILE, 1, 0xbc795c).setDepth(0.1);
+            }
+            if (tile.index >= 37 && tile.index <= 39) {
+              scene.add.rectangle(rx, ry + TILE / 2 - 0.5, TILE, 1, 0xbc795c).setDepth(0.1);
+            }
+          }
+        }
+      }
+    }
+
+    // Tree & plant sprite frames from atlas
+    const treeTex = scene.textures.get('trees-atlas');
+    treeTex.add('tree_0', 0, 48, 28, 16, 36);
+    treeTex.add('tree_1', 0, 65, 28, 14, 36);
+    treeTex.add('tree_2', 0, 95, 28, 18, 36);
+
+    const plantTex = scene.textures.get('plants-atlas');
+    const pCols = [[1,15],[17,31],[33,47],[49,63],[65,78],[80,95],[98,111],[114,127]];
+    pCols.forEach((c, i) => plantTex.add(`p_${i}`, 0, c[0], 18, c[1] - c[0] + 1, 13));
+    pCols.forEach((c, i) => plantTex.add(`p_${8 + i}`, 0, c[0], 34, c[1] - c[0] + 1, 13));
+
+    // Decor: place trees & plants from tilemap data
+    const TREE_TILE_IDS = new Set([5, 6, 7]);
+    const decorLayer = layers['Decor'];
+    if (decorLayer) {
+      const dData = decorLayer.layer.data;
+      for (let y = 0; y < map.height; y++) {
+        for (let x = 0; x < map.width; x++) {
+          const tile = dData[y][x];
+          if (tile && tile.index > 0) {
+            const px = x * TILE + TILE / 2;
+            const py = y * TILE + TILE;
+            const r = nextRng();
+            if (TREE_TILE_IDS.has(tile.index)) {
+              const tree = scene.add.image(px, py, 'trees-atlas', `tree_${r % 3}`);
+              tree.setScale(0.9 + (r % 4) * 0.1);
+              tree.setOrigin(0.5, 1);
+              tree.setDepth(3);
+            } else {
+              const plant = scene.add.image(px, py, 'plants-atlas', `p_${r % 16}`);
+              plant.setOrigin(0.5, 1);
+              plant.setDepth(2);
+            }
+          }
+        }
+      }
+    }
 
     // Camera
     const camera = scene.cameras.main;
@@ -183,7 +273,6 @@ class TrialMap {
     const zoomY = this.game.config.height / map.heightInPixels;
     const fitZoom = Math.min(zoomX, zoomY) * 0.95;
     camera.setZoom(Math.max(fitZoom, 1.0));
-    // Center on hospital
     camera.centerOn(
       this.hospitalPos.x * TILE + TILE / 2,
       this.hospitalPos.y * TILE + TILE / 2
@@ -202,7 +291,7 @@ class TrialMap {
 
     this._createAnimations(scene);
 
-    // Place patients
+    // ── Place patients ──
     this.patients.forEach((p, i) => {
       const spriteIdx = (i % 10) + 1;
       const spriteKey = `patient_${String(spriteIdx).padStart(2, '0')}`;
@@ -246,29 +335,15 @@ class TrialMap {
       this.statusDots[p.patient_id] = dot;
     });
 
-    // Helper: clear tilemap tiles in a rect (Buildings, Roofs, Decor)
-    const clearTileRect = (cx, cy, hw, hh) => {
-      ['Buildings', 'Roofs', 'Decor'].forEach(name => {
-        const layer = layers[name];
-        if (!layer) return;
-        for (let tx = cx - hw; tx <= cx + hw; tx++) {
-          for (let ty = cy - hh; ty <= cy + hh; ty++) {
-            layer.removeTileAt(tx, ty);
-          }
-        }
-      });
-    };
-
-    // Hospital building sprite (replaces tilemap hospital)
+    // ── Hospital building sprite ──
     const hospX = this.hospitalPos.x * TILE + TILE / 2;
     const hospY = this.hospitalPos.y * TILE;
     const hospSprite = scene.add.image(hospX, hospY, 'hospital-building');
     hospSprite.setScale(0.6);
     hospSprite.setOrigin(0.5, 1);
     hospSprite.setDepth(5);
-    clearTileRect(this.hospitalPos.x, this.hospitalPos.y, 4, 4);
 
-    // House sprites at each patient's home
+    // ── House sprites at each patient's home ──
     const houseKeys = ['house-green', 'house-orange', 'house-purple', 'house-red'];
     this.patients.forEach((p, i) => {
       const home = this._getHomePos(i);
@@ -279,7 +354,6 @@ class TrialMap {
       house.setScale(0.5);
       house.setOrigin(0.5, 1);
       house.setDepth(4);
-      clearTileRect(home.x, home.y, 3, 4);
     });
 
     // HUD
