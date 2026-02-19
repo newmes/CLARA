@@ -32,9 +32,11 @@ urlpatterns = [
     path('api/sse/<str:run_id>/',
          views.sse_stream, name='sse_stream'),
 
-    # Map metadata
+    # Map metadata & tilemap
     path('api/map/<str:run_id>/',
          views.api_map_meta, name='api_map_meta'),
+    path('api/map/<str:run_id>/tilemap/',
+         views.api_map_tilemap, name='api_map_tilemap'),
 
     # Game — landing & play
     path('game/<str:run_id>/',

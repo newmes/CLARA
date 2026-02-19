@@ -127,21 +127,27 @@ def _load_rule_set(run_path: Path) -> dict:
 
 
 def _list_patients(run_path: Path) -> list[str]:
-    """List patient IDs from simulation files (exclude _hospital variants)."""
-    sim_dir = run_path / "simulations"
-    if not sim_dir.exists():
-        return []
+    """List patient IDs from simulation files (exclude _hospital variants).
+    Falls back to patients/ directory if no simulation files exist yet."""
     ids = set()
-    for f in sim_dir.glob("*_natural.jsonl"):
-        if "_hospital" in f.stem:
-            continue
-        pid = f.stem.replace("_natural", "")
-        ids.add(pid)
-    for f in sim_dir.glob("*_care_ai.jsonl"):
-        if "_hospital" in f.stem:
-            continue
-        pid = f.stem.replace("_care_ai", "")
-        ids.add(pid)
+    sim_dir = run_path / "simulations"
+    if sim_dir.exists():
+        for f in sim_dir.glob("*_natural.jsonl"):
+            if "_hospital" in f.stem:
+                continue
+            pid = f.stem.replace("_natural", "")
+            ids.add(pid)
+        for f in sim_dir.glob("*_care_ai.jsonl"):
+            if "_hospital" in f.stem:
+                continue
+            pid = f.stem.replace("_care_ai", "")
+            ids.add(pid)
+    # Fallback: count from patients/ directory
+    if not ids:
+        patients_dir = run_path / "patients"
+        if patients_dir.exists():
+            for f in patients_dir.glob("*.json"):
+                ids.add(f.stem)
     return sorted(ids)
 
 
@@ -625,9 +631,9 @@ def trial_viewer(request, run_id: str, day: int = 1):
     total_days = _count_days(run_path, mode)
     rule_set = _load_rule_set(run_path)
 
-    # Ensure map is generated for this patient count
+    # Ensure map is generated for this run
     try:
-        _ensure_map_for_patients(len(patient_ids))
+        _ensure_map_for_run(run_path, len(patient_ids))
     except Exception:
         pass  # non-critical; map will fall back to default
 
@@ -1467,28 +1473,32 @@ def api_game_sessions(request):
 # Map Generation
 # ═══════════════════════════════════════════════════════
 
-def _ensure_map_for_patients(n_patients: int) -> dict:
-    """Generate map if needed, return map metadata."""
-    meta_path = MAP_ASSETS_DIR / "map_meta.json"
-    if meta_path.exists():
+def _ensure_map_for_run(run_path: Path, n_patients: int) -> tuple[dict, dict]:
+    """Generate map for a specific run if needed. Returns (tilemap, meta)."""
+    map_dir = run_path / "map"
+    meta_path = map_dir / "map_meta.json"
+    tilemap_path = map_dir / "tilemap.json"
+
+    if meta_path.exists() and tilemap_path.exists():
         with open(meta_path) as f:
             meta = json.load(f)
-        if meta.get("n_patients", 0) >= n_patients:
-            return meta
+        if meta.get("n_patients", 0) == n_patients:
+            with open(tilemap_path) as f:
+                tilemap = json.load(f)
+            return tilemap, meta
 
-    # Regenerate
+    # Generate map sized for this run's patient count
     import sys
     tools_dir = Path(settings.BASE_DIR) / "tools"
-    sys.path.insert(0, str(tools_dir))
+    if str(tools_dir) not in sys.path:
+        sys.path.insert(0, str(tools_dir))
     from generate_map import generate_map
     tilemap, meta = generate_map(n_patients)
 
-    MAP_ASSETS_DIR.mkdir(parents=True, exist_ok=True)
-    (MAP_ASSETS_DIR / "clinical_trial.json").write_text(
-        json.dumps(tilemap), encoding="utf-8")
-    meta_path.write_text(
-        json.dumps(meta, indent=2), encoding="utf-8")
-    return meta
+    map_dir.mkdir(parents=True, exist_ok=True)
+    tilemap_path.write_text(json.dumps(tilemap), encoding="utf-8")
+    meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+    return tilemap, meta
 
 
 @require_GET
@@ -1499,9 +1509,20 @@ def api_map_meta(request, run_id: str):
         return JsonResponse({"error": "not found"}, status=404)
 
     patient_ids = _list_patients(run_path)
-    n = len(patient_ids)
-    meta = _ensure_map_for_patients(n)
+    _, meta = _ensure_map_for_run(run_path, len(patient_ids))
     return JsonResponse(meta)
+
+
+@require_GET
+def api_map_tilemap(request, run_id: str):
+    """Serve the Tiled JSON tilemap for a specific run."""
+    run_path = _get_run_path(run_id)
+    if not run_path.exists():
+        return JsonResponse({"error": "not found"}, status=404)
+
+    patient_ids = _list_patients(run_path)
+    tilemap, _ = _ensure_map_for_run(run_path, len(patient_ids))
+    return JsonResponse(tilemap)
 
 
 # ═══════════════════════════════════════════════════════
