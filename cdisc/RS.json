@@ -1,0 +1,214 @@
+{
+  "domain": "RS",
+  "domain_name": "Disease Response",
+  "core_fields": [
+    {
+      "field": "RSCAT",
+      "label": "평가 분류",
+      "type": "float",
+      "required": false,
+      "unit": "recist1.1"
+    },
+    {
+      "field": "RSPERF",
+      "label": "질병 반응 평가 수행 여부",
+      "type": "boolean",
+      "required": false
+    },
+    {
+      "field": "RSREASND",
+      "label": "미수행 사유",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "RSEVAL",
+      "label": "평가자",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "INDEPENDENT ASSESSOR",
+          "label": "Independent Assessor",
+          "label_ko": "독립 평가자"
+        },
+        {
+          "value": "INVESTIGATOR",
+          "label": "Investigator",
+          "label_ko": "연구자"
+        }
+      ]
+    },
+    {
+      "field": "RSEVALID",
+      "label": "평가자 ID",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "RADIOLOGIST 1",
+          "label": "Radiologist 1",
+          "label_ko": "영상의학과 의사 1"
+        },
+        {
+          "value": "RADIOLOGIST 2",
+          "label": "Radiologist 2",
+          "label_ko": "영상의학과 의사 2"
+        },
+        {
+          "value": "RADIOLOGIST 3",
+          "label": "Radiologist 3",
+          "label_ko": "영상의학과 의사 3"
+        }
+      ]
+    },
+    {
+      "field": "TRGRESP_RSORRES",
+      "label": "표적병변 반응",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "CR",
+          "label": "Complete Response (CR)",
+          "label_ko": "Complete Response (CR)"
+        },
+        {
+          "value": "PR",
+          "label": "Partial Response (PR)",
+          "label_ko": "Partial Response (PR)"
+        },
+        {
+          "value": "SD",
+          "label": "Stable Disease (SD)",
+          "label_ko": "Stable Disease (SD)"
+        },
+        {
+          "value": "PD",
+          "label": "Progressive Disease (PD)",
+          "label_ko": "Progressive Disease (PD)"
+        },
+        {
+          "value": "NE",
+          "label": "Not Evaluable (NE)",
+          "label_ko": "Not Evaluable (NE)"
+        }
+      ]
+    },
+    {
+      "field": "NTRGRESP_RSORRES",
+      "label": "비표적병변 반응",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "CR",
+          "label": "Complete Response (CR)",
+          "label_ko": "Complete Response (CR)"
+        },
+        {
+          "value": "NON-CR/NON-PD",
+          "label": "Non Complete Response/Non Progressive Disease (NON-CR/NON-PD)",
+          "label_ko": "Non Complete Response/Non Progressive Disease (NON-CR/NON-PD)"
+        },
+        {
+          "value": "PD",
+          "label": "Progressive Disease (PD)",
+          "label_ko": "Progressive Disease (PD)"
+        },
+        {
+          "value": "NE",
+          "label": "Not Evaluable (NE)",
+          "label_ko": "Not Evaluable (NE)"
+        }
+      ]
+    },
+    {
+      "field": "OVRLRESP_RSORRES",
+      "label": "전체 반응",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "CR",
+          "label": "Complete Response (CR)",
+          "label_ko": "Complete Response (CR)"
+        },
+        {
+          "value": "PR",
+          "label": "Partial Response (PR)",
+          "label_ko": "Partial Response (PR)"
+        },
+        {
+          "value": "SD",
+          "label": "Stable Disease (SD)",
+          "label_ko": "Stable Disease (SD)"
+        },
+        {
+          "value": "NON-CR/NON-PD",
+          "label": "Non Complete Response/Non Progressive Disease (NON-CR/NON-PD)",
+          "label_ko": "Non Complete Response/Non Progressive Disease (NON-CR/NON-PD)"
+        },
+        {
+          "value": "PD",
+          "label": "Progressive Disease (PD)",
+          "label_ko": "Progressive Disease (PD)"
+        },
+        {
+          "value": "NE",
+          "label": "Not Evaluable (NE)",
+          "label_ko": "Not Evaluable (NE)"
+        },
+        {
+          "value": "NED",
+          "label": "No Evidence of Disease (NED)",
+          "label_ko": "No Evidence of Disease (NED)"
+        }
+      ]
+    },
+    {
+      "field": "BESTRESP_RSORRES",
+      "label": "최적 반응",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "CR",
+          "label": "Complete Response (CR)",
+          "label_ko": "Complete Response (CR)"
+        },
+        {
+          "value": "PR",
+          "label": "Partial Response (PR)",
+          "label_ko": "Partial Response (PR)"
+        },
+        {
+          "value": "SD",
+          "label": "Stable Disease (SD)",
+          "label_ko": "Stable Disease (SD)"
+        },
+        {
+          "value": "NON-CR/NON-PD",
+          "label": "Non Complete Response/Non Progressive Disease (NON-CR/NON-PD)",
+          "label_ko": "Non Complete Response/Non Progressive Disease (NON-CR/NON-PD)"
+        },
+        {
+          "value": "PD",
+          "label": "Progressive Disease (PD)",
+          "label_ko": "Progressive Disease (PD)"
+        },
+        {
+          "value": "NE",
+          "label": "Not Evaluable (NE)",
+          "label_ko": "Not Evaluable (NE)"
+        },
+        {
+          "value": "NED",
+          "label": "No Evidence of Disease (NED)",
+          "label_ko": "No Evidence of Disease (NED)"
+        }
+      ]
+    }
+  ],
+  "metadata_fields": []
+}

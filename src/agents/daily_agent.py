@@ -1520,8 +1520,13 @@ class DailySimulator:
             if already_prescribed:
                 continue
 
-            # G1은 보조약 불필요한 경우가 많음 (모니터링만)
-            if grade < 2 and ae_term.lower() not in ("nausea", "pruritus"):
+            # G1이라도 증상 완화가 필요한 AE는 supportive care 허용
+            G1_TREATABLE = {
+                "nausea", "pruritus", "diarrhea", "rash_maculopapular",
+                "stomatitis", "fatigue", "decreased_appetite",
+                "peripheral_neuropathy",
+            }
+            if grade < 2 and ae_term.lower() not in G1_TREATABLE:
                 continue
 
             treatments = sc_map.get(ae_term.lower(), [])

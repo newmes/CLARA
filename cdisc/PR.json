@@ -1,0 +1,44 @@
+{
+  "domain": "PR",
+  "domain_name": "Procedures CRF",
+  "core_fields": [
+    {
+      "field": "PRTRT",
+      "label": "시술/수술 처치",
+      "type": "text",
+      "required": true
+    },
+    {
+      "field": "PRSTDAT",
+      "label": "시작일",
+      "type": "date",
+      "required": false
+    },
+    {
+      "field": "PRONGO",
+      "label": "진행중 여부",
+      "type": "boolean",
+      "required": false
+    },
+    {
+      "field": "PRENDAT",
+      "label": "종료일",
+      "type": "date",
+      "required": false
+    },
+    {
+      "field": "PRINDC",
+      "label": "적응증",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "metadata_fields": [
+    {
+      "field": "PRYN",
+      "label": "시술/수술 여부",
+      "type": "boolean",
+      "required": false
+    }
+  ]
+}

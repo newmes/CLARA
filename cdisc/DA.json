@@ -1,0 +1,102 @@
+{
+  "domain": "DA",
+  "domain_name": "Drug Accountability CRF",
+  "core_fields": [
+    {
+      "field": "[DATESTCD]_DAPERF",
+      "label": "수행 여부",
+      "type": "boolean",
+      "required": false
+    },
+    {
+      "field": "[DATESTCD]_DADAT",
+      "label": "평가일",
+      "type": "date",
+      "required": false
+    },
+    {
+      "field": "[DATESTCD]_DAREFID",
+      "label": "시험약 식별번호",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "DATEST",
+      "label": "약물 관리 평가항목",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "DISPENSED AMOUNT",
+          "label": "Dispensed Amount",
+          "label_ko": "Dispensed Amount"
+        },
+        {
+          "value": "RETURNED AMOUNT",
+          "label": "Returned Amount",
+          "label_ko": "Returned Amount"
+        }
+      ]
+    },
+    {
+      "field": "[DATESTCD]_DAORRES",
+      "label": "수량",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "[DATESTCD]_DAORRESU",
+      "label": "단위",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "BAG",
+          "label": "Bag",
+          "label_ko": "Bag"
+        },
+        {
+          "value": "BOTTLE",
+          "label": "Bottle",
+          "label_ko": "Bottle"
+        },
+        {
+          "value": "BOX",
+          "label": "Box",
+          "label_ko": "Box"
+        },
+        {
+          "value": "CAPSULE",
+          "label": "Capsule",
+          "label_ko": "Capsule"
+        },
+        {
+          "value": "PACKAGE",
+          "label": "Package",
+          "label_ko": "Package"
+        },
+        {
+          "value": "PATCH",
+          "label": "Patch",
+          "label_ko": "Patch"
+        },
+        {
+          "value": "TABLET",
+          "label": "Tablet",
+          "label_ko": "Tablet"
+        },
+        {
+          "value": "TUBE",
+          "label": "Tube",
+          "label_ko": "Tube"
+        },
+        {
+          "value": "VIAL",
+          "label": "Vial",
+          "label_ko": "Vial"
+        }
+      ]
+    }
+  ],
+  "metadata_fields": []
+}

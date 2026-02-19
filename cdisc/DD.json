@@ -1,0 +1,38 @@
+{
+  "domain": "DD",
+  "domain_name": "Death Details CRF",
+  "core_fields": [
+    {
+      "field": "DDDAT",
+      "label": "평가일",
+      "type": "date",
+      "required": false
+    },
+    {
+      "field": "DTHDAT",
+      "label": "사망일",
+      "type": "date",
+      "required": false
+    },
+    {
+      "field": "PRCDTH_DDORRES",
+      "label": "사망 직전 주요 질환",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "AUTOPIND_DDORRES",
+      "label": "부검 여부",
+      "type": "boolean",
+      "required": false
+    }
+  ],
+  "metadata_fields": [
+    {
+      "field": "DDYN",
+      "label": "사망 상세 평가 여부",
+      "type": "boolean",
+      "required": false
+    }
+  ]
+}

@@ -1,0 +1,87 @@
+{
+  "domain": "DS",
+  "domain_name": "Disposition CRF",
+  "core_fields": [
+    {
+      "field": "DSDECOD",
+      "label": "상태 코드",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "ADVERSE EVENT",
+          "label": "Adverse Event",
+          "label_ko": "Adverse Event"
+        },
+        {
+          "value": "COMPLETED",
+          "label": "Completed",
+          "label_ko": "Completed"
+        },
+        {
+          "value": "DEATH",
+          "label": "Death",
+          "label_ko": "Death"
+        },
+        {
+          "value": "LOST TO FOLLOW-UP",
+          "label": "Lost To Follow-Up",
+          "label_ko": "Lost To Follow-Up"
+        },
+        {
+          "value": "PREGNANCY",
+          "label": "Pregnancy",
+          "label_ko": "Pregnancy"
+        },
+        {
+          "value": "PROGRESSIVE DISEASE",
+          "label": "Progressive Disease",
+          "label_ko": "Progressive Disease"
+        },
+        {
+          "value": "PROTOCOL DEVIATION",
+          "label": "Protocol Deviation",
+          "label_ko": "Protocol Deviation"
+        },
+        {
+          "value": "SCREEN FAILURE",
+          "label": "Screen Failure",
+          "label_ko": "Screen Failure"
+        },
+        {
+          "value": "SITE TERMINATED BY SPONSOR",
+          "label": "Site Terminated by Sponsor",
+          "label_ko": "Site Terminated by Sponsor"
+        },
+        {
+          "value": "STUDY TERMINATED BY SPONSOR",
+          "label": "Study Terminated By Sponsor",
+          "label_ko": "Study Terminated By Sponsor"
+        },
+        {
+          "value": "WITHDRAWAL BY SUBJECT",
+          "label": "Withdrawal by Subject",
+          "label_ko": "Withdrawal by Subject"
+        },
+        {
+          "value": "OTHER",
+          "label": "Other",
+          "label_ko": "Other"
+        }
+      ]
+    },
+    {
+      "field": "DSTERM",
+      "label": "상태",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "DSSTDAT",
+      "label": "상태 발생일",
+      "type": "date",
+      "required": false
+    }
+  ],
+  "metadata_fields": []
+}
