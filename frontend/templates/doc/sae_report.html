@@ -117,6 +117,41 @@ body { background: var(--bg-primary); color: var(--text-primary); }
   font-family: 'JetBrains Mono', monospace; color: var(--accent-blue);
   font-size: 0.88em; margin-right: 4px;
 }
+.field-row.human-review {
+  background: rgba(255,180,50,0.08);
+  border-left: 3px solid #ffb432;
+  padding-left: 12px; margin-left: -15px;
+  border-radius: 4px;
+}
+.field-row.human-review .field-label .field-id {
+  color: #ffb432;
+}
+.human-review-tag {
+  display: inline-block; font-size: 0.7em; font-weight: 700;
+  background: rgba(255,180,50,0.15); color: #ffb432;
+  padding: 1px 6px; border-radius: 3px; margin-left: 6px;
+  vertical-align: middle;
+}
+/* Action bar */
+.action-bar {
+  display: flex; gap: 12px; justify-content: center;
+  margin: 24px 0; padding: 20px;
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 12px;
+}
+.action-btn {
+  padding: 14px 32px; border-radius: 10px; font-size: 1em; font-weight: 700;
+  border: 2px solid var(--border); background: var(--bg-secondary);
+  color: var(--text-primary); cursor: pointer; transition: all 0.15s;
+  display: flex; align-items: center; gap: 8px;
+}
+.action-btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+.action-btn.export-pdf { border-color: rgba(88,166,255,0.4); background: rgba(88,166,255,0.1); color: var(--accent-blue); }
+.action-btn.export-pdf:hover { background: rgba(88,166,255,0.2); }
+.action-btn.export-xml { border-color: rgba(163,113,247,0.4); background: rgba(163,113,247,0.1); color: var(--accent-purple); }
+.action-btn.export-xml:hover { background: rgba(163,113,247,0.2); }
+.action-btn.save { border-color: rgba(63,185,80,0.4); background: rgba(63,185,80,0.15); color: var(--accent-green); }
+.action-btn.save:hover { background: rgba(63,185,80,0.25); }
 .field-input input,
 .field-input select,
 .field-input textarea {
@@ -298,24 +333,14 @@ body { padding-bottom: 52px; }
       </div>
     </div>
     <div class="report-actions">
-      <!-- Workflow buttons -->
+      <button class="btn-rpt primary" id="btnRegenerate" onclick="regenerateAI()" title="Re-generate narrative with MedGemma">
+        🤖 Re-generate AI
+      </button>
       <span id="workflowButtons">
         <button class="btn-workflow submit" id="btnSubmitReview" onclick="submitForReview()" style="display:none;">&#x1F4DD; Submit for Review</button>
         <button class="btn-workflow accept" id="btnAccept" onclick="acceptReport()" style="display:none;">&#10003; Accept</button>
         <button class="btn-workflow revert" id="btnRevert" onclick="revertToDraft()" style="display:none;">&#x21A9; Revert to Draft</button>
       </span>
-      <button class="btn-rpt" onclick="window.open('{{ pdf_url }}', '_blank')" title="Download PDF">
-        📄 PDF
-      </button>
-      <button class="btn-rpt" onclick="window.open('{{ xml_url }}', '_blank')" title="Download E2B XML">
-        📑 E2B XML
-      </button>
-      <button class="btn-rpt primary" id="btnRegenerate" onclick="regenerateAI()" title="Re-generate narrative with MedGemma">
-        🤖 Re-generate AI
-      </button>
-      <button class="btn-rpt success" id="btnSave" onclick="saveReport()">
-        💾 Save &amp; Export
-      </button>
     </div>
   </div>
 
@@ -416,9 +441,9 @@ body { padding-bottom: 52px; }
             </select>
           </div>
         </div>
-        <div class="field-row">
+        <div class="field-row human-review">
           <div class="field-label">
-            <span class="field-id">B5</span> Narrative
+            <span class="field-id">B5</span> Narrative <span class="human-review-tag">Review Required</span>
             <span class="ai-badge" id="aiBadge" style="display:none">🤖 AI</span>
             <span class="ai-badge-review needs-review" id="aiBadgeReviewB5" style="display:none">&#x1F916; AI Generated — Review Required</span>
           </div>
@@ -470,9 +495,9 @@ body { padding-bottom: 52px; }
           <div class="field-label"><span class="field-id">C5</span> Product Type</div>
           <div class="field-input"><input type="text" data-path="section_c.product_type"></div>
         </div>
-        <div class="field-row">
+        <div class="field-row human-review">
           <div class="field-label">
-            <span class="field-id">C7</span> Dechallenge
+            <span class="field-id">C7</span> Dechallenge <span class="human-review-tag">Review Required</span>
             <span class="ai-badge" id="aiBadgeC7" style="display:none">🤖 AI</span>
             <span class="ai-badge-review needs-review" id="aiBadgeReviewC7" style="display:none">&#x1F916; AI Generated — Review Required</span>
           </div>
@@ -482,9 +507,9 @@ body { padding-bottom: 52px; }
             </div>
           </div>
         </div>
-        <div class="field-row">
+        <div class="field-row human-review">
           <div class="field-label">
-            <span class="field-id">C8</span> Rechallenge
+            <span class="field-id">C8</span> Rechallenge <span class="human-review-tag">Review Required</span>
             <span class="ai-badge" id="aiBadgeC8" style="display:none">🤖 AI</span>
             <span class="ai-badge-review needs-review" id="aiBadgeReviewC8" style="display:none">&#x1F916; AI Generated — Review Required</span>
           </div>
@@ -565,6 +590,7 @@ body { padding-bottom: 52px; }
       </div>
     </div>
 
+
   </div>
 
   <!-- TAB: E2B XML Preview -->
@@ -607,9 +633,9 @@ body { padding-bottom: 52px; }
     <span class="meddra-confidence" id="meddraConfidence" style="display:none;"></span>
   </div>
   <div class="status-right">
-    <button class="btn-rpt" onclick="window.open('{{ pdf_url }}', '_blank')" style="font-size:0.78em; padding:4px 12px;">📄 PDF</button>
-    <button class="btn-rpt" onclick="window.open('{{ xml_url }}', '_blank')" style="font-size:0.78em; padding:4px 12px;">📑 XML</button>
-    <button class="btn-rpt success" onclick="saveReport()" style="font-size:0.78em; padding:4px 12px;">💾 Save</button>
+    <button class="btn-rpt" onclick="window.open('{{ pdf_url }}', '_blank')" style="font-size:0.88em; padding:8px 18px;">📄 PDF</button>
+    <button class="btn-rpt" onclick="window.open('{{ xml_url }}', '_blank')" style="font-size:0.88em; padding:8px 18px;">📑 XML</button>
+    <button class="btn-rpt success" onclick="saveReport()" style="font-size:0.88em; padding:8px 18px;">💾 Save</button>
   </div>
 </div>
 {% endif %}
