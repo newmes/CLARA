@@ -293,13 +293,13 @@ def tumor_change_pct(day, best_response=None, response_onset_day=None, baseline_
     ps = max(0.2, min(3, patient_scale))
     if best_response == 'CR':
         lag = T.get('CR_lag_weeks', 2) / ps
-        plateau = T.get('CR_plateau', -95) * ps
-        plateau = max(-100, plateau)
+        plateau = T.get('CR_plateau', -95)
+        plateau = max(-100, min(-90, plateau))
         blend = 1 - math.exp(-max(0, tx_weeks) / max(lag, 0.5))
         return round(blend * plateau, 1)
     if best_response == 'PR':
         lag = T.get('PR_lag_weeks', 2.5) / ps
-        plateau = T.get('PR_plateau', -55) * ps
+        plateau = T.get('PR_plateau', -55)
         plateau = max(-80, min(-30, plateau))
         blend = 1 - math.exp(-max(0, tx_weeks) / max(lag, 0.5))
         return round(blend * plateau, 1)

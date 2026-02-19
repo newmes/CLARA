@@ -1,0 +1,49 @@
+{
+  "domain": "MI",
+  "domain_name": "MI Central",
+  "core_fields": [
+    {
+      "field": "MIREFID",
+      "label": "검사 식별번호",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "MIDAT",
+      "label": "검사일",
+      "type": "date",
+      "required": false
+    },
+    {
+      "field": "MISPEC",
+      "label": "검체 유형",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "LAVAGE FLUID",
+          "label": "Lavage Fluid",
+          "label_ko": "Lavage Fluid"
+        },
+        {
+          "value": "TISSUE",
+          "label": "Tissue",
+          "label_ko": "Tissue"
+        }
+      ]
+    },
+    {
+      "field": "MILOC",
+      "label": "검체 채취 위치",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "MIMETHOD",
+      "label": "검사 방법",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "metadata_fields": []
+}

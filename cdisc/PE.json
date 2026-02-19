@@ -1,0 +1,19 @@
+{
+  "domain": "PE",
+  "domain_name": "Physical Examination CRF",
+  "core_fields": [
+    {
+      "field": "PEPERF",
+      "label": "신체검사 수행 여부",
+      "type": "boolean",
+      "required": true
+    },
+    {
+      "field": "PEDAT",
+      "label": "검사일",
+      "type": "date",
+      "required": false
+    }
+  ],
+  "metadata_fields": []
+}
