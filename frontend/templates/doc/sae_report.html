@@ -1,39 +1,17 @@
 {% extends "base/base.html" %}
+{% load static %}
 {% block title %}SAE Report — {{ patient_id }} — {{ ae_term }}{% endblock %}
+
+{% block body_class %}has-sidebar{% endblock %}
 
 {% block nav_items %}
 <span class="nav-sep">/</span>
-<a href="{% url 'trial_viewer' run_id %}" title="{{ run_id }}">{{ run_id|truncatechars:25 }}</a>
-<span class="nav-sep">·</span>
-<a href="{% url 'trial_viewer' run_id %}">Simulation</a>
-<a href="{% url 'game_landing' run_id %}">Training</a>
-<a href="{% url 'doc_hub' run_id %}" class="nav-active">Documents</a>
-<a href="{% url 'compare_dashboard' run_id %}">A/B Test</a>
+<span class="nav-crumb">{{ drug_name }}</span>
 <span class="nav-sep">·</span>
 <span class="nav-crumb">{{ patient_id }} / {{ ae_term }}</span>
 {% endblock %}
-
 {% block extra_head %}
 <style>
-:root {
-  --bg-primary: #0d1117;
-  --bg-secondary: #161b22;
-  --bg-card: #1c2129;
-  --bg-elevated: #21262d;
-  --border: #30363d;
-  --text-primary: #e6edf3;
-  --text-secondary: #8b949e;
-  --text-muted: #6e7681;
-  --accent-blue: #58a6ff;
-  --accent-green: #3fb950;
-  --accent-red: #f85149;
-  --accent-orange: #d29922;
-  --accent-cyan: #39d2c0;
-  --accent-purple: #bc8cff;
-}
-
-body { background: var(--bg-primary); color: var(--text-primary); }
-
 .report-container {
   max-width: 1400px; margin: 16px auto; padding: 0 20px;
 }
@@ -41,61 +19,62 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 /* Header */
 .report-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 16px 0; border-bottom: 1px solid var(--border); margin-bottom: 20px;
+  padding: 18px 0; margin-bottom: 20px; position: relative;
+}
+.report-header::after {
+  content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
+  background: linear-gradient(90deg, var(--accent-cyan), var(--border), transparent);
 }
 .report-title { font-size: 1.4em; font-weight: 700; }
 .report-title .ae-badge {
   background: rgba(248,81,73,0.15); color: var(--accent-red);
-  padding: 2px 10px; border-radius: 6px; font-size: 0.7em; margin-left: 10px;
-  font-weight: 600; vertical-align: middle;
+  padding: 3px 12px; border-radius: 20px; font-size: 0.65em; margin-left: 10px;
+  font-weight: 700; vertical-align: middle; letter-spacing: 0.5px;
 }
 .report-meta { font-size: 0.88em; color: var(--text-secondary); display: flex; gap: 16px; }
 .report-actions { display: flex; gap: 10px; }
 .btn-rpt {
-  padding: 8px 18px; border-radius: 8px; border: 1px solid var(--border);
+  padding: 8px 18px; border-radius: var(--radius-lg); border: 1px solid var(--border);
   background: var(--bg-card); color: var(--text-primary); cursor: pointer;
-  font-size: 0.88em; font-weight: 600; transition: all 0.15s; display: flex;
-  align-items: center; gap: 6px;
+  font-size: 0.88em; font-weight: 600; transition: all var(--transition-fast); display: inline-flex;
+  align-items: center; gap: 7px; white-space: nowrap;
 }
-.btn-rpt:hover { border-color: var(--accent-blue); background: var(--bg-elevated); }
-.btn-rpt.primary { background: rgba(88,166,255,0.15); border-color: rgba(88,166,255,0.4); color: var(--accent-blue); }
-.btn-rpt.primary:hover { background: rgba(88,166,255,0.25); }
-.btn-rpt.success { background: rgba(63,185,80,0.15); border-color: rgba(63,185,80,0.4); color: var(--accent-green); }
-.btn-rpt.success:hover { background: rgba(63,185,80,0.25); }
+.btn-rpt:hover { border-color: var(--accent-cyan); background: var(--bg-elevated); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+.btn-rpt:active { transform: translateY(0); }
+.btn-rpt.primary { background: rgba(88,166,255,0.1); border-color: rgba(88,166,255,0.3); color: var(--accent-blue); }
+.btn-rpt.primary:hover { background: rgba(88,166,255,0.2); border-color: var(--accent-blue); box-shadow: 0 4px 16px rgba(88,166,255,0.15); }
+.btn-rpt.success { background: rgba(63,185,80,0.1); border-color: rgba(63,185,80,0.3); color: var(--accent-green); }
+.btn-rpt.success:hover { background: rgba(63,185,80,0.2); border-color: var(--accent-green); box-shadow: 0 4px 16px rgba(63,185,80,0.15); }
+.btn-rpt.xml { background: rgba(163,113,247,0.1); border-color: rgba(163,113,247,0.3); color: var(--accent-purple); }
+.btn-rpt.xml:hover { background: rgba(163,113,247,0.2); border-color: var(--accent-purple); box-shadow: 0 4px 16px rgba(163,113,247,0.15); }
 .btn-rpt:disabled { opacity: 0.5; cursor: wait; }
 
-/* Tab bar */
-.tab-bar {
-  display: flex; gap: 2px; border-bottom: 2px solid var(--border); margin-bottom: 20px;
-}
-.tab-item {
-  padding: 10px 20px; cursor: pointer; font-size: 0.92em; font-weight: 600;
-  color: var(--text-muted); border-bottom: 2px solid transparent;
-  margin-bottom: -2px; transition: all 0.15s;
-}
-.tab-item:hover { color: var(--text-secondary); }
-.tab-item.active { color: var(--accent-cyan); border-color: var(--accent-cyan); }
 .tab-panel { display: none; }
 .tab-panel.active { display: block; }
 
 /* Form sections */
 .form-section {
   background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: 12px; margin-bottom: 16px; overflow: hidden;
+  border-radius: var(--radius-xl); margin-bottom: 16px; overflow: hidden;
 }
 .form-section-header {
-  padding: 12px 20px; background: var(--bg-elevated);
+  padding: 14px 20px;
+  background: linear-gradient(135deg, var(--bg-elevated), rgba(57,210,192,0.03));
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center; justify-content: space-between;
-  cursor: pointer; user-select: none;
+  cursor: pointer; user-select: none; transition: background 0.2s;
+}
+.form-section-header:hover {
+  background: linear-gradient(135deg, var(--bg-elevated), rgba(57,210,192,0.06));
 }
 .form-section-header h3 {
   font-size: 1.0em; font-weight: 700; margin: 0; display: flex;
   align-items: center; gap: 8px;
 }
 .form-section-header .sec-label {
-  font-size: 0.75em; background: rgba(57,210,192,0.15); color: var(--accent-cyan);
-  padding: 2px 8px; border-radius: 4px; font-weight: 600;
+  font-size: 0.72em; background: linear-gradient(135deg, rgba(57,210,192,0.2), rgba(88,166,255,0.15));
+  color: var(--accent-cyan); padding: 3px 10px; border-radius: 20px; font-weight: 700;
+  letter-spacing: 0.5px;
 }
 .form-section-header .toggle-icon { color: var(--text-muted); font-size: 0.9em; }
 .form-section-body { padding: 16px 20px; }
@@ -117,13 +96,35 @@ body { background: var(--bg-primary); color: var(--text-primary); }
   font-family: 'JetBrains Mono', monospace; color: var(--accent-blue);
   font-size: 0.88em; margin-right: 4px;
 }
+.field-row.human-review {
+  background: rgba(255,180,50,0.06);
+  border-left: 3px solid #ffb432;
+  padding-left: 12px; margin-left: -15px;
+  border-radius: 4px;
+}
+.field-row.human-review .field-label .field-id {
+  color: #ffb432;
+}
+.human-review-tag {
+  grid-column: 1 / -1;
+  font-size: 0.72em; font-weight: 700; color: #ffb432;
+  letter-spacing: 0.5px; text-transform: uppercase;
+  padding-bottom: 0; margin-bottom: -4px;
+  display: flex; align-items: center; gap: 6px;
+}
+.human-review-tag::before {
+  content: ''; display: inline-block; width: 6px; height: 6px;
+  background: #ffb432; border-radius: 50%;
+}
+/* SVG icon in buttons */
+.btn-rpt svg, .btn-workflow svg { width: 15px; height: 15px; flex-shrink: 0; }
 .field-input input,
 .field-input select,
 .field-input textarea {
-  width: 100%; padding: 6px 10px; border-radius: 6px;
+  width: 100%; padding: 6px 10px; border-radius: var(--radius-md);
   border: 1px solid var(--border); background: var(--bg-primary);
   color: var(--text-primary); font-size: 0.9em; font-family: inherit;
-  transition: border-color 0.15s;
+  transition: border-color var(--transition-fast);
 }
 .field-input input:focus,
 .field-input select:focus,
@@ -131,7 +132,7 @@ body { background: var(--bg-primary); color: var(--text-primary); }
   outline: none; border-color: var(--accent-blue);
   box-shadow: 0 0 0 2px rgba(88,166,255,0.15);
 }
-.field-input textarea { min-height: 80px; resize: vertical; line-height: 1.5; }
+.field-input textarea { min-height: 44px; resize: vertical; line-height: 1.5; overflow: hidden; }
 .field-input .checkbox-row {
   display: flex; align-items: center; gap: 8px; padding: 4px 0;
 }
@@ -140,26 +141,20 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 /* Narrative editor */
 .narrative-editor {
   background: var(--bg-primary); border: 1px solid var(--border);
-  border-radius: 8px; padding: 14px; min-height: 120px;
+  border-radius: var(--radius-lg); padding: 14px; min-height: 120px;
   font-size: 0.92em; line-height: 1.7; position: relative;
 }
 .narrative-editor textarea {
   width: 100%; min-height: 100px; background: transparent;
   border: none; color: var(--text-primary); font-size: 0.92em;
-  line-height: 1.7; resize: vertical; font-family: inherit;
+  line-height: 1.7; resize: vertical; font-family: inherit; overflow: hidden;
 }
 .narrative-editor textarea:focus { outline: none; box-shadow: none; }
-.ai-badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 0.72em; background: rgba(188,140,255,0.15);
-  color: var(--accent-purple); padding: 2px 8px; border-radius: 4px;
-  font-weight: 600;
-}
 
 /* E2B preview */
 .xml-preview {
   background: var(--bg-primary); border: 1px solid var(--border);
-  border-radius: 8px; padding: 16px; max-height: 600px; overflow: auto;
+  border-radius: var(--radius-lg); padding: 16px; max-height: 600px; overflow: auto;
 }
 .xml-preview pre {
   color: var(--text-secondary); font-size: 0.82em; font-family: 'JetBrains Mono', monospace;
@@ -172,30 +167,12 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 /* Error state */
 .error-box {
   background: rgba(248,81,73,0.08); border: 1px solid rgba(248,81,73,0.3);
-  border-radius: 12px; padding: 24px; text-align: center; margin: 40px auto;
+  border-radius: var(--radius-xl); padding: 24px; text-align: center; margin: 40px auto;
   max-width: 600px;
 }
 .error-box h3 { color: var(--accent-red); margin-bottom: 8px; }
 .error-box p { color: var(--text-secondary); }
 
-/* AI badge enhanced */
-.ai-badge-review {
-  display: inline-flex; align-items: center; gap: 4px;
-  font-size: 0.75em; padding: 3px 10px; border-radius: 5px;
-  font-weight: 600;
-}
-.ai-badge-review.needs-review {
-  background: rgba(210,153,34,0.15); color: var(--accent-orange);
-  animation: aiBadgePulse 2s ease-in-out infinite;
-}
-.ai-badge-review.reviewed {
-  background: rgba(63,185,80,0.15); color: var(--accent-green);
-  animation: none;
-}
-@keyframes aiBadgePulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-}
 
 /* MedDRA confidence */
 .meddra-confidence {
@@ -203,7 +180,7 @@ body { background: var(--bg-primary); color: var(--text-primary); }
   font-size: 0.82em; font-weight: 600;
 }
 .meddra-warning {
-  padding: 10px 16px; border-radius: 8px; margin-bottom: 16px;
+  padding: 10px 16px; border-radius: var(--radius-lg); margin-bottom: 16px;
   background: rgba(210,153,34,0.08); border: 1px solid rgba(210,153,34,0.3);
   color: var(--accent-orange); font-size: 0.88em; font-weight: 600;
 }
@@ -211,7 +188,7 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 /* Status badge */
 .report-status-badge {
   display: inline-flex; align-items: center; gap: 6px;
-  padding: 4px 14px; border-radius: 6px; font-size: 0.82em;
+  padding: 4px 14px; border-radius: var(--radius-md); font-size: 0.82em;
   font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;
 }
 .report-status-badge.status-draft {
@@ -226,9 +203,9 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 
 /* Workflow buttons */
 .btn-workflow {
-  padding: 7px 16px; border-radius: 7px; border: 1px solid var(--border);
+  padding: 7px 16px; border-radius: var(--radius-lg); border: 1px solid var(--border);
   background: var(--bg-card); color: var(--text-primary); cursor: pointer;
-  font-size: 0.84em; font-weight: 600; transition: all 0.15s;
+  font-size: 0.84em; font-weight: 600; transition: all var(--transition-fast);
   display: inline-flex; align-items: center; gap: 5px;
 }
 .btn-workflow:hover { border-color: var(--accent-blue); background: var(--bg-elevated); }
@@ -239,23 +216,14 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 .btn-workflow.revert { background: rgba(110,118,129,0.1); border-color: rgba(110,118,129,0.3); color: var(--text-muted); }
 .btn-workflow.revert:hover { background: rgba(110,118,129,0.2); }
 
-/* Toast */
-.save-toast {
-  position: fixed; bottom: 24px; right: 24px; z-index: 999;
-  padding: 14px 24px; border-radius: 10px; font-size: 0.92em;
-  font-weight: 600; animation: toastIn 0.3s ease; max-width: 400px;
-  box-shadow: 0 8px 30px rgba(0,0,0,0.4);
-}
-.save-toast.success { background: rgba(63,185,80,0.95); color: #fff; }
-.save-toast.error { background: rgba(248,81,73,0.95); color: #fff; }
-@keyframes toastIn { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
 /* Status bar */
 .status-bar {
   position: fixed; bottom: 0; left: 0; right: 0; z-index: 998;
   background: var(--bg-secondary); border-top: 1px solid var(--border);
   padding: 8px 20px; display: flex; align-items: center; justify-content: space-between;
-  font-size: 0.82em;
+  font-size: 0.82em; backdrop-filter: blur(8px);
+  background: rgba(22,27,34,0.9);
 }
 .status-bar .status-left { display: flex; gap: 16px; color: var(--text-muted); }
 .status-bar .status-right { display: flex; gap: 10px; }
@@ -263,6 +231,16 @@ body { background: var(--bg-primary); color: var(--text-primary); }
 /* Responsive */
 body { padding-bottom: 52px; }
 </style>
+{% endblock %}
+
+{% block run_sidebar %}
+<nav class="run-sidebar">
+
+  <a href="{% url 'trial_viewer' run_id %}" title="Simulation"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><span>Sim</span></a>
+  <a href="{% url 'game_landing' run_id %}" title="Training"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg><span>Train</span></a>
+  <a href="{% url 'doc_hub' run_id %}" class="sb-active" title="Documents"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Docs</span></a>
+  <a href="{% url 'compare_dashboard' run_id %}" title="A/B Test"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>A/B</span></a>
+</nav>
 {% endblock %}
 
 {% block content %}
@@ -280,7 +258,7 @@ body { padding-bottom: 52px; }
 <div class="report-container" id="reportApp">
   <!-- MedDRA Low-Confidence Warning (hidden by default) -->
   <div class="meddra-warning" id="meddraWarning" style="display:none;">
-    &#9888; Low MedDRA Confidence — Manual Review Required
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-2px; margin-right:4px;"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> Low MedDRA Confidence — Manual Review Required
   </div>
 
   <!-- Header -->
@@ -298,32 +276,32 @@ body { padding-bottom: 52px; }
       </div>
     </div>
     <div class="report-actions">
-      <!-- Workflow buttons -->
+      <button class="btn-rpt primary" id="btnRegenerate" onclick="regenerateAI()" title="Re-generate narrative with {{ model_name|default:'AI' }}">
+        {% if "gemma" in model_name %}<img src="{% static 'assets/gemma.png' %}" alt="" style="width:16px;height:16px;vertical-align:-3px;">{% else %}<img src="{% static 'assets/gemini.png' %}" alt="" style="width:16px;height:16px;vertical-align:-3px;">{% endif %}
+        Re-generate AI
+      </button>
       <span id="workflowButtons">
-        <button class="btn-workflow submit" id="btnSubmitReview" onclick="submitForReview()" style="display:none;">&#x1F4DD; Submit for Review</button>
-        <button class="btn-workflow accept" id="btnAccept" onclick="acceptReport()" style="display:none;">&#10003; Accept</button>
-        <button class="btn-workflow revert" id="btnRevert" onclick="revertToDraft()" style="display:none;">&#x21A9; Revert to Draft</button>
+        <button class="btn-workflow submit" id="btnSubmitReview" onclick="submitForReview()" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+          Submit for Review
+        </button>
+        <button class="btn-workflow accept" id="btnAccept" onclick="acceptReport()" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          Accept
+        </button>
+        <button class="btn-workflow revert" id="btnRevert" onclick="revertToDraft()" style="display:none;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
+          Revert to Draft
+        </button>
       </span>
-      <button class="btn-rpt" onclick="window.open('{{ pdf_url }}', '_blank')" title="Download PDF">
-        📄 PDF
-      </button>
-      <button class="btn-rpt" onclick="window.open('{{ xml_url }}', '_blank')" title="Download E2B XML">
-        📑 E2B XML
-      </button>
-      <button class="btn-rpt primary" id="btnRegenerate" onclick="regenerateAI()" title="Re-generate narrative with MedGemma">
-        🤖 Re-generate AI
-      </button>
-      <button class="btn-rpt success" id="btnSave" onclick="saveReport()">
-        💾 Save &amp; Export
-      </button>
     </div>
   </div>
 
   <!-- Tab Bar -->
   <div class="tab-bar">
-    <div class="tab-item active" onclick="switchTab('medwatch')">MedWatch 3500A Form</div>
-    <div class="tab-item" onclick="switchTab('e2b')">E2B(R3) XML Preview</div>
-    <div class="tab-item" onclick="switchTab('summary')">Quick Summary</div>
+    <div class="tab-link active" onclick="switchTab('medwatch')">MedWatch 3500A Form</div>
+    <div class="tab-link" onclick="switchTab('e2b')">E2B(R3) XML Preview</div>
+    <div class="tab-link" onclick="switchTab('summary')">Quick Summary</div>
   </div>
 
   <!-- TAB: MedWatch Form -->
@@ -416,11 +394,10 @@ body { padding-bottom: 52px; }
             </select>
           </div>
         </div>
-        <div class="field-row">
+        <div class="field-row human-review">
+          <span class="human-review-tag">Review Required</span>
           <div class="field-label">
             <span class="field-id">B5</span> Narrative
-            <span class="ai-badge" id="aiBadge" style="display:none">🤖 AI</span>
-            <span class="ai-badge-review needs-review" id="aiBadgeReviewB5" style="display:none">&#x1F916; AI Generated — Review Required</span>
           </div>
           <div class="field-input">
             <div class="narrative-editor">
@@ -470,11 +447,10 @@ body { padding-bottom: 52px; }
           <div class="field-label"><span class="field-id">C5</span> Product Type</div>
           <div class="field-input"><input type="text" data-path="section_c.product_type"></div>
         </div>
-        <div class="field-row">
+        <div class="field-row human-review">
+          <span class="human-review-tag">Review Required</span>
           <div class="field-label">
             <span class="field-id">C7</span> Dechallenge
-            <span class="ai-badge" id="aiBadgeC7" style="display:none">🤖 AI</span>
-            <span class="ai-badge-review needs-review" id="aiBadgeReviewC7" style="display:none">&#x1F916; AI Generated — Review Required</span>
           </div>
           <div class="field-input">
             <div class="narrative-editor">
@@ -482,11 +458,10 @@ body { padding-bottom: 52px; }
             </div>
           </div>
         </div>
-        <div class="field-row">
+        <div class="field-row human-review">
+          <span class="human-review-tag">Review Required</span>
           <div class="field-label">
             <span class="field-id">C8</span> Rechallenge
-            <span class="ai-badge" id="aiBadgeC8" style="display:none">🤖 AI</span>
-            <span class="ai-badge-review needs-review" id="aiBadgeReviewC8" style="display:none">&#x1F916; AI Generated — Review Required</span>
           </div>
           <div class="field-input">
             <div class="narrative-editor">
@@ -565,6 +540,7 @@ body { padding-bottom: 52px; }
       </div>
     </div>
 
+
   </div>
 
   <!-- TAB: E2B XML Preview -->
@@ -572,7 +548,8 @@ body { padding-bottom: 52px; }
     <div class="form-section">
       <div class="form-section-header">
         <h3><span class="sec-label">XML</span> E2B(R3) ICH ICSR</h3>
-        <button class="btn-rpt" onclick="window.open('{{ xml_url }}', '_blank')" style="font-size:0.8em; padding:4px 12px;">
+        <button class="btn-rpt xml" onclick="window.open('{{ xml_url }}', '_blank')" style="font-size:0.8em; padding:4px 12px;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
           Download XML
         </button>
       </div>
@@ -607,9 +584,18 @@ body { padding-bottom: 52px; }
     <span class="meddra-confidence" id="meddraConfidence" style="display:none;"></span>
   </div>
   <div class="status-right">
-    <button class="btn-rpt" onclick="window.open('{{ pdf_url }}', '_blank')" style="font-size:0.78em; padding:4px 12px;">📄 PDF</button>
-    <button class="btn-rpt" onclick="window.open('{{ xml_url }}', '_blank')" style="font-size:0.78em; padding:4px 12px;">📑 XML</button>
-    <button class="btn-rpt success" onclick="saveReport()" style="font-size:0.78em; padding:4px 12px;">💾 Save</button>
+    <button class="btn-rpt" onclick="window.open('{{ pdf_url }}', '_blank')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+      PDF
+    </button>
+    <button class="btn-rpt xml" onclick="window.open('{{ xml_url }}', '_blank')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+      XML
+    </button>
+    <button class="btn-rpt success" id="btnSave" onclick="saveReport()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+      Save
+    </button>
   </div>
 </div>
 {% endif %}
@@ -631,11 +617,6 @@ let reportStatus = { status: 'draft' };
 // ═══════ Init ═══════
 document.addEventListener('DOMContentLoaded', () => {
   populateForm();
-  if (AI_USED) {
-    document.getElementById('aiBadge').style.display = '';
-    document.getElementById('aiBadgeC7').style.display = '';
-    document.getElementById('aiBadgeC8').style.display = '';
-  }
   if (meddraData && meddraData.pt) {
     document.getElementById('statusMeddra').textContent =
       `MedDRA: ${meddraData.pt} (${meddraData.source || 'lookup'})`;
@@ -645,7 +626,10 @@ document.addEventListener('DOMContentLoaded', () => {
   loadReportStatus();
 
   document.querySelectorAll('[data-path]').forEach(el => {
-    el.addEventListener('input', () => markDirty());
+    el.addEventListener('input', () => {
+      markDirty();
+      if (el.tagName === 'TEXTAREA') autoGrow(el);
+    });
     el.addEventListener('change', () => markDirty());
   });
 });
@@ -665,6 +649,11 @@ function setNestedValue(obj, path, val) {
   cur[keys[keys.length - 1]] = val;
 }
 
+function autoGrow(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.max(44, el.scrollHeight) + 'px';
+}
+
 function populateForm() {
   document.querySelectorAll('[data-path]').forEach(el => {
     const path = el.dataset.path;
@@ -681,6 +670,7 @@ function populateForm() {
       }
     } else {
       el.value = val !== null && val !== undefined ? val : '';
+      if (el.tagName === 'TEXTAREA') autoGrow(el);
     }
   });
 }
@@ -709,7 +699,7 @@ function markDirty() {
 
 // ═══════ Tabs ═══════
 function switchTab(tabId) {
-  document.querySelectorAll('.tab-item').forEach((t, i) => {
+  document.querySelectorAll('.tab-link').forEach((t, i) => {
     const panels = ['medwatch', 'e2b', 'summary'];
     t.classList.toggle('active', panels[i] === tabId);
   });
@@ -729,7 +719,7 @@ function toggleSection(id) {
 async function saveReport() {
   const btn = document.getElementById('btnSave');
   btn.disabled = true;
-  btn.textContent = '⏳ Saving...';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg> Saving...';
 
   const data = collectForm();
 
@@ -759,7 +749,7 @@ async function saveReport() {
     showToast('error', `Network error: ${err.message}`);
   } finally {
     btn.disabled = false;
-    btn.textContent = '💾 Save & Export';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg> Save';
   }
 }
 
@@ -767,7 +757,7 @@ async function saveReport() {
 async function regenerateAI() {
   const btn = document.getElementById('btnRegenerate');
   btn.disabled = true;
-  btn.textContent = '⏳ Generating...';
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="animation:spin 1s linear infinite"><path d="M21 12a9 9 0 11-6.219-8.56"/></svg> Generating...';
 
   try {
     const res = await fetch('/api/doc/generate', {
@@ -800,9 +790,6 @@ async function regenerateAI() {
         document.querySelector('[data-path="section_c.rechallenge"]').value = newRC;
       }
 
-      document.getElementById('aiBadge').style.display = '';
-      document.getElementById('aiBadgeC7').style.display = '';
-      document.getElementById('aiBadgeC8').style.display = '';
       markDirty();
       showToast('success', 'AI narratives regenerated. Review and save.');
     } else {
@@ -812,7 +799,7 @@ async function regenerateAI() {
     showToast('error', `Error: ${err.message}`);
   } finally {
     btn.disabled = false;
-    btn.textContent = '🤖 Re-generate AI';
+    btn.innerHTML = '<img src="{% if "gemma" in model_name %}{% static "assets/gemma.png" %}{% else %}{% static "assets/gemini.png" %}{% endif %}" style="width:16px;height:16px;vertical-align:-3px;"> Re-generate AI';
   }
 }
 
@@ -917,26 +904,6 @@ function updateStatusUI(data) {
   btnAccept.style.display = status === 'under_review' ? '' : 'none';
   btnRevert.style.display = (status === 'under_review' || status === 'accepted') ? '' : 'none';
 
-  // AI badges — show enhanced badges for AI fields
-  const aiFields = data.ai_fields || {};
-  const isAccepted = status === 'accepted';
-
-  ['B5', 'C7', 'C8'].forEach(fieldId => {
-    const key = fieldId === 'B5' ? 'section_b.narrative'
-              : fieldId === 'C7' ? 'section_c.dechallenge'
-              : 'section_c.rechallenge';
-    const reviewBadge = document.getElementById('aiBadgeReview' + fieldId);
-    if (reviewBadge && (aiFields[key] || AI_USED)) {
-      reviewBadge.style.display = '';
-      if (isAccepted) {
-        reviewBadge.className = 'ai-badge-review reviewed';
-        reviewBadge.innerHTML = '&#10003; AI Generated — Reviewed';
-      } else {
-        reviewBadge.className = 'ai-badge-review needs-review';
-        reviewBadge.innerHTML = '&#x1F916; AI Generated — Review Required';
-      }
-    }
-  });
 
   // MedDRA confidence
   const conf = data.meddra_confidence;
@@ -991,10 +958,10 @@ async function updateReportStatus(newStatus) {
 
 // ═══════ Toast ═══════
 function showToast(type, msg) {
-  const existing = document.querySelector('.save-toast');
+  const existing = document.querySelector('.toast');
   if (existing) existing.remove();
   const toast = document.createElement('div');
-  toast.className = `save-toast ${type}`;
+  toast.className = `toast ${type}`;
   toast.innerHTML = msg;
   document.body.appendChild(toast);
   setTimeout(() => toast.remove(), 4000);

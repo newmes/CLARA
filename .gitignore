@@ -18,6 +18,7 @@ env/
 
 # IDE / tools
 .claude/
+HANDOFF.md
 .cursor/
 .vscode/
 .idea/
