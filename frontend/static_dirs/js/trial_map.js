@@ -147,6 +147,9 @@ class TrialMap {
     const cacheBust = this.mapMeta ? `?v=${this.mapMeta.n_patients}` : `?v=${Date.now()}`;
     s.load.tilemapTiledJSON('map', `${STATIC}/map/clinical_trial.json${cacheBust}`);
     s.load.image('tiny-town', `${STATIC}/kenney/tiny-town/Tilemap/tilemap_packed.png`);
+    s.load.image('hospital-building', `${STATIC}/hospital.png`);
+    const houseColors = ['green', 'orange', 'purple', 'red'];
+    houseColors.forEach(c => s.load.image(`house-${c}`, `${STATIC}/house_${c}.png`));
 
     for (let i = 1; i <= 10; i++) {
       const key = `patient_${String(i).padStart(2, '0')}`;
@@ -165,10 +168,11 @@ class TrialMap {
     const tileset = map.addTilesetImage('tiny-town', 'tiny-town', 16, 16, 0, 0);
     if (!tileset) { console.error('Failed to load tileset'); return; }
 
+    const layers = {};
     ['Ground', 'Buildings', 'Roofs', 'Decor'].forEach((name, i) => {
       try {
         const layer = map.createLayer(name, tileset, 0, 0);
-        if (layer) layer.setDepth(i);
+        if (layer) { layer.setDepth(i); layers[name] = layer; }
       } catch (e) { console.warn(`Layer "${name}":`, e.message); }
     });
 
@@ -242,13 +246,41 @@ class TrialMap {
       this.statusDots[p.patient_id] = dot;
     });
 
-    // Hospital label
-    const hx = this.hospitalPos.x * TILE;
-    const hy = this.hospitalPos.y * TILE - 24;
-    scene.add.text(hx, hy, 'HOSPITAL', {
-      font: 'bold 7px monospace', fill: '#39d2c0',
-      stroke: '#000000', strokeThickness: 2,
-    }).setOrigin(0.5, 1).setDepth(30);
+    // Helper: clear tilemap tiles in a rect (Buildings, Roofs, Decor)
+    const clearTileRect = (cx, cy, hw, hh) => {
+      ['Buildings', 'Roofs', 'Decor'].forEach(name => {
+        const layer = layers[name];
+        if (!layer) return;
+        for (let tx = cx - hw; tx <= cx + hw; tx++) {
+          for (let ty = cy - hh; ty <= cy + hh; ty++) {
+            layer.removeTileAt(tx, ty);
+          }
+        }
+      });
+    };
+
+    // Hospital building sprite (replaces tilemap hospital)
+    const hospX = this.hospitalPos.x * TILE + TILE / 2;
+    const hospY = this.hospitalPos.y * TILE;
+    const hospSprite = scene.add.image(hospX, hospY, 'hospital-building');
+    hospSprite.setScale(0.6);
+    hospSprite.setOrigin(0.5, 1);
+    hospSprite.setDepth(5);
+    clearTileRect(this.hospitalPos.x, this.hospitalPos.y, 4, 4);
+
+    // House sprites at each patient's home
+    const houseKeys = ['house-green', 'house-orange', 'house-purple', 'house-red'];
+    this.patients.forEach((p, i) => {
+      const home = this._getHomePos(i);
+      const hx = home.x * TILE + TILE / 2;
+      const hy = home.y * TILE;
+      const houseKey = houseKeys[i % houseKeys.length];
+      const house = scene.add.image(hx, hy, houseKey);
+      house.setScale(0.5);
+      house.setOrigin(0.5, 1);
+      house.setDepth(4);
+      clearTileRect(home.x, home.y, 3, 4);
+    });
 
     // HUD
     this.dayText = scene.add.text(8, 8, 'DAY 1', {
