@@ -1,0 +1,228 @@
+{
+  "dm": {
+    "SUBJID": "PT-AE-005",
+    "AGE": 70,
+    "SEX": "Female",
+    "RACE": "Black or African American",
+    "ETHNIC": "Not Hispanic or Latino",
+    "BRTHDAT": "1955-06-30"
+  },
+  "ae": {
+    "AETERM": "Anaemia",
+    "AESTDAT": "2025-10-17",
+    "AEENDAT": null,
+    "AESEV": "SEVERE",
+    "AESER": "Y",
+    "AETOXGR": "3",
+    "AEREL": "Related",
+    "AEACN": "DRUG INTERRUPTED",
+    "AEOUT": "RECOVERING/RESOLVING",
+    "AESDTH": "N",
+    "AESLIFE": "N",
+    "AESHOSP": "Y",
+    "AESDISAB": "N",
+    "AESCONG": "N",
+    "AESMIE": "Y",
+    "AEHOSPSTDAT": "2025-10-17",
+    "AEHOSPENDAT": "2025-10-25"
+  },
+  "ec": [
+    {
+      "ECDSTXT": "5.4 mg/kg",
+      "ECDOSFRQ": "Q3W",
+      "ECROUTE": "Intravenous",
+      "ECSTDAT": "2025-08-01",
+      "ECENDAT": "2025-10-17",
+      "ECDOSADJ": "Dose reduced due to severe anemia"
+    },
+    {
+      "ECDSTXT": "4.4 mg/kg",
+      "ECDOSFRQ": "Q3W",
+      "ECROUTE": "Intravenous",
+      "ECSTDAT": "2025-11-07",
+      "ECENDAT": null,
+      "ECDOSADJ": "Continued at reduced dose after transfusion"
+    }
+  ],
+  "lb": {
+    "records": [
+      {
+        "LBTESTCD": "HGB",
+        "LBTEST": "Hemoglobin",
+        "LBORRES": "6.8",
+        "LBORRESU": "g/dL",
+        "LBORNRLO": "12.0",
+        "LBORNRHI": "16.0",
+        "LBDAT": "2025-10-17"
+      },
+      {
+        "LBTESTCD": "WBC",
+        "LBTEST": "White Blood Cell Count",
+        "LBORRES": "4.2",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "4.0",
+        "LBORNRHI": "11.0",
+        "LBDAT": "2025-10-17"
+      },
+      {
+        "LBTESTCD": "NEUT",
+        "LBTEST": "Neutrophil Count",
+        "LBORRES": "2.5",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "1.5",
+        "LBORNRHI": "8.0",
+        "LBDAT": "2025-10-17"
+      },
+      {
+        "LBTESTCD": "PLT",
+        "LBTEST": "Platelet Count",
+        "LBORRES": "110",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "150",
+        "LBORNRHI": "400",
+        "LBDAT": "2025-10-17"
+      },
+      {
+        "LBTESTCD": "RETIC",
+        "LBTEST": "Reticulocyte Count",
+        "LBORRES": "0.5",
+        "LBORRESU": "%",
+        "LBORNRLO": "0.5",
+        "LBORNRHI": "2.5",
+        "LBDAT": "2025-10-17"
+      },
+      {
+        "LBTESTCD": "FERRITIN",
+        "LBTEST": "Ferritin",
+        "LBORRES": "450",
+        "LBORRESU": "ng/mL",
+        "LBORNRLO": "12",
+        "LBORNRHI": "150",
+        "LBDAT": "2025-10-17"
+      }
+    ]
+  },
+  "cm": {
+    "records": [
+      {
+        "CMTRT": "Packed red blood cell transfusion",
+        "CMINDC": "Severe anemia",
+        "CMDSTXT": "2 units IV",
+        "CMSTDAT": "2025-10-17",
+        "CMENDAT": "2025-10-18",
+        "CMCAT": "AE_TREATMENT"
+      },
+      {
+        "CMTRT": "Epoetin alfa",
+        "CMINDC": "Anemia",
+        "CMDSTXT": "40,000 IU SC weekly",
+        "CMSTDAT": "2025-10-20",
+        "CMENDAT": null,
+        "CMCAT": "AE_TREATMENT"
+      },
+      {
+        "CMTRT": "Amlodipine",
+        "CMINDC": "Hypertension",
+        "CMDSTXT": "5 mg QD",
+        "CMSTDAT": "2016-04-01",
+        "CMENDAT": null,
+        "CMCAT": "BASELINE"
+      },
+      {
+        "CMTRT": "Metformin",
+        "CMINDC": "Type 2 diabetes mellitus",
+        "CMDSTXT": "1000 mg BID",
+        "CMSTDAT": "2018-01-15",
+        "CMENDAT": null,
+        "CMCAT": "BASELINE"
+      }
+    ]
+  },
+  "mh": {
+    "records": [
+      {
+        "MHTERM": "Hypertension",
+        "MHSTDAT": "2013-05-01",
+        "MHENDAT": null,
+        "MHONGO": "Y"
+      },
+      {
+        "MHTERM": "Type 2 diabetes mellitus",
+        "MHSTDAT": "2017-01-01",
+        "MHENDAT": null,
+        "MHONGO": "Y"
+      },
+      {
+        "MHTERM": "Iron deficiency anemia",
+        "MHSTDAT": "2020-03-01",
+        "MHENDAT": "2021-06-01",
+        "MHONGO": "N"
+      },
+      {
+        "MHTERM": "HER2-positive metastatic breast cancer",
+        "MHSTDAT": "2025-03-01",
+        "MHENDAT": null,
+        "MHONGO": "Y"
+      }
+    ]
+  },
+  "vs": {
+    "records": [
+      {
+        "VSTESTCD": "TEMP",
+        "VSORRES": "36.5",
+        "VSORRESU": "C",
+        "VSDAT": "2025-10-17"
+      },
+      {
+        "VSTESTCD": "RESP",
+        "VSORRES": "18",
+        "VSORRESU": "breaths/min",
+        "VSDAT": "2025-10-17"
+      },
+      {
+        "VSTESTCD": "SYSBP",
+        "VSORRES": "130",
+        "VSORRESU": "mmHg",
+        "VSDAT": "2025-10-17"
+      },
+      {
+        "VSTESTCD": "DIABP",
+        "VSORRES": "82",
+        "VSORRESU": "mmHg",
+        "VSDAT": "2025-10-17"
+      }
+    ],
+    "WEIGHT": 72.0,
+    "HEIGHT": 160.0
+  },
+  "dd": {
+    "DTHDAT": null,
+    "PRCDTH": null,
+    "AUTOPIND": null
+  },
+  "da": {
+    "LOT_NUMBER": "TDX-2025-K010",
+    "EXPIRY_DATE": "2026-07-31"
+  },
+  "imaging": {
+    "records": []
+  },
+  "pft": {
+    "records": []
+  },
+  "microbiology": {
+    "records": []
+  },
+  "consultation": {
+    "records": []
+  },
+  "investigator": {
+    "name": "James M. Rodriguez, MD",
+    "institution": "MD Anderson Cancer Center",
+    "address": "1515 Holcombe Blvd, Houston, TX 77030",
+    "phone": "713-555-0198",
+    "email": "jrodriguez@mdacc-trials.example.com"
+  },
+  "sentinel_output": null
+}

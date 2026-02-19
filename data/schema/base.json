@@ -1,0 +1,297 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "base.json",
+  "title": "Rule Set — Base Schema",
+  "description": "모든 약물 유형이 공유하는 공통 필드. 개별 약물 유형 스키마는 이 base를 확장한다.",
+  "type": "object",
+  "required": [
+    "drug_name",
+    "indication",
+    "trial_design",
+    "demographics",
+    "comorbidities",
+    "disease_baseline",
+    "ae_profile",
+    "efficacy",
+    "lab_reference_ranges",
+    "administration_schedule",
+    "dose_modification_rules",
+    "supportive_care_rules",
+    "mortality_model",
+    "ecog_model",
+    "ae_cascade_rules",
+    "disposition_model"
+  ],
+  "properties": {
+    "drug_name": {
+      "type": "string",
+      "description": "약물명 (복합 시 '+' 구분, e.g., 'Padcev + Pembrolizumab')"
+    },
+    "indication": {
+      "type": "string",
+      "description": "적응증 (e.g., 'metastatic urothelial carcinoma')"
+    },
+    "trial_design": {
+      "type": "object",
+      "required": ["cycle_length_days"],
+      "properties": {
+        "cycle_length_days": {
+          "type": "integer",
+          "description": "1사이클 길이 (일). 보통 21 또는 28."
+        }
+      }
+    },
+    "demographics": {
+      "type": "object",
+      "required": ["age", "sex", "race", "ecog_ps"],
+      "properties": {
+        "age":      { "$ref": "#/definitions/numeric_distribution" },
+        "sex":      { "$ref": "#/definitions/categorical_distribution" },
+        "race":     { "$ref": "#/definitions/categorical_distribution" },
+        "smoking":  { "$ref": "#/definitions/categorical_distribution" },
+        "ecog_ps":  { "$ref": "#/definitions/categorical_distribution" },
+        "bmi":      { "$ref": "#/definitions/numeric_distribution" }
+      }
+    },
+    "comorbidities": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/comorbidity" }
+    },
+    "disease_baseline": {
+      "type": "object",
+      "required": ["tumor_sites", "tumor_response_distribution"],
+      "properties": {
+        "tumor_sites": {
+          "type": "object",
+          "description": "전이 부위별 확률 (e.g., {\"lung\": 0.3})",
+          "additionalProperties": { "type": "number" }
+        },
+        "n_target_lesions":           { "$ref": "#/definitions/categorical_distribution" },
+        "sum_of_diameters_mm":        { "$ref": "#/definitions/numeric_distribution" },
+        "tumor_response_distribution": {
+          "type": "object",
+          "properties": {
+            "CR": { "type": "number" },
+            "PR": { "type": "number" },
+            "SD": { "type": "number" },
+            "PD": { "type": "number" }
+          }
+        },
+        "ldh_uln_ratio": { "$ref": "#/definitions/numeric_distribution" },
+        "albumin_gdl":   { "$ref": "#/definitions/numeric_distribution" }
+      }
+    },
+    "ae_profile": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/ae_entry" }
+    },
+    "efficacy": {
+      "type": "object",
+      "required": ["overall_response_rate"],
+      "properties": {
+        "overall_response_rate":         { "type": "number" },
+        "complete_response_rate":        { "type": "number" },
+        "progression_free_survival_months": { "$ref": "#/definitions/numeric_distribution" },
+        "overall_survival_months":          { "$ref": "#/definitions/numeric_distribution" }
+      }
+    },
+    "lab_reference_ranges": {
+      "type": "object",
+      "description": "검사 항목별 정상 범위. 약물/적응증 불문 동일.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "unit":         { "type": "string" },
+          "normal_range": {
+            "type": "object",
+            "properties": {
+              "min": { "type": "number" },
+              "max": { "type": "number" }
+            }
+          },
+          "LLN": { "type": "number" },
+          "ULN": { "type": "number" }
+        }
+      }
+    },
+    "administration_schedule": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/drug_schedule" }
+    },
+    "dose_modification_rules": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/dose_mod_rule" }
+    },
+    "supportive_care_rules": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/supportive_care_rule" }
+    },
+    "mortality_model": {
+      "type": "object",
+      "properties": {
+        "baseline_annual_mortality": { "type": "number" },
+        "channels": { "type": "object" }
+      }
+    },
+    "ecog_model": {
+      "type": "object",
+      "properties": {
+        "ae_burden_weight":    { "type": "number" },
+        "disease_weight":      { "type": "number" },
+        "response_lag_days":   { "type": "integer" },
+        "response_benefit":    { "type": "number" },
+        "comorbidity_penalty": { "type": "number" }
+      }
+    },
+    "ae_cascade_rules": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["trigger_ae", "grade_threshold", "target_ae", "multiplier"],
+        "properties": {
+          "trigger_ae":      { "type": "string" },
+          "grade_threshold": { "type": "integer" },
+          "target_ae":       { "type": "string" },
+          "multiplier":      { "type": "number" }
+        }
+      }
+    },
+    "disposition_model": {
+      "type": "object",
+      "properties": {
+        "independent_hazards": { "type": "object" }
+      }
+    }
+  },
+
+  "definitions": {
+    "numeric_distribution": {
+      "type": "object",
+      "required": ["type", "distribution", "params"],
+      "properties": {
+        "type":         { "type": "string", "enum": ["numeric"] },
+        "distribution": { "type": "string", "enum": ["normal", "lognormal", "exponential", "uniform"] },
+        "params": {
+          "type": "object",
+          "properties": {
+            "mean": { "type": "number" },
+            "std":  { "type": "number" },
+            "min":  { "type": "number" },
+            "max":  { "type": "number" }
+          }
+        }
+      }
+    },
+    "categorical_distribution": {
+      "type": "object",
+      "required": ["type", "options"],
+      "properties": {
+        "type":    { "type": "string", "enum": ["categorical"] },
+        "options": {
+          "type": "object",
+          "additionalProperties": { "type": "number" }
+        }
+      }
+    },
+    "comorbidity": {
+      "type": "object",
+      "required": ["condition", "base_probability"],
+      "properties": {
+        "condition":             { "type": "string" },
+        "base_probability":      { "type": "number" },
+        "conditional_modifiers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "if_condition": { "type": "string" },
+              "multiplier":   { "type": "number" }
+            }
+          }
+        }
+      }
+    },
+    "ae_entry": {
+      "type": "object",
+      "required": ["ae_term", "incidence_all_grade", "grade_distribution", "onset_day", "duration_days"],
+      "properties": {
+        "ae_term":             { "type": "string" },
+        "incidence_all_grade": { "type": "number" },
+        "grade_distribution": {
+          "type": "object",
+          "properties": {
+            "1": { "type": "number" },
+            "2": { "type": "number" },
+            "3": { "type": "number" },
+            "4": { "type": "number" },
+            "5": { "type": "number" }
+          }
+        },
+        "onset_day":     { "$ref": "#/definitions/numeric_distribution" },
+        "duration_days": { "$ref": "#/definitions/numeric_distribution" },
+        "risk_modifiers": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "condition":           { "type": "string" },
+              "incidence_multiplier": { "type": "number" }
+            }
+          }
+        },
+        "cumulative": { "type": "boolean" },
+        "reversible": { "type": "boolean" }
+      }
+    },
+    "drug_schedule": {
+      "type": "object",
+      "required": ["drug_name", "dose_per_administration", "route", "cycle_days"],
+      "properties": {
+        "drug_name":                { "type": "string" },
+        "dose_per_administration":  { "type": "string" },
+        "dose_value":               { "type": "number" },
+        "dose_unit":                { "type": "string" },
+        "route":                    { "type": "string", "enum": ["INTRAVENOUS", "ORAL", "SUBCUTANEOUS", "INTRAMUSCULAR", "TOPICAL"] },
+        "cycle_days":               { "type": "array", "items": { "type": "integer" } },
+        "infusion_duration_minutes": { "type": "number" }
+      }
+    },
+    "dose_mod_rule": {
+      "type": "object",
+      "required": ["ae_term", "grade_actions"],
+      "properties": {
+        "ae_term": { "type": "string" },
+        "grade_actions": {
+          "type": "object",
+          "additionalProperties": { "type": "string" }
+        },
+        "dose_reduction_levels": {
+          "type": "array",
+          "items": { "type": "number" }
+        },
+        "rechallenge_criteria": { "type": "string" }
+      }
+    },
+    "supportive_care_rule": {
+      "type": "object",
+      "required": ["ae_term", "treatments"],
+      "properties": {
+        "ae_term": { "type": "string" },
+        "treatments": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "drug":        { "type": "string" },
+              "dose":        { "type": "string" },
+              "unit":        { "type": "string" },
+              "route":       { "type": "string" },
+              "frequency":   { "type": "string" },
+              "probability": { "type": "number" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

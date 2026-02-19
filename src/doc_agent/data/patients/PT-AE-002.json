@@ -1,0 +1,200 @@
+{
+  "dm": {
+    "SUBJID": "PT-AE-002",
+    "AGE": 61,
+    "SEX": "Female",
+    "RACE": "Asian",
+    "ETHNIC": "Not Hispanic or Latino",
+    "BRTHDAT": "1964-04-22"
+  },
+  "ae": {
+    "AETERM": "Thrombocytopenia",
+    "AESTDAT": "2025-10-27",
+    "AEENDAT": "2025-12-01",
+    "AESEV": "MODERATE",
+    "AESER": "N",
+    "AETOXGR": "1",
+    "AEREL": "Related",
+    "AEACN": "DRUG INTERRUPTED",
+    "AEOUT": "RECOVERED/RESOLVED",
+    "AESDTH": "N",
+    "AESLIFE": "N",
+    "AESHOSP": "N",
+    "AESDISAB": "N",
+    "AESCONG": "N",
+    "AESMIE": "N",
+    "AEHOSPSTDAT": null,
+    "AEHOSPENDAT": null
+  },
+  "ec": [
+    {
+      "ECDSTXT": "5.4 mg/kg",
+      "ECDOSFRQ": "Q3W",
+      "ECROUTE": "Intravenous",
+      "ECSTDAT": "2025-09-08",
+      "ECENDAT": "2025-10-27",
+      "ECDOSADJ": "Dose reduced due to thrombocytopenia"
+    },
+    {
+      "ECDSTXT": "4.4 mg/kg",
+      "ECDOSFRQ": "Q3W",
+      "ECROUTE": "Intravenous",
+      "ECSTDAT": "2025-11-17",
+      "ECENDAT": null,
+      "ECDOSADJ": "Continued at reduced dose"
+    }
+  ],
+  "lb": {
+    "records": [
+      {
+        "LBTESTCD": "PLT",
+        "LBTEST": "Platelet Count",
+        "LBORRES": "45",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "150",
+        "LBORNRHI": "400",
+        "LBDAT": "2025-10-27"
+      },
+      {
+        "LBTESTCD": "WBC",
+        "LBTEST": "White Blood Cell Count",
+        "LBORRES": "4.8",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "4.0",
+        "LBORNRHI": "11.0",
+        "LBDAT": "2025-10-27"
+      },
+      {
+        "LBTESTCD": "NEUT",
+        "LBTEST": "Neutrophil Count",
+        "LBORRES": "2.9",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "1.5",
+        "LBORNRHI": "8.0",
+        "LBDAT": "2025-10-27"
+      },
+      {
+        "LBTESTCD": "HGB",
+        "LBTEST": "Hemoglobin",
+        "LBORRES": "11.5",
+        "LBORRESU": "g/dL",
+        "LBORNRLO": "12.0",
+        "LBORNRHI": "16.0",
+        "LBDAT": "2025-10-27"
+      },
+      {
+        "LBTESTCD": "ALT",
+        "LBTEST": "Alanine Aminotransferase",
+        "LBORRES": "18",
+        "LBORRESU": "U/L",
+        "LBORNRLO": "7",
+        "LBORNRHI": "56",
+        "LBDAT": "2025-10-27"
+      },
+      {
+        "LBTESTCD": "CREAT",
+        "LBTEST": "Creatinine",
+        "LBORRES": "0.7",
+        "LBORRESU": "mg/dL",
+        "LBORNRLO": "0.6",
+        "LBORNRHI": "1.1",
+        "LBDAT": "2025-10-27"
+      }
+    ]
+  },
+  "cm": {
+    "records": [
+      {
+        "CMTRT": "Letrozole",
+        "CMINDC": "Hormone therapy adjunct for breast cancer",
+        "CMDSTXT": "2.5 mg QD",
+        "CMSTDAT": "2025-07-01",
+        "CMENDAT": null,
+        "CMCAT": "BASELINE"
+      },
+      {
+        "CMTRT": "Calcium + Vitamin D",
+        "CMINDC": "Osteopenia prevention",
+        "CMDSTXT": "600 mg/400 IU QD",
+        "CMSTDAT": "2025-07-01",
+        "CMENDAT": null,
+        "CMCAT": "BASELINE"
+      }
+    ]
+  },
+  "mh": {
+    "records": [
+      {
+        "MHTERM": "Osteopenia",
+        "MHSTDAT": "2022-11-01",
+        "MHENDAT": null,
+        "MHONGO": "Y"
+      },
+      {
+        "MHTERM": "HER2-positive metastatic breast cancer",
+        "MHSTDAT": "2025-04-15",
+        "MHENDAT": null,
+        "MHONGO": "Y"
+      }
+    ]
+  },
+  "vs": {
+    "records": [
+      {
+        "VSTESTCD": "TEMP",
+        "VSORRES": "36.6",
+        "VSORRESU": "C",
+        "VSDAT": "2025-10-27"
+      },
+      {
+        "VSTESTCD": "RESP",
+        "VSORRES": "16",
+        "VSORRESU": "breaths/min",
+        "VSDAT": "2025-10-27"
+      },
+      {
+        "VSTESTCD": "SYSBP",
+        "VSORRES": "116",
+        "VSORRESU": "mmHg",
+        "VSDAT": "2025-10-27"
+      },
+      {
+        "VSTESTCD": "DIABP",
+        "VSORRES": "74",
+        "VSORRESU": "mmHg",
+        "VSDAT": "2025-10-27"
+      }
+    ],
+    "WEIGHT": 55.0,
+    "HEIGHT": 155.0
+  },
+  "dd": {
+    "DTHDAT": null,
+    "PRCDTH": null,
+    "AUTOPIND": null
+  },
+  "da": {
+    "LOT_NUMBER": "TDX-2025-G007",
+    "EXPIRY_DATE": "2026-10-31"
+  },
+  "imaging": {
+    "records": []
+  },
+  "pft": {
+    "records": []
+  },
+  "microbiology": {
+    "records": []
+  },
+  "consultation": {
+    "records": []
+  },
+  "investigator": {
+    "name": "James M. Rodriguez, MD",
+    "institution": "MD Anderson Cancer Center",
+    "address": "1515 Holcombe Blvd, Houston, TX 77030",
+    "phone": "713-555-0198",
+    "email": "jrodriguez@mdacc-trials.example.com"
+  },
+  "sentinel_output": null
+}

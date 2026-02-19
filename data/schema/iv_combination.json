@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "iv_combination.json",
+  "title": "Rule Set — IV Combination Therapy",
+  "description": "정맥주사 병용요법 (e.g., Padcev + Pembrolizumab, FOLFOX, Carboplatin + Paclitaxel). 현재 Padcev 시뮬레이션이 이 유형.",
+  "_examples": [
+    "Padcev + Pembrolizumab (방광암)",
+    "Carboplatin + Paclitaxel (폐암/난소암)",
+    "FOLFOX: 5-FU + Oxaliplatin + Leucovorin (대장암)",
+    "R-CHOP: Rituximab + Cyclophosphamide + Doxorubicin + Vincristine + Prednisone (림프종)"
+  ],
+  "_differs_from_base": "없음. base.json과 동일한 스키마. 모든 drug_schedule 항목에 infusion_duration_minutes 필수.",
+
+  "allOf": [
+    { "$ref": "base.json" },
+    {
+      "properties": {
+        "administration_schedule": {
+          "minItems": 2,
+          "items": {
+            "required": ["infusion_duration_minutes"],
+            "properties": {
+              "route": { "const": "INTRAVENOUS" },
+              "infusion_duration_minutes": {
+                "type": "number",
+                "description": "주입 시간 (분). IV 약물 필수."
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

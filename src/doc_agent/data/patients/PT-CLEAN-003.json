@@ -1,0 +1,184 @@
+{
+  "dm": {
+    "SUBJID": "PT-CLEAN-003",
+    "AGE": 42,
+    "SEX": "Female",
+    "RACE": "White",
+    "ETHNIC": "Not Hispanic or Latino",
+    "BRTHDAT": "1983-08-18"
+  },
+  "ae": {
+    "AETERM": "Alopecia",
+    "AESTDAT": "2025-09-22",
+    "AEENDAT": null,
+    "AESEV": "MODERATE",
+    "AESER": "N",
+    "AETOXGR": "1",
+    "AEREL": "Related",
+    "AEACN": "DOSE NOT CHANGED",
+    "AEOUT": "NOT RECOVERED/NOT RESOLVED",
+    "AESDTH": "N",
+    "AESLIFE": "N",
+    "AESHOSP": "N",
+    "AESDISAB": "N",
+    "AESCONG": "N",
+    "AESMIE": "N",
+    "AEHOSPSTDAT": null,
+    "AEHOSPENDAT": null
+  },
+  "ec": [
+    {
+      "ECDSTXT": "5.4 mg/kg",
+      "ECDOSFRQ": "Q3W",
+      "ECROUTE": "Intravenous",
+      "ECSTDAT": "2025-09-01",
+      "ECENDAT": null,
+      "ECDOSADJ": null
+    }
+  ],
+  "lb": {
+    "records": [
+      {
+        "LBTESTCD": "WBC",
+        "LBTEST": "White Blood Cell Count",
+        "LBORRES": "6.8",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "4.0",
+        "LBORNRHI": "11.0",
+        "LBDAT": "2025-09-22"
+      },
+      {
+        "LBTESTCD": "NEUT",
+        "LBTEST": "Neutrophil Count",
+        "LBORRES": "4.0",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "1.5",
+        "LBORNRHI": "8.0",
+        "LBDAT": "2025-09-22"
+      },
+      {
+        "LBTESTCD": "ALT",
+        "LBTEST": "Alanine Aminotransferase",
+        "LBORRES": "19",
+        "LBORRESU": "U/L",
+        "LBORNRLO": "7",
+        "LBORNRHI": "56",
+        "LBDAT": "2025-09-22"
+      },
+      {
+        "LBTESTCD": "HGB",
+        "LBTEST": "Hemoglobin",
+        "LBORRES": "12.8",
+        "LBORRESU": "g/dL",
+        "LBORNRLO": "12.0",
+        "LBORNRHI": "16.0",
+        "LBDAT": "2025-09-22"
+      },
+      {
+        "LBTESTCD": "PLT",
+        "LBTEST": "Platelet Count",
+        "LBORRES": "220",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "150",
+        "LBORNRHI": "400",
+        "LBDAT": "2025-09-22"
+      },
+      {
+        "LBTESTCD": "CREAT",
+        "LBTEST": "Creatinine",
+        "LBORRES": "0.7",
+        "LBORRESU": "mg/dL",
+        "LBORNRLO": "0.6",
+        "LBORNRHI": "1.1",
+        "LBDAT": "2025-09-22"
+      }
+    ]
+  },
+  "cm": {
+    "records": [
+      {
+        "CMTRT": "Minoxidil topical",
+        "CMINDC": "Alopecia management",
+        "CMDSTXT": "5% solution BID",
+        "CMSTDAT": "2025-10-01",
+        "CMENDAT": null,
+        "CMCAT": "AE_TREATMENT"
+      }
+    ]
+  },
+  "mh": {
+    "records": [
+      {
+        "MHTERM": "Anxiety disorder",
+        "MHSTDAT": "2018-01-01",
+        "MHENDAT": "2022-06-01",
+        "MHONGO": "N"
+      },
+      {
+        "MHTERM": "HER2-positive metastatic breast cancer",
+        "MHSTDAT": "2025-05-10",
+        "MHENDAT": null,
+        "MHONGO": "Y"
+      }
+    ]
+  },
+  "vs": {
+    "records": [
+      {
+        "VSTESTCD": "TEMP",
+        "VSORRES": "36.7",
+        "VSORRESU": "C",
+        "VSDAT": "2025-09-22"
+      },
+      {
+        "VSTESTCD": "RESP",
+        "VSORRES": "16",
+        "VSORRESU": "breaths/min",
+        "VSDAT": "2025-09-22"
+      },
+      {
+        "VSTESTCD": "SYSBP",
+        "VSORRES": "114",
+        "VSORRESU": "mmHg",
+        "VSDAT": "2025-09-22"
+      },
+      {
+        "VSTESTCD": "DIABP",
+        "VSORRES": "70",
+        "VSORRESU": "mmHg",
+        "VSDAT": "2025-09-22"
+      }
+    ],
+    "WEIGHT": 58.0,
+    "HEIGHT": 168.0
+  },
+  "dd": {
+    "DTHDAT": null,
+    "PRCDTH": null,
+    "AUTOPIND": null
+  },
+  "da": {
+    "LOT_NUMBER": "TDX-2025-M012",
+    "EXPIRY_DATE": "2026-10-31"
+  },
+  "imaging": {
+    "records": []
+  },
+  "pft": {
+    "records": []
+  },
+  "microbiology": {
+    "records": []
+  },
+  "consultation": {
+    "records": []
+  },
+  "investigator": {
+    "name": "Emily N. Nakamura, MD",
+    "institution": "Fred Hutchinson Cancer Center",
+    "address": "1100 Fairview Ave N, Seattle, WA 98109",
+    "phone": "206-555-0167",
+    "email": "enakamura@fredhutch-trials.example.com"
+  },
+  "sentinel_output": null
+}

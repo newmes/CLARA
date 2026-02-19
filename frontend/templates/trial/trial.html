@@ -1,0 +1,1665 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Day {{ day }} — Clinical Trial Viewer{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ══════════════════════════════════════════════════════════
+     TRIAL VIEWER — DARK GAME UI
+     ══════════════════════════════════════════════════════════ */
+
+  /* ── Unified Toolbar ── */
+  .toolbar {
+    position: sticky; top: 0; z-index: 100;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border);
+  }
+  .toolbar-row {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 20px;
+    max-width: 1400px; margin: 0 auto;
+  }
+  .toolbar-row + .toolbar-row {
+    padding-top: 0; padding-bottom: 8px;
+  }
+  .tb-sep { width: 1px; height: 22px; background: var(--border); flex-shrink: 0; }
+  .tb-spacer { flex: 1; }
+
+  /* Day display */
+  .tb-day {
+    display: flex; align-items: baseline; gap: 5px; flex-shrink: 0;
+  }
+  .tb-day .day-num {
+    font: 800 1.3em 'JetBrains Mono', monospace; color: var(--accent-cyan); line-height: 1;
+  }
+  .tb-day .cycle-info {
+    font: 500 0.72em 'JetBrains Mono', monospace; color: var(--text-muted);
+  }
+  .tb-day .drug-label {
+    color: var(--accent-purple); font: 500 0.7em 'JetBrains Mono', monospace;
+    white-space: nowrap; margin-left: 2px;
+  }
+
+  /* Slider */
+  .tb-slider { flex: 1; min-width: 100px; display: flex; align-items: center; gap: 6px; }
+  .tb-slider input[type=range] { flex: 1; }
+  .tb-slider .slider-val {
+    font: 600 0.68em 'JetBrains Mono', monospace; color: var(--text-muted);
+    white-space: nowrap; min-width: 44px; text-align: center;
+  }
+
+  /* Playback */
+  .tb-playback { display: flex; align-items: center; gap: 3px; flex-shrink: 0; }
+  .tb-playback .btn { padding: 3px 7px; }
+  .speed-badge {
+    font: 600 0.68em 'JetBrains Mono', monospace; padding: 2px 5px;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 3px; color: var(--accent-cyan);
+  }
+
+  /* Toggle pill group — reusable */
+  .pill-group {
+    display: inline-flex; border-radius: 5px; overflow: hidden;
+    border: 1px solid var(--border);
+  }
+  .pill-group button {
+    padding: 4px 12px; border: none; cursor: pointer;
+    font: 600 0.75em 'JetBrains Mono', monospace;
+    background: var(--bg-elevated); color: var(--text-muted);
+    transition: all 0.15s; line-height: 1.2; white-space: nowrap;
+  }
+  .pill-group button:hover { color: var(--text-secondary); }
+  .pill-group button + button { border-left: 1px solid var(--border); }
+  /* Active states per semantic type */
+  .pill-group button.active-cyan {
+    background: rgba(57,210,192,0.15); color: var(--accent-cyan);
+    box-shadow: inset 0 -2px 0 var(--accent-cyan);
+  }
+  .pill-group button.active-amber {
+    background: rgba(210,153,34,0.18); color: #d29922;
+    box-shadow: inset 0 -2px 0 #d29922;
+  }
+  .pill-group button.active-green {
+    background: rgba(63,185,80,0.15); color: var(--accent-green);
+    box-shadow: inset 0 -2px 0 var(--accent-green);
+  }
+  .pill-group button.active-blue {
+    background: rgba(88,166,255,0.15); color: var(--accent-blue);
+    box-shadow: inset 0 -2px 0 var(--accent-blue);
+  }
+
+  /* Mode indicator */
+  .mode-indicator {
+    display: inline-flex; align-items: center; padding: 2px 7px; border-radius: 3px;
+    font: 700 0.65em 'JetBrains Mono', monospace; text-transform: uppercase;
+    letter-spacing: 0.8px; line-height: 1.2;
+  }
+  .mode-manual { background: rgba(63,185,80,0.15); color: var(--accent-green); border: 1px solid rgba(63,185,80,0.3); }
+  .mode-auto { background: rgba(88,166,255,0.15); color: var(--accent-blue); border: 1px solid rgba(88,166,255,0.3); }
+
+  /* Alert mute */
+  .alert-mute-toggle {
+    display: inline-flex; align-items: center; gap: 3px; cursor: pointer;
+    font: 600 0.75em 'JetBrains Mono', monospace; color: var(--text-muted);
+    padding: 3px 8px; border-radius: 4px; border: 1px solid var(--border);
+    background: var(--bg-elevated); transition: all 0.15s; user-select: none;
+  }
+  .alert-mute-toggle:hover { border-color: var(--accent-cyan); color: var(--text-secondary); }
+  .alert-mute-toggle.muted { color: var(--accent-orange); border-color: rgba(210,153,34,0.4); background: rgba(210,153,34,0.08); }
+
+  /* Row 2 label */
+  .tb-label {
+    font: 600 0.65em 'JetBrains Mono', monospace; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;
+  }
+
+  /* ── Dashboard Fixed Layout ── */
+  .dashboard-content {
+    display: flex; flex-direction: column;
+    height: calc(100vh - 44px - 78px);
+    min-height: 500px;
+  }
+  .dashboard-top {
+    display: grid; grid-template-columns: 1fr 300px; gap: 14px;
+    flex: 1; min-height: 0; overflow: hidden;
+    padding: 16px 24px 12px 24px; max-width: 1400px; margin: 0 auto; width: 100%;
+  }
+  @media (max-width: 1000px) {
+    .dashboard-top { grid-template-columns: 1fr; grid-template-rows: 1fr auto; }
+  }
+
+  /* ── Events Panel ── */
+  .events-panel {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px 18px;
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .events-panel h5 {
+    margin: 0 0 8px 0; color: var(--text-secondary);
+    font-size: 0.8em; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1px;
+    flex-shrink: 0;
+  }
+  .events-scroll {
+    flex: 1; overflow-y: auto; min-height: 0;
+    scrollbar-width: thin;
+  }
+  .events-scroll::-webkit-scrollbar { width: 4px; }
+  .events-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .event-item {
+    padding: 5px 0; border-bottom: 1px solid var(--border-light);
+    font-size: 0.85em; line-height: 1.5;
+  }
+  .event-item:last-child { border-bottom: none; }
+  .event-item .icon { margin-right: 6px; vertical-align: middle; }
+  .event-high { color: var(--accent-red); }
+  .event-medium { color: var(--accent-orange); }
+  .event-info { color: var(--text-secondary); }
+  .event-low { color: var(--accent-green); }
+  .no-events { color: var(--text-muted); font-style: italic; padding: 8px 0; font-size: 0.88em; }
+
+  /* ── Patient Cards ── */
+  .patient-cards-wrapper {
+    display: flex; flex-direction: column;
+    overflow: hidden;
+  }
+  .patient-cards-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 10px; flex-shrink: 0; padding-bottom: 6px;
+    border-bottom: 1px solid var(--border);
+  }
+  .patient-cards-header h5 {
+    margin: 0; color: var(--text-secondary);
+    font-size: 0.8em; font-weight: 600;
+    text-transform: uppercase; letter-spacing: 1px;
+  }
+  .patient-cards-header .count {
+    font-size: 0.72em; color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .patient-cards-scroll {
+    flex: 1; overflow-y: auto; min-height: 0;
+    scrollbar-width: thin;
+  }
+  .patient-cards-scroll::-webkit-scrollbar { width: 4px; }
+  .patient-cards-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+  .patient-cards {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 8px;
+  }
+  @media (max-width: 1200px) { .patient-cards { grid-template-columns: repeat(4, 1fr); } }
+  @media (max-width: 900px) { .patient-cards { grid-template-columns: repeat(3, 1fr); } }
+
+  .patient-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    text-align: center;
+    display: flex; flex-direction: column; align-items: center;
+  }
+  .patient-card:hover {
+    border-color: var(--accent-cyan);
+    background: var(--bg-card-hover);
+    box-shadow: 0 0 12px rgba(57,210,192,0.1);
+  }
+  .patient-card.active {
+    border-color: var(--accent-cyan);
+    background: rgba(57,210,192,0.08);
+    box-shadow: 0 0 16px rgba(57,210,192,0.15), inset 0 0 0 1px rgba(57,210,192,0.2);
+  }
+  .patient-card .pid {
+    font-weight: 700; font-size: 0.85em;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-primary);
+  }
+  .patient-card .persona-emoji { font-size: 1.6em; display: block; margin: 3px 0; }
+  .patient-card .meta {
+    font-size: 0.72em; color: var(--text-muted);
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .patient-card .ae-badge {
+    display: inline-block; border-radius: 3px;
+    padding: 1px 6px; font-size: 0.68em; margin-top: 4px;
+    font-family: 'JetBrains Mono', monospace; font-weight: 600;
+  }
+  .patient-card .ae-badge.danger {
+    background: rgba(248,81,73,0.15); color: var(--accent-red);
+    border: 1px solid rgba(248,81,73,0.3);
+  }
+  .patient-card .ae-badge.safe {
+    background: rgba(63,185,80,0.1); color: var(--accent-green);
+    border: 1px solid rgba(63,185,80,0.2);
+  }
+
+  /* ── Patient Detail Modal ── */
+  .patient-modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.70);
+    display: none; align-items: center; justify-content: center;
+    z-index: 1000;
+    backdrop-filter: blur(3px);
+  }
+  .patient-modal-overlay.visible { display: flex; }
+  .patient-detail {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 0;
+    width: 94vw; max-width: 1100px; max-height: 88vh;
+    overflow-y: auto; position: relative;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+    scrollbar-width: thin;
+  }
+  .patient-detail::-webkit-scrollbar { width: 6px; }
+  .patient-detail::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  /* Modal header */
+  .modal-header-bar {
+    display: flex; align-items: center; gap: 12px;
+    padding: 14px 20px; border-bottom: 1px solid var(--border);
+    background: var(--bg-primary);
+    border-radius: 10px 10px 0 0;
+    position: sticky; top: 0; z-index: 10;
+  }
+  .modal-header-bar h4 {
+    margin: 0; color: var(--accent-cyan); font-weight: 700;
+    font: 700 1.05em 'JetBrains Mono', monospace;
+    white-space: nowrap;
+  }
+  .modal-header-bar .persona-desc {
+    color: var(--text-muted); font-size: 0.82em;
+    flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+  .patient-modal-close {
+    background: none; border: 1px solid var(--border); border-radius: 5px;
+    color: var(--text-muted); font-size: 1em; cursor: pointer;
+    width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s; flex-shrink: 0;
+  }
+  .patient-modal-close:hover { border-color: var(--accent-red); color: var(--accent-red); }
+
+  /* Modal body */
+  .modal-body { padding: 16px 20px 20px; }
+
+  /* Section titles */
+  .detail-section { margin-bottom: 14px; }
+  .detail-section h6 {
+    color: var(--text-secondary); font-weight: 700; margin: 0 0 6px;
+    font-size: 0.78em; letter-spacing: 0.8px; text-transform: uppercase;
+    display: flex; align-items: center; gap: 6px; line-height: 1.3;
+    border-bottom: 1px solid var(--border-light); padding-bottom: 4px;
+  }
+  .detail-section h6 .sec-icon { opacity: 0.7; }
+
+  /* Status chips row */
+  .status-chips {
+    display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px;
+  }
+  .status-chip {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: 5px;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    font: 500 0.85em 'JetBrains Mono', monospace;
+  }
+  .status-chip .chip-label {
+    font-size: 0.72em; color: var(--text-muted); text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .status-chip .chip-val { color: var(--text-primary); font-weight: 600; }
+
+  /* Two-column layout for modal content */
+  .modal-two-col {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  @media (max-width: 800px) { .modal-two-col { grid-template-columns: 1fr; } }
+
+  /* AE list */
+  .ae-list { list-style: none; padding: 0; margin: 0; }
+  .ae-list li {
+    display: flex; align-items: center; gap: 8px;
+    padding: 5px 0; border-bottom: 1px solid var(--border-light);
+    font-size: 0.9em;
+  }
+  .ae-list li:last-child { border-bottom: none; }
+  .ae-list .grade {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 30px; padding: 2px 7px; border-radius: 3px;
+    font: 700 0.78em 'JetBrains Mono', monospace; color: #fff;
+    flex-shrink: 0;
+  }
+  .ae-list .grade-1 { background: var(--grade-1); }
+  .ae-list .grade-2 { background: var(--grade-2); }
+  .ae-list .grade-3 { background: var(--grade-3); }
+  .ae-list .grade-4 { background: var(--grade-4); }
+  .ae-list .ae-dur { color: var(--text-muted); font-size: 0.8em; margin-left: auto; }
+
+  /* Lab/vitals grid */
+  .lab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 5px; }
+  .lab-item {
+    background: var(--bg-elevated); border-radius: 4px; padding: 5px 8px;
+    display: flex; flex-direction: column; gap: 1px;
+  }
+  .lab-item .lab-name { color: var(--text-muted); font-size: 0.72em; line-height: 1.2; text-transform: uppercase; letter-spacing: 0.3px; }
+  .lab-item .lab-val {
+    font: 600 0.88em 'JetBrains Mono', monospace; color: var(--text-primary);
+  }
+
+  /* Full record link */
+  .full-record-link {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 5px 14px; background: rgba(57,210,192,0.08);
+    border: 1px solid rgba(57,210,192,0.3); border-radius: 5px;
+    color: var(--accent-cyan); font: 600 0.82em 'JetBrains Mono', monospace;
+    transition: all 0.15s; text-decoration: none; flex-shrink: 0;
+  }
+  .full-record-link:hover {
+    background: rgba(57,210,192,0.18);
+    border-color: var(--accent-cyan);
+  }
+
+  /* Subjective block */
+  .subj-awareness {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 4px; font: 700 0.82em 'JetBrains Mono', monospace;
+    margin-bottom: 6px;
+  }
+  .subj-awareness.aw-concerned { background: rgba(210,153,34,0.12); color: #d29922; }
+  .subj-awareness.aw-distressed { background: rgba(248,81,73,0.12); color: var(--accent-red); }
+  .subj-awareness.aw-unaware { background: rgba(63,185,80,0.08); color: var(--accent-green); }
+  .subj-awareness.aw-noticed { background: rgba(88,166,255,0.1); color: var(--accent-blue); }
+  .subj-symptom { font-size: 0.88em; padding: 2px 0; color: var(--text-secondary); }
+  .subj-quote { color: var(--text-muted); font-style: italic; font-size: 0.82em; padding-left: 14px; }
+
+  /* Care AI chat */
+  .care-chat { max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+  .chat-bubble {
+    padding: 8px 12px; border-radius: 8px; font-size: 0.88em;
+    max-width: 95%; line-height: 1.5;
+  }
+  .chat-patient {
+    background: rgba(88,166,255,0.06); border: 1px solid rgba(88,166,255,0.15);
+    align-self: flex-start;
+  }
+  .chat-nurse {
+    background: rgba(63,185,80,0.06); border: 1px solid rgba(63,185,80,0.15);
+    align-self: flex-end;
+  }
+  .chat-role {
+    font: 700 0.68em 'JetBrains Mono', monospace; text-transform: uppercase;
+    letter-spacing: 0.5px; margin-bottom: 3px;
+  }
+  .chat-patient .chat-role { color: var(--accent-blue); }
+  .chat-nurse .chat-role { color: var(--accent-green); }
+  .severity-badge {
+    display: inline-block; padding: 2px 10px; border-radius: 3px;
+    font: 700 0.78em 'JetBrains Mono', monospace;
+  }
+  .sev-green { background: rgba(63,185,80,0.15); color: var(--accent-green); border: 1px solid rgba(63,185,80,0.3); }
+  .sev-yellow { background: rgba(227,179,65,0.15); color: #e3b341; border: 1px solid rgba(227,179,65,0.3); }
+  .sev-orange { background: rgba(219,148,54,0.15); color: #db9436; border: 1px solid rgba(219,148,54,0.3); }
+  .sev-red { background: rgba(248,81,73,0.15); color: var(--accent-red); border: 1px solid rgba(248,81,73,0.3); }
+  .action-tag {
+    display: inline-block; padding: 2px 8px; border-radius: 3px;
+    font: 500 0.78em 'JetBrains Mono', monospace; margin: 2px 2px 2px 0;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+
+  /* Mood bars */
+  .mood-bars { display: flex; flex-direction: column; gap: 4px; }
+  .mood-row { display: flex; align-items: center; gap: 6px; font-size: 0.8em; }
+  .mood-label { width: 58px; color: var(--text-muted); text-align: right; font: 500 0.85em 'JetBrains Mono', monospace; flex-shrink: 0; }
+  .mood-track { flex: 1; height: 8px; background: var(--bg-elevated); border-radius: 4px; overflow: hidden; }
+  .mood-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
+  .mood-val { width: 36px; font: 600 0.85em 'JetBrains Mono', monospace; text-align: right; flex-shrink: 0; }
+
+  .view-panel { display: none; }
+  .view-panel.active { display: block; }
+
+  /* (chat/mood/toggle styles consolidated in modal CSS block above) */
+
+  /* ── Map View ── */
+  #map-view {
+    padding: 0;
+    position: relative;
+  }
+  #map-view #game-container {
+    line-height: 0;
+  }
+  #map-view #game-container canvas {
+    display: block;
+    width: 100% !important;
+    height: 600px !important;
+  }
+  .map-toolbar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 16px;
+    background: rgba(13,17,23,0.9);
+    border-bottom: 1px solid var(--border);
+  }
+  .map-toolbar button {
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    color: var(--text-secondary); font: 10px 'JetBrains Mono', monospace;
+    padding: 4px 10px; border-radius: 4px; cursor: pointer;
+    transition: all 0.15s;
+  }
+  .map-toolbar button:hover {
+    border-color: var(--accent-cyan);
+    color: var(--accent-cyan);
+  }
+  .map-toolbar .map-info {
+    font: 10px 'JetBrains Mono', monospace;
+    color: var(--text-muted);
+    margin-left: auto;
+  }
+
+  /* ── Phone Call Popup ── */
+  .phone-popup {
+    position: fixed; bottom: 24px; right: 24px;
+    width: 320px; z-index: 900;
+    display: none; flex-direction: column;
+    animation: phoneSlideIn 0.4s ease-out;
+  }
+  .phone-popup.visible { display: flex; }
+  @keyframes phoneSlideIn {
+    from { transform: translateY(100px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  @keyframes phonePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(248,81,73,0.4); }
+    50% { box-shadow: 0 0 0 12px rgba(248,81,73,0); }
+  }
+  .phone-card {
+    background: var(--bg-secondary); border: 1px solid var(--border);
+    border-radius: 12px; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  }
+  .phone-card.severity-red { border-color: rgba(248,81,73,0.6); animation: phonePulse 1.5s infinite; }
+  .phone-card.severity-orange { border-color: rgba(227,135,62,0.6); }
+  .phone-header {
+    padding: 12px 16px; display: flex; align-items: center; gap: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .phone-header .phone-icon {
+    font-size: 1.3em; animation: phoneRing 0.6s ease-in-out infinite alternate;
+  }
+  @keyframes phoneRing {
+    from { transform: rotate(-12deg); }
+    to { transform: rotate(12deg); }
+  }
+  .phone-header .phone-title {
+    flex: 1; font-size: 0.85em; font-weight: 700; color: var(--text-primary);
+  }
+  .phone-header .phone-sev {
+    font-size: 0.7em; padding: 2px 8px; border-radius: 10px; font-weight: 700;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .phone-sev.sev-red { background: rgba(248,81,73,0.15); color: var(--accent-red); }
+  .phone-sev.sev-orange { background: rgba(227,135,62,0.15); color: #e3871e; }
+  .phone-body {
+    padding: 12px 16px; font-size: 0.82em; color: var(--text-secondary);
+    line-height: 1.6; max-height: 200px; overflow-y: auto;
+  }
+  .phone-body .phone-patient {
+    color: var(--accent-cyan); font-weight: 700;
+    font-family: 'JetBrains Mono', monospace; font-size: 0.95em;
+  }
+  .phone-body .phone-actions {
+    margin-top: 8px; display: flex; flex-wrap: wrap; gap: 4px;
+  }
+  .phone-body .phone-actions .action-tag {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font-size: 0.78em; font-family: 'JetBrains Mono', monospace;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    color: var(--text-secondary);
+  }
+  .phone-footer {
+    padding: 10px 16px; display: flex; gap: 8px;
+    border-top: 1px solid var(--border);
+  }
+  .phone-footer button {
+    flex: 1; padding: 8px; border-radius: 8px; border: 1px solid;
+    font-size: 0.8em; font-weight: 600; cursor: pointer;
+    font-family: 'JetBrains Mono', monospace;
+    transition: all 0.15s; text-align: center;
+  }
+  .phone-btn-view {
+    background: rgba(57,210,192,0.12); border-color: rgba(57,210,192,0.4);
+    color: var(--accent-cyan);
+  }
+  .phone-btn-view:hover { background: rgba(57,210,192,0.25); }
+  .phone-btn-dismiss {
+    background: rgba(110,118,129,0.1); border-color: var(--border);
+    color: var(--text-muted);
+  }
+  .phone-btn-dismiss:hover { background: rgba(110,118,129,0.2); }
+  .phone-badge {
+    position: absolute; top: -6px; left: -6px;
+    background: var(--accent-red); color: #fff; font-size: 0.65em;
+    font-weight: 700; width: 20px; height: 20px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+  }
+</style>
+{% endblock %}
+
+{% block nav_items %}
+<span class="nav-sep">/</span>
+<a href="{% url 'trial_viewer' run_id %}" title="{{ run_id }}">{{ run_id|truncatechars:25 }}</a>
+<span class="nav-sep">·</span>
+<a href="{% url 'trial_viewer' run_id %}" class="nav-active">Simulation</a>
+<a href="{% url 'game_landing' run_id %}">Training</a>
+<a href="{% url 'doc_hub' run_id %}">Documents</a>
+<a href="{% url 'compare_dashboard' run_id %}">A/B Test</a>
+{% endblock %}
+
+{% block content %}
+
+<!-- ═══ Unified Toolbar ═══ -->
+<div class="toolbar">
+  <!-- Single streamlined row -->
+  <div class="toolbar-row" style="flex-wrap:wrap; gap:8px;">
+    <!-- Day navigation group -->
+    <div style="display:flex; align-items:center; gap:4px;">
+      <button class="btn btn-default btn-sm" id="btn-prev" title="Previous Day (←)">◀</button>
+      <span class="day-num" id="day-display" style="min-width:60px; text-align:center;">Day {{ day }}</span>
+      <button class="btn btn-default btn-sm" id="btn-next" title="Next Day (→)">▶</button>
+    </div>
+    <div class="tb-slider" style="flex:1; min-width:120px;">
+      <input type="range" id="day-slider" min="1" max="{{ total_days }}" value="{{ day }}" step="1">
+      <span class="slider-val" id="slider-value">{{ day }}/{{ total_days }}</span>
+    </div>
+    <span class="cycle-info" id="cycle-display" title="Treatment Cycle &amp; Day within cycle">C{{ cycle }}D{{ cycle_day }}</span>
+
+    <div class="tb-sep"></div>
+
+    <!-- Playback -->
+    <div style="display:flex; align-items:center; gap:3px;">
+      <button class="btn btn-primary btn-sm" id="btn-play" title="Auto-play day by day">▶ Play</button>
+      <button class="btn btn-primary btn-sm" id="btn-pause" title="Pause" style="display:none">⏸ Pause</button>
+      <select id="speed-select" title="Playback speed" style="padding:2px 4px; font-size:0.78em; background:var(--bg-elevated); color:var(--text-secondary); border:1px solid var(--border); border-radius:4px;">
+        <option value="1">×1</option>
+        <option value="5">×5</option>
+        <option value="10">×10</option>
+      </select>
+    </div>
+
+    <div class="tb-sep"></div>
+
+    <!-- Display toggle: Map/Dashboard -->
+    <div class="pill-group" id="view-tabs">
+      <button class="active-cyan" data-view="map-view" id="tab-map">Map</button>
+      <button data-view="dashboard-view" id="tab-dashboard">List</button>
+    </div>
+
+    <div class="tb-sep"></div>
+
+    <!-- Mode & Data view -->
+    {% if available_modes|length > 1 %}
+    <div class="pill-group" id="mode-toggle">
+      <button {% if mode == 'natural' %}class="active-green"{% endif %} data-mode="natural" title="Natural course without AI intervention">Natural</button>
+      <button {% if mode == 'care_ai' %}class="active-blue"{% endif %} data-mode="care_ai" title="With Care AI nurse monitoring">Care AI</button>
+    </div>
+    {% endif %}
+
+    <div class="pill-group" id="view-toggle">
+      <button {% if view_mode == 'hr' %}class="active-amber"{% endif %} data-view="hr" title="Hospital Record — what doctors/nurses see in charts">🏥 HR</button>
+      <button {% if view_mode == 'gt' %}class="active-cyan"{% endif %} data-view="gt" title="Ground Truth — actual patient state (simulation truth)">🔬 GT</button>
+    </div>
+
+    <span class="alert-mute-toggle" id="alertMuteToggle" onclick="toggleAlertMute()" title="Toggle Care AI popup alerts on/off">
+      <span id="alertMuteIcon">🔔</span>
+    </span>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- MAP VIEW                                                    -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="view-panel active" id="map-view">
+  <div class="map-toolbar">
+    <button onclick="trialMap.focusHospital()">Hospital</button>
+    <button onclick="trialMap.setZoom(1.8)">Zoom +</button>
+    <button onclick="trialMap.setZoom(0.8)">Zoom −</button>
+    <button onclick="trialMap.fitMap()">Fit All</button>
+    <span style="color:var(--border)">│</span>
+    <span class="map-info" id="map-location-count">Loading...</span>
+  </div>
+  <div id="game-container"></div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- DASHBOARD VIEW                                              -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- PHONE CALL POPUP (Care AI Alert)                          -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="phone-popup" id="phone-popup">
+  <div class="phone-card" id="phone-card">
+    <div class="phone-badge" id="phone-badge" style="display:none">1</div>
+    <div class="phone-header">
+      <span class="phone-icon">📞</span>
+      <span class="phone-title">Care AI Alert</span>
+      <span class="phone-sev" id="phone-sev">RED</span>
+    </div>
+    <div class="phone-body" id="phone-body">
+      <div class="phone-patient" id="phone-patient">PT-001</div>
+      <div id="phone-summary" style="margin-top:4px">Serious adverse event detected.</div>
+      <div class="phone-actions" id="phone-actions"></div>
+    </div>
+    <div class="phone-footer">
+      <button class="phone-btn-view" id="phone-btn-view">View Details</button>
+      <button class="phone-btn-dismiss" id="phone-btn-dismiss">Dismiss</button>
+    </div>
+  </div>
+</div>
+
+<div class="view-panel" id="dashboard-view">
+<div class="dashboard-content">
+  <div class="dashboard-top">
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- PATIENT CARDS (scrollable)                             -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="patient-cards-wrapper">
+      <div class="patient-cards-header">
+        <h5>Patients</h5>
+        <span class="count" id="patient-count">{{ patients|length }} patients</span>
+      </div>
+      <div class="patient-cards-scroll">
+        <div class="patient-cards" id="patient-cards">
+          {% for p in patients %}
+          <div class="patient-card" data-pid="{{ p.patient_id }}" id="card-{{ p.patient_id }}">
+            <div class="pid">{{ p.patient_id }}</div>
+            <div class="persona-emoji">
+              {% if p.persona_type == "stoic" or p.persona_type == "shame_avoidant" %}😐
+              {% elif p.persona_type == "anxious" or p.persona_type == "hypervigilant" or p.persona_type == "catastrophizer" %}😰
+              {% elif p.persona_type == "positive" or p.persona_type == "optimistic_denier" %}😊
+              {% elif p.persona_type == "compliant" %}🙂
+              {% elif p.persona_type == "minimizer" %}😑
+              {% else %}👤{% endif %}
+            </div>
+            <div class="meta">{{ p.age }}{{ p.sex }} · ECOG {{ p.ecog|default:"?" }}</div>
+            {% if p.active_aes %}
+              {% for ae in p.active_aes %}
+                <span class="ae-badge danger">{{ ae.term }} G{{ ae.grade }}</span>
+              {% endfor %}
+            {% else %}
+              <span class="ae-badge safe">No AEs</span>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════════════════════ -->
+    <!-- DAY EVENTS (scrollable sidebar)                        -->
+    <!-- ══════════════════════════════════════════════════════ -->
+    <div class="events-panel" id="events-panel">
+      <h5>Day <span id="events-day">{{ day }}</span> Events</h5>
+      <div class="events-scroll" id="events-list">
+        {% if events %}
+          {% for e in events %}
+          <div class="event-item event-{{ e.severity }}">
+            <span class="icon">{{ e.icon }}</span> {{ e.text }}
+          </div>
+          {% endfor %}
+        {% else %}
+          <div class="no-events">No notable events — quiet day for all patients.</div>
+        {% endif %}
+      </div>
+    </div>
+
+  </div>
+</div>
+</div><!-- /dashboard-view -->
+
+<!-- ══════════════════════════════════════════════════════════ -->
+<!-- PATIENT DETAIL MODAL (overlay)                             -->
+<!-- ══════════════════════════════════════════════════════════ -->
+<div class="patient-modal-overlay" id="patient-modal-overlay">
+  <div class="patient-detail" id="patient-detail">
+
+    <!-- Sticky header -->
+    <div class="modal-header-bar">
+      <h4 id="detail-name">Select a patient</h4>
+      <span class="persona-desc" id="detail-persona"></span>
+      <div class="pill-group" id="record-view-toggle" style="flex-shrink:0;">
+        <button data-view="hr" style="min-width:60px;" title="Hospital Record — data visible to medical staff">🏥 HR</button>
+        <button data-view="gt" style="min-width:60px;" title="Ground Truth — actual simulation state">🔬 GT</button>
+      </div>
+      <span id="modal-view-hint" style="font-size:0.72em; color:var(--text-muted); min-width:140px; flex-shrink:0;"></span>
+      <a href="#" id="detail-link" class="full-record-link">Full Record →</a>
+      <button class="patient-modal-close" id="patient-modal-close" title="Close">✕</button>
+    </div>
+
+    <!-- Body -->
+    <div class="modal-body">
+
+      <!-- Status chips -->
+      <div class="status-chips">
+        <div class="status-chip"><span class="chip-label">Location</span><span class="chip-val" id="detail-location">—</span></div>
+        <div class="status-chip"><span class="chip-label">Treatment</span><span class="chip-val" id="detail-treatment">—</span></div>
+        <div class="status-chip"><span class="chip-label">Tumor Δ</span><span class="chip-val" id="detail-tumor">—</span></div>
+        <div class="status-chip"><span class="chip-label">ECOG</span><span class="chip-val" id="detail-ecog">—</span></div>
+      </div>
+
+      <!-- Two-column layout -->
+      <div class="modal-two-col">
+
+        <!-- Left column: AEs + Labs + Vitals -->
+        <div>
+          <div class="detail-section">
+            <h6><span class="sec-icon"></span> Active Adverse Events</h6>
+            <ul class="ae-list" id="detail-aes">
+              <li style="color:var(--text-muted)">None</li>
+            </ul>
+          </div>
+
+          <div class="detail-section">
+            <h6><span class="sec-icon"></span> Key Labs</h6>
+            <div class="lab-grid" id="detail-labs"></div>
+          </div>
+
+          <div class="detail-section">
+            <h6><span class="sec-icon"></span> Vitals</h6>
+            <div class="lab-grid" id="detail-vitals"></div>
+          </div>
+        </div>
+
+        <!-- Right column: Subjective + Care + Mood -->
+        <div>
+          <div class="detail-section">
+            <h6><span class="sec-icon"></span> Patient Perception</h6>
+            <div id="detail-subjective">—</div>
+          </div>
+
+          <div class="detail-section">
+            <h6><span class="sec-icon"></span> Video Call</h6>
+            <div id="detail-care">
+              <em style="color:var(--text-muted)">No video call today</em>
+            </div>
+          </div>
+
+          <div class="detail-section">
+            <h6><span class="sec-icon"></span> Mood State</h6>
+            <div id="detail-mood" class="mood-bars">
+              <em style="color:var(--text-muted); font-size:0.85em">No mood data</em>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block js_content %}
+<script src="https://cdn.jsdelivr.net/npm/phaser@3.55.2/dist/phaser.min.js"></script>
+{% load static %}
+<script src="{% static 'js/trial_map.js' %}"></script>
+<script>
+(function() {
+  const RUN_ID = "{{ run_id }}";
+  const TOTAL_DAYS = {{ total_days }};
+  const CYCLE_LENGTH = {{ cycle_length }};
+  let currentDay = {{ day }};
+  let autoPlaying = false;
+  let playSpeed = 1;
+  let eventSource = null;
+  let selectedPatient = null;
+  let currentMode = "{{ mode }}";
+  let currentView = "{{ view_mode|default:'hr' }}";
+  const AVAILABLE_MODES = {{ available_modes_json|safe }};
+
+  let currentPatients = {{ patients_json|safe }};
+  let currentEvents = {{ events_json|safe }};
+  let alertsMuted = false;
+  const IS_LIVE = {% if is_live %}true{% else %}false{% endif %};
+
+  // ── Live Mode: poll for new days ──
+  let liveMaxDay = TOTAL_DAYS;
+  let liveStatus = IS_LIVE ? 'running' : 'completed';
+
+  if (IS_LIVE) {
+    // ── Live Panel: fixed bottom log + controls ──
+    const livePanel = document.createElement('div');
+    livePanel.id = 'live-panel';
+    livePanel.innerHTML = `
+      <div id="live-header">
+        <span id="live-dot" style="animation:pulse 1.5s infinite; color:var(--accent-cyan);">●</span>
+        <span id="live-title" style="font-weight:700; color:var(--accent-cyan);">LIVE</span>
+        <span id="live-phase" style="color:var(--text-secondary);"></span>
+        <span id="live-progress" style="color:var(--text-muted); margin-left:auto;"></span>
+        <button id="live-stop-btn" title="Stop Simulation"
+                style="margin-left:8px; padding:3px 10px; border:1px solid var(--accent-red);
+                       background:rgba(248,81,73,0.1); color:var(--accent-red); border-radius:4px;
+                       font:600 0.78em 'JetBrains Mono',monospace; cursor:pointer;">
+          Stop
+        </button>
+        <button id="live-toggle-btn" title="Toggle Log"
+                style="margin-left:4px; padding:3px 8px; border:1px solid var(--border);
+                       background:var(--bg-elevated); color:var(--text-muted); border-radius:4px;
+                       font:600 0.78em 'JetBrains Mono',monospace; cursor:pointer;">
+          ▼
+        </button>
+      </div>
+      <div id="live-log" style="display:block;"></div>
+    `;
+    const style = document.createElement('style');
+    style.textContent = `
+      #live-panel {
+        position:fixed; bottom:0; left:0; right:0; z-index:900;
+        background:var(--bg-secondary); border-top:2px solid var(--accent-cyan);
+        font: 400 0.8em 'JetBrains Mono', monospace;
+        box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+      }
+      #live-header {
+        display:flex; align-items:center; gap:8px;
+        padding:6px 16px; border-bottom:1px solid var(--border);
+      }
+      #live-log {
+        height:220px; overflow-y:auto; padding:6px 16px;
+        background:var(--bg-primary);
+      }
+      #live-log .log-line {
+        padding:1px 0; color:var(--text-secondary); white-space:pre-wrap;
+        word-break:break-all; font-size:0.92em; line-height:1.5;
+      }
+      #live-log .log-line.event { color:var(--text-primary); }
+      #live-log .log-line.error { color:var(--accent-red); }
+      #live-log .log-line.success { color:var(--accent-green); }
+      #live-log .log-line.warn { color:var(--accent-orange); }
+      #live-panel.collapsed #live-log { display:none !important; }
+      #live-panel.collapsed { border-top-width:1px; }
+    `;
+    document.head.appendChild(style);
+    document.body.appendChild(livePanel);
+    document.body.style.paddingBottom = '260px';
+
+    const logEl = document.getElementById('live-log');
+    const progressEl = document.getElementById('live-progress');
+    const phaseEl = document.getElementById('live-phase');
+    let logSince = 0;
+    let logAutoScroll = true;
+
+    logEl.addEventListener('scroll', () => {
+      const atBottom = logEl.scrollHeight - logEl.scrollTop - logEl.clientHeight < 30;
+      logAutoScroll = atBottom;
+    });
+
+    function appendLog(lines) {
+      lines.forEach(line => {
+        const div = document.createElement('div');
+        div.className = 'log-line';
+        if (line.includes('❌') || line.includes('failed') || line.includes('Error')) div.className += ' error';
+        else if (line.includes('✅') || line.includes('🏁') || line.includes('complete')) div.className += ' success';
+        else if (line.includes('⚠') || line.includes('⛔') || line.includes('☠') || line.includes('🚫')) div.className += ' warn';
+        else if (line.includes('[E]') || line.includes('NEW_AE') || line.includes('RECIST')) div.className += ' event';
+        div.textContent = line;
+        logEl.appendChild(div);
+      });
+      if (logAutoScroll && lines.length > 0) {
+        logEl.scrollTop = logEl.scrollHeight;
+      }
+    }
+
+    // Toggle collapse
+    document.getElementById('live-toggle-btn').addEventListener('click', () => {
+      livePanel.classList.toggle('collapsed');
+      const btn = document.getElementById('live-toggle-btn');
+      btn.textContent = livePanel.classList.contains('collapsed') ? '▲' : '▼';
+      document.body.style.paddingBottom = livePanel.classList.contains('collapsed') ? '36px' : '260px';
+    });
+
+    // Stop button
+    document.getElementById('live-stop-btn').addEventListener('click', async () => {
+      if (!confirm('Stop the running simulation?')) return;
+      const btn = document.getElementById('live-stop-btn');
+      btn.disabled = true;
+      btn.textContent = 'Stopping...';
+      try {
+        const resp = await fetch(`/api/sim/stop/${RUN_ID}/`, {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({delete: false}),
+        });
+        const data = await resp.json();
+        appendLog([`[UI] Stop requested: ${data.status}`]);
+      } catch(e) {
+        appendLog([`[UI] Stop failed: ${e.message}`]);
+        btn.disabled = false;
+        btn.textContent = 'Stop';
+      }
+    });
+
+    // Poll status + logs
+    let livePollInterval = setInterval(async () => {
+      try {
+        // Fetch status
+        const statusResp = await fetch(`/api/sim/status/${RUN_ID}/`);
+        const statusData = await statusResp.json();
+
+        // Update progress
+        if (statusData.meta) {
+          const meta = statusData.meta;
+          phaseEl.textContent = meta.mode ? `[${meta.mode}]` : '';
+          if (meta.progress) {
+            const prog = Object.values(meta.progress);
+            const running = prog.filter(p => p.status === 'running');
+            const done = prog.filter(p => p.status === 'done');
+            const avgDay = running.length > 0
+              ? Math.round(running.reduce((s,p) => s + (p.day || 0), 0) / running.length)
+              : '—';
+            progressEl.textContent = `${done.length} done · ${running.length} active · ~Day ${avgDay}`;
+          }
+        }
+        if (statusData.files) {
+          const n = statusData.files.natural || 0;
+          const c = statusData.files.care_ai || 0;
+          if (n > 0 || c > 0) {
+            progressEl.textContent += ` | files: ${n}N ${c}C`;
+          }
+        }
+
+        // Fetch logs
+        const logResp = await fetch(`/api/sim/log/${RUN_ID}/?since=${logSince}`);
+        const logData = await logResp.json();
+        if (logData.lines && logData.lines.length > 0) {
+          appendLog(logData.lines);
+          logSince = logData.next;
+        }
+
+        // Handle terminal states
+        if (['completed', 'cancelled'].includes(statusData.status)) {
+          liveStatus = statusData.status;
+          const titleEl = document.getElementById('live-title');
+          const dotEl = document.getElementById('live-dot');
+          titleEl.textContent = statusData.status === 'completed' ? 'COMPLETE' : 'CANCELLED';
+          titleEl.style.color = statusData.status === 'completed' ? 'var(--accent-green)' : 'var(--accent-orange)';
+          dotEl.style.animation = 'none';
+          dotEl.style.color = titleEl.style.color;
+          document.getElementById('live-stop-btn').style.display = 'none';
+          livePanel.style.borderTopColor = titleEl.style.color;
+          clearInterval(livePollInterval);
+          appendLog([`--- Simulation ${statusData.status} ---`]);
+          setTimeout(() => location.reload(), 5000);
+        } else if (statusData.status === 'failed') {
+          liveStatus = 'failed';
+          const titleEl = document.getElementById('live-title');
+          titleEl.textContent = 'FAILED';
+          titleEl.style.color = 'var(--accent-red)';
+          livePanel.style.borderTopColor = 'var(--accent-red)';
+          document.getElementById('live-stop-btn').style.display = 'none';
+          clearInterval(livePollInterval);
+          appendLog([`--- Simulation failed: ${statusData.meta?.error || 'unknown'} ---`]);
+        }
+      } catch(e) {
+        console.warn('Live poll error:', e);
+      }
+    }, 2000);
+
+    // Initial log fetch
+    (async () => {
+      try {
+        const r = await fetch(`/api/sim/log/${RUN_ID}/?since=0`);
+        const d = await r.json();
+        if (d.lines?.length > 0) { appendLog(d.lines); logSince = d.next; }
+      } catch(e) {}
+    })();
+  }
+
+  // ── View Tab Switching ──
+  document.querySelectorAll('#view-tabs button').forEach(tab => {
+    tab.addEventListener('click', function() {
+      const targetId = this.dataset.view;
+      document.querySelectorAll('#view-tabs button').forEach(t => {
+        t.classList.remove('active-cyan');
+      });
+      document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+      this.classList.add('active-cyan');
+      document.getElementById(targetId).classList.add('active');
+    });
+  });
+
+  function updateMapLocationCount(patients) {
+    const hospCount = patients.filter(p => {
+      const l = (p.location || '').toUpperCase();
+      return l === 'HOSPITAL' || l === 'OUTPATIENT' || l === 'INPATIENT';
+    }).length;
+    const homeCount = patients.length - hospCount;
+    const el = document.getElementById('map-location-count');
+    if (el) el.textContent = `🏥 ${hospCount} at Hospital · 🏠 ${homeCount} at Home`;
+  }
+
+  // ── Phone Call Popup State ──
+  let phoneAlerts = [];
+  let phoneCurrentIdx = 0;
+
+  function showPhonePopup(alerts) {
+    if (alertsMuted) return;
+    phoneAlerts = alerts;
+    phoneCurrentIdx = 0;
+    renderPhoneCard(phoneAlerts[0]);
+    const popup = document.getElementById('phone-popup');
+    popup.classList.add('visible');
+
+    const badge = document.getElementById('phone-badge');
+    if (alerts.length > 1) {
+      badge.textContent = alerts.length;
+      badge.style.display = 'flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  function renderPhoneCard(alert) {
+    const card = document.getElementById('phone-card');
+    card.className = `phone-card severity-${alert.severity}`;
+
+    const sev = document.getElementById('phone-sev');
+    sev.textContent = alert.severity.toUpperCase();
+    sev.className = `phone-sev sev-${alert.severity}`;
+
+    document.getElementById('phone-patient').textContent = alert.patient_id;
+    document.getElementById('phone-summary').textContent = alert.summary;
+
+    const actionsEl = document.getElementById('phone-actions');
+    if (alert.actions && alert.actions.length > 0) {
+      actionsEl.innerHTML = alert.actions.map(a => {
+        const action = typeof a === 'string' ? a : (a.action || '');
+        return `<span class="action-tag">${action}</span>`;
+      }).join('');
+    } else {
+      actionsEl.innerHTML = '';
+    }
+  }
+
+  document.getElementById('phone-btn-dismiss').addEventListener('click', () => {
+    phoneCurrentIdx++;
+    if (phoneCurrentIdx < phoneAlerts.length) {
+      renderPhoneCard(phoneAlerts[phoneCurrentIdx]);
+      const remaining = phoneAlerts.length - phoneCurrentIdx;
+      const badge = document.getElementById('phone-badge');
+      badge.textContent = remaining;
+      badge.style.display = remaining > 1 ? 'flex' : 'none';
+    } else {
+      document.getElementById('phone-popup').classList.remove('visible');
+    }
+  });
+
+  document.getElementById('phone-btn-view').addEventListener('click', () => {
+    const alert = phoneAlerts[phoneCurrentIdx];
+    if (alert) {
+      const p = currentPatients.find(x => x.patient_id === alert.patient_id);
+      if (p) showPatientDetail(p);
+      trialMap.highlightPatient(alert.patient_id);
+    }
+    document.getElementById('phone-popup').classList.remove('visible');
+  });
+
+  // ── Initialize Phaser Map ──
+  const trialMap = new TrialMap('game-container', currentPatients, function(pid) {
+    // Callback when patient clicked on map
+    const p = currentPatients.find(x => x.patient_id === pid);
+    if (p) showPatientDetail(p);
+    trialMap.highlightPatient(pid);
+  }, RUN_ID);
+
+  // Wire up phone call callback
+  trialMap.onPhoneCall = function(alerts) {
+    showPhonePopup(alerts);
+  };
+
+  // Set initial day (wait for Phaser to fully load tilemap)
+  setTimeout(() => {
+    trialMap.updateDay(currentDay, currentPatients);
+    trialMap.updateBubbles(currentPatients);
+    updateMapLocationCount(currentPatients);
+  }, 2000);
+
+  const slider = document.getElementById('day-slider');
+  const dayDisplay = document.getElementById('day-display');
+  const cycleDisplay = document.getElementById('cycle-display');
+  const sliderValue = document.getElementById('slider-value');
+  const eventsDay = document.getElementById('events-day');
+  const eventsList = document.getElementById('events-list');
+  const patientCards = document.getElementById('patient-cards');
+  const detailPanel = document.getElementById('patient-detail');
+  const btnPlay = document.getElementById('btn-play');
+  const btnPause = document.getElementById('btn-pause');
+  const speedSelect = document.getElementById('speed-select');
+
+  function goToDay(day) {
+    if (day < 1 || day > TOTAL_DAYS) return;
+    currentDay = day;
+    slider.value = day;
+    updateDayDisplay();
+    fetchDayData(day);
+  }
+
+  function updateDayDisplay() {
+    dayDisplay.textContent = `Day ${currentDay}`;
+    const cycle = Math.floor((currentDay - 1) / CYCLE_LENGTH) + 1;
+    const cycleDay = ((currentDay - 1) % CYCLE_LENGTH) + 1;
+    cycleDisplay.textContent = `C${cycle}D${cycleDay}`;
+    sliderValue.textContent = `${currentDay}/${TOTAL_DAYS}`;
+    eventsDay.textContent = currentDay;
+    history.replaceState(null, '', `/trial/${RUN_ID}/${currentDay}/`);
+  }
+
+  function fetchDayData(day) {
+    fetch(`/api/day/${RUN_ID}/${day}/?mode=${currentMode}&view=${currentView}`)
+      .then(r => r.json())
+      .then(data => {
+        currentPatients = data.patients;
+        currentEvents = data.events;
+        renderPatientCards(data.patients);
+        renderEvents(data.events);
+        trialMap.updateDay(currentDay, data.patients);
+        trialMap.updateBubbles(data.patients);
+        updateMapLocationCount(data.patients);
+        if (selectedPatient) {
+          const p = data.patients.find(x => x.patient_id === selectedPatient);
+          if (p) showPatientDetail(p);
+          trialMap.highlightPatient(selectedPatient);
+        }
+      });
+  }
+
+  function personaEmoji(type) {
+    const map = {
+      'stoic': '😐', 'shame_avoidant': '😐',
+      'anxious': '😰', 'hypervigilant': '😰', 'catastrophizer': '😰',
+      'positive': '😊', 'optimistic_denier': '😊',
+      'compliant': '🙂', 'minimizer': '😑',
+    };
+    return map[type] || '👤';
+  }
+
+  function renderPatientCards(patients) {
+    let html = '';
+    patients.forEach(p => {
+      const isActive = selectedPatient === p.patient_id ? ' active' : '';
+      const hasAE = p.active_aes && p.active_aes.length > 0;
+      const aeBadges = hasAE
+        ? p.active_aes.map(ae => {
+            let extra = '';
+            if (ae.detection_delay != null) extra = ` (D+${ae.detection_delay})`;
+            return `<span class="ae-badge danger">${ae.term} G${ae.grade}${extra}</span>`;
+          }).join(' ')
+        : '<span class="ae-badge safe">No AEs</span>';
+
+      const staleNote = (currentView === 'hr' && p.labs_stale_days > 0)
+        ? `<div style="font-size:0.65em;color:#d29922;margin-top:2px">Labs ${p.labs_stale_days}d old</div>`
+        : '';
+
+      const visitBadge = (currentView === 'hr' && p.is_visit_day)
+        ? '<span class="ae-badge" style="background:rgba(88,166,255,0.2);color:var(--accent-blue);border:1px solid rgba(88,166,255,0.3);font-size:0.6em">Visit</span> '
+        : '';
+
+      html += `
+        <div class="patient-card${isActive}" data-pid="${p.patient_id}" id="card-${p.patient_id}">
+          <div class="pid">${p.patient_id}</div>
+          <div class="persona-emoji">${personaEmoji(p.persona_type)}</div>
+          <div class="meta">${p.age}${p.sex} · ECOG ${p.ecog !== '?' ? p.ecog : '?'}</div>
+          ${visitBadge}${aeBadges}${staleNote}
+        </div>`;
+    });
+    patientCards.innerHTML = html;
+    bindCardClicks();
+  }
+
+  function renderEvents(events) {
+    const container = document.getElementById('events-list');
+    if (!events || events.length === 0) {
+      container.innerHTML = '<div class="no-events">No notable events — quiet day for all patients.</div>';
+      return;
+    }
+    container.innerHTML = events.map(e => {
+      let reportLink = '';
+      if ((e.type === 'ae_onset' || e.type === 'ae_worsened') && e.severity === 'high') {
+        const m = e.text.match(/^(PT-\d+):\s+(\S+)\s+.*Grade\s+(\d+)/);
+        if (m) {
+          const pid = m[1];
+          const slug = m[2].replace(/\s+/g, '_');
+          reportLink = ` <a href="/doc/${RUN_ID}/${pid}/${slug}/" style="font-size:0.8em; color:var(--accent-blue); text-decoration:none; margin-left:4px;" title="Open SAE Report">📋</a>`;
+        }
+      }
+      return `<div class="event-item event-${e.severity}"><span class="icon">${e.icon}</span> ${e.text}${reportLink}</div>`;
+    }).join('');
+  }
+
+  const modalOverlay = document.getElementById('patient-modal-overlay');
+  const modalClose = document.getElementById('patient-modal-close');
+
+  modalClose.addEventListener('click', () => {
+    modalOverlay.classList.remove('visible');
+  });
+  modalOverlay.addEventListener('click', (e) => {
+    if (e.target === modalOverlay) modalOverlay.classList.remove('visible');
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && modalOverlay.classList.contains('visible')) {
+      modalOverlay.classList.remove('visible');
+    }
+  });
+
+  function showPatientDetail(p) {
+    selectedPatient = p.patient_id;
+    modalOverlay.classList.add('visible');
+
+    document.querySelectorAll('.patient-card').forEach(c => c.classList.remove('active'));
+    const card = document.getElementById(`card-${p.patient_id}`);
+    if (card) card.classList.add('active');
+    trialMap.highlightPatient(p.patient_id);
+
+    modalViewMode = currentView;
+    syncModalToggle(modalViewMode);
+
+    // Header
+    document.getElementById('detail-name').textContent = `${p.patient_id} — ${p.age}${p.sex}, ${p.persona_type}`;
+    document.getElementById('detail-persona').textContent = p.persona_desc || '';
+    document.getElementById('detail-link').href = `/patient/${RUN_ID}/${p.patient_id}/${currentDay}/?mode=${currentMode}&view=${currentView}`;
+
+    const tumorEl = document.getElementById('detail-tumor');
+    const tp = p.tumor_change_pct;
+    if (tp !== undefined && tp !== null) {
+      tumorEl.textContent = `${tp > 0 ? '+' : ''}${tp.toFixed(1)}%`;
+      tumorEl.style.color = tp > 20 ? 'var(--accent-red)' : tp > 0 ? 'var(--accent-orange)' : 'var(--accent-green)';
+    } else { tumorEl.textContent = '—'; tumorEl.style.color = ''; }
+
+    renderModalDetail(p, modalViewMode);
+
+    // Care AI chat
+    renderCareChat(p.care_record);
+
+    // Mood state
+    renderMoodBars(p.mood);
+
+    // Render AEs according to current view mode
+    renderPatientAEs(p, currentView);
+  }
+
+  // ── Care AI Chat Renderer ──
+  function renderCareChat(cr) {
+    const el = document.getElementById('detail-care');
+    if (!cr) {
+      el.innerHTML = '<em style="color:var(--text-muted); font-size:0.85em">No video call today</em>';
+      return;
+    }
+    const sevClass = 'sev-' + (cr.severity_level || 'green');
+    let html = `<div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+      <span class="severity-badge ${sevClass}">${(cr.severity_level || 'green').toUpperCase()}</span>
+      ${cr.terminated_early ? '<span style="color:var(--accent-orange); font-size:0.78em">⚡ Early end</span>' : ''}
+    </div><div class="care-chat">`;
+    (cr.turns || []).forEach(t => {
+      const isP = t.role === 'patient';
+      const cls = isP ? 'chat-patient' : 'chat-nurse';
+      const c = t.content || {};
+      let text = '';
+      if (isP && t.turn === 1) {
+        text = c.greeting || '';
+        (c.reported_symptoms || []).forEach(s => {
+          text += `<br>• ${s.symptom || s} <span style="color:var(--text-muted)">(${s.severity_perception || '?'})</span>`;
+        });
+        if ((c.omitted_symptoms || []).length) {
+          text += `<br><span style="color:var(--accent-red); font-size:0.82em">🙈 Hiding: ${c.omitted_symptoms.join(', ')}</span>`;
+        }
+        if ((c.video_visible || []).length) {
+          text += `<br><span style="color:var(--accent-purple); font-size:0.82em">👁 Visible: ${c.video_visible.join(', ')}</span>`;
+        }
+      } else if (!isP && t.turn === 2) {
+        text = c.acknowledgment || '';
+        (c.questions || []).forEach(q => {
+          text += `<br><span style="color:var(--accent-blue)">❓</span> ${q.question}`;
+        });
+      } else if (isP && t.turn === 3) {
+        (c.responses || []).forEach(r => {
+          text += (r.answer || JSON.stringify(r).substring(0, 100)) + '<br>';
+        });
+        if (c.new_info_revealed) text += '<span style="color:var(--accent-green); font-size:0.82em">💡 New info revealed</span>';
+      } else if (!isP && t.turn === 4) {
+        text = (c.assessment || {}).summary || '';
+        (c.actions || []).forEach(a => {
+          text += `<br><span class="action-tag">${a.action}</span> ${a.reason || ''}`;
+        });
+      }
+      if (!text) text = JSON.stringify(c).substring(0, 200);
+      html += `<div class="chat-bubble ${cls}"><div class="chat-role">${isP ? '👤 Patient' : '🩺 Nurse'} (T${t.turn})</div><div>${text}</div></div>`;
+    });
+    html += '</div>';
+    if (cr.actions && cr.actions.length) {
+      html += '<div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:4px;">';
+      cr.actions.forEach(a => { html += `<span class="action-tag">${a.action}</span>`; });
+      html += '</div>';
+    }
+    el.innerHTML = html;
+  }
+
+  // ── Mood Bars Renderer ──
+  function renderMoodBars(mood) {
+    const el = document.getElementById('detail-mood');
+    if (!mood || Object.keys(mood).length === 0) {
+      el.innerHTML = '<em style="color:var(--text-muted); font-size:0.85em">No mood data</em>'; return;
+    }
+    const dims = [
+      {key:'anxiety',label:'Anxiety'}, {key:'depression',label:'Depress'},
+      {key:'irritability',label:'Irritab'}, {key:'energy',label:'Energy'},
+      {key:'cognitive_clarity',label:'Clarity'}, {key:'trust_in_ai',label:'Trust'},
+      {key:'defensiveness',label:'Defense'},
+    ];
+    const positive = new Set(['energy','cognitive_clarity','trust_in_ai']);
+    let html = '';
+    dims.forEach(d => {
+      const val = mood[d.key]; if (val === undefined) return;
+      const pct = (val * 100).toFixed(0);
+      const barColor = positive.has(d.key)
+        ? (val > 0.6 ? '#2ecc71' : val > 0.3 ? '#f39c12' : '#e74c3c')
+        : (val > 0.6 ? '#e74c3c' : val > 0.3 ? '#f39c12' : '#2ecc71');
+      html += `<div class="mood-row"><span class="mood-label">${d.label}</span><div class="mood-track"><div class="mood-fill" style="width:${pct}%;background:${barColor}"></div></div><span class="mood-val">${val.toFixed(2)}</span></div>`;
+    });
+    el.innerHTML = html;
+  }
+
+  // ── Mode Toggle ──
+  document.querySelectorAll('#mode-toggle button').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const newMode = this.dataset.mode;
+      if (newMode === currentMode) return;
+      currentMode = newMode;
+      const url = new URL(window.location);
+      url.searchParams.set('mode', newMode);
+      window.location.href = url.toString();
+    });
+  });
+
+  // ── Global View Toggle (GT vs Hospital Record) ──
+  document.querySelectorAll('#view-toggle button').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const newView = this.dataset.view;
+      if (newView === currentView) return;
+      currentView = newView;
+      document.querySelectorAll('#view-toggle button').forEach(b => {
+        b.classList.remove('active-amber', 'active-cyan');
+      });
+      this.classList.add(newView === 'hr' ? 'active-amber' : 'active-cyan');
+      const url = new URL(window.location);
+      url.searchParams.set('view', newView);
+      history.replaceState(null, '', url.toString());
+      fetchDayData(currentDay);
+    });
+  });
+
+  // ── Alert Mute Toggle ──
+  window.toggleAlertMute = toggleAlertMute;
+  function toggleAlertMute() {
+    alertsMuted = !alertsMuted;
+    const toggle = document.getElementById('alertMuteToggle');
+    const icon = document.getElementById('alertMuteIcon');
+    const label = document.getElementById('alertMuteLabel');
+    if (alertsMuted) {
+      toggle.classList.add('muted');
+      icon.textContent = '🔕';
+      label.textContent = 'OFF';
+    } else {
+      toggle.classList.remove('muted');
+      icon.textContent = '🔔';
+      label.textContent = 'ON';
+    }
+    if (alertsMuted) {
+      document.getElementById('phone-popup').classList.remove('visible');
+    }
+  }
+
+  // ── Record View Toggle (GT vs Hospital) — detail panel ──
+  function syncModalToggle(view) {
+    document.querySelectorAll('#record-view-toggle button').forEach(b => {
+      b.classList.remove('active-amber', 'active-cyan');
+    });
+    const btn = document.querySelector(`#record-view-toggle button[data-view="${view}"]`);
+    if (btn) btn.classList.add(view === 'hr' ? 'active-amber' : 'active-cyan');
+    const hint = document.getElementById('modal-view-hint');
+    if (hint) hint.textContent = view === 'hr' ? 'Only hospital-observed data' : 'Full ground truth';
+  }
+
+  let modalViewMode = currentView;
+
+  document.querySelectorAll('#record-view-toggle button').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const view = this.dataset.view;
+      modalViewMode = view;
+      syncModalToggle(view);
+      if (selectedPatient) {
+        const p = currentPatients.find(x => x.patient_id === selectedPatient);
+        if (p) renderModalDetail(p, view);
+      }
+    });
+  });
+
+  function renderModalDetail(p, viewMode) {
+    const hr = p.hospital_record || {};
+    const hrObj = hr.objective || {};
+
+    // ── AEs ──
+    const aeList = document.getElementById('detail-aes');
+    let aes;
+    if (viewMode === 'hr' && hr) {
+      aes = hrObj.active_aes || [];
+    } else {
+      aes = p.active_aes || [];
+    }
+    if (aes.length > 0) {
+      aeList.innerHTML = aes.map(ae => {
+        const g = ae.grade || ae._grade || '?';
+        const term = ae.term || ae.ae || ae.AETERM || '?';
+        const days = ae.days_active || ae._days_active || '?';
+        return `<li><span class="grade grade-${g}">G${g}</span> <span>${term}</span> <span class="ae-dur">${days}d</span></li>`;
+      }).join('');
+    } else {
+      aeList.innerHTML = `<li style="color:var(--text-muted)">No active AEs</li>`;
+    }
+    if (viewMode !== 'hr' && hr) {
+      const hrAes = hrObj.active_aes || [];
+      const gtCount = (p.active_aes || []).length;
+      const hrCount = hrAes.length;
+      if (gtCount > hrCount) {
+        aeList.innerHTML += `<li style="color:var(--accent-orange);font-size:0.82em;border-top:1px dashed var(--border);padding-top:6px;">🏥 Hospital: ${hrCount}/${gtCount} AEs detected</li>`;
+      }
+    }
+
+    // ── Labs ──
+    const labGrid = document.getElementById('detail-labs');
+    let labs;
+    if (viewMode === 'hr' && hrObj.labs) {
+      labs = {};
+      for (const [n, info] of Object.entries(hrObj.labs)) {
+        const val = typeof info === 'object' ? (info.value ?? '—') : info;
+        const trend = typeof info === 'object' ? (info.trend || '') : '';
+        labs[n] = {val, trend};
+      }
+    } else {
+      labs = {};
+      for (const [n, v] of Object.entries(p.labs || {})) {
+        labs[n] = {val: v, trend: ''};
+      }
+    }
+    const staleDays = viewMode === 'hr' ? (hrObj.labs_stale_days || 0) : 0;
+    let labHtml = '';
+    if (staleDays > 0) {
+      labHtml += `<div style="grid-column:1/-1;font-size:0.72em;color:#d29922;margin-bottom:4px;">Labs ${staleDays}d old</div>`;
+    }
+    labHtml += Object.entries(labs).map(([n, o]) => {
+      const tIcon = o.trend.includes('decrease') ? '↓' : o.trend.includes('increase') ? '↑' : '';
+      const tColor = o.trend.includes('decrease') ? '#3498db' : o.trend.includes('increase') ? '#e74c3c' : '';
+      const tHtml = tIcon ? `<span style="font-size:0.78em;color:${tColor};margin-left:3px;">${tIcon}</span>` : '';
+      return `<div class="lab-item"><span class="lab-name">${n}</span><span class="lab-val">${o.val !== null ? o.val : '—'}${tHtml}</span></div>`;
+    }).join('');
+    labGrid.innerHTML = labHtml || '<div style="color:var(--text-muted);font-size:0.82em;">No labs</div>';
+
+    // ── Vitals ──
+    const vitalGrid = document.getElementById('detail-vitals');
+    let vitals;
+    if (viewMode === 'hr' && hrObj.vitals) {
+      const hv = hrObj.vitals;
+      vitals = { temp: hv.BT, bp: `${hv.SBP ?? '?'}/${hv.DBP ?? '?'}`, hr: hv.HR, spo2: hv.SpO2, rr: hv.RR, weight: hv.weight_kg };
+    } else {
+      vitals = p.vitals || {};
+    }
+    const vSD = viewMode === 'hr' ? (hrObj.vitals_stale_days || 0) : 0;
+    let vHtml = '';
+    if (vSD > 0) {
+      vHtml += `<div style="grid-column:1/-1;font-size:0.72em;color:#d29922;margin-bottom:4px;">⚠ Vitals ${vSD}d old</div>`;
+    }
+    vHtml += `
+      <div class="lab-item"><span class="lab-name">Temp</span><span class="lab-val">${vitals.temp || '—'}°C</span></div>
+      <div class="lab-item"><span class="lab-name">BP</span><span class="lab-val">${vitals.bp || '—'}</span></div>
+      <div class="lab-item"><span class="lab-name">HR</span><span class="lab-val">${vitals.hr || '—'} bpm</span></div>
+      <div class="lab-item"><span class="lab-name">SpO2</span><span class="lab-val">${vitals.spo2 || '—'}%</span></div>
+      <div class="lab-item"><span class="lab-name">RR</span><span class="lab-val">${vitals.rr || '—'}/min</span></div>
+      <div class="lab-item"><span class="lab-name">Weight</span><span class="lab-val">${vitals.weight || '—'} kg</span></div>
+    `;
+    vitalGrid.innerHTML = vHtml;
+
+    // ── Subjective ──
+    const subjEl = document.getElementById('detail-subjective');
+    let awareness, symptoms;
+    if (viewMode === 'hr') {
+      const hrSubj = hr.subjective || {};
+      awareness = (hrSubj.overall_awareness || 'UNKNOWN').toUpperCase();
+      symptoms = hrSubj.symptoms_patient_perceives || [];
+    } else {
+      awareness = (p.awareness || 'UNAWARE').toUpperCase();
+      symptoms = p.symptoms_perceived || [];
+    }
+    const awCls = awareness.includes('DISTRESS') ? 'aw-distressed' : awareness.includes('CONCERN') ? 'aw-concerned' : awareness.includes('NOTIC') ? 'aw-noticed' : 'aw-unaware';
+    if (symptoms.length > 0) {
+      let html = `<div class="subj-awareness ${awCls}">${awareness}</div>`;
+      symptoms.forEach(s => {
+        const sym = typeof s === 'string' ? s : s.symptom;
+        const expr = typeof s === 'object' ? s.verbal_expression : null;
+        html += `<div class="subj-symptom">• ${sym}</div>`;
+        if (expr) html += `<div class="subj-quote">"${expr}"</div>`;
+      });
+      subjEl.innerHTML = html;
+    } else {
+      subjEl.innerHTML = `<div class="subj-awareness ${awCls}">${awareness}</div><em style="color:var(--text-muted); font-size:0.85em">No symptoms perceived</em>`;
+    }
+
+    // ── Status chips ──
+    if (viewMode === 'hr') {
+      document.getElementById('detail-location').textContent = hrObj.location || p.location || '—';
+      document.getElementById('detail-treatment').textContent = hrObj.treatment_status || p.treatment_status || '—';
+      document.getElementById('detail-ecog').textContent = hrObj.ecog ?? p.ecog ?? '—';
+    } else {
+      document.getElementById('detail-location').textContent = p.location || '—';
+      document.getElementById('detail-treatment').textContent = p.treatment_status || '—';
+      document.getElementById('detail-ecog').textContent = p.ecog !== undefined && p.ecog !== null ? p.ecog : '—';
+    }
+  }
+
+  function bindCardClicks() {
+    document.querySelectorAll('.patient-card').forEach(card => {
+      card.addEventListener('click', function() {
+        const pid = this.dataset.pid;
+        const p = currentPatients.find(x => x.patient_id === pid);
+        if (p) showPatientDetail(p);
+      });
+    });
+  }
+  bindCardClicks();
+
+  slider.addEventListener('input', function() { currentDay = parseInt(this.value); updateDayDisplay(); });
+  slider.addEventListener('change', function() { goToDay(parseInt(this.value)); });
+
+  document.getElementById('btn-prev').addEventListener('click', () => { stopAutoPlay(); goToDay(currentDay - 1); });
+  document.getElementById('btn-next').addEventListener('click', () => { stopAutoPlay(); goToDay(currentDay + 1); });
+  btnPlay.addEventListener('click', startAutoPlay);
+  btnPause.addEventListener('click', stopAutoPlay);
+
+  speedSelect.addEventListener('change', function() {
+    playSpeed = parseInt(this.value);
+    if (autoPlaying) { stopAutoPlay(); startAutoPlay(); }
+  });
+
+  let _autoPlayAbort = null;
+
+  async function startAutoPlay() {
+    if (currentDay >= TOTAL_DAYS) return;
+    autoPlaying = true;
+    _autoPlayAbort = new AbortController();
+    btnPlay.style.display = 'none';
+    btnPause.style.display = 'inline-block';
+    btnPlay.textContent = '⏸ Pause';
+
+    const baseDelay = Math.max(200, 1000 / playSpeed);
+
+    for (let day = currentDay + 1; day <= TOTAL_DAYS; day++) {
+      if (!autoPlaying) break;
+      try {
+        const resp = await fetch(
+          `/api/day/${RUN_ID}/${day}/?mode=${currentMode}&view=${currentView}`,
+          { signal: _autoPlayAbort.signal }
+        );
+        if (!resp.ok) break;
+        const data = await resp.json();
+
+        currentDay = data.day;
+        currentPatients = data.patients;
+        currentEvents = data.events;
+        slider.value = currentDay;
+        updateDayDisplay();
+        renderPatientCards(data.patients);
+        renderEvents(data.events);
+
+        // Wait for animations to finish before advancing
+        const animPromise = trialMap.updateDay(currentDay, data.patients);
+        trialMap.updateBubbles(data.patients);
+        updateMapLocationCount(data.patients);
+        if (selectedPatient) {
+          const p = data.patients.find(x => x.patient_id === selectedPatient);
+          if (p) showPatientDetail(p);
+          trialMap.highlightPatient(selectedPatient);
+        }
+
+        // Wait for: animation completion + minimum base delay
+        await Promise.all([
+          animPromise,
+          new Promise(r => setTimeout(r, baseDelay)),
+        ]);
+      } catch (e) {
+        if (e.name === 'AbortError') break;
+        console.warn('Auto-play fetch error:', e);
+        break;
+      }
+    }
+    stopAutoPlay();
+  }
+
+  function stopAutoPlay() {
+    autoPlaying = false;
+    if (_autoPlayAbort) { _autoPlayAbort.abort(); _autoPlayAbort = null; }
+    btnPlay.style.display = 'inline-block';
+    btnPause.style.display = 'none';
+    btnPlay.textContent = '▶ Play';
+  }
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'ArrowRight') { stopAutoPlay(); goToDay(currentDay + 1); }
+    if (e.key === 'ArrowLeft') { stopAutoPlay(); goToDay(currentDay - 1); }
+    if (e.key === ' ') { e.preventDefault(); autoPlaying ? stopAutoPlay() : startAutoPlay(); }
+  });
+})();
+</script>
+{% endblock %}

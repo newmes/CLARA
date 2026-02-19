@@ -1,0 +1,66 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "oral_iv_combination.json",
+  "title": "Rule Set — Oral + IV Combination Therapy",
+  "description": "경구 + 정맥주사 병용요법 (e.g., CapeOx, XELIRI). 각 약물이 서로 다른 route를 가짐.",
+  "_examples": [
+    "CapeOx: Capecitabine (PO BID D1-14) + Oxaliplatin (IV D1) Q3W (대장암)",
+    "XELIRI: Capecitabine (PO BID D1-14) + Irinotecan (IV D1) Q3W (대장암)",
+    "Lenvatinib (PO QD) + Pembrolizumab (IV Q3W) (자궁내막암, 신세포암)",
+    "Tucatinib (PO BID) + Trastuzumab (IV Q3W) + Capecitabine (PO BID D1-14) (유방암 HER2+)"
+  ],
+  "_differs_from_base": [
+    "administration_schedule에 route가 혼합: ORAL + INTRAVENOUS",
+    "ORAL 항목에는 daily_dosing_schedule 추가, infusion_duration_minutes 불필요",
+    "INTRAVENOUS 항목에는 infusion_duration_minutes 필수",
+    "drug_interaction_rules 추가 (선택): 경구+IV 병용 시 약물 상호작용 규칙"
+  ],
+
+  "allOf": [
+    { "$ref": "base.json" },
+    {
+      "properties": {
+        "administration_schedule": {
+          "minItems": 2,
+          "items": {
+            "oneOf": [
+              {
+                "properties": {
+                  "route": { "const": "INTRAVENOUS" },
+                  "infusion_duration_minutes": { "type": "number" }
+                },
+                "required": ["infusion_duration_minutes"]
+              },
+              {
+                "properties": {
+                  "route": { "const": "ORAL" },
+                  "daily_dosing_schedule": {
+                    "type": "string",
+                    "enum": ["QD", "BID", "TID"]
+                  },
+                  "continuous_days_per_cycle": {
+                    "type": ["integer", "null"]
+                  }
+                },
+                "required": ["daily_dosing_schedule"]
+              }
+            ]
+          }
+        },
+        "drug_interaction_rules": {
+          "type": "array",
+          "description": "(선택) 병용 약물 간 상호작용이 AE 위험에 미치는 영향.",
+          "items": {
+            "type": "object",
+            "properties": {
+              "drug_a":    { "type": "string" },
+              "drug_b":    { "type": "string" },
+              "effect_on": { "type": "string" },
+              "multiplier": { "type": "number" }
+            }
+          }
+        }
+      }
+    }
+  ]
+}
