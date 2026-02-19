@@ -24,6 +24,7 @@ from src.engine.mood import MoodState
 from src.engine.observation import ObservationModel, compute_detection_delay_summary
 from src.logger import get_logger, log_event, log_summary, init_logging
 from src.crf_mapper import map_day_record, map_patient_record
+from src.hospital_record_mapper import extract_hospital_record
 _print_lock = threading.Lock()
 _logger = get_logger('orchestrator')
 
@@ -49,6 +50,15 @@ def _get_cycle_info(day, cycle_length):
     return (cycle, cycle_day)
 
 
+def _find_last_hospital_record(day_results: list[dict]) -> dict | None:
+    """day_results에서 가장 최근 병원 방문일의 hospital_record를 역순 검색."""
+    for dr in reversed(day_results):
+        hr = dr.get("hospital_record")
+        if hr and isinstance(hr, dict) and hr.get("objective"):
+            return hr
+    return None
+
+
 class SimulationRunnerV2:
     '''3-Phase 확률적 시뮬레이션 러너.
 
@@ -64,7 +74,82 @@ class SimulationRunnerV2:
         self.max_retries = max_retries
         self.seed = seed
         self.rule_set = None
+        self._progress = {}  # {patient_id: {day, total_days, status}}
+        self._cancelled = False
+        self._log_lines: list[str] = []
+        self._log_max = 500  # keep last N lines in memory
         init_logging(run_name=f'''{drug_name.replace(' ', '_')}_{indication.replace(' ', '_')}''')
+
+    def cancel(self):
+        """Signal the simulation to stop."""
+        self._cancelled = True
+
+    @property
+    def is_cancelled(self):
+        return self._cancelled
+
+    def log(self, msg: str):
+        """Append a log message to the in-memory buffer and log file."""
+        from datetime import datetime
+        ts = datetime.now().strftime("%H:%M:%S")
+        line = f"[{ts}] {msg}"
+        self._log_lines.append(line)
+        if len(self._log_lines) > self._log_max:
+            self._log_lines = self._log_lines[-self._log_max:]
+        # Also write to disk log
+        log_path = self.data_dir / "sim_log.txt"
+        try:
+            with open(log_path, "a", encoding="utf-8") as f:
+                f.write(line + "\n")
+        except Exception:
+            pass
+
+    def get_log(self, since: int = 0) -> list[str]:
+        """Return log lines from index `since`."""
+        return self._log_lines[since:]
+
+    def write_run_meta(self, n_patients: int, total_days: int, mode: str,
+                       status: str = 'running', extra: dict | None = None):
+        """Write/update run_meta.json for live status tracking."""
+        from datetime import datetime
+        meta_path = self.data_dir / 'run_meta.json'
+        meta = {}
+        if meta_path.exists():
+            try:
+                meta = json.loads(meta_path.read_text(encoding='utf-8'))
+            except Exception:
+                pass
+        meta.update({
+            'drug_name': self.drug_name,
+            'indication': self.indication,
+            'n_patients': n_patients,
+            'total_days': total_days,
+            'mode': mode,
+            'status': status,
+            'model': self.model,
+            'seed': self.seed,
+            'updated_at': datetime.now().isoformat(),
+            'progress': dict(self._progress),
+        })
+        if status == 'running' and 'started_at' not in meta:
+            meta['started_at'] = datetime.now().isoformat()
+        if status == 'completed' and 'completed_at' not in meta:
+            meta['completed_at'] = datetime.now().isoformat()
+        if extra:
+            meta.update(extra)
+        meta_path.write_text(
+            json.dumps(meta, indent=2, ensure_ascii=False), encoding='utf-8')
+
+    def update_progress(self, patient_id: str, day: int, total_days: int,
+                        status: str = 'running'):
+        """Update progress for a patient (called per-day)."""
+        self._progress[patient_id] = {
+            'day': day, 'total_days': total_days, 'status': status,
+        }
+        # Write meta periodically (every 10 days to avoid I/O overhead)
+        if day % 10 == 0 or day == 1 or day == total_days or status != 'running':
+            n_patients = len(self._progress)
+            self.write_run_meta(n_patients, total_days, 'mixed', 'running')
 
     def discover_rules(self):
         '''Rule Agent: 약물/적응증의 시뮬레이션 규칙을 발견한다.'''
@@ -99,25 +184,39 @@ class SimulationRunnerV2:
         from src.agents.patient_agent import generate_patient
         from src.engine.sampler import Sampler
 
+        generated_count = [0]
+
         def _gen_one(i):
+            if self._cancelled:
+                return None
             patient_seed = (self.seed or 0) + i
             sampler = Sampler(seed=patient_seed)
             patient = generate_patient(self.rule_set, i, n, sampler, self.model)
             cdash_patient = map_patient_record(patient)
             out_path = save_dir / f'''{cdash_patient['patient_id']}.json'''
             out_path.write_text(json.dumps(cdash_patient, indent=2, ensure_ascii=False), encoding='utf-8')
+            generated_count[0] += 1
+            pid = cdash_patient.get('patient_id', f'PT-{i:03d}')
+            age = cdash_patient.get('emr', {}).get('demographics', {}).get('age', '?')
+            sex = cdash_patient.get('emr', {}).get('demographics', {}).get('sex', '?')
+            self.log(f"👤 Generated {pid} ({age}{sex}) [{generated_count[0]}/{n}]")
             return cdash_patient
 
         actual_workers = min(max_workers, n)
+        self.log(f"Phase 1: Generating {n} patients ({actual_workers} workers)")
         t0 = time.time()
         patients = [None] * n
         with ThreadPoolExecutor(max_workers=actual_workers) as pool:
             futures = {pool.submit(_gen_one, i): i for i in range(1, n + 1)}
             for future in as_completed(futures):
                 idx = futures[future]
-                patients[idx - 1] = future.result()
+                result = future.result()
+                if result is not None:
+                    patients[idx - 1] = result
+        patients = [p for p in patients if p is not None]
         elapsed = time.time() - t0
-        print(f'''  {n} patients generated in {elapsed:.1f}s ({elapsed / n:.1f}s/patient)''')
+        self.log(f"✅ {len(patients)} patients generated in {elapsed:.1f}s")
+        print(f'''  {len(patients)} patients generated in {elapsed:.1f}s ({elapsed / max(len(patients),1):.1f}s/patient)''')
         return patients
 
     def run_natural(self, patient, total_days, save=True):
@@ -152,13 +251,19 @@ class SimulationRunnerV2:
         admin_cycle_days = sorted(all_admin_days)
         day_results = []
         sim_path = self.data_dir / 'simulations' / f'''{pid}_natural.jsonl'''
+        hr_path = self.data_dir / 'simulations' / f'''{pid}_natural_hospital.jsonl'''
         if save:
             sim_path.parent.mkdir(parents=True, exist_ok=True)
             sim_path.write_text('', encoding='utf-8')
+            hr_path.write_text('', encoding='utf-8')
         llm_calls = 0
         quiet_days = 0
 
         for day in range(1, total_days + 1):
+            if self._cancelled:
+                self.log(f"⛔ {pid} — Cancelled at Day {day}")
+                break
+
             cycle, cycle_day = _get_cycle_info(day, cycle_length)
             is_hospital = _is_hospital_day(day, cycle_length, admin_cycle_days)
             is_admin_day = simulator.is_administration_day(cycle_day)
@@ -201,8 +306,14 @@ class SimulationRunnerV2:
                 cdash_record = map_day_record(day_result, patient)
                 with open(sim_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(cdash_record, ensure_ascii=False) + "\n")
+                # Hospital-only record
+                hr_record = extract_hospital_record(cdash_record)
+                with open(hr_path, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(hr_record, ensure_ascii=False) + "\n")
 
-            # 통계 추적
+            self.update_progress(pid, day, total_days)
+
+            # 통계 추적 + 로그
             mode = day_result.get("_generation_mode", "?")
             aes = day_result.get("objective", {}).get("active_aes", [])
             ae_str = ", ".join(f'''{a.get('ae', '')} G{a.get('grade', '?')}''' for a in aes) if aes else "none"
@@ -216,7 +327,10 @@ class SimulationRunnerV2:
             ecog = day_result.get("objective", {}).get("ecog", "?")
             mort_risk = day_result.get("_mortality_risk", 0)
             extra_info = f" mort={mort_risk:.3f}" if mort_risk > 0.001 else ""
-            print(f'''  Day {day:3d} C{cycle}D{cycle_day:2d} {mode_tag} [{location}] AE:[{ae_str}] ECOG:{ecog}{extra_info} {events_str}''')
+            day_log = f'''{pid} Day {day:3d} C{cycle}D{cycle_day:2d} {mode_tag} [{location}] AE:[{ae_str}] ECOG:{ecog}{extra_info} {events_str}'''
+            print(f"  {day_log}")
+            if events_str or day == 1 or day % 21 == 0:
+                self.log(day_log)
 
             # 사망/중도탈락 처리
             ds = day_result.get("ds_record")
@@ -260,6 +374,9 @@ class SimulationRunnerV2:
                             cdash_fu = map_day_record(fu_result, patient)
                             with open(sim_path, "a", encoding="utf-8") as f:
                                 f.write(json.dumps(cdash_fu, ensure_ascii=False) + "\n")
+                            hr_fu = extract_hospital_record(cdash_fu)
+                            with open(hr_path, "a", encoding="utf-8") as f:
+                                f.write(json.dumps(hr_fu, ensure_ascii=False) + "\n")
                         # follow-up 중 사망 체크
                         if fu_result.get("objective", {}).get("location") == "DECEASED":
                             print(f"  ✖ Patient deceased during follow-up on Day {fu_day}")
@@ -302,9 +419,11 @@ class SimulationRunnerV2:
         admin_cycle_days = sorted(all_admin_days)
         day_results = []
         sim_path = self.data_dir / 'simulations' / f'''{pid}_care_ai.jsonl'''
+        hr_path = self.data_dir / 'simulations' / f'''{pid}_care_ai_hospital.jsonl'''
         if save:
             sim_path.parent.mkdir(parents=True, exist_ok=True)
             sim_path.write_text('', encoding='utf-8')
+            hr_path.write_text('', encoding='utf-8')
         llm_calls = 0
         quiet_days = 0
         care_interventions = 0
@@ -330,6 +449,7 @@ class SimulationRunnerV2:
             # Care AI 영상통화 (매일)
             care_result = care_agent.conduct_video_call(
                 day=day, day_result=day_result, day_results=day_results,
+                last_hospital_record=_find_last_hospital_record(day_results),
             )
             day_result["care_record"] = [care_result]
 
@@ -376,6 +496,9 @@ class SimulationRunnerV2:
                 cdash_record = map_day_record(day_result, patient)
                 with open(sim_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(cdash_record, ensure_ascii=False) + "\n")
+                hr_record = extract_hospital_record(cdash_record)
+                with open(hr_path, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(hr_record, ensure_ascii=False) + "\n")
 
             # 통계 추적
             mode = day_result.get("_generation_mode", "?")
@@ -413,6 +536,7 @@ class SimulationRunnerV2:
                         )
                         fu_care = care_agent.conduct_video_call(
                             day=fu_day, day_result=fu_result, day_results=day_results,
+                            last_hospital_record=_find_last_hospital_record(day_results),
                         )
                         fu_result["care_record"] = [fu_care]
                         day_results.append(fu_result)
@@ -420,6 +544,9 @@ class SimulationRunnerV2:
                             cdash_fu = map_day_record(fu_result, patient)
                             with open(sim_path, "a", encoding="utf-8") as f:
                                 f.write(json.dumps(cdash_fu, ensure_ascii=False) + "\n")
+                            hr_fu = extract_hospital_record(cdash_fu)
+                            with open(hr_path, "a", encoding="utf-8") as f:
+                                f.write(json.dumps(hr_fu, ensure_ascii=False) + "\n")
                         if fu_result.get("objective", {}).get("location") == "DECEASED":
                             print(f"  ✖ Patient deceased during follow-up on Day {fu_day}")
                             break
@@ -545,14 +672,21 @@ class SimulationRunnerV2:
         admin_cycle_days = sorted(all_admin_days)
         day_results = []
         sim_path = self.data_dir / 'simulations' / f'''{pid}_{mode}.jsonl'''
+        hr_path = self.data_dir / 'simulations' / f'''{pid}_{mode}_hospital.jsonl'''
         if save:
             sim_path.parent.mkdir(parents=True, exist_ok=True)
             sim_path.write_text('', encoding='utf-8')
+            hr_path.write_text('', encoding='utf-8')
         force_hospital_tomorrow = False
         last_forced_hospital_day = -999
         HOSPITAL_COOLDOWN_DAYS = 3
 
         for day in range(1, total_days + 1):
+            if self._cancelled:
+                lines.append(f"  ⛔ {pid} — Cancelled at Day {day}")
+                self.log(f"⛔ {pid} — Cancelled at Day {day}")
+                break
+
             cycle, cycle_day = _get_cycle_info(day, cycle_length)
             is_hospital = _is_hospital_day(day, cycle_length, admin_cycle_days)
             is_admin_day = simulator.is_administration_day(cycle_day)
@@ -570,6 +704,7 @@ class SimulationRunnerV2:
             if care_agent:
                 care_result = care_agent.conduct_video_call(
                     day=day, day_result=day_result, day_results=day_results,
+                    last_hospital_record=_find_last_hospital_record(day_results),
                 )
                 day_result["care_record"] = [care_result]
                 if care_result.get("recommend_early_visit"):
@@ -615,17 +750,36 @@ class SimulationRunnerV2:
                 cdash_record = map_day_record(day_result, patient)
                 with open(sim_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(cdash_record, ensure_ascii=False) + "\n")
+                hr_record = extract_hospital_record(cdash_record)
+                with open(hr_path, "a", encoding="utf-8") as f:
+                    f.write(json.dumps(hr_record, ensure_ascii=False) + "\n")
+
+            # 로그 (이벤트 있는 날만)
+            events_str = day_result.get("_events_summary", "")
+            gen_mode = day_result.get("_generation_mode", "?")
+            aes = day_result.get("objective", {}).get("active_aes", [])
+            ae_str = ", ".join(f'''{a.get('ae', '')} G{a.get('grade', '?')}''' for a in aes) if aes else ""
+            ecog = day_result.get("objective", {}).get("ecog", "?")
+            if events_str or day == 1 or day % 21 == 0:
+                tag = "[Q]" if gen_mode == "quiet" else "[E]"
+                log_msg = f"{pid} Day {day} C{cycle}D{cycle_day} {tag} AE:[{ae_str}] ECOG:{ecog}"
+                if events_str:
+                    log_msg += f" {events_str}"
+                self.log(log_msg)
+            self.update_progress(pid, day, total_days)
 
             # 사망/중도탈락 처리
             location = day_result.get("objective", {}).get("location", "?")
             ds = day_result.get("ds_record")
 
             if location == "DECEASED":
+                self.log(f"☠ {pid} — Deceased on Day {day}")
                 lines.append(f"  ✖ Deceased on Day {day}")
                 break
 
             if ds and ds.get("DSDECOD") not in ("DEATH",):
                 dsdecod = ds.get("DSDECOD", "?")
+                self.log(f"🚫 {pid} — Discontinued ({dsdecod}) on Day {day}")
                 lines.append(f"  ✖ Discontinued: {dsdecod} on Day {day}")
                 remaining = total_days - day
                 if remaining > 0:
@@ -640,6 +794,7 @@ class SimulationRunnerV2:
                         if care_agent:
                             fu_care = care_agent.conduct_video_call(
                                 day=fu_day, day_result=fu_result, day_results=day_results,
+                                last_hospital_record=_find_last_hospital_record(day_results),
                             )
                             fu_result["care_record"] = [fu_care]
                         else:
@@ -673,10 +828,12 @@ class SimulationRunnerV2:
         '''
         n = len(patients)
         actual_workers = min(max_workers, n)
+        self.log(f"Phase 2: {mode.upper()} — {n} patients × {total_days} days ({actual_workers} workers)")
         print(f'''\n  🚀 Parallel simulation: {n} patients × {total_days} days, {actual_workers} workers ({mode})''')
         print(f'''  {'──────────────────────────────────────────────────'}''')
         all_results = {}
         errors = []
+        completed_count = [0]
         t0 = time.time()
         with ThreadPoolExecutor(max_workers=actual_workers) as pool:
             futures = {pool.submit(self._run_single_patient, patient, total_days, mode, save): patient['patient_id'] for patient in patients}
@@ -684,14 +841,22 @@ class SimulationRunnerV2:
                 pid = futures[future]
                 outcome = future.result()
                 all_results[outcome['pid']] = outcome['results']
+                completed_count[0] += 1
+                n_days_done = len(outcome['results'])
                 if outcome.get('error'):
                     errors.append(f'''{pid}: {outcome['error']}''')
+                    self.log(f"❌ {pid} failed: {outcome['error']}")
+                else:
+                    self.log(f"✅ {pid} done ({n_days_done}d) [{completed_count[0]}/{n}]")
+                self.update_progress(pid, n_days_done, total_days, 'done')
                 with _print_lock:
                     for line in outcome.get('summary_lines', []):
                         print(line)
         elapsed = time.time() - t0
+        self.log(f"🏁 {mode.upper()} complete: {n} patients in {elapsed:.1f}s")
         print(f'''\n  ✅ {mode} simulation complete: {n} patients in {elapsed:.1f}s ({elapsed / max(n, 1):.1f}s/patient)''')
         if errors:
+            self.log(f"⚠ {len(errors)} errors during {mode}")
             print(f'''  ⚠️ {len(errors)} errors:''')
             for err in errors:
                 print(f'''    - {err}''')

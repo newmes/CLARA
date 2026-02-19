@@ -340,3 +340,132 @@ return {
 | `GET /api/game/sessions` | `api_game_sessions` | 활성 세션 목록 |
 
 모든 POST 엔드포인트는 `@csrf_exempt` (프로토타입). 프로덕션에서는 CSRF 토큰 필요.
+
+---
+
+## 9. Multimodal 통합 — 얼굴 이미지 + 음성 TTS
+
+### 9.1 아키텍처
+
+시뮬레이션 파이프라인은 텍스트 기반으로 변경 없음. **게임 플레이 시에만** 매 환자 턴마다 얼굴 이미지와 음성을 실시간 생성하여 채팅 UI에 표시.
+
+```mermaid
+sequenceDiagram
+    participant P as Player
+    participant FE as game_play.html
+    participant API as Django API
+    participant GS as GameSession
+    participant MM as multimodal
+
+    P->>FE: 메시지 입력
+    FE->>API: POST /api/game/chat
+    API->>GS: player_chat(message)
+    GS-->>GS: Patient LLM 응답 생성
+    GS->>MM: generate_turn_media(text, active_aes, day)
+    MM-->>MM: Face (Gemini Imagen) ∥ Voice (TTS + cough)
+    MM-->>GS: {face_b64, audio_b64, mm_meta}
+    GS-->>API: {display_text, face_b64, audio_b64, ...}
+    API-->>FE: JSON 응답
+    FE->>P: 채팅 + 얼굴 이미지 + 음성 재생
+```
+
+### 9.2 핵심 설계 결정
+
+| 항목 | 결정 | 이유 |
+|------|------|------|
+| 생성 시점 | 게임 플레이 시에만, 매 턴 | 시뮬레이션 데이터에는 불필요 |
+| 얼굴 캐시 | Baseline 1회 생성 → AE 변화 시에만 재생성 | Gemini API 비용 절감 |
+| 음성 범위 | TTS + 기침 클립 삽입 | 분석(STT)은 향후 확장 |
+| API 키 | `.env`의 `GOOGLE_API_KEY` 공유 | 별도 키 불필요 |
+| 실패 시 | 텍스트 전용 모드로 degradation | 멀티모달 없어도 게임 가능 |
+| 전달 방식 | base64 인코딩 (JSON 내 인라인) | 별도 파일 서빙 불필요 |
+
+### 9.3 `MultimodalGameBridge` (`src/multimodal/game_bridge.py`)
+
+```python
+class MultimodalGameBridge:
+    def __init__(self, patient_json, *, config=None, enabled=True):
+        self.profile = SimPatientProfile.from_sim_patient(patient_json)
+        self._baseline_face_b64 = None      # 캐시
+        self._last_visual_ae_key = ""        # AE 변화 감지용
+
+    def generate_turn_media(self, text, active_aes, day) -> dict:
+        """한 턴의 얼굴 이미지 + 음성을 병렬 생성.
+        Returns {"face_b64": str|None, "audio_b64": str|None, "mm_meta": dict}
+        """
+```
+
+**캐시 전략:**
+
+```
+Day 1 (AE 없음)     → Baseline 생성 + 캐시          (API 1회)
+Day 2-20 (AE 없음)  → 캐시된 Baseline 재사용          (API 0회)
+Day 21 (rash G1)     → AE overlay 새로 생성 + 캐시    (API 1회)
+Day 22 (rash G1 유지) → 캐시 재사용                    (API 0회)
+Day 25 (rash G2)     → AE 변경 감지 → 새 overlay 생성  (API 1회)
+```
+
+Face와 Voice 생성은 `ThreadPoolExecutor`로 병렬 실행 → 총 대기 시간 = max(face, voice).
+
+### 9.4 GameSession 연결
+
+```python
+# GameSession.__init__
+self._mm_bridge = None
+try:
+    from src.multimodal.game_bridge import MultimodalGameBridge
+    self._mm_bridge = MultimodalGameBridge(patient, enabled=True)
+except Exception:
+    pass  # multimodal 없어도 게임 진행 가능
+
+# patient_greet() / player_chat()
+if self._mm_bridge:
+    media = self._mm_bridge.generate_turn_media(
+        text=greeting_text,
+        active_aes=day_result.get("AE", []),
+        day=day,
+    )
+    response.update(media)  # face_b64, audio_b64, mm_meta 추가
+```
+
+Django API views (`api_game_greet`, `api_game_chat`)는 `session.patient_greet()` 결과를 그대로 `JsonResponse`로 반환하므로 **추가 수정 불필요**.
+
+### 9.5 프론트엔드 (game_play.html)
+
+**Video Header 영역:**
+```
+┌─────────────────────────────────────────────────┐
+│ [얼굴 이미지 48×48]  PT-001  Connected  [🔊] [☐Auto] │
+└─────────────────────────────────────────────────┘
+```
+
+- 얼굴 이미지: baseline 로딩 시 스피너 표시, 생성 완료 시 교체
+- 오디오: 헤더의 Play 버튼 + 각 메시지의 인라인 Replay 버튼
+- Auto-play 토글: 체크 시 환자 메시지마다 자동 재생
+
+**`addPatientMsg(text, videoVisible, faceB64, audioB64)`:**
+```
+환자 메시지 텍스트                      [🔊 Replay]
+On camera: slight pallor, fatigue
+```
+
+### 9.6 성능 벤치마크
+
+| 요청 | Face | Voice | 총 응답 시간 |
+|------|------|-------|-------------|
+| 첫 greet (baseline 생성) | ~35s (Imagen) | ~5s (TTS) | ~40s |
+| 후속 chat (face 캐시 hit) | 0s | ~3s (TTS) | ~5s |
+| AE 변화 시 chat | ~35s (Imagen) | ~3s (TTS) | ~35s |
+
+### 9.7 파일 구조
+
+```
+src/multimodal/
+├── game_bridge.py       ← 게임↔멀티모달 브릿지 (NEW)
+├── config.py            ← GOOGLE_API_KEY fallback 추가
+├── schemas.py           ← SimPatientProfile, SimAE 어댑터
+├── face_generator.py    ← Gemini Imagen 얼굴 생성
+├── voice_generator.py   ← TTS + 기침 클립 삽입
+├── face_analyzer.py     ← MedSigLIP 분석 (향후)
+└── voice_analyzer.py    ← HeAR 분석 (향후)
+```

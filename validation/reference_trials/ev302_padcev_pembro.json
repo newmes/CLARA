@@ -1,0 +1,143 @@
+{
+  "_meta": {
+    "trial_id": "EV-302",
+    "trial_alias": "KEYNOTE-A39",
+    "nct_id": "NCT04223856",
+    "drug_name": "Padcev + Pembrolizumab",
+    "drug_generic": "Enfortumab Vedotin + Pembrolizumab",
+    "indication": "untreated locally advanced or metastatic urothelial carcinoma",
+    "phase": 3,
+    "reference_arm": "EV + Pembrolizumab",
+    "reference_paper": "Powles T, et al. N Engl J Med. 2024;390:875-888",
+    "data_cutoff": "2023-08-08",
+    "median_followup_months": 17.2,
+    "notes": "Primary analysis. AE data from safety population (N=440). Efficacy from ITT (N=442). Some AE rates use grouped terms (prescribing information) vs preferred terms (NEJM)."
+  },
+
+  "sample_size": {
+    "randomized_itt": 442,
+    "safety_population": 440,
+    "evaluable_for_response": 437
+  },
+
+  "demographics": {
+    "age_median": 69,
+    "age_range": [37, 87],
+    "sex_male_pct": 77.8,
+    "race": {
+      "White": 69.7,
+      "Asian": 22.4,
+      "Black": 0.7,
+      "Other": 1.2,
+      "Unknown": 6.1
+    },
+    "ecog_ps": {
+      "0": 50.5,
+      "1": 46.2,
+      "2": 3.4
+    },
+    "cisplatin_eligible_pct": 55.2,
+    "metastatic_pct": 95.2,
+    "liver_metastasis_pct": 22.6,
+    "visceral_metastasis_pct": 72.0
+  },
+
+  "treatment_exposure": {
+    "median_duration_any_drug_months": 9.4,
+    "median_duration_ev_months": 7.0,
+    "median_duration_pembro_months": 8.5,
+    "median_cycles_ev": 9,
+    "median_cycles_pembro": 11,
+    "median_cycles_total": 12,
+    "dose_reduction_pct": 41.8,
+    "dose_interruption_pct": 78.9,
+    "discontinuation_any_drug_pct": 39.8,
+    "discontinuation_ev_pct": 35.0,
+    "discontinuation_pembro_pct": 27.0
+  },
+
+  "safety_overall": {
+    "any_teae_pct": 99.8,
+    "grade_gte3_teae_pct": 73.0,
+    "grade_gte3_trae_pct": 55.9,
+    "sae_pct": 50.0,
+    "fatal_teae_pct": 3.9,
+    "fatal_trae_pct": 0.9,
+    "ae_leading_to_discontinuation_pct": 39.8,
+    "ae_leading_to_dose_interruption_pct": 78.9,
+    "ae_leading_to_dose_reduction_pct": 41.8
+  },
+
+  "ae_rates_grouped": {
+    "_note": "Grouped terms from prescribing information (TEAEs). Multiple preferred terms combined.",
+    "rash": {"all_grade_pct": 68, "grade_gte3_pct": 15},
+    "peripheral_neuropathy": {"all_grade_pct": 67, "grade_gte3_pct": 8},
+    "fatigue": {"all_grade_pct": 51, "grade_gte3_pct": 6},
+    "pruritus": {"all_grade_pct": 41, "grade_gte3_pct": 1.1},
+    "diarrhea": {"all_grade_pct": 38, "grade_gte3_pct": 4.5},
+    "alopecia": {"all_grade_pct": 35, "grade_gte3_pct": 0.5},
+    "decreased_appetite": {"all_grade_pct": 33, "grade_gte3_pct": 1.8},
+    "decreased_weight": {"all_grade_pct": 33, "grade_gte3_pct": 3.6},
+    "nausea": {"all_grade_pct": 26, "grade_gte3_pct": 1.6},
+    "constipation": {"all_grade_pct": 26, "grade_gte3_pct": 0},
+    "dry_eye": {"all_grade_pct": 24, "grade_gte3_pct": 0},
+    "dysgeusia": {"all_grade_pct": 21, "grade_gte3_pct": 0},
+    "urinary_tract_infection": {"all_grade_pct": 21, "grade_gte3_pct": 5},
+    "hyperglycemia": {"all_grade_pct": 13, "grade_gte3_pct": 8.9},
+    "pneumonitis": {"all_grade_pct": 10, "grade_gte3_pct": 3.6}
+  },
+
+  "ae_rates_preferred_term": {
+    "_note": "Individual preferred terms from NEJM Table 3 (TRAEs). Not grouped.",
+    "peripheral_sensory_neuropathy": {"all_grade_pct": 50.0},
+    "pruritus": {"all_grade_pct": 39.8},
+    "alopecia": {"all_grade_pct": 33.2},
+    "maculopapular_rash": {"all_grade_pct": 32.7, "grade_gte3_pct": 7.7},
+    "fatigue": {"all_grade_pct": 29.3},
+    "diarrhea": {"all_grade_pct": 27.5},
+    "hyperglycemia": {"grade_gte3_pct": 5.0},
+    "neutropenia": {"grade_gte3_pct": 4.8}
+  },
+
+  "lab_abnormalities": {
+    "_note": "Treatment-emergent lab abnormalities. All Grades and Grade 3-4 percentages.",
+    "AST_increased": {"all_grade_pct": 75, "grade_gte3_pct": 5},
+    "creatinine_increased": {"all_grade_pct": 71, "grade_gte3_pct": 3},
+    "glucose_increased": {"all_grade_pct": 66, "grade_gte3_pct": 14},
+    "ALT_increased": {"all_grade_pct": 59, "grade_gte3_pct": 5},
+    "lymphocytes_decreased": {"all_grade_pct": 58, "grade_gte3_pct": 15},
+    "hemoglobin_decreased": {"all_grade_pct": 53, "grade_gte3_pct": 7},
+    "sodium_decreased": {"all_grade_pct": 46, "grade_gte3_pct": 13},
+    "phosphate_decreased": {"all_grade_pct": 44, "grade_gte3_pct": 9},
+    "albumin_decreased": {"all_grade_pct": 39, "grade_gte3_pct": 2},
+    "neutrophils_decreased": {"all_grade_pct": 30, "grade_gte3_pct": 9},
+    "potassium_decreased": {"all_grade_pct": 26, "grade_gte3_pct": 5},
+    "potassium_increased": {"all_grade_pct": 24, "grade_gte3_pct": 1},
+    "calcium_increased": {"all_grade_pct": 21, "grade_gte3_pct": 1}
+  },
+
+  "efficacy": {
+    "orr_pct": 67.7,
+    "orr_95ci": [63.1, 72.1],
+    "cr_pct": 29.1,
+    "pr_pct": 38.7,
+    "sd_pct": null,
+    "pd_pct": null,
+    "median_pfs_months": 12.5,
+    "pfs_95ci_months": [10.4, 16.6],
+    "pfs_hr": 0.45,
+    "median_os_months": 31.5,
+    "os_95ci_months": [25.4, null],
+    "os_hr": 0.47,
+    "median_dor_months": null,
+    "twelve_month_pfs_pct": 50.7,
+    "twelve_month_os_pct": 78.2
+  },
+
+  "tumor_response_distribution": {
+    "_note": "CR+PR = 67.7%. SD+PD not explicitly reported. Derived: 100-67.7=32.3% for SD+PD+NE.",
+    "CR": 29.1,
+    "PR": 38.7,
+    "SD_PD_NE": 32.3
+  }
+}

@@ -20,6 +20,7 @@
 
 import json
 import math
+import re
 from typing import Any
 
 from src.agents.llm_client import generate_json, set_caller, DEFAULT_MODEL
@@ -37,7 +38,6 @@ from config.defaults import (
     SLOW_MARKER_LABS, LAB_ROUNDING, VITAL_ROUNDING,
     MAX_AE_CASCADE_HAZARD,
     DEFAULT_AE_LAB_LINKS, DEFAULT_CM_LAB_EFFECTS, DEFAULT_CM_SIDE_EFFECTS,
-    DISCONTINUATION_BACKGROUND_DAILY_RATE,
     ctcae_max_grade, ctcae_lab_range,
     ACUTE_ONSET_AES, MAX_ONSET_GRADE_GRADUAL,
     IO_SPECIFIC_AES, ADC_CHEMO_SPECIFIC_AES, IO_DRUG_KEYWORDS,
@@ -539,16 +539,24 @@ class DailySimulator:
             cycle = self.frozen_cycle
             cycle_day = self.frozen_cycle_day
 
-        # Effective treatment tracking
-        if not self.treatment_discontinued:
+        # Effective treatment tracking (fractional, using TUMOR_DAILY_RATE_*)
+        # - Full treatment: all drugs active → +1.0 day
+        # - Partial hold: some drugs held → +0.5 day (remaining drug still works)
+        # - All held: all drugs held → +0.0 day (no effective treatment)
+        # - Discontinued: treatment ended → +0.0 day
+        if self.treatment_discontinued:
+            self.effective_treatment_days += TUMOR_DAILY_RATE_DISCONTINUED
+        else:
             n_held = len(self.held_drugs - self.discontinued_drugs)
             n_active = len(self.all_drug_names - self.discontinued_drugs)
-            if n_active > 0 and n_held < n_active:
-                self.effective_treatment_days += 1
-            elif n_active > 0 and n_held == n_active:
-                pass  # all held → no effective treatment
+            if n_active == 0:
+                self.effective_treatment_days += TUMOR_DAILY_RATE_FULL
+            elif n_held == 0:
+                self.effective_treatment_days += TUMOR_DAILY_RATE_FULL
+            elif n_held < n_active:
+                self.effective_treatment_days += TUMOR_DAILY_RATE_PARTIAL_HOLD
             else:
-                self.effective_treatment_days += 1
+                self.effective_treatment_days += TUMOR_DAILY_RATE_ALL_HELD
 
         # Step 1: New AE onset
         new_aes = self._check_new_ae_onsets(day, day_results)
@@ -592,6 +600,18 @@ class DailySimulator:
 
         # Step 6: CRF enrichment (EC records — 상태는 이미 Step 4b에서 업데이트됨)
         self._enrich_ec_records(result, day, cycle_day, is_hospital)
+
+        # Step 6b: RECIST scan data
+        if recist_result:
+            result["recist_scan"] = {
+                "recist_category": recist_result.get("response", "NE"),
+                "tumor_change_pct": recist_result.get("change_pct", 0),
+                "nadir_pct": recist_result.get("best_response_pct", 0),
+                "day": day,
+                "description": f"RECIST: {recist_result.get('response', 'NE')} "
+                               f"({recist_result.get('change_pct', 0):+.1f}%)",
+            }
+            result["recist_history"] = list(self.recist_results)
 
         # Step 7: Baseline capture
         if day == 1:
@@ -1169,7 +1189,7 @@ class DailySimulator:
                 elif isinstance(pv, (int, float)):
                     prev_val = float(pv)
 
-            # 인과적 목표값 계산
+            # 인과적 목표값 계산 (3 layers: AE→Lab, CumDose→Lab, CM correction)
             target = compute_causal_lab_target(
                 lab_name=lab_name,
                 baseline_value=baseline,
@@ -1180,6 +1200,11 @@ class DailySimulator:
                 active_cms=self.active_cm,
                 cm_lab_effects=cm_lab_effects,
             )
+
+            # Layer 4: CM side effects (e.g., steroid → glucose↑, ANC↑)
+            cm_side_mult = self._compute_cm_lab_side_effect(lab_name, day)
+            if cm_side_mult != 1.0:
+                target = target * cm_side_mult
 
             # OU step
             theta = OU_THETA_LABS
@@ -1231,11 +1256,16 @@ class DailySimulator:
         return labs_result
 
     def _apply_ou_vitals(self, day: int, day_results: list[dict]) -> dict:
-        """OU process로 vitals 값을 변동시킨다."""
+        """OU process로 vitals 값을 변동시킨다.
+
+        3-layer target model:
+          1. Baseline (mean-reversion target)
+          2. AE → Vitals shift (neutropenia G3+ → fever/tachycardia, pneumonitis → SpO2↓)
+          3. CM side effects (steroid → weight↑, SBP↑)
+        """
         prev_vitals = {}
         if day_results:
             prev = day_results[-1]
-            # vitals는 objective 안에 있음
             prev_vitals = prev.get("objective", {}).get("vitals", {})
             if not prev_vitals:
                 prev_vitals = prev.get("vitals", {})
@@ -1253,6 +1283,13 @@ class DailySimulator:
                     }
 
         baseline = self.baseline_vitals
+
+        # ── AE-driven vitals targets ──
+        ae_vitals_shift = self._compute_ae_vitals_shift()
+
+        # ── CM side effects (daily deltas for weight, SBP) ──
+        cm_vitals_delta = self._compute_cm_vitals_delta(day)
+
         result = {}
         for vital_name, noise_std in VITALS_NOISE.items():
             bl = float(baseline.get(vital_name, 0))
@@ -1269,8 +1306,14 @@ class DailySimulator:
                 prev_val = bl
             prev_val = float(prev_val)
 
+            # Target = baseline + AE shift
+            target = bl + ae_vitals_shift.get(vital_name, 0.0)
+
             noise = self.sampler.numeric("normal", {"mean": 0, "std": noise_std})
-            new_val = prev_val + OU_THETA_VITALS * (bl - prev_val) + noise
+            new_val = prev_val + OU_THETA_VITALS * (target - prev_val) + noise
+
+            # Apply CM-driven daily delta (e.g., steroid weight gain)
+            new_val += cm_vitals_delta.get(vital_name, 0.0)
 
             # 범위 제한
             if vital_name == "SpO2":
@@ -1287,6 +1330,143 @@ class DailySimulator:
             result[vital_name] = new_val
 
         return result
+
+    def _compute_ae_vitals_shift(self) -> dict[str, float]:
+        """활성 AE에 의한 vitals 변동 target shift를 계산한다.
+
+        의학적 근거:
+        - Febrile neutropenia (ANC < 0.5 + G3+) → BT↑ 38.5-40°C, HR↑ +20-40
+        - Pneumonitis G2+ → SpO2↓ -3 to -10, RR↑ +4-8
+        - Severe AE (any G4) → general tachycardia HR↑ +15
+        - Diarrhea G3+ → HR↑ (dehydration), SBP↓ -10
+        """
+        shift: dict[str, float] = {}
+        for ae_term, ae_state in self.occurred_aes.items():
+            if ae_state.get("status") != "active":
+                continue
+            grade = ae_state.get("grade", 1)
+            term_lower = ae_term.lower().replace(" ", "_").replace("-", "_")
+
+            if "neutropenia" in term_lower and grade >= 3:
+                shift["BT"] = shift.get("BT", 0) + (1.5 if grade == 3 else 2.5)
+                shift["HR"] = shift.get("HR", 0) + (20 if grade == 3 else 35)
+            if "febrile" in term_lower:
+                shift["BT"] = shift.get("BT", 0) + 2.0
+                shift["HR"] = shift.get("HR", 0) + 25
+
+            if "pneumonitis" in term_lower and grade >= 2:
+                spo2_drop = {2: -3, 3: -6, 4: -10}.get(grade, -3)
+                shift["SpO2"] = shift.get("SpO2", 0) + spo2_drop
+                shift["RR"] = shift.get("RR", 0) + (4 if grade == 2 else 8)
+
+            if "diarrhea" in term_lower and grade >= 3:
+                shift["HR"] = shift.get("HR", 0) + 10
+                shift["SBP"] = shift.get("SBP", 0) - 10
+                shift["DBP"] = shift.get("DBP", 0) - 5
+
+            if grade >= 4:
+                shift["HR"] = shift.get("HR", 0) + 15
+
+        return shift
+
+    def _compute_cm_vitals_delta(self, day: int) -> dict[str, float]:
+        """보조약물(특히 스테로이드)의 vitals 부작용을 계산한다.
+
+        DEFAULT_CM_SIDE_EFFECTS에 정의된 vitals_effects를 적용.
+        예: prednisone → weight_kg +0.05~0.15/day, SBP +0.3~0.8/day
+        """
+        delta: dict[str, float] = {}
+        for cm in self.active_cm:
+            cm_name = (cm.get("CMTRT", "") or cm.get("name", "")).lower()
+            cm_start = cm.get("_start_day", cm.get("CMSTDTC", 1))
+            if isinstance(cm_start, str):
+                try:
+                    cm_start = int(cm_start)
+                except (ValueError, TypeError):
+                    cm_start = 1
+            days_on_cm = max(0, day - cm_start)
+
+            cm_dose_mg = 0.0
+            dose_str = cm.get("CMDOSE", cm.get("dose", ""))
+            if isinstance(dose_str, (int, float)):
+                cm_dose_mg = float(dose_str)
+            elif isinstance(dose_str, str):
+                m = re.search(r"(\d+\.?\d*)", dose_str)
+                if m:
+                    cm_dose_mg = float(m.group(1))
+
+            for cm_rule in DEFAULT_CM_SIDE_EFFECTS:
+                keywords = cm_rule.get("drug_keywords", [])
+                if not any(kw in cm_name for kw in keywords):
+                    continue
+
+                for vfx in cm_rule.get("vitals_effects", []):
+                    vital = vfx["vital"]
+                    onset = vfx.get("onset_days", 0)
+                    if days_on_cm < onset:
+                        continue
+
+                    threshold = vfx.get("high_dose_threshold_mg", 999)
+                    is_high_dose = cm_dose_mg >= threshold
+
+                    daily_d = vfx.get("high_dose_daily_delta", vfx["daily_delta"]) if is_high_dose else vfx["daily_delta"]
+
+                    # Cap cumulative effect
+                    max_total = vfx.get("max_total_delta", 999)
+                    total_so_far = daily_d * (days_on_cm - onset)
+                    if abs(total_so_far) >= abs(max_total):
+                        continue  # reached max effect
+
+                    delta[vital] = delta.get(vital, 0) + daily_d
+
+        return delta
+
+    def _compute_cm_lab_side_effect(self, lab_name: str, day: int) -> float:
+        """보조약물 자체의 lab 부작용 배수를 계산한다.
+
+        DEFAULT_CM_SIDE_EFFECTS에 정의된 effects 적용.
+        예: prednisone → glucose_fasting ×1.5~2.2, ANC ×1.5~2.5
+        반환값은 baseline 대비 target multiplier.
+        """
+        combined_mult = 1.0
+        for cm in self.active_cm:
+            cm_name = (cm.get("CMTRT", "") or cm.get("name", "")).lower()
+            cm_start = cm.get("_start_day", cm.get("CMSTDTC", 1))
+            if isinstance(cm_start, str):
+                try:
+                    cm_start = int(cm_start)
+                except (ValueError, TypeError):
+                    cm_start = 1
+            days_on_cm = max(0, day - cm_start)
+
+            cm_dose_mg = 0.0
+            dose_str = cm.get("CMDOSE", cm.get("dose", ""))
+            if isinstance(dose_str, (int, float)):
+                cm_dose_mg = float(dose_str)
+            elif isinstance(dose_str, str):
+                m = re.search(r"(\d+\.?\d*)", dose_str)
+                if m:
+                    cm_dose_mg = float(m.group(1))
+
+            for cm_rule in DEFAULT_CM_SIDE_EFFECTS:
+                keywords = cm_rule.get("drug_keywords", [])
+                if not any(kw in cm_name for kw in keywords):
+                    continue
+
+                for lfx in cm_rule.get("effects", []):
+                    if lfx["lab"] != lab_name:
+                        continue
+                    onset = lfx.get("onset_days", 0)
+                    if days_on_cm < onset:
+                        continue
+
+                    threshold = lfx.get("high_dose_threshold_mg", 999)
+                    is_high_dose = cm_dose_mg >= threshold
+
+                    mult = lfx.get("high_dose_target_multiplier", lfx["target_multiplier"]) if is_high_dose else lfx["target_multiplier"]
+                    combined_mult *= mult
+
+        return combined_mult
 
     def _apply_ctcae_lab_convergence(self, lab_name: str, new_val: float,
                                       prev_val: float, active_aes: list[dict]) -> float:
@@ -1706,7 +1886,8 @@ class DailySimulator:
             actual_dose = round(actual_dose, 1)
             self.cumulative_doses[dname] = self.cumulative_doses.get(dname, 0) + actual_dose
             self.last_admin_day[dname] = day
-            self.effective_treatment_days += 1
+            # Note: effective_treatment_days is tracked in generate_day() Step 0
+            # using TUMOR_DAILY_RATE_* constants. No double-counting here.
 
             # IO 약물 투여 횟수 추적 (Pembrolizumab 35-cycle 제한)
             if dname in self.io_drugs:
