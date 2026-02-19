@@ -1100,6 +1100,7 @@
   });
 
   document.getElementById('phone-btn-view').addEventListener('click', () => {
+    stopAutoPlay();
     const alert = phoneAlerts[phoneCurrentIdx];
     if (alert) {
       const p = currentPatients.find(x => x.patient_id === alert.patient_id);
@@ -1244,15 +1245,20 @@
   const modalOverlay = document.getElementById('patient-modal-overlay');
   const modalClose = document.getElementById('patient-modal-close');
 
-  modalClose.addEventListener('click', () => {
+  function closePatientModal() {
     modalOverlay.classList.remove('visible');
-  });
+    selectedPatient = null;
+    document.querySelectorAll('.patient-card').forEach(c => c.classList.remove('active'));
+    trialMap.highlightPatient(null);
+  }
+
+  modalClose.addEventListener('click', closePatientModal);
   modalOverlay.addEventListener('click', (e) => {
-    if (e.target === modalOverlay) modalOverlay.classList.remove('visible');
+    if (e.target === modalOverlay) closePatientModal();
   });
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && modalOverlay.classList.contains('visible')) {
-      modalOverlay.classList.remove('visible');
+      closePatientModal();
     }
   });
 
