@@ -4,7 +4,14 @@ from __future__ import annotations
 from datetime import date
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+
+def _empty_str_to_none(v):
+    """Convert empty strings to None for Optional[date] fields."""
+    if v == "" or v is None:
+        return None
+    return v
 
 
 class SectionA(BaseModel):
@@ -16,6 +23,9 @@ class SectionA(BaseModel):
     weight: Optional[float] = Field(default=None, description="A4: Weight (kg)")
     ethnicity: str = Field(default="", description="A5a: Ethnicity (Hispanic/Not Hispanic)")
     race: str = Field(default="", description="A5b: Race (Asian, Black, White, etc.)")
+
+    _fix_dates = field_validator("dob", mode="before")(_empty_str_to_none)
+    _fix_nums = field_validator("age", "weight", mode="before")(_empty_str_to_none)
 
 
 class SectionB(BaseModel):
@@ -38,6 +48,11 @@ class SectionB(BaseModel):
     lab_data: str = Field(default="", description="B6: Relevant tests/lab data")
     medical_history: str = Field(default="", description="B7: Other relevant medical history")
 
+    _fix_dates = field_validator(
+        "hospitalization_start", "hospitalization_end", "death_date",
+        "onset_date", "report_date", mode="before",
+    )(_empty_str_to_none)
+
 
 class SectionC(BaseModel):
     """Section C — Suspect Product(s) (9 fields)."""
@@ -52,6 +67,10 @@ class SectionC(BaseModel):
     dechallenge: str = Field(default="", description="C7: Did reaction abate? (AI-generated)")
     rechallenge: str = Field(default="", description="C8: Did reaction reappear? (AI-generated)")
     concomitant_meds: str = Field(default="", description="C9: Concomitant medical products")
+
+    _fix_dates = field_validator(
+        "therapy_start", "therapy_end", "expiry_date", mode="before",
+    )(_empty_str_to_none)
 
 
 class SectionE(BaseModel):
@@ -74,6 +93,8 @@ class SectionG(BaseModel):
     initial_followup: str = Field(default="Initial", description="G6: Initial or follow-up")
     ae_term: str = Field(default="", description="G7: MedWatch AE term (verbatim AETERM)")
     report_number: str = Field(default="", description="G8: Manufacturer report number")
+
+    _fix_dates = field_validator("awareness_date", mode="before")(_empty_str_to_none)
 
 
 class MedWatch3500A(BaseModel):

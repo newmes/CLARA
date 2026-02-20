@@ -126,6 +126,47 @@ def _load_rule_set(run_path: Path) -> dict:
     return {}
 
 
+def _extract_lab_ranges(run_path: Path, mode: str = "natural") -> dict:
+    """Extract lab reference ranges from LB data (LBORNRLO/LBORNRHI).
+
+    Used when rule_set.json is missing or has no lab_reference_ranges.
+    Reads the first patient's first day with LB data and builds a ranges dict.
+    """
+    from frontend.viewer.crf_aggregator import LAB_ABBREVIATIONS, _lab_display_name
+    sim_dir = run_path / "simulations"
+    if not sim_dir.exists():
+        return {}
+    # Find any JSONL file to extract ranges from
+    for fpath in sorted(sim_dir.glob(f"*_{mode}.jsonl")):
+        if "_hospital" in fpath.stem:
+            continue
+        with open(fpath, encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                record = json.loads(line)
+                lb = record.get("LB")
+                if not lb or not lb.get("LBPERF"):
+                    continue
+                results = lb.get("results", {})
+                ranges = {}
+                for test_name, vals in results.items():
+                    lo = vals.get("LBORNRLO")
+                    hi = vals.get("LBORNRHI")
+                    if lo is not None or hi is not None:
+                        display = _lab_display_name(test_name)
+                        ranges[display] = {
+                            "unit": vals.get("LBORRESU", ""),
+                            "normal_range": {"min": lo, "max": hi},
+                            "LLN": lo,
+                            "ULN": hi,
+                        }
+                if ranges:
+                    return ranges
+    return {}
+
+
 def _list_patients(run_path: Path) -> list[str]:
     """List patient IDs from simulation files (exclude _hospital variants).
     Falls back to patients/ directory if no simulation files exist yet."""
@@ -413,6 +454,7 @@ def _patient_summary(profile: dict, day_data: dict | None,
         "patient_id": profile.get("patient_id", "?"),
         "age": dm.get("AGE", "?"),
         "sex": dm.get("SEX", "?"),
+        "race": dm.get("RACE", ""),
         "persona_type": persona.get("type", "unknown"),
         "persona_desc": persona.get("description", ""),
         "view_mode": view_mode,
@@ -703,7 +745,7 @@ def trial_viewer(request, run_id: str, day: int = 1):
         "patient_ids_json": json.dumps(patient_ids),
         "is_live": is_live,
         "model_name": _load_run_meta(run_path).get("model", ""),
-        "lab_ranges_json": json.dumps(rule_set.get("lab_reference_ranges", {})),
+        "lab_ranges_json": json.dumps(rule_set.get("lab_reference_ranges", {}) or _extract_lab_ranges(run_path)),
     }
     return render(request, "trial/trial.html", context)
 
@@ -1947,7 +1989,23 @@ def api_sim_stop(request, run_id: str):
     Signals the runner to cancel, then optionally deletes the run data.
     POST body: {"delete": true/false}
     """
+    # Optionally delete run data
+    try:
+        body = json.loads(request.body) if request.body else {}
+    except Exception:
+        body = {}
+
+    should_delete = body.get("delete", False)
+
     if run_id not in _live_sims:
+        # Server may have restarted — _live_sims lost but run dir still exists.
+        # Allow delete even if not tracked in memory.
+        if should_delete:
+            run_path = _get_run_path(run_id)
+            if run_path.exists():
+                import shutil
+                shutil.rmtree(run_path, ignore_errors=True)
+            return JsonResponse({"status": "stopped_and_deleted", "run_id": run_id})
         return JsonResponse({"error": "Run not found or not a live simulation"},
                             status=404)
 
@@ -1959,14 +2017,6 @@ def api_sim_stop(request, run_id: str):
         runner.log("⛔ Stop requested by user")
 
     sim_info["status"] = "cancelling"
-
-    # Optionally delete run data
-    try:
-        body = json.loads(request.body) if request.body else {}
-    except Exception:
-        body = {}
-
-    should_delete = body.get("delete", False)
 
     if should_delete:
         run_path = _get_run_path(run_id)
@@ -2671,6 +2721,9 @@ def crf_tables(request, run_id: str):
             pass
 
     rule_set = _load_rule_set(run_path)
+    lab_ranges = rule_set.get("lab_reference_ranges", {})
+    if not lab_ranges:
+        lab_ranges = _extract_lab_ranges(run_path)
     context = {
         "run_id": run_id,
         "patient_ids": patient_ids,
@@ -2680,7 +2733,7 @@ def crf_tables(request, run_id: str):
         "indication": indication,
         "domain_labels_json": json.dumps(DOMAIN_LABELS),
         "model_name": _load_run_meta(run_path).get("model", ""),
-        "lab_ranges_json": json.dumps(rule_set.get("lab_reference_ranges", {})),
+        "lab_ranges_json": json.dumps(lab_ranges),
     }
     return render(request, "doc/crf_tables.html", context)
 

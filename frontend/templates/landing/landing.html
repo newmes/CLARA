@@ -628,6 +628,10 @@ async function stopSim(runId) {
       body: JSON.stringify({delete: del}),
     });
     const data = await resp.json();
+    if (!resp.ok) {
+      alert(data.error || 'Failed to stop simulation');
+      return;
+    }
     alert(`Simulation ${data.status}`);
     location.reload();
   } catch(e) {

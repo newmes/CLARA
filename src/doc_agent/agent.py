@@ -538,7 +538,12 @@ def step_e2b(step_input: StepInput) -> StepOutput:
     settings = Settings()
 
     # MedDRA coding
-    meddra_code = code_meddra(crf.ae.AETERM)
+    meddra_code = code_meddra(
+        crf.ae.AETERM,
+        base_url=settings.VLLM_BASE_URL,
+        model_id=settings.VLLM_MODEL_ID,
+        api_key=settings.VLLM_API_KEY,
+    )
 
     # Rechallenge E2B code
     rechallenge = data.get("rechallenge", {})

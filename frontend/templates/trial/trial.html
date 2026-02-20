@@ -696,9 +696,16 @@
   .chat-avatar {
     width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
   }
-  .chat-avatar.avatar-patient { background: rgba(88,166,255,0.15); }
-  .chat-avatar.avatar-nurse { background: rgba(57,210,192,0.15); }
+  .chat-avatar.avatar-patient {
+    background: rgba(88,166,255,0.15);
+    image-rendering: pixelated; image-rendering: crisp-edges;
+  }
+  .chat-avatar.avatar-nurse {
+    background: rgba(57,210,192,0.15);
+    image-rendering: pixelated; image-rendering: crisp-edges;
+  }
   .chat-avatar svg { width: 20px; height: 20px; }
   .chat-content { max-width: 82%; display: flex; flex-direction: column; }
   .chat-row.is-patient .chat-content { align-items: flex-start; }
@@ -938,7 +945,7 @@
 
   <a href="{% url 'trial_viewer' run_id %}" class="sb-active" title="Simulation"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><span>Sim</span></a>
   <a href="{% url 'game_landing' run_id %}" title="Training"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg><span>Train</span></a>
-  <a href="{% url 'doc_hub' run_id %}" title="Documents"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Docs</span></a>
+  <a href="{% url 'crf_tables' run_id %}" title="Data"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg><span>Data</span></a>
   <a href="{% url 'compare_dashboard' run_id %}" title="A/B Test"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>A/B</span></a>
 </nav>
 {% endblock %}
@@ -1036,7 +1043,7 @@
       <div class="patient-cards" id="patient-cards">
         {% for p in patients %}
         <div class="patient-card" data-pid="{{ p.patient_id }}" id="card-{{ p.patient_id }}">
-          <div class="char-sprite" data-pid="{{ p.patient_id }}"></div>
+          <div class="char-sprite" data-pid="{{ p.patient_id }}" data-sex="{{ p.sex }}" data-race="{{ p.race }}"></div>
           <div class="pid">{{ p.patient_id }}</div>
           <div class="meta">{{ p.age }}{{ p.sex }} · E{{ p.ecog|default:"?" }}</div>
           {% if p.active_aes %}
@@ -1550,7 +1557,7 @@
         ? '<span class="ae-badge" style="background:rgba(88,166,255,0.2);color:var(--accent-blue);border:1px solid rgba(88,166,255,0.3);font-size:0.6em">Visit</span> '
         : '';
 
-      const spriteUrl = getCharSpriteUrl(p.patient_id);
+      const spriteUrl = getCharSpriteUrl(p.patient_id, p.sex, p.race);
       html += `
         <div class="patient-card${isActive}" data-pid="${p.patient_id}" id="card-${p.patient_id}">
           <div class="pid">${p.patient_id}</div>
@@ -1643,19 +1650,37 @@
     language_barrier: 'M24 34 L28 38 L32 34 M24 37 L32 37',
   };
 
-  const SPRITE_INDICES = [86,60,63,10,34,27,2,69,16,61,64,11,53,75,52,91,50,42,66,31,56,73,46,33,97,68,93,9,38,77,81,48,45,43,96,51,84,13,37,24,40,41,19,79,71,57,8,35,80,47,3,17,39,67,23,59,25,6,7,22,49,62,90,20,74,44,85,21,1,94,58,92,54,88,26,72,83,78,65,30,28,89,95,5,55,76,12,70,87,14,18,29,32,36,4,15,82]; // shuffled PIPOYA civilian sprites
-  function getCharSpriteNum(patientId) {
-    const num = parseInt((patientId || '').replace(/\D/g, ''), 10) || 1;
-    return SPRITE_INDICES[(num - 1) % SPRITE_INDICES.length];
+  const SPRITE_MAP = {
+    F: {
+      light: [1,5,9,14,17,21,24,25,28,29,30,32,33,34,36,37,40,41,45,48,49,52,55,58,62,66,73,74,75,76,77,78,82,85,86,88,89,92,95],
+      medium: [20,35,38,42,44,46,50,53,56,61,65,67,68],
+      dark:   [2,8,12,39,43,47,51,54,57,59,60,63,64],
+    },
+    M: {
+      light: [7,11,69,70,71,72,83,87,93],
+      medium: [3,6,26,81,90,96],
+      dark:   [4,10,13,15,16,18,19,22,23,27,31,79,80,84,91,94,97],
+    },
+  };
+  function _skinTone(race) {
+    const r = (race || '').toUpperCase();
+    return r.includes('BLACK') ? 'dark' : r.includes('ASIAN') ? 'medium' : r.includes('WHITE') ? 'light' : 'medium';
   }
-  function getCharSpriteUrl(patientId) {
-    const n = getCharSpriteNum(patientId);
+  function getCharSpriteNum(patientId, sex, race) {
+    const gender = ((sex || '').charAt(0) || 'M').toUpperCase() === 'F' ? 'F' : 'M';
+    const tone = _skinTone(race);
+    const pool = (SPRITE_MAP[gender] && SPRITE_MAP[gender][tone]) || SPRITE_MAP.M.light;
+    const num = parseInt((patientId || '').replace(/\D/g, ''), 10) || 1;
+    return pool[(num - 1) % pool.length];
+  }
+  function getCharSpriteUrl(patientId, sex, race) {
+    const n = getCharSpriteNum(patientId, sex, race);
     return `/static/assets/characters/patient_${String(n).padStart(2, '0')}.png`;
   }
 
   // Init sprites on page load (before AJAX replaces cards)
   document.querySelectorAll('.char-sprite[data-pid]').forEach(el => {
-    el.style.backgroundImage = `url('${getCharSpriteUrl(el.dataset.pid)}')`;
+    el.style.backgroundImage = `url('${getCharSpriteUrl(el.dataset.pid, el.dataset.sex, el.dataset.race)}')`;
   });
 
   function renderCharStatBars(mood) {
@@ -1704,7 +1729,7 @@
     // Avatar — pixel art sprite
     const frameEl = document.getElementById('char-avatar-frame');
     const avatarEl = document.getElementById('char-avatar-svg');
-    const spriteUrl = getCharSpriteUrl(p.patient_id);
+    const spriteUrl = getCharSpriteUrl(p.patient_id, p.sex, p.race);
     avatarEl.innerHTML = '';
     avatarEl.className = 'char-avatar-sprite';
     avatarEl.style.backgroundImage = `url('${spriteUrl}')`;
@@ -1789,15 +1814,21 @@
     renderModalDetail(p, modalViewMode);
 
     // Care AI chat
-    renderCareChat(p.care_record);
+    renderCareChat(p.care_record, p.patient_id, p.sex, p.race);
 
   }
 
   // ── Care AI Chat Renderer (KakaoTalk style) ──
-  const AVATAR_PATIENT = `<div class="chat-avatar avatar-patient"><svg viewBox="0 0 24 24" fill="none" stroke="#58a6ff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg></div>`;
-  const AVATAR_NURSE = `<div class="chat-avatar avatar-nurse"><svg viewBox="0 0 24 24" fill="none" stroke="#39d2c0" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M9 3h6M12 1v4"/></svg></div>`;
+  function makePatientAvatar(patientId, sex, race) {
+    if (patientId) {
+      const url = getCharSpriteUrl(patientId, sex, race);
+      return `<div class="chat-avatar avatar-patient" style="background-image:url('${url}'); background-size:108px 144px; background-position:-36px 0; background-repeat:no-repeat;"></div>`;
+    }
+    return `<div class="chat-avatar avatar-patient"><svg viewBox="0 0 24 24" fill="none" stroke="#58a6ff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg></div>`;
+  }
+  const AVATAR_NURSE = `<div class="chat-avatar avatar-nurse" style="background-image:url('/static/assets/characters/nurse.png'); background-size:cover; background-position:center top;"></div>`;
 
-  function renderCareChat(cr) {
+  function renderCareChat(cr, patientId, sex, race) {
     const el = document.getElementById('detail-care');
     if (!cr) {
       el.innerHTML = '<em style="color:var(--text-muted); font-size:0.85em">No video call today</em>';
@@ -1819,7 +1850,7 @@
       const isP = t.role === 'patient';
       const c = t.content || {};
       const rowCls = isP ? 'is-patient' : 'is-nurse';
-      const avatar = isP ? AVATAR_PATIENT : AVATAR_NURSE;
+      const avatar = isP ? makePatientAvatar(patientId, sex, race) : AVATAR_NURSE;
       const name = isP ? 'Patient' : 'Care AI Nurse';
 
       if (!isP && t.turn === 4) {

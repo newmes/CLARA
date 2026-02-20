@@ -388,7 +388,7 @@ def generate_map(n_patients: int, seed: int = 42) -> tuple[dict, dict]:
         "tilesets": [{
             "columns": 12,
             "firstgid": 1,
-            "image": "../kenney/tiny-town/Tilemap/tilemap_packed.png",
+            "image": "../tiles/kenney/tiny-town/Tilemap/tilemap_packed.png",
             "imageheight": 176,
             "imagewidth": 192,
             "margin": 0,
