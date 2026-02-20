@@ -59,7 +59,7 @@
   }
   .hud-nav-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(57,210,192,0.08); }
   .hud-nav-btn:active { transform: scale(0.92); }
-  .hud-nav-btn svg { width: 12px; height: 12px; }
+  .hud-nav-btn svg { width: 12px; height: 12px; pointer-events: none; }
 
   .hud-day-badge {
     display: flex; align-items: baseline; gap: 5px; padding: 0 6px;
@@ -89,7 +89,7 @@
   }
   .hud-play-btn:hover { background: rgba(57,210,192,0.15); box-shadow: 0 0 10px rgba(57,210,192,0.2); }
   .hud-play-btn:active { transform: scale(0.92); }
-  .hud-play-btn svg { width: 14px; height: 14px; }
+  .hud-play-btn svg { width: 14px; height: 14px; pointer-events: none; }
   .hud-speed {
     padding: 2px 4px; font: 600 0.68em 'JetBrains Mono', monospace;
     background: var(--bg-elevated); color: var(--accent-cyan);
@@ -149,7 +149,7 @@
   }
   .pill-group button:hover { color: var(--text-secondary); background: rgba(255,255,255,0.03); }
   .pill-group button + button { border-left: 1px solid rgba(48,54,61,0.6); }
-  .pill-group button svg { width: 13px; height: 13px; flex-shrink: 0; opacity: 0.6; }
+  .pill-group button svg { width: 13px; height: 13px; flex-shrink: 0; opacity: 0.6; pointer-events: none; }
   .pill-group button.active-cyan svg,
   .pill-group button.active-amber svg,
   .pill-group button.active-green svg,
@@ -775,7 +775,7 @@
     padding: 4px 10px; border-radius: 4px; cursor: pointer;
     transition: all 0.15s; display: inline-flex; align-items: center; gap: 4px;
   }
-  .map-toolbar button svg { width: 12px; height: 12px; }
+  .map-toolbar button svg { width: 12px; height: 12px; pointer-events: none; }
   .map-toolbar button:hover {
     border-color: var(--accent-cyan); color: var(--accent-cyan);
     background: rgba(57,210,192,0.06);
