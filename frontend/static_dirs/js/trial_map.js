@@ -11,14 +11,14 @@ const STATIC = '/static/assets';
 // Character sprite indices grouped by gender + skin tone (PIPOYA civilian sprites)
 const SPRITE_MAP = {
   F: {
-    light: [1,5,6,9,11,14,15,21,24,25,29,36,37,45,49,52,55,62,66,69,70,73,74,75,76,77,78,79,82,85,86,87,89,92,93,95],
-    medium: [12,28,44,53,61,63,65,67,71,81,90],
-    dark:   [2,31,54,64,68,72,80,88,91,94],
+    light:  [1,5,9,15,25,29,49,62,66,69,70,73,74,77,78,79,81,82,85,86,87,89,92,93,95],
+    medium: [2,12,14,53,61,63,65,67,71,75,90],
+    dark:   [3,31,51,54,64,68,72,76,80,83,84,88,91,94,96,97],
   },
   M: {
-    light: [7,17,32,33,40,41,58,96],
-    medium: [3,13,16,18,20,26,30,34,38,42,46,48,50,56,59,83],
-    dark:   [4,8,10,19,22,23,27,35,39,43,47,51,57,60,84,97],
+    light:  [6,7,8,10,11,17,21,24,32,33,36,37,40,41,45,52,55,58],
+    medium: [13,16,18,20,26,28,30,34,38,42,44,46,48,50,56,59],
+    dark:   [4,19,22,23,27,35,39,43,47,57,60],
   },
 };
 // Flat list of ALL indices (for preloading)
@@ -273,7 +273,7 @@ class TrialMap {
     const nextRng = () => { rng = (rng * 1103515245 + 12345) & 0x7fffffff; return rng; };
     for (let gy = 0; gy < map.height; gy++) {
       for (let gx = 0; gx < map.width; gx++) {
-        const frame = nextRng() % 4;
+        const frame = nextRng() % 16;
         const px = gx * TILE + TILE / 2;
         const py = gy * TILE + TILE / 2;
         scene.add.image(px, py, 'grass-tiles', frame).setDepth(-2);
@@ -316,6 +316,23 @@ class TrialMap {
         const t = gData[y][x];
         return t && ROAD_IDS.has(t.index);
       };
+      // Pre-compute inner corner positions (grass tiles at intersection notches)
+      const innerCorners = new Set();
+      for (let y = 0; y < map.height; y++) {
+        for (let x = 0; x < map.width; x++) {
+          if (isRoad(x, y)) continue;
+          const rd = isRoad(x + 1, y), ld = isRoad(x - 1, y);
+          const dd = isRoad(x, y + 1), ud = isRoad(x, y - 1);
+          if ((dd && rd && isRoad(x + 1, y + 1)) ||
+              (dd && ld && isRoad(x - 1, y + 1)) ||
+              (ud && rd && isRoad(x + 1, y - 1)) ||
+              (ud && ld && isRoad(x - 1, y - 1))) {
+            innerCorners.add(`${x},${y}`);
+          }
+        }
+      }
+      // Treat inner corners as road so adjacent tiles use center frames (5,6,9,10)
+      const isRoadEx = (x, y) => isRoad(x, y) || innerCorners.has(`${x},${y}`);
       for (let y = 0; y < map.height; y++) {
         for (let x = 0; x < map.width; x++) {
           const tile = gData[y][x];
@@ -324,12 +341,26 @@ class TrialMap {
             const rx = x * TILE + TILE / 2;
             const ry = y * TILE + TILE / 2;
             let mask = 0;
-            if (isRoad(x, y - 1)) mask |= 1;  // up
-            if (isRoad(x + 1, y)) mask |= 2;  // right
-            if (isRoad(x, y + 1)) mask |= 4;  // down
-            if (isRoad(x - 1, y)) mask |= 8;  // left
+            if (isRoadEx(x, y - 1)) mask |= 1;  // up
+            if (isRoadEx(x + 1, y)) mask |= 2;  // right
+            if (isRoadEx(x, y + 1)) mask |= 4;  // down
+            if (isRoadEx(x - 1, y)) mask |= 8;  // left
             scene.add.image(rx, ry, 'road-autotile', roadFrame(mask, x, y)).setDepth(0);
           }
+        }
+      }
+      // Inner corner overlays — use outer corner frames (0,3,12,15) on grass
+      for (let y = 0; y < map.height; y++) {
+        for (let x = 0; x < map.width; x++) {
+          if (!innerCorners.has(`${x},${y}`)) continue;
+          const rx = x * TILE + TILE / 2;
+          const ry = y * TILE + TILE / 2;
+          const rd = isRoad(x + 1, y), ld = isRoad(x - 1, y);
+          const dd = isRoad(x, y + 1), ud = isRoad(x, y - 1);
+          if (dd && rd) scene.add.image(rx, ry, 'road-autotile', 0).setDepth(0);
+          if (dd && ld) scene.add.image(rx, ry, 'road-autotile', 3).setDepth(0);
+          if (ud && rd) scene.add.image(rx, ry, 'road-autotile', 12).setDepth(0);
+          if (ud && ld) scene.add.image(rx, ry, 'road-autotile', 15).setDepth(0);
         }
       }
     }
