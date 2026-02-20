@@ -2022,9 +2022,16 @@ def api_sim_log(request, run_id: str):
 # ═══════════════════════════════════════════════════════
 
 def _load_patient_data(run_path, patient_id, mode="natural"):
-    """Load patient profile + day records for doc agent."""
+    """Load patient profile + day records for doc agent.
+
+    Uses hospital record (HR) when available — SAE reporting should be
+    based on what the hospital actually observed, not ground truth.
+    Falls back to GT for older runs that lack *_hospital.jsonl.
+    """
     profile_path = run_path / "patients" / f"{patient_id}.json"
-    sim_path = run_path / "simulations" / f"{patient_id}_{mode}.jsonl"
+    hr_path = run_path / "simulations" / f"{patient_id}_{mode}_hospital.jsonl"
+    gt_path = run_path / "simulations" / f"{patient_id}_{mode}.jsonl"
+    sim_path = hr_path if hr_path.exists() else gt_path
 
     if not profile_path.exists() or not sim_path.exists():
         return None, None
@@ -2188,9 +2195,10 @@ def api_doc_download(request, run_id, patient_id, filename):
     else:
         content_type = "application/octet-stream"
 
+    disposition = "inline" if filename.endswith(".pdf") else "attachment"
     with open(file_path, "rb") as f:
         response = HttpResponse(f.read(), content_type=content_type)
-        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        response["Content-Disposition"] = f'{disposition}; filename="{filename}"'
         return response
 
 
@@ -2429,8 +2437,7 @@ def api_doc_update_status(request):
     # Validate transitions
     current = data.get("status", "draft")
     allowed_transitions = {
-        "draft": {"under_review"},
-        "under_review": {"accepted", "draft"},
+        "draft": {"accepted"},
         "accepted": {"draft"},
     }
     if new_status != current and new_status not in allowed_transitions.get(current, set()):
@@ -2589,7 +2596,7 @@ def doc_hub(request, run_id: str):
                 "ae_term": ae_term,
                 "ae_slug": ae_slug,
                 "grade": ae.get("_grade", 0),
-                "onset_day": ae.get("AESTDAT"),
+                "onset_day": sae["day"],
                 "severity": ae.get("AESEV", ""),
                 "action": ae.get("AEACN", ""),
                 "serious": ae.get("AESER", False),

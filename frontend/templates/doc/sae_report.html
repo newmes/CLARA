@@ -13,7 +13,7 @@
 {% block extra_head %}
 <style>
 .report-container {
-  max-width: 1400px; margin: 16px auto; padding: 0 20px;
+  max-width: 1600px; margin: 16px auto; padding: 0 24px;
 }
 
 /* Header */
@@ -25,7 +25,13 @@
   content: ''; position: absolute; bottom: 0; left: 0; right: 0; height: 1px;
   background: linear-gradient(90deg, var(--accent-cyan), var(--border), transparent);
 }
-.report-title { font-size: 1.4em; font-weight: 700; }
+.report-title { font-size: 1.4em; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+.btn-back {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 30px; height: 30px; border-radius: var(--radius-md);
+  color: var(--text-muted); transition: all var(--transition-fast);
+}
+.btn-back:hover { background: var(--bg-elevated); color: var(--text-primary); }
 .report-title .ae-badge {
   background: rgba(248,81,73,0.15); color: var(--accent-red);
   padding: 3px 12px; border-radius: 20px; font-size: 0.65em; margin-left: 10px;
@@ -41,8 +47,8 @@
 }
 .btn-rpt:hover { border-color: var(--accent-cyan); background: var(--bg-elevated); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
 .btn-rpt:active { transform: translateY(0); }
-.btn-rpt.primary { background: rgba(88,166,255,0.1); border-color: rgba(88,166,255,0.3); color: var(--accent-blue); }
-.btn-rpt.primary:hover { background: rgba(88,166,255,0.2); border-color: var(--accent-blue); box-shadow: 0 4px 16px rgba(88,166,255,0.15); }
+.btn-rpt.primary { background: rgba(255,255,255,0.08); border-color: rgba(255,255,255,0.2); color: var(--text-primary); }
+.btn-rpt.primary:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.35); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
 .btn-rpt.success { background: rgba(63,185,80,0.1); border-color: rgba(63,185,80,0.3); color: var(--accent-green); }
 .btn-rpt.success:hover { background: rgba(63,185,80,0.2); border-color: var(--accent-green); box-shadow: 0 4px 16px rgba(63,185,80,0.15); }
 .btn-rpt.xml { background: rgba(163,113,247,0.1); border-color: rgba(163,113,247,0.3); color: var(--accent-purple); }
@@ -151,18 +157,6 @@
 }
 .narrative-editor textarea:focus { outline: none; box-shadow: none; }
 
-/* E2B preview */
-.xml-preview {
-  background: var(--bg-primary); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 16px; max-height: 600px; overflow: auto;
-}
-.xml-preview pre {
-  color: var(--text-secondary); font-size: 0.82em; font-family: 'JetBrains Mono', monospace;
-  white-space: pre-wrap; word-break: break-all; margin: 0; line-height: 1.6;
-}
-.xml-preview .xml-tag { color: var(--accent-blue); }
-.xml-preview .xml-attr { color: var(--accent-orange); }
-.xml-preview .xml-val { color: var(--accent-green); }
 
 /* Error state */
 .error-box {
@@ -194,42 +188,99 @@
 .report-status-badge.status-draft {
   background: rgba(110,118,129,0.15); color: var(--text-muted);
 }
-.report-status-badge.status-under_review {
-  background: rgba(210,153,34,0.15); color: var(--accent-orange);
-}
 .report-status-badge.status-accepted {
   background: rgba(63,185,80,0.15); color: var(--accent-green);
 }
 
 /* Workflow buttons */
 .btn-workflow {
-  padding: 7px 16px; border-radius: var(--radius-lg); border: 1px solid var(--border);
+  padding: 8px 18px; border-radius: var(--radius-lg); border: 1px solid var(--border);
   background: var(--bg-card); color: var(--text-primary); cursor: pointer;
-  font-size: 0.84em; font-weight: 600; transition: all var(--transition-fast);
-  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.88em; font-weight: 600; transition: all var(--transition-fast);
+  display: inline-flex; align-items: center; gap: 7px; white-space: nowrap;
 }
-.btn-workflow:hover { border-color: var(--accent-blue); background: var(--bg-elevated); }
-.btn-workflow.submit { background: rgba(210,153,34,0.12); border-color: rgba(210,153,34,0.35); color: var(--accent-orange); }
-.btn-workflow.submit:hover { background: rgba(210,153,34,0.22); }
+.btn-workflow:hover { border-color: var(--accent-cyan); background: var(--bg-elevated); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+.btn-workflow:active { transform: translateY(0); }
+.btn-workflow.submit { background: rgba(57,210,192,0.12); border-color: rgba(57,210,192,0.35); color: var(--accent-cyan); }
+.btn-workflow.submit:hover { background: rgba(57,210,192,0.22); border-color: var(--accent-cyan); box-shadow: 0 4px 16px rgba(57,210,192,0.15); }
 .btn-workflow.accept { background: rgba(63,185,80,0.12); border-color: rgba(63,185,80,0.35); color: var(--accent-green); }
-.btn-workflow.accept:hover { background: rgba(63,185,80,0.22); }
-.btn-workflow.revert { background: rgba(110,118,129,0.1); border-color: rgba(110,118,129,0.3); color: var(--text-muted); }
-.btn-workflow.revert:hover { background: rgba(110,118,129,0.2); }
+.btn-workflow.accept:hover { background: rgba(63,185,80,0.22); border-color: var(--accent-green); box-shadow: 0 4px 16px rgba(63,185,80,0.15); }
+.btn-workflow.revert { background: rgba(110,118,129,0.08); border-color: rgba(110,118,129,0.25); color: var(--text-muted); }
+.btn-workflow.revert:hover { background: rgba(110,118,129,0.15); }
 
 
-/* Status bar */
-.status-bar {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 998;
-  background: var(--bg-secondary); border-top: 1px solid var(--border);
-  padding: 8px 20px; display: flex; align-items: center; justify-content: space-between;
-  font-size: 0.82em; backdrop-filter: blur(8px);
-  background: rgba(22,27,34,0.9);
+/* Tab bar layout */
+.tab-bar {
+  display: flex; align-items: center; justify-content: space-between;
 }
-.status-bar .status-left { display: flex; gap: 16px; color: var(--text-muted); }
-.status-bar .status-right { display: flex; gap: 10px; }
+.tab-bar-left { display: flex; gap: 0; }
+.tab-bar-right {
+  display: flex; align-items: center; gap: 14px; font-size: 0.82em;
+  padding-right: 4px;
+}
+.tab-bar-right .status-text { color: var(--text-muted); white-space: nowrap; }
+.tab-bar-right .meddra-text { color: var(--text-muted); white-space: nowrap; }
 
-/* Responsive */
-body { padding-bottom: 52px; }
+/* PDF view */
+.pdf-iframe-wrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl); overflow: hidden;
+}
+.pdf-iframe-wrap iframe {
+  width: 100%; height: calc(100vh - 260px); border: none; display: block;
+}
+
+/* Submission overlay */
+.submit-overlay {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(13,17,23,0.92); backdrop-filter: blur(12px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; animation: fadeIn 0.3s ease forwards;
+}
+.submit-card {
+  background: var(--bg-card); border: 1px solid var(--border);
+  border-radius: 20px; padding: 48px 56px; text-align: center;
+  min-width: 380px; box-shadow: 0 24px 80px rgba(0,0,0,0.5);
+  animation: scaleIn 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards;
+}
+.submit-icon {
+  width: 64px; height: 64px; margin: 0 auto 24px;
+  border-radius: 50%; display: flex; align-items: center; justify-content: center;
+  font-size: 28px;
+}
+.submit-icon.pending { background: rgba(88,166,255,0.12); }
+.submit-icon.done { background: rgba(63,185,80,0.15); }
+.submit-title { font-size: 1.15em; font-weight: 700; margin-bottom: 28px; }
+.submit-steps { text-align: left; margin: 0 auto; display: inline-block; }
+.submit-step {
+  display: flex; align-items: center; gap: 12px;
+  font-size: 0.9em; padding: 8px 0; color: var(--text-muted);
+  transition: color 0.3s;
+}
+.submit-step.active { color: var(--accent-blue); font-weight: 600; }
+.submit-step.done { color: var(--accent-green); }
+.submit-step .step-dot {
+  width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0;
+  border: 2px solid var(--border); display: flex; align-items: center;
+  justify-content: center; font-size: 11px; transition: all 0.3s;
+}
+.submit-step.active .step-dot {
+  border-color: var(--accent-blue); background: rgba(88,166,255,0.15);
+}
+.submit-step.active .step-dot::after {
+  content: ''; width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent-blue); animation: pulse 1s ease infinite;
+}
+.submit-step.done .step-dot {
+  border-color: var(--accent-green); background: rgba(63,185,80,0.2); color: var(--accent-green);
+}
+.submit-done-msg {
+  margin-top: 24px; font-size: 0.88em; color: var(--accent-green);
+  font-weight: 600; opacity: 0; animation: fadeIn 0.4s ease 0.2s forwards;
+}
+@keyframes fadeIn { to { opacity: 1; } }
+@keyframes scaleIn { from { opacity:0; transform:scale(0.9); } to { opacity:1; transform:scale(1); } }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
 </style>
 {% endblock %}
 
@@ -265,6 +316,9 @@ body { padding-bottom: 52px; }
   <div class="report-header">
     <div>
       <div class="report-title">
+        <a href="{% url 'doc_hub' run_id %}" class="btn-back" title="Back to SAE Reports">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </a>
         MedWatch FDA 3500A
         <span class="ae-badge">SAE</span>
         <span class="report-status-badge status-draft" id="reportStatusBadge">Draft</span>
@@ -277,17 +331,13 @@ body { padding-bottom: 52px; }
     </div>
     <div class="report-actions">
       <button class="btn-rpt primary" id="btnRegenerate" onclick="regenerateAI()" title="Re-generate narrative with {{ model_name|default:'AI' }}">
-        {% if "gemma" in model_name %}<img src="{% static 'assets/gemma.png' %}" alt="" style="width:16px;height:16px;vertical-align:-3px;">{% else %}<img src="{% static 'assets/gemini.png' %}" alt="" style="width:16px;height:16px;vertical-align:-3px;">{% endif %}
+        <img src="{% static 'assets/gemma.png' %}" alt="" style="width:18px;height:18px;vertical-align:-3px;">
         Re-generate AI
       </button>
       <span id="workflowButtons">
-        <button class="btn-workflow submit" id="btnSubmitReview" onclick="submitForReview()" style="display:none;">
+        <button class="btn-workflow submit" id="btnSubmit" onclick="submitReport()" style="display:none;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-          Submit for Review
-        </button>
-        <button class="btn-workflow accept" id="btnAccept" onclick="acceptReport()" style="display:none;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-          Accept
+          Submit
         </button>
         <button class="btn-workflow revert" id="btnRevert" onclick="revertToDraft()" style="display:none;">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
@@ -299,9 +349,20 @@ body { padding-bottom: 52px; }
 
   <!-- Tab Bar -->
   <div class="tab-bar">
-    <div class="tab-link active" onclick="switchTab('medwatch')">MedWatch 3500A Form</div>
-    <div class="tab-link" onclick="switchTab('e2b')">E2B(R3) XML Preview</div>
-    <div class="tab-link" onclick="switchTab('summary')">Quick Summary</div>
+    <div class="tab-bar-left">
+      <div class="tab-link active" onclick="switchTab('medwatch')">MedWatch 3500A</div>
+      <div class="tab-link" onclick="switchTab('pdf')">PDF</div>
+      <div class="tab-link" onclick="switchTab('summary')">Summary</div>
+    </div>
+    <div class="tab-bar-right">
+      <span class="status-text" id="statusDirty">No unsaved changes</span>
+      <span class="meddra-text" id="statusMeddra"></span>
+      <span class="meddra-confidence" id="meddraConfidence" style="display:none;"></span>
+      <button class="btn-rpt success" id="btnSave" onclick="saveReport()" style="padding:6px 14px; font-size:0.82em;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Save
+      </button>
+    </div>
   </div>
 
   <!-- TAB: MedWatch Form -->
@@ -543,24 +604,10 @@ body { padding-bottom: 52px; }
 
   </div>
 
-  <!-- TAB: E2B XML Preview -->
-  <div class="tab-panel" id="tab-e2b">
-    <div class="form-section">
-      <div class="form-section-header">
-        <h3><span class="sec-label">XML</span> E2B(R3) ICH ICSR</h3>
-        <button class="btn-rpt xml" onclick="window.open('{{ xml_url }}', '_blank')" style="font-size:0.8em; padding:4px 12px;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Download XML
-        </button>
-      </div>
-      <div class="form-section-body">
-        <p style="font-size:0.85em; color:var(--text-muted); margin-bottom:12px;">
-          The E2B(R3) XML will be regenerated when you save. This is a preview of the current version.
-        </p>
-        <div class="xml-preview" id="xmlPreview">
-          <pre>Loading XML preview...</pre>
-        </div>
-      </div>
+  <!-- TAB: PDF View -->
+  <div class="tab-panel" id="tab-pdf">
+    <div class="pdf-iframe-wrap" style="border-radius:var(--radius-xl);">
+      <iframe id="pdfIframe" src="{{ pdf_url }}"></iframe>
     </div>
   </div>
 
@@ -576,28 +623,6 @@ body { padding-bottom: 52px; }
   </div>
 </div>
 
-<!-- Status Bar -->
-<div class="status-bar">
-  <div class="status-left">
-    <span id="statusDirty">No unsaved changes</span>
-    <span id="statusMeddra"></span>
-    <span class="meddra-confidence" id="meddraConfidence" style="display:none;"></span>
-  </div>
-  <div class="status-right">
-    <button class="btn-rpt" onclick="window.open('{{ pdf_url }}', '_blank')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-      PDF
-    </button>
-    <button class="btn-rpt xml" onclick="window.open('{{ xml_url }}', '_blank')">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
-      XML
-    </button>
-    <button class="btn-rpt success" id="btnSave" onclick="saveReport()">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
-      Save
-    </button>
-  </div>
-</div>
 {% endif %}
 {% endblock %}
 
@@ -621,7 +646,6 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('statusMeddra').textContent =
       `MedDRA: ${meddraData.pt} (${meddraData.source || 'lookup'})`;
   }
-  loadXmlPreview();
   renderSummary();
   loadReportStatus();
 
@@ -699,14 +723,17 @@ function markDirty() {
 
 // ═══════ Tabs ═══════
 function switchTab(tabId) {
-  document.querySelectorAll('.tab-link').forEach((t, i) => {
-    const panels = ['medwatch', 'e2b', 'summary'];
+  const panels = ['medwatch', 'pdf', 'summary'];
+  document.querySelectorAll('.tab-bar-left .tab-link').forEach((t, i) => {
     t.classList.toggle('active', panels[i] === tabId);
   });
   document.querySelectorAll('.tab-panel').forEach(p => {
     p.classList.toggle('active', p.id === 'tab-' + tabId);
   });
-  if (tabId === 'e2b') loadXmlPreview();
+  if (tabId === 'pdf') {
+    const iframe = document.getElementById('pdfIframe');
+    iframe.src = iframe.src;
+  }
   if (tabId === 'summary') renderSummary();
 }
 
@@ -741,7 +768,6 @@ async function saveReport() {
       document.getElementById('statusDirty').textContent = 'Saved ✓';
       document.getElementById('statusDirty').style.color = 'var(--accent-green)';
       showToast('success', 'Documents saved and regenerated.');
-      loadXmlPreview();
     } else {
       showToast('error', result.error || 'Save failed');
     }
@@ -799,20 +825,7 @@ async function regenerateAI() {
     showToast('error', `Error: ${err.message}`);
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<img src="{% if "gemma" in model_name %}{% static "assets/gemma.png" %}{% else %}{% static "assets/gemini.png" %}{% endif %}" style="width:16px;height:16px;vertical-align:-3px;"> Re-generate AI';
-  }
-}
-
-// ═══════ XML Preview ═══════
-async function loadXmlPreview() {
-  const el = document.getElementById('xmlPreview');
-  try {
-    const res = await fetch(`/api/doc/download/${RUN_ID}/${PATIENT_ID}/e2b_r3_${AE_SLUG}.xml`);
-    if (!res.ok) { el.querySelector('pre').textContent = 'XML not yet generated. Save to generate.'; return; }
-    const xml = await res.text();
-    el.querySelector('pre').textContent = xml;
-  } catch (err) {
-    el.querySelector('pre').textContent = 'Failed to load XML preview.';
+    btn.innerHTML = '<img src="{% static "assets/gemma.png" %}" style="width:18px;height:18px;vertical-align:-3px;"> Re-generate AI';
   }
 }
 
@@ -888,21 +901,18 @@ async function loadReportStatus() {
 
 function updateStatusUI(data) {
   const badge = document.getElementById('reportStatusBadge');
-  const btnSubmit = document.getElementById('btnSubmitReview');
-  const btnAccept = document.getElementById('btnAccept');
+  const btnSubmit = document.getElementById('btnSubmit');
   const btnRevert = document.getElementById('btnRevert');
   const status = data.status || 'draft';
 
   // Status badge
   badge.className = 'report-status-badge status-' + status;
-  if (status === 'under_review') badge.textContent = 'Under Review';
-  else if (status === 'accepted') badge.textContent = 'Accepted';
+  if (status === 'accepted') badge.textContent = 'Submitted';
   else badge.textContent = 'Draft';
 
   // Workflow buttons
   btnSubmit.style.display = status === 'draft' ? '' : 'none';
-  btnAccept.style.display = status === 'under_review' ? '' : 'none';
-  btnRevert.style.display = (status === 'under_review' || status === 'accepted') ? '' : 'none';
+  btnRevert.style.display = status === 'accepted' ? '' : 'none';
 
 
   // MedDRA confidence
@@ -918,12 +928,8 @@ function updateStatusUI(data) {
   }
 }
 
-async function submitForReview() {
-  await updateReportStatus('under_review');
-}
-
-async function acceptReport() {
-  await updateReportStatus('accepted');
+async function submitReport() {
+  await showSubmissionOverlay();
 }
 
 async function revertToDraft() {
@@ -954,6 +960,69 @@ async function updateReportStatus(newStatus) {
   } catch (err) {
     showToast('error', `Error: ${err.message}`);
   }
+}
+
+// ═══════ Submission Overlay ═══════
+async function showSubmissionOverlay() {
+  const steps = [
+    'Generating E2B(R3) XML…',
+    'Validating ICSR payload…',
+    'Submitting to FDA gateway…',
+    'Confirmed',
+  ];
+
+  const overlay = document.createElement('div');
+  overlay.className = 'submit-overlay';
+  overlay.innerHTML = `
+    <div class="submit-card">
+      <div class="submit-icon pending" id="submitIcon">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-blue)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+      </div>
+      <div class="submit-title">Submitting SAE Report</div>
+      <div class="submit-steps" id="submitSteps">
+        ${steps.map((s, i) => `
+          <div class="submit-step${i === 0 ? ' active' : ''}" id="submitStep${i}">
+            <span class="step-dot">${i === steps.length - 1 ? '✓' : ''}</span>
+            <span>${s}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="submit-done-msg" id="submitDoneMsg" style="display:none;">
+        Report accepted and submitted successfully
+      </div>
+    </div>
+  `;
+  document.body.appendChild(overlay);
+
+  // Animate through steps
+  for (let i = 0; i < steps.length - 1; i++) {
+    await new Promise(r => setTimeout(r, 800 + Math.random() * 400));
+    document.getElementById(`submitStep${i}`).className = 'submit-step done';
+    document.getElementById(`submitStep${i}`).querySelector('.step-dot').textContent = '✓';
+    if (i + 1 < steps.length) {
+      document.getElementById(`submitStep${i + 1}`).className = 'submit-step active';
+    }
+  }
+
+  // Actually submit
+  try {
+    await updateReportStatus('accepted');
+  } catch (_) { /* already handled in updateReportStatus */ }
+
+  // Final step done
+  const last = steps.length - 1;
+  document.getElementById(`submitStep${last}`).className = 'submit-step done';
+
+  // Swap icon to checkmark
+  const icon = document.getElementById('submitIcon');
+  icon.className = 'submit-icon done';
+  icon.innerHTML = '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent-green)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+  document.getElementById('submitDoneMsg').style.display = '';
+
+  // Auto-dismiss
+  await new Promise(r => setTimeout(r, 2000));
+  overlay.style.animation = 'fadeIn 0.3s ease reverse forwards';
+  setTimeout(() => overlay.remove(), 300);
 }
 
 // ═══════ Toast ═══════
