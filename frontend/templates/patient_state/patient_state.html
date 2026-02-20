@@ -990,13 +990,17 @@
       dark:   [4,19,22,23,27,35,39,43,47,57,60],
     },
   };
+  const _RUN_ID = '{{ run_id }}';
+  let _spriteOff = 0;
+  for (let i = 0; i < _RUN_ID.length; i++) _spriteOff = ((_spriteOff << 5) - _spriteOff + _RUN_ID.charCodeAt(i)) | 0;
+  _spriteOff = Math.abs(_spriteOff);
   function _getCharSpriteUrl(pid, sex, race) {
     const gender = ((sex || '').charAt(0) || 'M').toUpperCase() === 'F' ? 'F' : 'M';
     const r = (race || '').toUpperCase();
     const tone = r.includes('BLACK') ? 'dark' : r.includes('ASIAN') ? 'medium' : r.includes('WHITE') ? 'light' : 'medium';
     const pool = (_SPRITE_MAP[gender] && _SPRITE_MAP[gender][tone]) || _SPRITE_MAP.M.light;
     const num = parseInt((pid || '').replace(/\D/g, ''), 10) || 1;
-    const n = pool[(num - 1) % pool.length];
+    const n = pool[(_spriteOff + num - 1) % pool.length];
     return `/static/assets/characters/patient_${String(n).padStart(2, '0')}.png`;
   }
   const _PAGE_PATIENT_ID = '{{ patient_id }}';
