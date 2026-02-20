@@ -434,13 +434,7 @@ class TrialMap {
       house.setDepth(4);
     });
 
-    // HUD — day text removed (shown in toolbar)
     this.dayText = null;
-
-    scene.add.text(8, 8, 'Drag: pan | Scroll: zoom | Click: select', {
-      fontFamily: '"NeoDunggeunmo", monospace', fontSize: '8px', color: '#8b949e',
-      stroke: '#0d1117', strokeThickness: 2, resolution: 4,
-    }).setScrollFactor(0).setDepth(100);
   }
 
   _createAnimations(scene) {
