@@ -14,6 +14,8 @@ import math
 import re
 from typing import Any
 
+from config.defaults import DEFAULT_LAB_REFERENCE_RANGES, normalize_lab_key, normalize_ae_term
+
 # ══════════════════════════════════════════════════════
 # A. ROUTE / DOSFRM 코드 매핑
 # ══════════════════════════════════════════════════════
@@ -44,12 +46,13 @@ _DOSFRM_MAP = {
     "OTHER": "OTHER",
 }
 
-# Lab category classification
-_LAB_CATEGORY = {
-    "hemoglobin": "HEMATOLOGY", "ANC": "HEMATOLOGY", "platelets": "HEMATOLOGY",
-    "creatinine": "CHEMISTRY", "eGFR": "CHEMISTRY", "alt": "CHEMISTRY",
-    "ast": "CHEMISTRY", "total_bilirubin": "CHEMISTRY", "albumin": "CHEMISTRY",
-    "sodium": "CHEMISTRY", "LDH": "CHEMISTRY",
+_LAB_CATEGORY: dict[str, str] = {
+    "hemoglobin": "HEMATOLOGY", "ANC": "HEMATOLOGY", "WBC": "HEMATOLOGY",
+    "platelets": "HEMATOLOGY",
+    "creatinine": "CHEMISTRY", "eGFR": "CHEMISTRY", "ALT": "CHEMISTRY",
+    "AST": "CHEMISTRY", "total_bilirubin": "CHEMISTRY", "albumin": "CHEMISTRY",
+    "sodium": "CHEMISTRY", "potassium": "CHEMISTRY", "uric_acid": "CHEMISTRY",
+    "LDH": "CHEMISTRY",
     "glucose_fasting": "CHEMISTRY", "HbA1c": "CHEMISTRY",
     "TSH": "ENDOCRINE",
 }
@@ -132,12 +135,14 @@ def _normalize_race(race: str) -> str:
 # C. 일별 레코드 변환 (매일)
 # ══════════════════════════════════════════════════════
 
-def map_day_record(record: dict, patient: dict | None = None) -> dict:
+def map_day_record(record: dict, patient: dict | None = None,
+                   lab_ref: dict | None = None) -> dict:
     """1일치 시뮬레이션 레코드를 CDASH 도메인 구조로 변환.
 
     Args:
         record: daily_agent 출력 (내부 필드명)
         patient: 환자 데이터 (DM/MH/baseline용, optional)
+        lab_ref: rule_set.lab_reference_ranges (optional, fallback: DEFAULT_LAB_REFERENCE_RANGES)
 
     Returns:
         CDASH 표준 필드명으로 변환된 레코드
@@ -181,7 +186,7 @@ def map_day_record(record: dict, patient: dict | None = None) -> dict:
     mapped["EC"] = _map_ec(record.get("ec_records", []), day)
     mapped["CM"] = _map_cm(record.get("cm_records", []))
     mapped["VS"] = _map_vs(obj.get("vitals", {}), day, patient)
-    mapped["LB"] = _map_lb(obj.get("labs", {}), day)
+    mapped["LB"] = _map_lb(obj.get("labs", {}), day, lab_ref=lab_ref)
     mapped["DS"] = _map_ds(record.get("ds_record"), day)
     mapped["RS"] = _map_rs(record.get("recist_scan"), record.get("recist_history"), day)
     mapped["TU"] = _map_tu(record.get("recist_scan"), patient, day)
@@ -447,11 +452,13 @@ def _map_vs(vitals: dict, day: int, patient: dict | None = None) -> dict:
     height = None
     if patient:
         emr = patient.get("emr", {})
-        bmi = emr.get("demographics", {}).get("bmi")
-        baseline_weight = emr.get("baseline_vitals", {}).get("weight_kg")
-        if bmi and baseline_weight and bmi > 0:
-            height_m = math.sqrt(baseline_weight / bmi)
-            height = round(height_m * 100, 1)  # cm
+        try:
+            bmi = float(emr.get("demographics", {}).get("bmi", 0))
+            baseline_weight = float(emr.get("baseline_vitals", {}).get("weight_kg", 0))
+            if bmi > 0 and baseline_weight > 0:
+                height = round(math.sqrt(baseline_weight / bmi) * 100, 1)
+        except (ValueError, TypeError):
+            pass
 
     rec = {
         # core fields
@@ -486,13 +493,15 @@ def _map_vs(vitals: dict, day: int, patient: dict | None = None) -> dict:
 
 # ── LB Domain ──────────────────────────────────────
 
-def _map_lb(labs: dict, day: int) -> dict:
+def _map_lb(labs: dict, day: int, lab_ref: dict | None = None) -> dict:
     """labs → CDASH LB 레코드."""
     if not labs:
         return {}
 
+    ref = _build_lab_ref_lookup(lab_ref)
+
     rec = {
-        "LBCAT": "CHEMISTRY",  # 전체 분류 (개별 항목별로도 results 내에 포함)
+        "LBCAT": "CHEMISTRY",
         "LBPERF": True,
         "LBDAT": day,
         "LBTIM": None,
@@ -511,14 +520,51 @@ def _map_lb(labs: dict, day: int) -> dict:
         else:
             continue
 
-        rec["results"][lab_name] = {
+        cname = normalize_lab_key(lab_name)
+        entry = {
             "LBORRES": val,
             "LBORRESU": unit,
-            "LBCAT": _LAB_CATEGORY.get(lab_name, "OTHER"),
+            "LBCAT": _LAB_CATEGORY.get(cname, "OTHER"),
             "_trend": trend,
         }
 
+        rng = ref.get(cname)
+        if rng and val is not None:
+            lln = rng.get("LLN")
+            uln = rng.get("ULN")
+            if lln is not None and uln is not None:
+                entry["LBORNRLO"] = lln
+                entry["LBORNRHI"] = uln
+                if val < lln:
+                    entry["LBNRIND"] = "LOW"
+                    entry["LBCLSIG"] = "Y"
+                elif val > uln:
+                    entry["LBNRIND"] = "HIGH"
+                    entry["LBCLSIG"] = "Y"
+                else:
+                    entry["LBNRIND"] = "NORMAL"
+                    entry["LBCLSIG"] = "N"
+
+        rec["results"][lab_name] = entry
+
     return rec
+
+
+def _build_lab_ref_lookup(lab_ref: dict | None) -> dict:
+    """rule_set lab_reference_ranges + DEFAULT fallback을 합쳐서 lookup dict를 만든다."""
+    merged: dict = {}
+    for name, spec in DEFAULT_LAB_REFERENCE_RANGES.items():
+        merged[normalize_lab_key(name)] = spec
+    if lab_ref:
+        for name, spec in lab_ref.items():
+            cname = normalize_lab_key(name)
+            nr = spec.get("normal_range", {})
+            merged[cname] = {
+                "unit": spec.get("unit", ""),
+                "LLN": spec.get("LLN", nr.get("min")),
+                "ULN": spec.get("ULN", nr.get("max")),
+            }
+    return merged
 
 
 # ── DS Domain ──────────────────────────────────────

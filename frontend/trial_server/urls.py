@@ -101,4 +101,8 @@ urlpatterns = [
          views.api_crf_excel_download, name='api_crf_excel_download'),
     path('api/crf/<str:run_id>/<str:domain>/',
          views.api_crf_domain_data, name='api_crf_domain_data'),
+
+    # Multimodal Enhance API
+    path('api/multimodal/enhance',
+         views.api_multimodal_enhance, name='api_multimodal_enhance'),
 ]

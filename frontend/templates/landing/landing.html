@@ -300,11 +300,11 @@
     <h3>New Simulation</h3>
     <div class="sim-form-group">
       <label>Drug</label>
-      <input type="text" id="sim-drug" value="Padcev + Pembrolizumab">
-    </div>
-    <div class="sim-form-group">
-      <label>Indication</label>
-      <input type="text" id="sim-indication" value="metastatic urothelial carcinoma">
+      <select id="sim-drug">
+        <option value="padcev_pembro" selected>Padcev + Pembrolizumab — mUC</option>
+        <option value="darbepoetin">Darbepoetin alfa — ES-SCLC</option>
+        <option value="ep_sclc">Etoposide + Cisplatin — ES-SCLC</option>
+      </select>
     </div>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
       <div class="sim-form-group">
@@ -372,8 +372,7 @@ async function startSimulation() {
   msg.textContent = 'Initializing simulation...';
 
   const body = {
-    drug: document.getElementById('sim-drug').value,
-    indication: document.getElementById('sim-indication').value,
+    drug_preset: document.getElementById('sim-drug').value,
     patients: parseInt(document.getElementById('sim-patients').value),
     days: parseInt(document.getElementById('sim-days').value),
     mode: document.getElementById('sim-mode').value,

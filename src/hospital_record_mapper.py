@@ -14,6 +14,9 @@ import json
 from typing import Any
 
 
+_PHYSICAL_VISIT_TYPES = frozenset({"scheduled_visit", "er_visit"})
+
+
 def extract_hospital_record(cdash_record: dict) -> dict:
     """Convert a full GT day record into hospital-only format.
 
@@ -29,6 +32,9 @@ def extract_hospital_record(cdash_record: dict) -> dict:
     hr_subj = hr_data.get("subjective") if hr_data else None
     obs_events = cdash_record.get("observation_events", [])
     obs_types = hr_data.get("observation_types", []) if hr_data else []
+
+    obs_set = set(obs_types)
+    is_physical_visit = bool(obs_set & _PHYSICAL_VISIT_TYPES)
 
     # Base record
     record = {
@@ -87,15 +93,14 @@ def extract_hospital_record(cdash_record: dict) -> dict:
     # CM (concomitant meds): always known (hospital prescribes)
     record["CM"] = cdash_record.get("CM", [])
 
-    # VS (vitals): only if observation day, otherwise stale/None
-    if obs_types:
+    # VS (vitals): only on physical visit (scheduled_visit / er_visit)
+    if is_physical_visit:
         record["VS"] = cdash_record.get("VS", {})
     else:
-        # Return last known vitals from HR
         record["VS"] = _vitals_from_hr(hr_obj.get("vitals", {}))
 
-    # LB (labs): only if observation day, otherwise stale/None
-    if obs_types:
+    # LB (labs): only on physical visit
+    if is_physical_visit:
         record["LB"] = cdash_record.get("LB", {})
     else:
         record["LB"] = _labs_from_hr(hr_obj.get("labs", {}))
@@ -114,8 +119,8 @@ def extract_hospital_record(cdash_record: dict) -> dict:
     # DD (death details): always known
     record["DD"] = cdash_record.get("DD")
 
-    # PE, EG: only on observation days
-    if obs_types:
+    # PE, EG: only on physical visit
+    if is_physical_visit:
         record["PE"] = cdash_record.get("PE")
         record["EG"] = cdash_record.get("EG")
     else:

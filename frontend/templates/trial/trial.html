@@ -599,6 +599,67 @@
     color: var(--text-secondary);
   }
 
+  /* Multimodal enhance */
+  .mm-enhance-bar {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+    padding: 6px 10px; border-radius: 6px;
+    background: rgba(136,108,228,0.06); border: 1px solid rgba(136,108,228,0.18);
+  }
+  .mm-enhance-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 12px; border-radius: 4px; border: 1px solid rgba(136,108,228,0.4);
+    background: rgba(136,108,228,0.12); color: #a88bfa; cursor: pointer;
+    font: 600 0.78em 'JetBrains Mono', monospace; transition: all 0.15s;
+  }
+  .mm-enhance-btn:hover { background: rgba(136,108,228,0.22); border-color: #a88bfa; }
+  .mm-enhance-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+  .mm-enhance-btn .spinner {
+    width: 12px; height: 12px; border: 2px solid rgba(136,108,228,0.3);
+    border-top-color: #a88bfa; border-radius: 50%;
+    animation: spin 0.8s linear infinite; display: none;
+  }
+  .mm-enhance-btn.loading .spinner { display: inline-block; }
+  .mm-enhance-btn.loading .btn-icon { display: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .mm-face-area {
+    display: none; flex-direction: column; align-items: center; gap: 6px;
+    margin-bottom: 10px; padding: 8px; border-radius: 8px;
+    background: rgba(136,108,228,0.04); border: 1px solid rgba(136,108,228,0.12);
+  }
+  .mm-face-area.visible { display: flex; }
+  .mm-face-img {
+    width: 120px; height: 120px; border-radius: 50%; object-fit: cover;
+    border: 2px solid rgba(136,108,228,0.3); box-shadow: 0 0 12px rgba(136,108,228,0.15);
+  }
+  .mm-face-label {
+    font: 500 0.72em 'JetBrains Mono', monospace; color: var(--text-muted);
+  }
+
+  .mm-audio-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 3px; border: 1px solid rgba(88,166,255,0.25);
+    background: rgba(88,166,255,0.08); color: var(--accent-blue); cursor: pointer;
+    font-size: 0.72em; margin-left: 6px; transition: all 0.15s;
+  }
+  .mm-audio-btn:hover { background: rgba(88,166,255,0.18); }
+  .mm-audio-btn.playing { background: rgba(88,166,255,0.22); border-color: var(--accent-blue); }
+
+  .mm-status {
+    font: 400 0.72em 'JetBrains Mono', monospace; color: var(--text-muted);
+  }
+  .mm-progress {
+    display: none; gap: 6px; align-items: center; margin-top: 4px;
+    font: 400 0.72em 'JetBrains Mono', monospace; color: var(--text-muted);
+  }
+  .mm-progress.visible { display: flex; }
+  .mm-progress .bar {
+    flex: 1; height: 3px; background: var(--bg-elevated); border-radius: 2px; overflow: hidden;
+  }
+  .mm-progress .bar-fill {
+    height: 100%; background: #a88bfa; border-radius: 2px; transition: width 0.3s;
+  }
+
   /* Mood bars */
   .mood-bars { display: flex; flex-direction: column; gap: 4px; }
   .mood-row { display: flex; align-items: center; gap: 6px; font-size: 0.8em; }
@@ -1002,6 +1063,10 @@
 
           <div class="detail-section">
             <h6><span class="sec-icon"></span> Video Call</h6>
+            <div id="mm-face-area" class="mm-face-area">
+              <img id="mm-face-img" class="mm-face-img" src="" alt="Patient face">
+              <span class="mm-face-label">AI-generated patient face</span>
+            </div>
             <div id="detail-care">
               <em style="color:var(--text-muted)">No video call today</em>
             </div>
@@ -1623,6 +1688,8 @@
 
   function showPatientDetail(p) {
     selectedPatient = p.patient_id;
+    _lastModalPid = p.patient_id;
+    mmAudioElements = {};
     modalOverlay.classList.add('visible');
 
     document.querySelectorAll('.patient-card').forEach(c => c.classList.remove('active'));
@@ -1656,18 +1723,55 @@
     renderPatientAEs(p, currentView);
   }
 
+  // ── Multimodal state ──
+  let _lastModalPid = '';
+  let mmAudioElements = {};
+  let mmEnhanceState = {};
+
   // ── Care AI Chat Renderer ──
   function renderCareChat(cr) {
     const el = document.getElementById('detail-care');
+    const faceArea = document.getElementById('mm-face-area');
+    faceArea.classList.remove('visible');
+
     if (!cr) {
       el.innerHTML = '<em style="color:var(--text-muted); font-size:0.85em">No video call today</em>';
       return;
     }
+
     const sevClass = 'sev-' + (cr.severity_level || 'green');
-    let html = `<div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+    const hasPatientTurns = (cr.turns || []).some(t => t.role === 'patient');
+
+    // Enhance bar (only in care_ai mode with patient turns)
+    let enhanceHtml = '';
+    if (currentMode === 'care_ai' && hasPatientTurns) {
+      const stateKey = `${_lastModalPid}_${currentDay}`;
+      const alreadyDone = mmEnhanceState[stateKey] && mmEnhanceState[stateKey].face_b64;
+      enhanceHtml = `<div class="mm-enhance-bar">
+        <button class="mm-enhance-btn" id="mm-enhance-btn" onclick="mmEnhanceAll()" ${alreadyDone ? 'disabled' : ''}>
+          <span class="btn-icon">🎭</span><span class="spinner"></span>
+          ${alreadyDone ? 'Enhanced' : 'Multimodal'}
+        </button>
+        <span class="mm-status" id="mm-status">${alreadyDone ? 'Face + voice generated' : 'Generate face & voice with Gemini'}</span>
+        <div class="mm-progress" id="mm-progress">
+          <div class="bar"><div class="bar-fill" id="mm-bar-fill" style="width:0%"></div></div>
+          <span id="mm-progress-text">0/0</span>
+        </div>
+      </div>`;
+
+      if (alreadyDone) {
+        faceArea.classList.add('visible');
+        document.getElementById('mm-face-img').src = 'data:image/png;base64,' + mmEnhanceState[stateKey].face_b64;
+      }
+    }
+
+    let html = enhanceHtml;
+    html += `<div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
       <span class="severity-badge ${sevClass}">${(cr.severity_level || 'green').toUpperCase()}</span>
       ${cr.terminated_early ? '<span style="color:var(--accent-orange); font-size:0.78em">⚡ Early end</span>' : ''}
-    </div><div class="care-chat">`;
+    </div><div class="care-chat" id="care-chat-area">`;
+
+    let patientTurnIdx = 0;
     (cr.turns || []).forEach(t => {
       const isP = t.role === 'patient';
       const cls = isP ? 'chat-patient' : 'chat-nurse';
@@ -1701,15 +1805,141 @@
         });
       }
       if (!text) text = JSON.stringify(c).substring(0, 200);
-      html += `<div class="chat-bubble ${cls}"><div class="chat-role">${isP ? '👤 Patient' : '🩺 Nurse'} (T${t.turn})</div><div>${text}</div></div>`;
+
+      let audioSlot = '';
+      if (isP) {
+        audioSlot = `<span class="mm-audio-slot" data-pt-idx="${patientTurnIdx}" id="mm-audio-${patientTurnIdx}"></span>`;
+        patientTurnIdx++;
+      }
+
+      html += `<div class="chat-bubble ${cls}">
+        <div class="chat-role">${isP ? '👤 Patient' : '🩺 Nurse'} (T${t.turn})${audioSlot}</div>
+        <div>${text}</div>
+      </div>`;
     });
     html += '</div>';
+
     if (cr.actions && cr.actions.length) {
       html += '<div style="margin-top:8px; display:flex; flex-wrap:wrap; gap:4px;">';
       cr.actions.forEach(a => { html += `<span class="action-tag">${a.action}</span>`; });
       html += '</div>';
     }
     el.innerHTML = html;
+
+    // Restore audio buttons if already enhanced
+    if (currentMode === 'care_ai') {
+      const stateKey = `${_lastModalPid}_${currentDay}`;
+      const st = mmEnhanceState[stateKey];
+      if (st && st.turns) {
+        Object.entries(st.turns).forEach(([idx, audioB64]) => {
+          if (audioB64) _insertAudioBtn(parseInt(idx), audioB64);
+        });
+      }
+    }
+  }
+
+  // ── Multimodal Enhance: generate face + voice for all patient turns ──
+  async function mmEnhanceAll() {
+    const pid = _lastModalPid;
+    const day = currentDay;
+    if (!pid || !day) return;
+
+    const btn = document.getElementById('mm-enhance-btn');
+    const status = document.getElementById('mm-status');
+    const progress = document.getElementById('mm-progress');
+    const barFill = document.getElementById('mm-bar-fill');
+    const progressText = document.getElementById('mm-progress-text');
+
+    btn.classList.add('loading');
+    btn.disabled = true;
+
+    // Count patient turns
+    const audioSlots = document.querySelectorAll('.mm-audio-slot');
+    const total = audioSlots.length;
+    let done = 0;
+
+    progress.classList.add('visible');
+    progressText.textContent = `0/${total}`;
+    status.textContent = 'Generating...';
+
+    const stateKey = `${pid}_${day}`;
+    if (!mmEnhanceState[stateKey]) mmEnhanceState[stateKey] = { face_b64: null, turns: {} };
+
+    for (let i = 0; i < total; i++) {
+      try {
+        status.textContent = `Turn ${i + 1}/${total}: calling Gemini...`;
+        const resp = await fetch('/api/multimodal/enhance', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({
+            run_id: '{{ run_id }}',
+            patient_id: pid,
+            day: day,
+            turn_index: i,
+          }),
+        });
+        const data = await resp.json();
+        if (data.error) {
+          console.warn('Enhance error:', data.error);
+          status.textContent = `Turn ${i + 1}: ${data.error}`;
+        } else {
+          if (data.face_b64 && i === 0) {
+            mmEnhanceState[stateKey].face_b64 = data.face_b64;
+            const faceArea = document.getElementById('mm-face-area');
+            document.getElementById('mm-face-img').src = 'data:image/png;base64,' + data.face_b64;
+            faceArea.classList.add('visible');
+          }
+          if (data.audio_b64) {
+            mmEnhanceState[stateKey].turns[i] = data.audio_b64;
+            _insertAudioBtn(i, data.audio_b64);
+          }
+        }
+      } catch (err) {
+        console.error('Enhance fetch error:', err);
+        status.textContent = `Turn ${i + 1}: network error`;
+      }
+      done++;
+      barFill.style.width = `${Math.round((done / total) * 100)}%`;
+      progressText.textContent = `${done}/${total}`;
+    }
+
+    btn.classList.remove('loading');
+    btn.innerHTML = '<span class="btn-icon">✓</span> Enhanced';
+    status.textContent = 'Face + voice generated';
+    progress.classList.remove('visible');
+  }
+
+  function _insertAudioBtn(ptIdx, audioB64) {
+    const slot = document.getElementById(`mm-audio-${ptIdx}`);
+    if (!slot) return;
+    slot.innerHTML = `<button class="mm-audio-btn" onclick="mmPlayAudio(this, '${ptIdx}')">🔊 Play</button>`;
+
+    if (!mmAudioElements[ptIdx]) {
+      const audio = new Audio('data:audio/wav;base64,' + audioB64);
+      audio.addEventListener('ended', () => {
+        const btns = document.querySelectorAll(`.mm-audio-btn`);
+        btns.forEach(b => b.classList.remove('playing'));
+      });
+      mmAudioElements[ptIdx] = audio;
+    }
+  }
+
+  function mmPlayAudio(btnEl, ptIdx) {
+    const audio = mmAudioElements[ptIdx];
+    if (!audio) return;
+    if (audio.paused) {
+      Object.values(mmAudioElements).forEach(a => { a.pause(); a.currentTime = 0; });
+      document.querySelectorAll('.mm-audio-btn').forEach(b => b.classList.remove('playing'));
+      btnEl.classList.add('playing');
+      btnEl.textContent = '⏸ Playing';
+      audio.play();
+      audio.onended = () => { btnEl.classList.remove('playing'); btnEl.textContent = '🔊 Play'; };
+    } else {
+      audio.pause();
+      audio.currentTime = 0;
+      btnEl.classList.remove('playing');
+      btnEl.textContent = '🔊 Play';
+    }
   }
 
   // ── Mood Bars Renderer (now rendered in RPG header via renderCharStatBars) ──

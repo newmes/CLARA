@@ -19,7 +19,7 @@ LLM 호출 없음. rule_set의 onset_day, duration_days 분포를 입력으로 �
 '''
 import math
 from typing import Any
-from config.defaults import GRADE_TRANSITION_BASE_WORSEN, GRADE_TRANSITION_BASE_IMPROVE, GRADE_TIME_STABILIZE_DAY, GRADE_HIGH_WORSEN_DAMPING, GRADE_4_TO_5_DAMPING, GRADE_HIGH_IMPROVE_BOOST, GRADE_4_IMPROVE_BOOST, GRADE_CUMULATIVE_MAX_TIME_FACTOR, MAX_GRADE_TRANSITION_PROB, TUMOR_RATE, ECOG_MORTALITY_MAP, TREATMENT_DISCONTINUED_MORTALITY_MULT, MAX_DAILY_MORTALITY, TREATMENT_DISCONTINUED_ECOG_PENALTY, ECOG_AE_PENALTY_CAP, ECOG_MAX_DAILY_CHANGE, MIN_AE_BURDEN_WEIGHT, ECOG_TREATMENT_FATIGUE_PER_CYCLE, MAX_AE_CASCADE_HAZARD, MAX_DISCONTINUATION_PATIENT, MAX_DISCONTINUATION_PHYSICIAN, DISCONTINUATION_BACKGROUND_DAILY_RATE, INTERVENTION_EFFECTS
+from config.defaults import GRADE_TRANSITION_BASE_WORSEN, GRADE_TRANSITION_BASE_IMPROVE, GRADE_TIME_STABILIZE_DAY, GRADE_HIGH_WORSEN_DAMPING, GRADE_4_TO_5_DAMPING, GRADE_HIGH_IMPROVE_BOOST, GRADE_4_IMPROVE_BOOST, GRADE_CUMULATIVE_MAX_TIME_FACTOR, MAX_GRADE_TRANSITION_PROB, TUMOR_RATE, ECOG_MORTALITY_MAP, TREATMENT_DISCONTINUED_MORTALITY_MULT, MAX_DAILY_MORTALITY, TREATMENT_DISCONTINUED_ECOG_PENALTY, ECOG_AE_PENALTY_CAP, ECOG_MAX_DAILY_CHANGE, MIN_AE_BURDEN_WEIGHT, ECOG_TREATMENT_FATIGUE_PER_CYCLE, MAX_AE_CASCADE_HAZARD, MAX_DISCONTINUATION_PATIENT, MAX_DISCONTINUATION_PHYSICIAN, DISCONTINUATION_BACKGROUND_DAILY_RATE, INTERVENTION_EFFECTS, TARGET_GRADE_ESCALATION_BOOST, TARGET_GRADE_IMPROVE_DAMPING, BACKGROUND_MORTALITY_FRACTION, normalize_ae_term
 
 def _normal_cdf(x, mean, std):
     '''정규분포 CDF. math.erf 기반.'''
@@ -93,8 +93,18 @@ def _distribution_cdf(x, distribution='normal', params=None):
         std = params.get('std', 10)
         return _truncated_cdf(_normal_cdf, x, lo, hi, mean=mean, std=std)
     if distribution == 'lognormal':
-        mu = params.get('mu', math.log(30))
-        sigma = params.get('sigma', 0.5)
+        mu = params.get('mu', None)
+        sigma = params.get('sigma', None)
+        if mu is None or sigma is None:
+            mean = params.get('mean', 30)
+            std = params.get('std', mean * 0.5)
+            if mean > 0 and std > 0:
+                sigma_sq = math.log(1 + (std / mean) ** 2)
+                sigma = math.sqrt(sigma_sq)
+                mu = math.log(mean) - sigma_sq / 2
+            else:
+                mu = math.log(max(mean, 1))
+                sigma = 0.5
         return _truncated_cdf(_lognormal_cdf, x, lo, hi, mu=mu, sigma=sigma)
     if distribution == 'uniform':
         return _uniform_cdf(x, lo, hi)
@@ -184,7 +194,7 @@ def daily_resolution_hazard(days_active, duration_spec=None, is_drug_held=False,
     return min(max(hazard, 0), 1)
 
 
-def grade_transition_probs(current_grade, days_active, is_cumulative=False, has_active_conmed=False, conmed_tier=3, is_drug_held=False, is_dose_reduced=False):
+def grade_transition_probs(current_grade, days_active, is_cumulative=False, has_active_conmed=False, conmed_tier=3, is_drug_held=False, is_dose_reduced=False, target_grade=None):
     '''활성 AE의 grade 변화 확률을 계산한다.
 
     Args:
@@ -195,6 +205,8 @@ def grade_transition_probs(current_grade, days_active, is_cumulative=False, has_
         conmed_tier: 보조약의 효과 Tier (2=표적, 3=대증, 4=비약물)
         is_drug_held: 원인 약물이 현재 hold 상태인가
         is_dose_reduced: 원인 약물이 감량 상태인가
+        target_grade: 이 환자의 예상 peak grade (grade_distribution에서 샘플링).
+                      current_grade < target_grade이면 악화 확률 부스트.
 
     Returns:
         {"worsen": float, "improve": float, "stable": float}
@@ -213,6 +225,19 @@ def grade_transition_probs(current_grade, days_active, is_cumulative=False, has_
             'stable': 1 }
     base_worsen = GRADE_TRANSITION_BASE_WORSEN
     base_improve = GRADE_TRANSITION_BASE_IMPROVE
+
+    # Target-grade-aware escalation:
+    # 아직 peak grade에 도달하지 않았으면 악화 쪽으로 bias
+    if target_grade is not None and current_grade < target_grade:
+        grade_gap = target_grade - current_grade
+        base_worsen *= (1 + TARGET_GRADE_ESCALATION_BOOST * grade_gap)
+        base_improve *= TARGET_GRADE_IMPROVE_DAMPING
+    # target 도달 후: 오버슈팅 강력 억제 — max_grade ≈ target이 되도록
+    elif target_grade is not None and current_grade >= target_grade:
+        overshoot = current_grade - target_grade
+        base_worsen *= max(0.01, 0.05 ** (1 + overshoot))
+        base_improve *= 2.0 + overshoot * 2.0
+
     time_factor = min(days_active / 60, GRADE_CUMULATIVE_MAX_TIME_FACTOR)
     if is_cumulative:
         base_worsen *= 1 + time_factor
@@ -430,9 +455,10 @@ def compute_daily_mortality(day, active_aes, tumor_status, ecog, treatment_disco
     Returns:
         (daily_mortality_probability, {channel_name: multiplier})
     '''
-    annual = risk_config.get('baseline_annual_mortality', 0.25)
+    annual = float(risk_config.get('baseline_annual_mortality', 0.25))
     if annual <= 0:
         return (0, { })
+    ecog = int(ecog) if ecog is not None else 0
     daily_base = 1 - (1 - min(annual, 0.99)) ** (1/365)
     channels_cfg = risk_config.get('channels', { })
     contributions = { }
@@ -459,7 +485,7 @@ def compute_daily_mortality(day, active_aes, tumor_status, ecog, treatment_disco
     for ae in active_aes:
         if ae.get('status') == 'resolved':
             continue
-        g = ae.get('grade', 1)
+        g = int(ae.get('grade', 1))
         if g >= 2:
             significant_count += 1
         gm = float(ae_grade_mults.get(str(g), 1))
@@ -485,7 +511,7 @@ def compute_daily_mortality(day, active_aes, tumor_status, ecog, treatment_disco
             discont_mult = 1 + (discont_mult - 1) * decay
         contributions['treatment_discontinued'] = round(discont_mult, 4)
     has_life_threatening_ae = any(
-        ae.get('grade', 1) >= 4 and ae.get('status') != 'resolved'
+        int(ae.get('grade', 1)) >= 4 and ae.get('status') != 'resolved'
         for ae in active_aes
     )
     has_critical_ecog = ecog >= 3
@@ -496,7 +522,7 @@ def compute_daily_mortality(day, active_aes, tumor_status, ecog, treatment_disco
             contributions['treatment_toxicity'] = 1
             contributions['_coherence_capped'] = True
     max_ae_grade = max(
-        (ae.get('grade', 0) for ae in active_aes if ae.get('status') != 'resolved'),
+        (int(ae.get('grade', 0)) for ae in active_aes if ae.get('status') != 'resolved'),
         default=0,
     )
     n_active_aes = sum(1 for ae in active_aes if ae.get('status') != 'resolved')
@@ -504,27 +530,27 @@ def compute_daily_mortality(day, active_aes, tumor_status, ecog, treatment_disco
     # Clinical Severity Factor (CSF): 0~1 범위
     # 임상적으로 의미 있는 사망 위험이 있는 상태인지 판단
     if tumor_status == 'PD':
-        csf_tumor = 0.6
+        csf_tumor = 0.70
     elif tumor_status == 'SD':
-        csf_tumor = 0.15
+        csf_tumor = 0.20
     elif tumor_status in ('CR', 'PR'):
-        csf_tumor = 0.05
+        csf_tumor = 0.08
     else:
-        csf_tumor = 0.1
+        csf_tumor = 0.12
 
-    csf_ecog_map = {0: 0.02, 1: 0.1, 2: 0.35, 3: 0.6, 4: 1.0}
+    csf_ecog_map = {0: 0.08, 1: 0.15, 2: 0.40, 3: 0.65, 4: 1.0}
     csf_ecog = csf_ecog_map.get(min(ecog, 4), 0.5)
 
     if max_ae_grade >= 4:
         csf_ae = 1.0
     elif max_ae_grade >= 3:
-        csf_ae = 0.25
+        csf_ae = 0.30
     elif n_active_aes >= 3:
-        csf_ae = 0.20
+        csf_ae = 0.25
     elif max_ae_grade == 2:
-        csf_ae = 0.10
+        csf_ae = 0.12
     else:
-        csf_ae = 0.03
+        csf_ae = 0.05
 
     csf = max(csf_tumor, csf_ecog, csf_ae)
     contributions['_csf_tumor'] = round(csf_tumor, 4)
@@ -536,7 +562,13 @@ def compute_daily_mortality(day, active_aes, tumor_status, ecog, treatment_disco
     for k, v in contributions.items():
         if not k.startswith('_'):
             total *= v
-    daily_risk = min(daily_base * total * csf, MAX_DAILY_MORTALITY)
+
+    # Background mortality: 돌발 사건(PE, 감염, 출혈 등)에 의한 불가피한 사망.
+    # baseline_annual의 일정 비율은 CSF와 무관하게 항상 적용.
+    background = daily_base * BACKGROUND_MORTALITY_FRACTION
+    clinical = daily_base * total * csf
+    daily_risk = min(background + clinical, MAX_DAILY_MORTALITY)
+    contributions['_background'] = round(background, 8)
     return daily_risk, contributions
 
 
@@ -550,6 +582,8 @@ def compute_dynamic_ecog(
     매일 ECOG 점수를 재계산한다.
     Daily change는 ±ECOG_MAX_DAILY_CHANGE로 제한.
     '''
+    baseline_ecog = int(baseline_ecog) if baseline_ecog is not None else 0
+    current_ecog = int(current_ecog) if current_ecog is not None else 0
     score = float(baseline_ecog)
 
     # ── AE burden → ECOG 악화 ──
@@ -560,7 +594,7 @@ def compute_dynamic_ecog(
     for ae in active_aes:
         if ae.get('status') == 'resolved':
             continue
-        g = ae.get('grade', 1)
+        g = int(ae.get('grade', 1))
         max_ae_grade = max(max_ae_grade, g)
         ae_penalty += max(0, g - 1) * ae_w
     score += min(ae_penalty, ECOG_AE_PENALTY_CAP)
@@ -621,11 +655,11 @@ def compute_causal_lab_target(
 
     # AE → lab 변화
     for link in ae_lab_links:
-        if link.get('lab', '') != lab_name:
+        if link.get('lab', '').lower() != lab_name.lower():
             continue
-        ae_term = link.get('ae_term', '')
+        link_ae = normalize_ae_term(link.get('ae_term', ''))
         for ae_state in active_aes:
-            if ae_state.get('ae_term', '') != ae_term:
+            if normalize_ae_term(ae_state.get('ae_term', '')) != link_ae:
                 continue
             if ae_state.get('status') == 'resolved':
                 continue
@@ -636,7 +670,7 @@ def compute_causal_lab_target(
 
     # 누적 약물 노출 → lab 변화
     for eff in cumulative_dose_effects:
-        if eff.get('lab', '') != lab_name:
+        if eff.get('lab', '').lower() != lab_name.lower():
             continue
         drug = eff.get('drug', '')
         per_100 = float(eff.get('per_100mg_multiplier', 1.0))
@@ -651,7 +685,7 @@ def compute_causal_lab_target(
             if cm.get('CMONGO', False) and ind:
                 active_indications.add(ind.lower().strip())
         for effect in cm_lab_effects:
-            if effect.get('lab', '') != lab_name:
+            if effect.get('lab', '').lower() != lab_name.lower():
                 continue
             ind = effect.get('indication', '').lower().strip()
             if ind in active_indications:
@@ -668,16 +702,16 @@ def compute_ae_cascade_multipliers(active_aes, cascade_rules):
     '''
     multipliers = {}
     for rule in cascade_rules:
-        trigger = rule.get('trigger_ae', '')
+        trigger = normalize_ae_term(rule.get('trigger_ae', ''))
         threshold = int(rule.get('grade_threshold', 3))
         target = rule.get('target_ae', '')
         mult = float(rule.get('multiplier', 1.0))
         for ae_state in active_aes:
-            if ae_state.get('ae_term', '') != trigger:
+            if normalize_ae_term(ae_state.get('ae_term', '')) != trigger:
                 continue
             if ae_state.get('status') == 'resolved':
                 continue
-            if ae_state.get('grade', 0) >= threshold:
+            if int(ae_state.get('grade', 0)) >= threshold:
                 multipliers[target] = max(multipliers.get(target, 1.0), mult)
     return multipliers
 
@@ -700,6 +734,9 @@ def compute_discontinuation_risk(
             'independent_hazards': True,  # 독립 hazard로 조합
         }
     '''
+    if 'independent_hazards' in disposition_config:
+        disposition_config = disposition_config['independent_hazards']
+
     hazards = {}
 
     # Channel 1: 환자 동의 철회
@@ -708,11 +745,13 @@ def compute_discontinuation_risk(
     pw_rf = pw_cfg.get('risk_factors', {})
     pw_mult = 1.0
     has_severe_ae = any(
-        ae.get('grade', 0) >= 3 and ae.get('status') != 'resolved'
+        int(ae.get('grade', 0)) >= 3 and ae.get('status') != 'resolved'
         for ae in active_aes
     )
     if has_severe_ae:
         pw_mult *= float(pw_rf.get('active_ae_grade_3_plus', 2.5))
+    ecog = int(ecog) if ecog is not None else 0
+    baseline_ecog = int(baseline_ecog) if baseline_ecog is not None else 0
     ecog_delta = ecog - baseline_ecog
     if ecog_delta >= 1:
         pw_mult *= float(pw_rf.get('ecog_worsened', 2.0))
