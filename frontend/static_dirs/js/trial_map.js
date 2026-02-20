@@ -17,24 +17,15 @@ const STATUS_COLORS = {
   normal:   0x3fb950,
 };
 
-const AWARENESS_MESSAGES = {
-  'EMERGENCY': [
-    '살려주세요...!', '너무 아파요...', '숨을 못 쉬겠어요',
-    '의사 선생님!', '119 불러주세요'
-  ],
-  'DISTRESSED': [
-    '많이 힘들어요...', '견디기 힘든데...', '좀 무서워요',
-    '이거 정상인가요?', '계속 심해지는데...'
-  ],
-  'CONCERNED': [
-    '좀 걱정이 돼요', '이거 괜찮을까?', '뭔가 좀 이상해요',
-    '선생님한테 물어봐야 하나', '가려운데...'
-  ],
-  'NOTICED': [
-    '좀 불편하긴 한데...', '별 거 아니겠지', '참을 만해요',
-    '뭐 그럴 수도 있지', '약간 피곤해요'
-  ],
-};
+/** Build speech bubble text from actual patient AE data */
+function _buildBubbleText(p) {
+  const aes = p.active_aes || [];
+  if (aes.length === 0) return null;
+  // Pick the highest-grade AE
+  const worst = aes.reduce((a, b) => (b.grade || 0) > (a.grade || 0) ? b : a, aes[0]);
+  const term = (worst.term || '?').replace(/_/g, ' ');
+  return `${term} G${worst.grade}`;
+}
 
 class TrialMap {
   constructor(containerId, patients, onPatientClick, runId) {
@@ -46,6 +37,7 @@ class TrialMap {
     this.statusDots = {};
     this.speechBubbles = {};
     this.bubbleTimers = {};
+    this.tombstones = {};
     this._scene = null;
     this._containerId = containerId;
     this.onPhoneCall = null;
@@ -202,6 +194,14 @@ class TrialMap {
     // Custom building sprites
     s.load.image('hospital-building', `${STATIC}/hospital.png`);
     ['green', 'orange', 'purple', 'red'].forEach(c => s.load.image(`house-${c}`, `${STATIC}/house_${c}.png`));
+    // Tombstone spritesheet (5 cols × 2 rows, 16×24 per frame)
+    s.load.spritesheet('tombs', `${STATIC}/tombs.png`, { frameWidth: 16, frameHeight: 24 });
+    // Flower & stone decorations (5×4 grid, 16×16 per frame)
+    s.load.spritesheet('flower-stones', `${STATIC}/flower_stones.png`, { frameWidth: 16, frameHeight: 16 });
+    // Emotion icons (2×4 grid, 16×16) — left col: None, G1, G2, G3+
+    s.load.spritesheet('emotions', `${STATIC}/emotions.png`, { frameWidth: 16, frameHeight: 16 });
+    // Skull icon for deceased patients (16×16)
+    s.load.image('skull', `${STATIC}/skull.png`);
     // Custom environment sprites
     s.load.image('trees-atlas', `${STATIC}/trees.png`);
     s.load.image('plants-atlas', `${STATIC}/plants.png`);
@@ -235,6 +235,8 @@ class TrialMap {
 
     // ── Custom environment rendering ──
     const ROAD_IDS = new Set([13,14,15,25,26,27,37,38,39]);
+    // Build occupied tile lookup (roads + buildings) for decoration collision check
+    this._occupiedTiles = new Set();
 
     // Grass background
     const grassBg = scene.add.rectangle(
@@ -264,6 +266,7 @@ class TrialMap {
         for (let x = 0; x < map.width; x++) {
           const tile = gData[y][x];
           if (tile && ROAD_IDS.has(tile.index)) {
+            this._occupiedTiles.add(`${x},${y}`);
             const rx = x * TILE + TILE / 2;
             const ry = y * TILE + TILE / 2;
             // Road fill
@@ -280,6 +283,16 @@ class TrialMap {
       }
     }
 
+    // Mark building & roof tiles as occupied
+    ['Buildings', 'Roofs'].forEach(layerName => {
+      const layer = layers[layerName];
+      if (!layer) return;
+      const d = layer.layer.data;
+      for (let y = 0; y < map.height; y++)
+        for (let x = 0; x < map.width; x++)
+          if (d[y][x] && d[y][x].index > 0) this._occupiedTiles.add(`${x},${y}`);
+    });
+
     // Tree & plant sprite frames from atlas
     const treeTex = scene.textures.get('trees-atlas');
     treeTex.add('tree_0', 0, 48, 28, 16, 36);
@@ -291,7 +304,35 @@ class TrialMap {
     pCols.forEach((c, i) => plantTex.add(`p_${i}`, 0, c[0], 18, c[1] - c[0] + 1, 13));
     pCols.forEach((c, i) => plantTex.add(`p_${8 + i}`, 0, c[0], 34, c[1] - c[0] + 1, 13));
 
-    // Decor: place trees & plants from tilemap data
+    // Building proximity check — used for trees, plants, and flower decorations
+    const _buildingCenters = [];
+    this.patients.forEach((p, i) => {
+      const h = this._getHomePos(i);
+      _buildingCenters.push({ x: h.x * TILE + TILE / 2, y: h.y * TILE - 28 });
+    });
+    _buildingCenters.push({ x: this.hospitalPos.x * TILE + TILE / 2, y: this.hospitalPos.y * TILE - 30 });
+    const BLDG_RADIUS = 50;
+    const nearBuilding = (px, py) => {
+      for (const b of _buildingCenters) {
+        const dx = px - b.x, dy = py - b.y;
+        if (dx * dx + dy * dy < BLDG_RADIUS * BLDG_RADIUS) return true;
+      }
+      return false;
+    };
+
+    // Shared placement tracker — prevents overlap between trees, plants, flowers
+    const _placed = [];
+    const SPACING = 14;  // minimum pixel distance between any two decorations
+    const canPlace = (px, py) => {
+      for (const p of _placed) {
+        const dx = px - p.x, dy = py - p.y;
+        if (dx * dx + dy * dy < SPACING * SPACING) return false;
+      }
+      return true;
+    };
+    const markPlaced = (px, py) => _placed.push({ x: px, y: py });
+
+    // Decor: place trees & plants from tilemap data (skip near buildings & overlaps)
     const TREE_TILE_IDS = new Set([5, 6, 7]);
     const decorLayer = layers['Decor'];
     if (decorLayer) {
@@ -302,6 +343,8 @@ class TrialMap {
           if (tile && tile.index > 0) {
             const px = x * TILE + TILE / 2;
             const py = y * TILE + TILE;
+            if (nearBuilding(px, py)) continue;
+            if (!canPlace(px, py)) continue;
             const r = nextRng();
             if (TREE_TILE_IDS.has(tile.index)) {
               const tree = scene.add.image(px, py, 'trees-atlas', `tree_${r % 3}`);
@@ -313,6 +356,7 @@ class TrialMap {
               plant.setOrigin(0.5, 1);
               plant.setDepth(2);
             }
+            markPlaced(px, py);
           }
         }
       }
@@ -360,15 +404,18 @@ class TrialMap {
       const home = this._getHomePos(i);
 
       const loc = (p.location || '').toUpperCase();
+      const isDead = loc === 'DECEASED';
       const isHosp = loc === 'HOSPITAL' || loc === 'OUTPATIENT' || loc === 'INPATIENT';
       let px, py, hidden = false;
-      if (isHosp) {
+      if (isDead) {
+        px = home.x * TILE + TILE / 2;
+        py = home.y * TILE + TILE + 4;  // in front of house, slightly lower
+      } else if (isHosp) {
         const slot = this._getHospSlot(hospVisitIdx++);
         if (slot) {
           px = slot.x;
           py = slot.y;
         } else {
-          // Overflow: park at hospital pos but hide
           px = this.hospitalPos.x * TILE + TILE / 2;
           py = this.hospitalPos.y * TILE;
           hidden = true;
@@ -381,7 +428,7 @@ class TrialMap {
       const sprite = scene.add.sprite(px, py, spriteKey, 1);
       sprite.setScale(0.5);
       sprite.setDepth(10);
-      if (hidden) { sprite.setVisible(false); }
+      if (isDead || hidden) { sprite.setVisible(false); }
       else { sprite.setAlpha(0.7); }  // translucent inside building (hospital or home)
       sprite.setInteractive({ useHandCursor: true });
       sprite.on('pointerdown', () => {
@@ -389,18 +436,33 @@ class TrialMap {
         this.highlightPatient(p.patient_id);
       });
 
-      const label = scene.add.text(px, py - 12, p.patient_id, {
+      const labelY = isDead ? py - 28 : py - 12;
+      const label = scene.add.text(px, labelY, p.patient_id, {
         fontFamily: '"NeoDunggeunmo", monospace', fontSize: '8px', fontStyle: 'bold',
-        color: '#ffffff', stroke: '#000000', strokeThickness: 2,
+        color: isDead ? '#888888' : '#ffffff',
+        stroke: '#000000', strokeThickness: 2,
         align: 'center', resolution: 4,
       });
       label.setOrigin(0.5, 1).setDepth(20);
       if (hidden) label.setVisible(false);
 
-      const color = this._getStatusColor(p);
-      const dot = scene.add.circle(px + 6, py - 6, 2, color);
-      dot.setDepth(21).setStrokeStyle(1, 0x000000);
+      let dot;
+      if (isDead) {
+        dot = scene.add.image(px - 18, labelY, 'skull');
+        dot.setOrigin(0.5, 1).setScale(0.7).setDepth(21);
+      } else {
+        dot = scene.add.sprite(px - 18, labelY, 'emotions', this._getEmotionFrame(p));
+        dot.setOrigin(0.5, 1).setScale(0.7).setDepth(21);
+      }
       if (hidden) dot.setVisible(false);
+
+      // Tombstone for deceased patients
+      if (isDead) {
+        const tombFrame = 0;
+        const tomb = scene.add.sprite(px, py, 'tombs', tombFrame);
+        tomb.setOrigin(0.5, 1).setDepth(6);
+        this.tombstones[p.patient_id] = tomb;
+      }
 
       const homeWpId = this.homePositions[i]?.waypoint_id || null;
       sprite.setData('homeX', home.x * TILE + TILE / 2);
@@ -438,6 +500,32 @@ class TrialMap {
       house.setDepth(4);
     });
 
+    // ── Flower & stone decorations — scatter across all grass ──
+    const DECO_FRAMES = 20;
+    let dr = 137;
+    const nr = () => { dr = (dr * 1103515245 + 12345) & 0x7fffffff; return dr; };
+    const isOccupied = (px, py) => {
+      const tx = Math.floor(px / TILE);
+      const ty = Math.floor(py / TILE);
+      for (let dy = -1; dy <= 1; dy++)
+        for (let dx = -1; dx <= 1; dx++)
+          if (this._occupiedTiles.has(`${tx+dx},${ty+dy}`)) return true;
+      if (nearBuilding(px, py)) return true;
+      return false;
+    };
+
+    const decoCount = Math.floor(map.width * map.height / 12);
+    for (let d = 0; d < decoCount; d++) {
+      const px = (nr() % (map.widthInPixels - 32)) + 16;
+      const py = (nr() % (map.heightInPixels - 32)) + 16;
+      if (isOccupied(px, py)) continue;
+      if (!canPlace(px, py)) continue;
+      const frame = nr() % DECO_FRAMES;
+      scene.add.sprite(px, py, 'flower-stones', frame)
+        .setOrigin(0.5, 0.5).setDepth(2);
+      markPlaced(px, py);
+    }
+
     this.dayText = null;
   }
 
@@ -465,6 +553,16 @@ class TrialMap {
     if (aes.some(ae => ae.grade >= 3)) return STATUS_COLORS.severe;
     if (aes.length > 0) return STATUS_COLORS.moderate;
     return STATUS_COLORS.normal;
+  }
+
+  /** Map max AE grade to emotion spritesheet frame (left column: 0,2,4,6) */
+  _getEmotionFrame(p) {
+    const aes = p.active_aes || [];
+    if (aes.length === 0) return 0;            // None — frame 0
+    const maxGrade = Math.max(...aes.map(ae => ae.grade || 0));
+    if (maxGrade >= 3) return 6;               // G3+ — frame 6
+    if (maxGrade >= 2) return 4;               // G2  — frame 4
+    return 2;                                  // G1  — frame 2
   }
 
   // ═══ Public API ═══════════════════════════════════════
@@ -503,8 +601,40 @@ class TrialMap {
       const currentWpId = sprite.getData('currentWpId');
 
       const loc = (p.location || '').toUpperCase();
+      const isDead = loc === 'DECEASED';
       const isHosp = loc === 'HOSPITAL' || loc === 'OUTPATIENT' || loc === 'INPATIENT';
       const targetWpId = isHosp ? 'hosp' : homeWpId;
+
+      // Handle newly deceased patients
+      if (isDead) {
+        if (!this.tombstones[p.patient_id]) {
+          // Place tombstone in front of house, slightly lower
+          const tx = home.x * TILE + TILE / 2;
+          const ty = home.y * TILE + TILE + 4;
+          const tombFrame = 0;
+          const tomb = this._scene.add.sprite(tx, ty, 'tombs', tombFrame);
+          tomb.setOrigin(0.5, 1).setDepth(6);
+          tomb.setAlpha(0);
+          this._scene.tweens.add({ targets: tomb, alpha: 1, duration: 600 });
+          this.tombstones[p.patient_id] = tomb;
+          // Fade out character sprite
+          this._scene.tweens.add({ targets: sprite, alpha: 0, duration: 600, onComplete: () => sprite.setVisible(false) });
+          // Move label above tombstone and grey out
+          const label = this.nameLabels[p.patient_id];
+          if (label) {
+            this._scene.tweens.add({ targets: label, x: tx, y: ty - 28, duration: 600 });
+            label.setColor('#888888');
+          }
+          // Replace emotion icon with skull
+          const oldDot = this.statusDots[p.patient_id];
+          if (oldDot) oldDot.destroy();
+          const skull = this._scene.add.image(tx - 18, ty - 28, 'skull');
+          skull.setOrigin(0.5, 1).setScale(0.7).setDepth(21).setAlpha(0);
+          this._scene.tweens.add({ targets: skull, alpha: 1, duration: 600 });
+          this.statusDots[p.patient_id] = skull;
+        }
+        return; // skip movement for dead patients
+      }
 
       let tx, ty;
       const hidden = isHosp && hospSlots[p.patient_id] >= TrialMap.HOSP_MAX_VISIBLE;
@@ -550,7 +680,7 @@ class TrialMap {
         sprite.setData('currentWpId', targetWpId);
       }
 
-      if (dot) dot.setFillStyle(this._getStatusColor(p));
+      if (dot) { dot.setFrame(this._getEmotionFrame(p)); dot.clearTint(); }
     });
 
     // Return a promise that resolves when all animations finish
@@ -609,7 +739,7 @@ class TrialMap {
         const label = this.nameLabels[pid];
         const dot = this.statusDots[pid];
         if (label) this._scene.tweens.add({ targets: label, x: pt.x, y: pt.y - 12, duration: dur, ease: 'Linear' });
-        if (dot) this._scene.tweens.add({ targets: dot, x: pt.x + 6, y: pt.y - 6, duration: dur, ease: 'Linear' });
+        if (dot) this._scene.tweens.add({ targets: dot, x: pt.x - 18, y: pt.y - 12, duration: dur, ease: 'Linear' });
       });
 
       totalDelay += dur;
@@ -643,7 +773,7 @@ class TrialMap {
     const label = this.nameLabels[pid];
     const dot = this.statusDots[pid];
     if (label) this._scene.tweens.add({ targets: label, x: tx, y: ty - 12, duration: dur, ease: 'Power2' });
-    if (dot) this._scene.tweens.add({ targets: dot, x: tx + 6, y: ty - 6, duration: dur, ease: 'Power2' });
+    if (dot) this._scene.tweens.add({ targets: dot, x: tx - 18, y: ty - 12, duration: dur, ease: 'Power2' });
     return dur;
   }
 
@@ -762,26 +892,17 @@ class TrialMap {
     const alertPatients = [];
 
     patients.forEach((p, i) => {
-      const awareness = (p.awareness || 'UNAWARE').toUpperCase();
-      if (awareness !== 'UNAWARE' && awareness !== '?') {
-        const messages = AWARENESS_MESSAGES[awareness];
-        if (messages) {
-          let text = null;
-          if (p.symptoms_perceived && p.symptoms_perceived.length > 0) {
-            const sym = p.symptoms_perceived[0];
-            if (typeof sym === 'object' && sym.verbal_expression) {
-              text = sym.verbal_expression;
-            }
-          }
-          if (!text) text = messages[Math.floor(Math.random() * messages.length)];
-          const delay = i * 300 + Math.random() * 500;
-          if (this._scene) {
-            this._scene.time.delayedCall(delay, () => {
-              this.showSpeechBubble(p.patient_id, text,
-                awareness === 'EMERGENCY' ? 8000 :
-                awareness === 'DISTRESSED' ? 6000 : 4000);
-            });
-          }
+      const loc = (p.location || '').toUpperCase();
+      if (loc === 'DECEASED') return;
+      const text = _buildBubbleText(p);
+      if (text) {
+        const maxGrade = Math.max(...(p.active_aes || []).map(ae => ae.grade || 0));
+        const delay = i * 300 + Math.random() * 500;
+        if (this._scene) {
+          this._scene.time.delayedCall(delay, () => {
+            this.showSpeechBubble(p.patient_id, text,
+              maxGrade >= 4 ? 8000 : maxGrade >= 3 ? 6000 : 4000);
+          });
         }
       }
 

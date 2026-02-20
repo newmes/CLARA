@@ -153,15 +153,27 @@ def _list_patients(run_path: Path) -> list[str]:
 
 def _load_day_for_patient(run_path: Path, patient_id: str, day: int,
                           mode: str = "natural") -> dict | None:
-    """Load a single day's data for a patient from JSONL."""
+    """Load a single day's data for a patient from JSONL.
+
+    If the requested day is beyond the last entry AND the patient is
+    deceased on the last day, return the death-day record so that
+    downstream code still sees location='DECEASED'.
+    """
     f = run_path / "simulations" / f"{patient_id}_{mode}.jsonl"
     if not f.exists():
         return None
+    last_record = None
     with open(f) as fh:
         for line in fh:
             record = json.loads(line)
             if record.get("day") == day:
                 return record
+            last_record = record
+    # Day not found — check if patient died before this day
+    if last_record and last_record.get("day", 0) < day:
+        loc = (last_record.get("objective") or {}).get("location", "")
+        if loc == "DECEASED":
+            return last_record
     return None
 
 

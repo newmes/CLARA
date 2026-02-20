@@ -2072,7 +2072,12 @@
   bindCardClicks();
 
   slider.addEventListener('input', function() { currentDay = parseInt(this.value); updateDayDisplay(); });
-  slider.addEventListener('change', function() { goToDay(parseInt(this.value)); });
+  slider.addEventListener('change', function() {
+    const wasPlaying = autoPlaying;
+    if (wasPlaying) stopAutoPlay();
+    goToDay(parseInt(this.value));
+    if (wasPlaying) setTimeout(startAutoPlay, 300);
+  });
 
   document.getElementById('btn-prev').addEventListener('click', () => { stopAutoPlay(); goToDay(currentDay - 1); });
   document.getElementById('btn-next').addEventListener('click', () => { stopAutoPlay(); goToDay(currentDay + 1); });
@@ -2097,8 +2102,6 @@
     btnPlay.style.display = 'none';
     btnPause.style.display = 'inline-block';
     btnPlay.innerHTML = '<svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
-
-    const baseDelay = Math.max(200, 1000 / playSpeed);
 
     for (let day = currentDay + 1; day <= TOTAL_DAYS; day++) {
       if (!autoPlaying) break;
@@ -2128,10 +2131,11 @@
           trialMap.highlightPatient(selectedPatient);
         }
 
-        // Wait for: animation completion + minimum base delay
+        // Delay scales with speed: x1=1200ms, x5=250ms, x10=100ms
+        const delay = Math.max(80, 1200 / playSpeed);
         await Promise.all([
           animPromise,
-          new Promise(r => setTimeout(r, baseDelay)),
+          new Promise(r => setTimeout(r, delay)),
         ]);
       } catch (e) {
         if (e.name === 'AbortError') break;
