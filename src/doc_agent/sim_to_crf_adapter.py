@@ -372,10 +372,9 @@ def find_serious_aes(day_records: list[dict]) -> list[dict]:
             term = ae.get("AETERM", "")
             grade = ae.get("_grade", 0)
             aeser = ae.get("AESER", False)
-            onset = ae.get("AESTDAT", rec.get("day"))
 
             if grade >= 3 or aeser:
-                key = f"{term}_{onset}"
+                key = term
                 if key not in seen:
                     seen.add(key)
                     results.append({

@@ -8,7 +8,7 @@
 {% block extra_head %}
 <style>
   .doc-container {
-    margin-top: 2em; max-width: 1200px; margin-left: auto; margin-right: auto;
+    margin-top: 2em; max-width: 1600px; margin-left: auto; margin-right: auto; padding: 0 24px;
     padding: 0 20px 3em;
   }
   /* ── Header ── */
@@ -378,9 +378,30 @@
     loadDomainData();
   };
 
-  window.downloadExcel = function() {
-    const url = `/api/crf/${RUN_ID}/excel/?source=${currentSource}&mode=${currentMode}`;
-    window.open(url, '_blank');
+  window.downloadExcel = async function() {
+    const btn = document.querySelector('.btn-excel');
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;vertical-align:-2px;margin-right:6px;"></span>Exporting...';
+
+    try {
+      const url = `/api/crf/${RUN_ID}/excel/?source=${currentSource}&mode=${currentMode}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      const cd = res.headers.get('Content-Disposition') || '';
+      const match = cd.match(/filename="?([^"]+)"?/);
+      a.download = match ? match[1] : `CRF_${RUN_ID}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      alert('Excel export failed: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = origText;
+    }
   };
 
   function loadDomainData() {
@@ -521,9 +542,13 @@
   // Override switchDomain to show/hide chart
   const _origSwitchDomain = window.switchDomain;
   window.switchDomain = function(domain) {
-    showLbChart(domain === 'LB');
+    const isLB = domain === 'LB';
+    showLbChart(isLB);
+    // Hide table + pagination for LB (chart-only)
+    document.querySelector('.crf-table-wrap').style.display = isLB ? 'none' : '';
+    document.getElementById('pagination').style.display = isLB ? 'none' : '';
     _origSwitchDomain(domain);
-    if (domain === 'LB') initLbChart();
+    if (isLB) initLbChart();
   };
 
   async function fetchPatientTimeline(pid) {
@@ -658,10 +683,7 @@
         if (p.value > config.normalHigh) color = COLOR_ABOVE;
         else if (p.value < config.normalLow) color = COLOR_BELOW;
       }
-      const r = color !== COLOR_OK ? 5 : 3;
-      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
-      if (color !== COLOR_OK) { ctx.strokeStyle = '#0d1117'; ctx.lineWidth = 1.5; ctx.stroke(); }
-      positions.push({ x, y, point: p, radius: r + 3 });
+      positions.push({ x, y, point: p, radius: 8 });
     }
     _lbChartState.positions = positions;
   }
