@@ -1231,7 +1231,7 @@
   const RUN_ID = "{{ run_id }}";
   const LAB_RANGES = JSON.parse('{{ lab_ranges_json|escapejs }}' || '{}');
   const VITALS_RANGES = {
-    temp: {unit:'°C', min:36.1, max:37.2}, hr: {unit:'bpm', min:60, max:100},
+    temp: {unit:'°F', min:97.0, max:99.0}, hr: {unit:'bpm', min:60, max:100},
     spo2: {unit:'%', min:95, max:100}, rr: {unit:'/min', min:12, max:20},
     sbp: {unit:'mmHg', min:90, max:140}, dbp: {unit:'mmHg', min:60, max:90}
   };
@@ -1652,14 +1652,14 @@
 
   const SPRITE_MAP = {
     F: {
-      light: [1,5,9,14,17,21,24,25,28,29,30,32,33,34,36,37,40,41,45,48,49,52,55,58,62,66,73,74,75,76,77,78,82,85,86,88,89,92,95],
-      medium: [20,35,38,42,44,46,50,53,56,61,65,67,68],
-      dark:   [2,8,12,39,43,47,51,54,57,59,60,63,64],
+      light:  [1,5,6,9,11,14,15,24,25,29,33,36,37,41,45,49,52,55,58,62,66,70,73,74,75,76,77,78,82,85,86,87,89,92,93,95],
+      medium: [12,28,30,32,44,53,61,63,65,67,69,71,88,90],
+      dark:   [2,31,54,64,68,72,91,94],
     },
     M: {
-      light: [7,11,69,70,71,72,83,87,93],
-      medium: [3,6,26,81,90,96],
-      dark:   [4,10,13,15,16,18,19,22,23,27,31,79,80,84,91,94,97],
+      light:  [7,17,21,40,48,96],
+      medium: [3,16,18,20,26,34,38,42,46,50,56,59,79,81],
+      dark:   [4,8,10,13,19,22,23,27,35,39,43,47,51,57,60,80,83,84,97],
     },
   };
   function _skinTone(race) {
@@ -2075,10 +2075,12 @@
     let rawVitals;
     if (viewMode === 'hr' && hrObj.vitals) {
       const hv = hrObj.vitals;
-      rawVitals = { temp: hv.BT, sbp: hv.SBP, dbp: hv.DBP, hr: hv.HR, spo2: hv.SpO2, rr: hv.RR, weight: hv.weight_kg };
+      const _t = hv.BT, _w = hv.weight_kg;
+      rawVitals = { temp: _t != null ? Math.round((_t*9/5+32)*10)/10 : _t, sbp: hv.SBP, dbp: hv.DBP, hr: hv.HR, spo2: hv.SpO2, rr: hv.RR, weight: _w != null ? Math.round(_w*2.20462*10)/10 : _w };
     } else {
       const pv = p.vitals || {};
-      rawVitals = { temp: pv.temp, sbp: pv.sbp, dbp: pv.dbp, hr: pv.hr, spo2: pv.spo2, rr: pv.rr, weight: pv.weight };
+      const _t2 = pv.temp, _w2 = pv.weight;
+      rawVitals = { temp: _t2 != null ? Math.round((_t2*9/5+32)*10)/10 : _t2, sbp: pv.sbp, dbp: pv.dbp, hr: pv.hr, spo2: pv.spo2, rr: pv.rr, weight: _w2 != null ? Math.round(_w2*2.20462*10)/10 : _w2 };
     }
     function vitalItem(label, val, key) {
       const ref = VITALS_RANGES[key];
@@ -2104,7 +2106,7 @@
     vHtml += vitalItem('HR', rawVitals.hr, 'hr');
     vHtml += vitalItem('SpO2', rawVitals.spo2, 'spo2');
     vHtml += vitalItem('RR', rawVitals.rr, 'rr');
-    vHtml += `<div class="lab-item lab-ok"><span class="lab-name">Weight</span><div class="lab-val-row"><span class="lab-val">${rawVitals.weight || '—'}</span><span class="lab-unit">kg</span></div></div>`;
+    vHtml += `<div class="lab-item lab-ok"><span class="lab-name">Weight</span><div class="lab-val-row"><span class="lab-val">${rawVitals.weight || '—'}</span><span class="lab-unit">lbs</span></div></div>`;
     vitalGrid.innerHTML = vHtml;
 
     // ── Subjective ──
