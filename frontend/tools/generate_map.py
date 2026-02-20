@@ -79,30 +79,48 @@ def generate_map(n_patients: int, seed: int = 42) -> tuple[dict, dict]:
     else:
         n_rows = math.ceil(n_streets / MAX_STREETS_PER_ROW)
     streets_per_row = math.ceil(n_streets / n_rows)
+    if streets_per_row % 2 != 0:
+        streets_per_row += 1  # even → symmetric left/right split
 
-    # Distribute streets across rows
+    # Distribute streets across rows (round up to even per row)
     row_street_counts = []
     remaining = n_streets
     for _ in range(n_rows):
         c = min(streets_per_row, remaining)
+        if c % 2 != 0:
+            c += 1  # ensure even for symmetric layout
         row_street_counts.append(c)
         remaining -= c
+        remaining = max(remaining, 0)
 
-    # Map dimensions based on widest row (symmetric wings)
-    max_spr = max(row_street_counts)
-    max_half = (max_spr + 1) // 2  # larger half for symmetric wings
+    # Pre-compute street positions (relative to hosp_x=0) for tight map width
+    all_street_rel_xs = []
+    for _row in range(n_rows):
+        nrs = row_street_counts[_row]
+        _half = nrs // 2  # always exact since nrs is even
+        for i in range(_half):
+            all_street_rel_xs.append(-3 - (i + 1) * STREET_SPACING + STREET_SPACING // 2)
+        for i in range(_half):
+            all_street_rel_xs.append(HOSP_W + 3 + i * STREET_SPACING + STREET_SPACING // 2)
 
-    wing_w = max_half * STREET_SPACING + 4
-    hosp_area_w = HOSP_W + 6
-    map_w = wing_w + hosp_area_w + wing_w
+    # Tight map dimensions from actual content extent (asymmetric)
+    _MARGIN = 4
+    if all_street_rel_xs:
+        min_rel = min(all_street_rel_xs) - HOUSE_W - 1   # leftmost house tile
+        max_rel = max(all_street_rel_xs) + HOUSE_W + 1    # rightmost house tile
+    else:
+        min_rel = -3
+        max_rel = HOSP_W + 3
+    min_rel = min(min_rel, 0)
+    max_rel = max(max_rel, HOSP_W - 1)
+
+    hosp_x = -min_rel + _MARGIN
+    center_x = hosp_x + HOSP_W // 2
+    map_w = hosp_x + max_rel + _MARGIN + 1
     map_w = max(map_w, 30)
 
     map_h = n_rows * ROW_HEIGHT + (n_rows - 1) * ROW_GAP + 2
     map_h = max(map_h, 22)
-
-    # Reference positions (hospital centered)
-    hosp_x = wing_w + 3
-    center_x = hosp_x + HOSP_W // 2  # vertical connector x
 
     # Initialize layers
     size = map_w * map_h
@@ -185,18 +203,9 @@ def generate_map(n_patients: int, seed: int = 42) -> tuple[dict, dict]:
         road_y = row_road_y(row)
         road_center = road_y + 1
 
-        # Alternate extra street between left/right for odd counts
-        half = n_row_streets // 2
-        extra = n_row_streets % 2
-        if extra and row % 2 == 0:
-            n_left = half
-            n_right = half + 1
-        elif extra:
-            n_left = half + 1
-            n_right = half
-        else:
-            n_left = half
-            n_right = half
+        # Symmetric split (n_row_streets is always even)
+        n_left = n_row_streets // 2
+        n_right = n_row_streets // 2
 
         # Draw horizontal road (full width)
         road_start_x = 2
@@ -397,12 +406,26 @@ def generate_map(n_patients: int, seed: int = 42) -> tuple[dict, dict]:
         ],
     }
 
+    # Compute content bounding box (tile coordinates) for camera fit
+    all_cx = list(range(hosp_x, hosp_x + HOSP_W))
+    all_cy = [hosp_tile_y, hosp_tile_y + 1]
+    for h in homes:
+        all_cx.extend([h['house_x'], h['house_x'] + HOUSE_W - 1])
+        all_cy.extend([h['house_y'], h['house_y'] + HOUSE_H - 1])
+    content_bounds = {
+        "min_x": max(0, min(all_cx) - 2),
+        "min_y": max(0, min(all_cy) - 2),
+        "max_x": min(map_w - 1, max(all_cx) + 2),
+        "max_y": min(map_h - 1, max(all_cy) + 2),
+    }
+
     # Build metadata
     meta = {
         "n_patients": n_patients,
         "map_width": map_w,
         "map_height": map_h,
         "tile_size": TILE,
+        "content_bounds": content_bounds,
         "hospital": {
             "x": center_x,
             "y": hosp_tile_y + 1,

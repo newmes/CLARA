@@ -318,17 +318,21 @@ class TrialMap {
       }
     }
 
-    // Camera
+    // Camera — zoom to content bounds (actual buildings) instead of full tilemap
     const camera = scene.cameras.main;
     camera.setBounds(0, 0, map.widthInPixels, map.heightInPixels);
-    const zoomX = this.game.config.width / map.widthInPixels;
-    const zoomY = this.game.config.height / map.heightInPixels;
-    const fitZoom = Math.min(zoomX, zoomY) * 0.95;
-    camera.setZoom(Math.max(fitZoom, 1.0));
-    camera.centerOn(
-      this.hospitalPos.x * TILE + TILE / 2,
-      this.hospitalPos.y * TILE + TILE / 2
-    );
+    const cb = this.mapMeta && this.mapMeta.content_bounds;
+    if (cb) {
+      const bw = (cb.max_x - cb.min_x + 1) * TILE;
+      const bh = (cb.max_y - cb.min_y + 1) * TILE;
+      const fitZoom = Math.min(this.game.config.width / bw, this.game.config.height / bh) * 0.9;
+      camera.setZoom(Math.max(fitZoom, 1.0));
+      camera.centerOn((cb.min_x + cb.max_x + 1) / 2 * TILE, (cb.min_y + cb.max_y + 1) / 2 * TILE);
+    } else {
+      const fitZoom = Math.min(this.game.config.width / map.widthInPixels, this.game.config.height / map.heightInPixels) * 0.95;
+      camera.setZoom(Math.max(fitZoom, 1.0));
+      camera.centerOn(this.hospitalPos.x * TILE + TILE / 2, this.hospitalPos.y * TILE + TILE / 2);
+    }
 
     // Drag to pan
     scene.input.on('pointermove', (pointer) => {
@@ -673,13 +677,22 @@ class TrialMap {
   fitMap() {
     if (!this._scene) return;
     const cam = this._scene.cameras.main;
-    const child = this._scene.children.list.find(c => c.tilemap);
-    if (child && child.tilemap) {
-      const m = child.tilemap;
-      const zx = this.game.config.width / m.widthInPixels;
-      const zy = this.game.config.height / m.heightInPixels;
-      cam.zoomTo(Math.max(Math.min(zx, zy) * 0.95, 1.0), 400);
-      cam.pan(m.widthInPixels / 2, m.heightInPixels / 2, 400, 'Power2');
+    const cb = this.mapMeta && this.mapMeta.content_bounds;
+    if (cb) {
+      const bw = (cb.max_x - cb.min_x + 1) * TILE;
+      const bh = (cb.max_y - cb.min_y + 1) * TILE;
+      const fit = Math.min(this.game.config.width / bw, this.game.config.height / bh) * 0.9;
+      cam.zoomTo(Math.max(fit, 1.0), 400);
+      cam.pan((cb.min_x + cb.max_x + 1) / 2 * TILE, (cb.min_y + cb.max_y + 1) / 2 * TILE, 400, 'Power2');
+    } else {
+      const child = this._scene.children.list.find(c => c.tilemap);
+      if (child && child.tilemap) {
+        const m = child.tilemap;
+        const zx = this.game.config.width / m.widthInPixels;
+        const zy = this.game.config.height / m.heightInPixels;
+        cam.zoomTo(Math.max(Math.min(zx, zy) * 0.95, 1.0), 400);
+        cam.pan(m.widthInPixels / 2, m.heightInPixels / 2, 400, 'Power2');
+      }
     }
   }
 

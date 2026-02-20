@@ -8,6 +8,7 @@
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js"></script>
   {% load static %}
+  <link rel="icon" type="image/svg+xml" href="{% static 'assets/logo.svg' %}">
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
   <style>
     /* ── Global Nav Bar ── */
@@ -93,11 +94,11 @@
     .run-sidebar a {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 4px; width: 50px; height: 50px; border-radius: 10px;
-      color: var(--text-muted); text-decoration: none;
+      color: var(--text-secondary); text-decoration: none;
       transition: all 0.15s; position: relative;
     }
     .run-sidebar a span {
-      font-size: 0.55em; font-weight: 600; letter-spacing: 0.3px;
+      font-size: 0.62em; font-weight: 600; letter-spacing: 0.3px;
       line-height: 1; white-space: nowrap;
     }
     .run-sidebar a:hover {
