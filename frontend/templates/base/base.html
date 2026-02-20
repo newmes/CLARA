@@ -49,9 +49,21 @@
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       background-clip: text;
       display: inline-flex; align-items: center; gap: 8px;
+      transition: all 0.3s ease; padding: 4px 10px; border-radius: 6px;
+    }
+    .global-nav .nav-brand:hover {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      -webkit-background-clip: text; background-clip: text;
+      filter: drop-shadow(0 0 8px rgba(57,210,192,0.4));
+      transform: scale(1.03);
+    }
+    .global-nav .nav-brand:hover img {
+      filter: drop-shadow(0 0 6px rgba(57,210,192,0.5));
+      transform: rotate(-5deg) scale(1.08);
     }
     .global-nav .nav-brand img {
-      width: 36px; height: 36px; -webkit-text-fill-color: initial;
+      width: 42px; height: 42px; -webkit-text-fill-color: initial;
+      transition: all 0.3s ease;
     }
     .global-nav .nav-sep {
       color: var(--border); margin: 0 2px; user-select: none;
