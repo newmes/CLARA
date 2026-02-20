@@ -201,14 +201,52 @@
   .speech-bubble::before { content: ''; position: absolute; left: -14px; top: 10px;
     border: 6px solid transparent; border-right-color: rgba(88,166,255,0.15); }
 
-  /* Care AI Chat */
-  .care-chat { max-height: 400px; overflow-y: auto; }
-  .chat-bubble { padding: 8px 12px; border-radius: 8px; margin: 5px 0; font-size: 0.88em; max-width: 92%; }
-  .chat-patient { background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.2); border-left: 3px solid var(--accent-blue); }
-  .chat-nurse { background: rgba(57,210,192,0.05); border: 1px solid rgba(57,210,192,0.15); border-left: 3px solid var(--accent-cyan); }
-  .chat-role { font-size: 0.65em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; color: var(--text-muted); }
-  .chat-patient .chat-role { color: var(--accent-blue); }
-  .chat-nurse .chat-role { color: var(--accent-green); }
+  /* Care AI Chat — KakaoTalk style */
+  .care-chat-container { }
+  .care-chat-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .care-chat {
+    max-height: 360px; overflow-y: auto; padding: 12px;
+    background: rgba(13,17,23,0.5); border-radius: 8px;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .chat-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: flex-start; }
+  .chat-row.is-patient { flex-direction: row; }
+  .chat-row.is-nurse { flex-direction: row-reverse; }
+  .chat-avatar {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    overflow: hidden;
+  }
+  .chat-avatar.avatar-patient {
+    background: rgba(88,166,255,0.15);
+    image-rendering: pixelated; image-rendering: crisp-edges;
+  }
+  .chat-avatar.avatar-nurse {
+    background: rgba(57,210,192,0.15);
+    image-rendering: pixelated; image-rendering: crisp-edges;
+  }
+  .chat-avatar svg { width: 20px; height: 20px; }
+  .chat-content { max-width: 82%; display: flex; flex-direction: column; }
+  .chat-row.is-patient .chat-content { align-items: flex-start; }
+  .chat-row.is-nurse .chat-content { align-items: flex-end; }
+  .chat-name { font-size: 0.72em; color: var(--text-muted); margin-bottom: 2px; font-family: 'JetBrains Mono', monospace; }
+  .chat-bubble { padding: 10px 14px; font-size: 0.88em; line-height: 1.55; color: var(--text-primary); }
+  .chat-row.is-patient .chat-bubble { background: var(--bg-elevated); border-radius: 2px 12px 12px 12px; }
+  .chat-row.is-nurse .chat-bubble { background: rgba(57,210,192,0.1); border-radius: 12px 2px 12px 12px; }
+  .chat-row.is-nurse .chat-bubble + .chat-bubble { margin-top: 4px; }
+  .chat-meta { font-size: 0.75em; color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
+  .chat-meta .meta-tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 0.9em; margin: 1px 2px 1px 0; }
+  .chat-meta .meta-hiding { background: rgba(248,81,73,0.1); color: var(--accent-red); }
+  .chat-meta .meta-visible { background: rgba(188,140,255,0.1); color: var(--accent-purple); }
+  .chat-meta .meta-newinfo { background: rgba(63,185,80,0.1); color: var(--accent-green); }
+  .chat-assessment { border-top: 1px solid var(--border); margin-top: 12px; padding-top: 10px; }
+  .chat-assessment-card {
+    background: var(--bg-elevated); border-radius: 8px; padding: 10px 14px;
+    border: 1px solid var(--border);
+  }
+  .chat-assessment-card .assess-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .chat-assessment-card .assess-summary { font-size: 0.88em; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px; }
+  .chat-assessment-card .assess-actions { display: flex; flex-wrap: wrap; gap: 4px; }
   .severity-badge { display: inline-block; padding: 2px 10px; border-radius: 3px; font-size: 0.78em; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
   .sev-green { background: rgba(63,185,80,0.15); color: var(--accent-green); border: 1px solid rgba(63,185,80,0.3); }
   .sev-yellow { background: rgba(227,179,65,0.15); color: #e3b341; border: 1px solid rgba(227,179,65,0.3); }
@@ -269,6 +307,9 @@
     border-color: rgba(57,210,192,0.3);
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
   }
+  .section-card h4 svg, .drug-card h5 svg, .ps-visit-badge svg,
+  .ps-nav-day button svg { vertical-align: middle; margin-right: 2px; }
+  .drug-card h5 { display: flex; align-items: center; gap: 6px; }
 </style>
 {% endblock %}
 
@@ -283,7 +324,7 @@
 
   <a href="{% url 'trial_viewer' run_id %}" class="sb-active" title="Simulation"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><span>Sim</span></a>
   <a href="{% url 'game_landing' run_id %}" title="Training"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg><span>Train</span></a>
-  <a href="{% url 'doc_hub' run_id %}" title="Documents"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Docs</span></a>
+  <a href="{% url 'crf_tables' run_id %}" title="Data"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg><span>Data</span></a>
   <a href="{% url 'compare_dashboard' run_id %}" title="A/B Test"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>A/B</span></a>
 </nav>
 {% endblock %}
@@ -295,9 +336,9 @@
     <span class="ps-nav-id">{{ patient_id }}</span>
     <div class="ps-nav-sep"></div>
     <div class="ps-nav-day">
-      <button onclick="navDay(-1)" title="Previous day">◀</button>
+      <button onclick="navDay(-1)" title="Previous day"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg></button>
       <span class="day-num" id="psDay">Day {{ day }}</span>
-      <button onclick="navDay(1)" title="Next day">▶</button>
+      <button onclick="navDay(1)" title="Next day"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></button>
     </div>
     <div class="ps-nav-slider">
       <input type="range" id="psDaySlider" min="1" max="{{ total_days }}" value="{{ day }}" step="1"
@@ -317,8 +358,8 @@
     <div class="ps-nav-sep"></div>
     {% endif %}
     <div class="ps-view-bar" id="ps-view-toggle">
-      <button class="{% if view_mode == 'hr' %}active-hr{% endif %}" data-view="hr" title="Hospital Record — what clinicians actually see">🏥 Hospital Record</button>
-      <button class="{% if view_mode == 'gt' %}active-gt{% endif %}" data-view="gt" title="Ground Truth — full simulation state">🔬 Ground Truth</button>
+      <button class="{% if view_mode == 'hr' %}active-hr{% endif %}" data-view="hr" title="Hospital Record — what clinicians actually see">Hospital Record</button>
+      <button class="{% if view_mode == 'gt' %}active-gt{% endif %}" data-view="gt" title="Ground Truth — full simulation state">Ground Truth</button>
     </div>
   </div>
 </div>
@@ -445,8 +486,8 @@
   {% if current_day %}
   <div class="section-card">
     <h4>Treatment & Status
-      {% if view_mode == 'hr' %}<span style="float:right; font-size:0.82em; color:#d29922; font-weight:400">🏥 Hospital Record</span>{% endif %}
-      {% if view_mode == 'gt' %}<span style="float:right; font-size:0.82em; color:var(--accent-cyan); font-weight:400">🔬 Ground Truth</span>{% endif %}
+      {% if view_mode == 'hr' %}<span style="float:right; font-size:0.82em; color:#d29922; font-weight:400; letter-spacing:0.5px"><strong style="font-size:0.9em; border:1px solid rgba(210,153,34,0.4); border-radius:3px; padding:0 4px; margin-right:4px">HR</strong> Hospital Record</span>{% endif %}
+      {% if view_mode == 'gt' %}<span style="float:right; font-size:0.82em; color:var(--accent-cyan); font-weight:400; letter-spacing:0.5px"><strong style="font-size:0.9em; border:1px solid rgba(57,210,192,0.4); border-radius:3px; padding:0 4px; margin-right:4px">GT</strong> Ground Truth</span>{% endif %}
     </h4>
     <div id="drug-status"></div>
   </div>
@@ -543,7 +584,6 @@
       {% for e in event_log reversed %}
       <div class="event-log-item">
         <span class="day-badge">Day {{ e.day }}</span>
-        <span class="icon">{{ e.icon }}</span>
         <span style="color:var(--text-secondary)">{{ e.text }}</span>
       </div>
       {% empty %}
@@ -568,6 +608,25 @@
 
   if (!dayData) return;
 
+  const SVG = {
+    hospital: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4 8 4v14"/><path d="M9 21v-4h6v4"/><path d="M10 9h4"/><path d="M12 9v4"/></svg>',
+    home: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>',
+    bed: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 012 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/></svg>',
+    xCircle: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>',
+    pin: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>',
+    ban: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"/></svg>',
+    pause: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>',
+    checkCircle: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>',
+    target: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>',
+    warn: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
+    check: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>',
+    x: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>',
+    clipboard: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>',
+    microscope: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>',
+    chevronL: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>',
+    chevronR: '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>',
+  };
+
   const isHR = viewMode === 'hr';
   const labsStaleDays = (dayData.LB || {}).labs_stale_days || 0;
   const vitalsStaleDays = (dayData.VS || {}).vitals_stale_days || 0;
@@ -588,10 +647,10 @@
       : displayLocation === 'OUTPATIENT' ? 'var(--accent-blue)'
       : displayLocation === 'INPATIENT' ? 'var(--accent-orange)'
       : displayLocation === 'DECEASED' ? 'var(--accent-red)' : '#6e7681';
-    const locIcon = displayLocation === 'HOME' ? '🏠'
-      : displayLocation === 'OUTPATIENT' ? '🏥'
-      : displayLocation === 'INPATIENT' ? '🏨'
-      : displayLocation === 'DECEASED' ? '✖' : '📍';
+    const locIcon = displayLocation === 'HOME' ? SVG.home
+      : displayLocation === 'OUTPATIENT' ? SVG.hospital
+      : displayLocation === 'INPATIENT' ? SVG.bed
+      : displayLocation === 'DECEASED' ? SVG.xCircle : SVG.pin;
     html += `<div class="drug-card" style="border-color:${locColor}; min-width:100px">
       <h5 style="color:${locColor}">${locIcon} Status</h5>
       <div style="font-size:1.1em; font-weight:700; color:${locColor}">${displayLocation}</div>
@@ -607,7 +666,7 @@
       const isHeld = info.treatment_held;
       const isDisc = info.treatment_discontinued;
       const statusClass = isDisc ? 'held' : (isHeld ? 'held' : 'active');
-      const statusText = isDisc ? '⛔ DISC' : (isHeld ? '⏸️ HELD' : '✅ Active');
+      const statusText = isDisc ? SVG.ban + ' DISC' : (isHeld ? SVG.pause + ' HELD' : SVG.checkCircle + ' Active');
       const doseLevel = info.dose_level != null ? (info.dose_level * 100).toFixed(0) + '%' : '—';
 
       html += `<div class="drug-card">
@@ -630,7 +689,7 @@
     const tumorBorderColor = isHR ? (tumorNote.includes('Baseline') ? 'rgba(210,153,34,0.4)' : color) : color;
 
     html += `<div class="drug-card" style="border-color:${tumorBorderColor}">
-      <h5>🎯 Tumor Response</h5>
+      <h5>${SVG.target} Tumor Response</h5>
       <div style="font-size:1.8em; font-weight:700; color:${color}">${hasTumor ? (pct > 0 ? '+' : '') + pct.toFixed(1) + '%' : '—'}</div>
       <div class="drug-stat"><span class="label-text" style="font-size:0.78em; color:#888">${tumorNote || 'from baseline'}</span></div>
     </div>`;
@@ -683,7 +742,7 @@
         const isSAE = ae.AESER || (parseInt(g) >= 3);
         const aeSlug = (ae.AETERM||'').replace(/\s+/g,'_').replace(/[^a-zA-Z0-9_]/g,'');
         const docBtn = isSAE
-          ? `<a class="btn-doc-gen" href="/doc/${runId}/${patientId}/${aeSlug}/?ae_day=${ae.AESTDAT||''}&mode=${mode}" title="Open SAE Report Editor (MedWatch 3500A + E2B XML)">📋 MedWatch</a>`
+          ? `<a class="btn-doc-gen" href="/doc/${runId}/${patientId}/${aeSlug}/?ae_day=${ae.AESTDAT||''}&mode=${mode}" title="Open SAE Report Editor (MedWatch 3500A + E2B XML)">${SVG.clipboard} MedWatch</a>`
           : '';
         html += `<tr>
           <td><strong>${ae.AETERM}</strong></td>
@@ -691,9 +750,9 @@
           <td>${ae.AESEV || '—'}</td>
           <td>Day ${ae.AESTDAT || '?'}</td>
           <td>${ae.days_active || ae._days_active || '?'} days</td>
-          <td>${ae.AEREL ? '✓ Yes' : '✗ No'}</td>
+          <td>${ae.AEREL ? '<span style="color:var(--accent-green)">' + SVG.check + ' Yes</span>' : '<span style="color:var(--text-muted)">' + SVG.x + ' No</span>'}</td>
           <td style="font-size:0.85em">${ae.AEACN || '—'}</td>
-          <td>${isSAE ? '⚠️ Yes' : 'No'}</td>
+          <td>${isSAE ? '<span style="color:var(--accent-orange)">' + SVG.warn + ' Yes</span>' : 'No'}</td>
           <td>${docBtn}</td>
         </tr>`;
       });
@@ -710,11 +769,11 @@
 
     if (isHR && labsStaleDays > 0) {
       html += `<div style="padding:6px 10px; background:rgba(210,153,34,0.1); border:1px solid rgba(210,153,34,0.3); border-radius:6px; margin-bottom:8px; font-size:0.82em; color:#d29922;">
-        ⚠ Lab values are ${labsStaleDays} days old (last drawn at clinic visit)
+        ${SVG.warn} Lab values are ${labsStaleDays} days old (last drawn at clinic visit)
       </div>`;
     } else if (isHR && labsStaleDays === 0 && isVisitDay) {
       html += `<div style="padding:6px 10px; background:rgba(63,185,80,0.08); border:1px solid rgba(63,185,80,0.25); border-radius:6px; margin-bottom:8px; font-size:0.82em; color:var(--accent-green);">
-        ✓ Fresh labs — drawn today at clinic visit (values match Ground Truth)
+        ${SVG.check} Fresh labs — drawn today at clinic visit (values match Ground Truth)
       </div>`;
     }
 
@@ -742,11 +801,11 @@
     let staleHtml = '';
     if (isHR && vitalsStaleDays > 0) {
       staleHtml = `<div style="grid-column:1/-1; padding:6px 10px; background:rgba(210,153,34,0.1); border:1px solid rgba(210,153,34,0.3); border-radius:6px; margin-bottom:4px; font-size:0.82em; color:#d29922;">
-        ⚠ Vitals are ${vitalsStaleDays} days old (last measured at clinic)
+        ${SVG.warn} Vitals are ${vitalsStaleDays} days old (last measured at clinic)
       </div>`;
     } else if (isHR && vitalsStaleDays === 0 && isVisitDay) {
       staleHtml = `<div style="grid-column:1/-1; padding:6px 10px; background:rgba(63,185,80,0.08); border:1px solid rgba(63,185,80,0.25); border-radius:6px; margin-bottom:4px; font-size:0.82em; color:var(--accent-green);">
-        ✓ Fresh vitals — measured today at clinic visit
+        ${SVG.check} Fresh vitals — measured today at clinic visit
       </div>`;
     }
     const items = [
@@ -916,7 +975,37 @@
     document.getElementById('ae-timeline').innerHTML = html;
   }
 
-  // ── Care AI Call ──
+  // ── Care AI Call (KakaoTalk style) ──
+  const _SPRITE_MAP = {
+    F: {
+      light: [1,5,9,14,17,21,24,25,28,29,30,32,33,34,36,37,40,41,45,48,49,52,55,58,62,66,73,74,75,76,77,78,82,85,86,88,89,92,95],
+      medium: [20,35,38,42,44,46,50,53,56,61,65,67,68],
+      dark:   [2,8,12,39,43,47,51,54,57,59,60,63,64],
+    },
+    M: {
+      light: [7,11,69,70,71,72,83,87,93],
+      medium: [3,6,26,81,90,96],
+      dark:   [4,10,13,15,16,18,19,22,23,27,31,79,80,84,91,94,97],
+    },
+  };
+  function _getCharSpriteUrl(pid, sex, race) {
+    const gender = ((sex || '').charAt(0) || 'M').toUpperCase() === 'F' ? 'F' : 'M';
+    const r = (race || '').toUpperCase();
+    const tone = r.includes('BLACK') ? 'dark' : r.includes('ASIAN') ? 'medium' : r.includes('WHITE') ? 'light' : 'medium';
+    const pool = (_SPRITE_MAP[gender] && _SPRITE_MAP[gender][tone]) || _SPRITE_MAP.M.light;
+    const num = parseInt((pid || '').replace(/\D/g, ''), 10) || 1;
+    const n = pool[(num - 1) % pool.length];
+    return `/static/assets/characters/patient_${String(n).padStart(2, '0')}.png`;
+  }
+  const _PAGE_PATIENT_ID = '{{ patient_id }}';
+  const _PAGE_SEX = '{{ profile.DM.SEX|default:"" }}';
+  const _PAGE_RACE = '{{ profile.DM.RACE|default:"" }}';
+  function makePatientAvatar() {
+    const url = _getCharSpriteUrl(_PAGE_PATIENT_ID, _PAGE_SEX, _PAGE_RACE);
+    return `<div class="chat-avatar avatar-patient" style="background-image:url('${url}'); background-size:108px 144px; background-position:-36px 0; background-repeat:no-repeat;"></div>`;
+  }
+  const AVATAR_NURSE = `<div class="chat-avatar avatar-nurse" style="background-image:url('/static/assets/characters/nurse.png'); background-size:cover; background-position:center top;"></div>`;
+
   function renderCareCall() {
     const el = document.getElementById('care-call-detail');
     if (!el) return;
@@ -927,53 +1016,92 @@
     const sevLevel = assessment.severity_level || 'green';
     const sevClass = 'sev-' + sevLevel;
 
-    let html = `<div style="margin-bottom:8px">
+    let html = '<div class="care-chat-container">';
+    html += `<div class="care-chat-header">
       <span class="severity-badge ${sevClass}">${sevLevel.toUpperCase()}</span>
-      <span style="color:var(--text-secondary); margin-left:8px">${assessment.summary || ''}</span>
-      ${cr.terminated_early ? '<span style="color:var(--accent-orange); font-size:0.8em; margin-left:6px">⚡ Early termination</span>' : ''}
+      ${cr.terminated_early ? '<span style="color:var(--accent-orange); font-size:0.78em">Early end</span>' : ''}
     </div>`;
-
     html += '<div class="care-chat">';
+
+    let assessmentHtml = '';
+
     (cr.turns || []).forEach(t => {
       const isP = t.role === 'patient';
-      const cls = isP ? 'chat-patient' : 'chat-nurse';
       const c = t.content || {};
-      let text = '';
-      if (isP && t.turn === 1) {
-        text = c.greeting || '';
-        (c.reported_symptoms || []).forEach(s => { text += `<br>• ${s.symptom || s} <span style="color:var(--text-muted)">(${s.severity_perception || '?'})</span>`; });
-        if ((c.omitted_symptoms||[]).length) text += `<br><span style="color:var(--accent-red);font-size:0.85em">🙈 Hiding: ${c.omitted_symptoms.join(', ')}</span>`;
-        if ((c.video_visible||[]).length) text += `<br><span style="color:var(--accent-purple);font-size:0.85em">👁 Visible: ${c.video_visible.join(', ')}</span>`;
-      } else if (!isP && t.turn === 2) {
-        text = c.acknowledgment || '';
-        (c.questions||[]).forEach(q => { text += `<br><span style="color:var(--accent-blue)">❓</span> ${q.question}`; if(q.target_ae) text += ` <span style="color:var(--text-muted);font-size:0.8em">(→${q.target_ae})</span>`; });
-      } else if (isP && t.turn === 3) {
-        (c.responses||[]).forEach(r => { text += (r.answer || JSON.stringify(r).substring(0,120)) + '<br>'; });
-        if (c.new_info_revealed) text += '<span style="color:var(--accent-green);font-size:0.85em">💡 New info revealed</span>';
-      } else if (!isP && t.turn === 4) {
-        text = (c.assessment||{}).summary || '';
-        (c.actions||[]).forEach(a => { text += `<br><span class="action-tag">${a.action}</span> ${a.reason||''}`; });
+      const rowCls = isP ? 'is-patient' : 'is-nurse';
+      const avatar = isP ? makePatientAvatar() : AVATAR_NURSE;
+      const name = isP ? 'Patient' : 'Care AI Nurse';
+
+      if (!isP && t.turn === 4) {
+        const assess = c.assessment || {};
+        const actions = c.actions || [];
+        assessmentHtml += '<div class="chat-assessment"><div class="chat-assessment-card">';
+        assessmentHtml += `<div class="assess-header"><span class="severity-badge ${sevClass}">${sevLevel.toUpperCase()}</span><span style="font-size:0.78em; color:var(--text-muted)">Nurse Assessment</span></div>`;
+        assessmentHtml += `<div class="assess-summary">${assess.summary || assessment.summary || ''}</div>`;
+        if (actions.length) {
+          assessmentHtml += '<div class="assess-actions">';
+          actions.forEach(a => { assessmentHtml += `<span class="action-tag">${a.action}${a.reason ? ' — ' + a.reason : ''}</span>`; });
+          assessmentHtml += '</div>';
+        }
+        assessmentHtml += '</div></div>';
+        return;
       }
-      if (!text) text = JSON.stringify(c).substring(0,250);
-      html += `<div class="chat-bubble ${cls}"><div class="chat-role">${isP?'👤':'🩺'} T${t.turn} ${t.role}</div><div>${text}</div></div>`;
+
+      html += `<div class="chat-row ${rowCls}">${avatar}<div class="chat-content"><div class="chat-name">${name}</div>`;
+
+      if (isP && t.turn === 1) {
+        let mainText = c.greeting || '';
+        if (c.general_wellbeing) mainText += (mainText ? '<br>' : '') + c.general_wellbeing;
+        if (c.reported_symptoms && c.reported_symptoms.length) {
+          mainText += '<br>';
+          c.reported_symptoms.forEach(s => {
+            const sym = s.symptom || s;
+            const sev = s.severity_perception ? ` (${s.severity_perception})` : '';
+            mainText += `<br>• ${sym}${sev}`;
+          });
+        }
+        if (!mainText) mainText = JSON.stringify(c).substring(0, 200);
+        html += `<div class="chat-bubble">${mainText}</div>`;
+        const metaParts = [];
+        if ((c.omitted_symptoms || []).length) metaParts.push(`<span class="meta-tag meta-hiding">Hiding: ${c.omitted_symptoms.join(', ')}</span>`);
+        if ((c.video_visible || []).length) metaParts.push(`<span class="meta-tag meta-visible">Visible: ${c.video_visible.join(', ')}</span>`);
+        if (metaParts.length) html += `<div class="chat-meta">${metaParts.join(' ')}</div>`;
+
+      } else if (!isP && t.turn === 2) {
+        if (c.acknowledgment) html += `<div class="chat-bubble">${c.acknowledgment}</div>`;
+        (c.questions || []).forEach(q => {
+          html += `<div class="chat-bubble">${q.question}${q.target_ae ? ` <span style="color:var(--text-muted); font-size:0.82em">(${q.target_ae})</span>` : ''}</div>`;
+        });
+
+      } else if (isP && t.turn === 3) {
+        let respText = '';
+        (c.responses || []).forEach(r => {
+          const ans = r.answer || JSON.stringify(r).substring(0, 120);
+          respText += (respText ? '<br><br>' : '') + ans;
+        });
+        if (!respText) respText = JSON.stringify(c).substring(0, 200);
+        html += `<div class="chat-bubble">${respText}</div>`;
+        if (c.new_info_revealed) html += `<div class="chat-meta"><span class="meta-tag meta-newinfo">New info revealed</span></div>`;
+
+      } else {
+        html += `<div class="chat-bubble">${JSON.stringify(c).substring(0, 250)}</div>`;
+      }
+
+      html += '</div></div>';
     });
-    html += '</div>';
 
-    // Detection summary
+    // Detection summary inside assessment area
     const det = cr.detection || {};
-    if ((det.aes_detected||[]).length) {
-      html += `<div style="margin-top:8px;font-size:0.85em"><strong style="color:var(--accent-green)">Detected:</strong> ${det.aes_detected.join(', ')}</div>`;
-    }
-    if ((det.early_warning_signs||[]).length) {
-      html += `<div style="font-size:0.85em"><strong style="color:var(--accent-orange)">Early warnings:</strong> ${det.early_warning_signs.join(', ')}</div>`;
+    if ((det.aes_detected||[]).length || (det.early_warning_signs||[]).length) {
+      assessmentHtml += '<div style="margin-top:8px; font-size:0.85em;">';
+      if ((det.aes_detected||[]).length) assessmentHtml += `<div><strong style="color:var(--accent-green)">Detected:</strong> ${det.aes_detected.join(', ')}</div>`;
+      if ((det.early_warning_signs||[]).length) assessmentHtml += `<div><strong style="color:var(--accent-orange)">Early warnings:</strong> ${det.early_warning_signs.join(', ')}</div>`;
+      assessmentHtml += '</div>';
     }
 
-    // Actions
-    if ((cr.actions||[]).length) {
-      html += '<div style="margin-top:6px">';
-      cr.actions.forEach(a => { html += `<span class="action-tag">${a.action}</span> `; });
-      html += '</div>';
-    }
+    html += assessmentHtml;
+    html += '</div>'; // close care-chat
+    html += '</div>'; // close care-chat-container
     el.innerHTML = html;
   }
 
@@ -1093,24 +1221,29 @@ document.addEventListener('keydown', e => {
   const isVisit = dayData._hr_is_visit || false;
   const obsTypes = dayData._hr_obs_types || [];
 
+  const _SVG_hospital = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4 8 4v14"/><path d="M9 21v-4h6v4"/><path d="M10 9h4"/><path d="M12 9v4"/></svg>';
+  const _SVG_bed = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 4v16"/><path d="M2 8h18a2 2 0 012 2v10"/><path d="M2 17h20"/><path d="M6 8v9"/></svg>';
+  const _SVG_xCircle = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>';
+  const _SVG_home = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>';
+
   if (location === 'OUTPATIENT' || isVisit) {
     badge.className = 'ps-visit-badge visit';
     const visitType = obsTypes.includes('scheduled_visit') ? 'Clinic Visit'
       : obsTypes.includes('er_visit') ? 'ER Visit'
       : 'Visit Day';
-    badge.textContent = '🏥 ' + visitType;
+    badge.innerHTML = _SVG_hospital + ' ' + visitType;
   } else if (location === 'INPATIENT') {
     badge.className = 'ps-visit-badge visit';
-    badge.textContent = '🏨 Inpatient';
+    badge.innerHTML = _SVG_bed + ' Inpatient';
   } else if (location === 'DECEASED') {
     badge.className = 'ps-visit-badge';
     badge.style.background = 'rgba(248,81,73,0.15)';
     badge.style.color = 'var(--accent-red)';
     badge.style.borderColor = 'rgba(248,81,73,0.3)';
-    badge.textContent = '✖ Deceased';
+    badge.innerHTML = _SVG_xCircle + ' Deceased';
   } else {
     badge.className = 'ps-visit-badge home';
-    badge.textContent = '🏠 Home';
+    badge.innerHTML = _SVG_home + ' Home';
   }
 })();
 

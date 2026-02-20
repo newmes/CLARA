@@ -8,6 +8,7 @@
   <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/js/bootstrap.min.js"></script>
   {% load static %}
+  <link rel="icon" type="image/svg+xml" href="{% static 'assets/ui/logo.svg' %}">
   <link rel="stylesheet" href="{% static 'css/style.css' %}">
   <style>
     /* ── Global Nav Bar ── */
@@ -32,10 +33,9 @@
       border-radius: 4px; transition: all 0.2s; white-space: nowrap;
       position: relative;
     }
-    .global-nav a:hover {
-      color: var(--text-primary); background: var(--bg-elevated);
+    .global-nav a:not(.nav-brand):hover {
+      color: var(--accent-cyan); background: rgba(57,210,192,0.06);
       text-decoration: none;
-      box-shadow: inset 0 -2px 0 var(--accent-cyan);
     }
     .global-nav a.nav-active {
       color: var(--accent-cyan); background: rgba(57,210,192,0.1);
@@ -43,15 +43,28 @@
       box-shadow: 0 0 12px rgba(57,210,192,0.1);
     }
     .global-nav .nav-brand {
-      font-weight: 700; font-size: 1.1em;
-      margin-right: 8px; letter-spacing: -0.3px;
+      font-weight: 800; font-size: 1.5em;
+      margin-right: 10px; letter-spacing: 0.5px;
       background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       background-clip: text;
-      display: inline-flex; align-items: center; gap: 6px;
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 4px 10px; border-radius: 6px;
+      filter: drop-shadow(0 0 8px rgba(57,210,192,0.35));
+      transition: all 0.3s ease;
+    }
+    .global-nav .nav-brand:hover {
+      filter: drop-shadow(0 0 14px rgba(57,210,192,0.5));
+      transform: scale(1.03);
     }
     .global-nav .nav-brand img {
-      width: 22px; height: 22px; -webkit-text-fill-color: initial;
+      width: 42px; height: 42px; -webkit-text-fill-color: initial;
+      filter: drop-shadow(0 0 6px rgba(57,210,192,0.4));
+      transition: all 0.3s ease;
+    }
+    .global-nav .nav-brand:hover img {
+      filter: drop-shadow(0 0 10px rgba(57,210,192,0.6));
+      transform: rotate(-5deg) scale(1.08);
     }
     .global-nav .nav-sep {
       color: var(--border); margin: 0 2px; user-select: none;
@@ -81,11 +94,11 @@
     .run-sidebar a {
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       gap: 4px; width: 50px; height: 50px; border-radius: 10px;
-      color: var(--text-muted); text-decoration: none;
+      color: var(--text-secondary); text-decoration: none;
       transition: all 0.15s; position: relative;
     }
     .run-sidebar a span {
-      font-size: 0.55em; font-weight: 600; letter-spacing: 0.3px;
+      font-size: 0.62em; font-weight: 600; letter-spacing: 0.3px;
       line-height: 1; white-space: nowrap;
     }
     .run-sidebar a:hover {
@@ -102,7 +115,7 @@
 <body class="{% block body_class %}{% endblock %}">
   <!-- Global Navigation -->
   <nav class="global-nav">
-    <a href="/" class="nav-brand" title="Virtual Intelligent Trial Adverse-event Lifecycle">{% load static %}<img src="{% static 'assets/logo.svg' %}" alt="V">VITAL</a>
+    <a href="/" class="nav-brand" title="Virtual Intelligent Trial Adverse-event Lifecycle">{% load static %}<img src="{% static 'assets/ui/logo.svg' %}" alt="V">VITAL</a>
     {% block nav_items %}{% endblock %}
   </nav>
 

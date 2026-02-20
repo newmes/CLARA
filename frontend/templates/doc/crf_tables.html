@@ -8,8 +8,7 @@
 {% block extra_head %}
 <style>
   .doc-container {
-    margin-top: 2em; max-width: 1200px; margin-left: auto; margin-right: auto;
-    padding: 0 20px 3em;
+    margin-top: 2em; padding: 0 24px 3em;
   }
   /* ── Header ── */
   .doc-header {
@@ -32,11 +31,11 @@
     display: flex; align-items: center; gap: 4px;
   }
   .ctrl-label {
-    font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.5px;
+    font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.5px;
     color: var(--text-muted); margin-right: 4px; white-space: nowrap;
   }
   .ctrl-btn {
-    padding: 4px 12px; border-radius: var(--radius-sm); font-size: 0.85em; font-weight: 600;
+    padding: 5px 14px; border-radius: var(--radius-sm); font-size: 0.9em; font-weight: 600;
     border: 1px solid var(--border); background: var(--bg-secondary);
     color: var(--text-secondary); cursor: pointer; transition: all var(--transition-fast);
   }
@@ -46,13 +45,13 @@
     color: var(--accent-cyan);
   }
   .ctrl-select {
-    padding: 4px 10px; border-radius: var(--radius-sm); font-size: 0.85em;
+    padding: 5px 12px; border-radius: var(--radius-sm); font-size: 0.9em;
     border: 1px solid var(--border); background: var(--bg-secondary);
     color: var(--text-primary); cursor: pointer;
   }
   .ctrl-select:focus { outline: none; border-color: var(--accent-cyan); }
   .btn-excel {
-    padding: 5px 14px; border-radius: var(--radius-md); font-size: 0.85em; font-weight: 600;
+    padding: 6px 16px; border-radius: var(--radius-md); font-size: 0.9em; font-weight: 600;
     border: 1px solid rgba(63,185,80,0.3); background: rgba(63,185,80,0.08);
     color: var(--accent-green); cursor: pointer; transition: all var(--transition-fast);
     margin-left: auto; white-space: nowrap;
@@ -63,7 +62,7 @@
     display: flex; gap: 2px; margin-bottom: 1em; flex-wrap: wrap;
   }
   .domain-tab {
-    padding: 6px 12px; border-radius: var(--radius-md) var(--radius-md) 0 0; font-size: 0.75em;
+    padding: 8px 14px; border-radius: var(--radius-md) var(--radius-md) 0 0; font-size: 0.85em;
     font-weight: 700; font-family: 'JetBrains Mono', monospace;
     border: 1px solid var(--border); border-bottom: none;
     background: var(--bg-secondary); color: var(--text-muted);
@@ -79,14 +78,14 @@
   /* ── Table ── */
   .crf-table-wrap {
     border: 1px solid var(--border); border-radius: 0 var(--radius-lg) var(--radius-lg) var(--radius-lg);
-    overflow-x: auto; background: var(--bg-card);
+    overflow-x: auto; overflow-y: auto; max-height: 55vh; background: var(--bg-card);
   }
   .crf-table {
-    width: 100%; border-collapse: collapse; font-size: 0.88em;
+    width: 100%; border-collapse: collapse; font-size: 0.92em;
     font-family: 'JetBrains Mono', monospace;
   }
   .crf-table th {
-    text-align: left; padding: 10px 12px; font-size: 0.78em; text-transform: uppercase;
+    text-align: left; padding: 10px 12px; font-size: 0.85em; text-transform: uppercase;
     letter-spacing: 0.5px; color: var(--text-muted); border-bottom: 2px solid var(--border);
     background: var(--bg-secondary); position: sticky; top: 0; white-space: nowrap;
     cursor: pointer; user-select: none; transition: color 0.12s;
@@ -108,22 +107,264 @@
     gap: 4px; margin-top: 12px; padding: 8px 0;
   }
   .page-btn {
-    padding: 4px 10px; border-radius: var(--radius-sm); font-size: 0.85em;
+    padding: 5px 12px; border-radius: var(--radius-sm); font-size: 0.9em;
     border: 1px solid var(--border); background: var(--bg-secondary);
     color: var(--text-secondary); cursor: pointer; transition: all var(--transition-fast);
   }
   .page-btn:hover { border-color: var(--accent-cyan); color: var(--text-primary); }
   .page-btn.active { background: rgba(57,210,192,0.12); border-color: var(--accent-cyan); color: var(--accent-cyan); }
   .page-btn:disabled { opacity: 0.4; cursor: default; }
-  .page-info { font-size: 0.82em; color: var(--text-muted); margin: 0 8px; }
+  .page-info { font-size: 0.88em; color: var(--text-muted); margin: 0 8px; }
   /* ── Loading / empty ── */
   .crf-loading {
     text-align: center; padding: 3em; color: var(--text-muted);
   }
   .crf-empty {
     text-align: center; padding: 3em; color: var(--text-muted);
-    font-size: 0.95em;
+    font-size: 1em;
   }
+
+  /* ── Lab Trend Chart ── */
+  .lb-chart-section { display: none; margin-bottom: 1em; }
+  .lb-chart-section.visible { display: block; }
+  .lb-chart-controls {
+    display: flex; gap: 10px; align-items: center; margin-bottom: 8px; flex-wrap: wrap;
+  }
+  .lb-chart-controls .select-group { display: flex; flex-direction: column; gap: 2px; }
+  .lb-chart-controls .select-group label {
+    font-size: 0.78em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .lb-chart-controls select {
+    background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-primary);
+    padding: 6px 12px; border-radius: var(--radius-sm); font-size: 0.9em; cursor: pointer;
+  }
+  .lb-chart-controls select:hover { border-color: var(--accent-cyan); }
+  .lb-chart-layout { display: flex; gap: 12px; align-items: stretch; height: 640px; }
+  .lb-chart-panel {
+    flex: 1; min-width: 0; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 16px; position: relative;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .lb-chart-title { font-size: 1em; color: var(--text-primary); margin-bottom: 2px; }
+  .lb-chart-subtitle { font-size: 0.85em; color: var(--text-muted); margin-bottom: 12px; }
+  .lb-chart-area { position: relative; width: 100%; flex: 1; min-height: 0; }
+  .lb-chart-area canvas { display: block; width: 100%; height: 100%; }
+  .lb-ref-info {
+    display: flex; gap: 16px; margin-top: 8px; font-size: 0.82em; color: var(--text-muted);
+    padding-top: 8px; border-top: 1px solid var(--border);
+  }
+  .lb-ref-info span { display: flex; align-items: center; gap: 6px; }
+  .lb-ref-line-sample { width: 20px; height: 0; border-top: 2px dashed var(--text-muted); }
+  .lb-side-panel {
+    width: 280px; flex-shrink: 0; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); display: flex; flex-direction: column; overflow: hidden;
+  }
+  .lb-side-header {
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    font-size: 0.82em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+    background: var(--bg-secondary); flex-shrink: 0;
+  }
+  .lb-side-row-head {
+    display: grid; grid-template-columns: 42px 1fr 42px; padding: 5px 14px;
+    font-size: 0.78em; color: var(--text-muted); text-transform: uppercase;
+    border-bottom: 1px solid var(--border); background: var(--bg-secondary);
+  }
+  .lb-side-row-head span:nth-child(2) { text-align: right; padding-right: 8px; }
+  .lb-side-row-head span:nth-child(3) { text-align: center; }
+  .lb-side-scroll { flex: 1; overflow-y: auto; padding: 2px 0; }
+  .lb-side-scroll::-webkit-scrollbar { width: 5px; }
+  .lb-side-scroll::-webkit-scrollbar-track { background: transparent; }
+  .lb-side-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .lb-data-row {
+    display: grid; grid-template-columns: 42px 1fr 42px;
+    padding: 5px 14px; font-size: 0.88em; align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.03); transition: background 0.1s;
+  }
+  .lb-data-row:hover { background: var(--bg-secondary); }
+  .lb-data-row .day { color: var(--text-muted); }
+  .lb-data-row .val { font-weight: 600; text-align: right; padding-right: 8px; }
+  .lb-data-row .val.ok { color: #7ee787; }
+  .lb-data-row .val.above { color: #f85149; }
+  .lb-data-row .val.below { color: #58a6ff; }
+  .lb-data-row .cs { text-align: center; }
+  .lb-cs-tag { padding: 2px 6px; border-radius: 3px; font-size: 0.82em; font-weight: 600; }
+  .lb-cs-yes { background: #f8514933; color: #f85149; }
+  .lb-cs-no { background: #7ee78722; color: #7ee787; }
+
+  /* ── VS side panel (3-column: dot + day + value) ── */
+  .vs-side-row-head {
+    display: grid; grid-template-columns: 14px 42px 1fr; padding: 5px 14px;
+    font-size: 0.78em; color: var(--text-muted); text-transform: uppercase;
+    border-bottom: 1px solid var(--border); background: var(--bg-secondary);
+  }
+  .vs-side-row-head span:last-child { text-align: right; }
+  .vs-data-row {
+    display: grid; grid-template-columns: 14px 42px 1fr;
+    padding: 5px 14px; font-size: 0.88em; align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.03); transition: background 0.1s;
+  }
+  .vs-data-row:hover { background: var(--bg-secondary); }
+  .vs-data-row .day { color: var(--text-muted); }
+  .vs-data-row .val { font-weight: 600; text-align: right; }
+  .vs-data-row .val.ok { color: #7ee787; }
+  .vs-data-row .val.above { color: #f85149; }
+  .vs-data-row .val.below { color: #58a6ff; }
+
+  /* ── TU+RS Integrated View ── */
+  .turs-section { display: none; margin-bottom: 1em; }
+  .turs-section.visible { display: block; }
+  .turs-controls {
+    display: flex; gap: 10px; align-items: center; margin-bottom: 10px; flex-wrap: wrap;
+  }
+  .turs-controls .select-group { display: flex; flex-direction: column; gap: 2px; }
+  .turs-controls .select-group label {
+    font-size: 0.78em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .turs-controls select {
+    background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-primary);
+    padding: 6px 12px; border-radius: var(--radius-sm); font-size: 0.9em; cursor: pointer;
+  }
+  .turs-controls select:hover { border-color: var(--accent-cyan); }
+  .turs-main { display: flex; gap: 12px; align-items: stretch; }
+  .turs-chart-panel {
+    flex: 1; min-width: 0; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 16px; display: flex; flex-direction: column;
+  }
+  .turs-chart-label {
+    font-size: 0.78em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+    margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
+  }
+  .turs-chart-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .turs-chart-area { position: relative; width: 100%; }
+  .turs-spider-area { height: 280px; }
+  .turs-resp-area { height: 90px; margin-top: 8px; }
+  .turs-chart-area canvas { display: block; width: 100%; height: 100%; }
+  .turs-legend {
+    display: flex; gap: 14px; margin-top: 10px; font-size: 0.78em; color: var(--text-muted);
+    flex-wrap: wrap; padding-top: 8px; border-top: 1px solid var(--border);
+  }
+  .turs-legend span { display: flex; align-items: center; gap: 4px; }
+  .turs-lg { width: 14px; height: 3px; border-radius: 1px; }
+  .turs-lg-dash { width: 14px; height: 0; border-top: 2px dashed; }
+  .turs-side {
+    width: 240px; flex-shrink: 0; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); display: flex; flex-direction: column; overflow: hidden;
+  }
+  .turs-side-header {
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    font-size: 0.82em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+    background: var(--bg-secondary); flex-shrink: 0;
+  }
+  .turs-side-tabs {
+    display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0;
+  }
+  .turs-side-tab {
+    flex: 1; padding: 7px; text-align: center; font-size: 0.78em; color: var(--text-muted);
+    cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .turs-side-tab:hover { color: var(--text-secondary); }
+  .turs-side-tab.active { color: var(--accent-cyan); border-bottom-color: var(--accent-cyan); }
+  .turs-side-scroll {
+    flex: 1; overflow-y: auto; padding: 4px 0; max-height: 400px;
+  }
+  .turs-side-scroll::-webkit-scrollbar { width: 5px; }
+  .turs-side-scroll::-webkit-scrollbar-track { background: transparent; }
+  .turs-side-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .turs-lesion-card {
+    padding: 8px 14px; border-bottom: 1px solid rgba(255,255,255,0.03); transition: background 0.1s;
+  }
+  .turs-lesion-card:hover { background: var(--bg-secondary); }
+  .turs-lc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .turs-lc-id { font-size: 0.9em; font-weight: 600; }
+  .turs-type-tag { font-size: 0.75em; padding: 2px 7px; border-radius: 3px; font-weight: 600; }
+  .turs-tag-target { background: rgba(57,210,192,0.12); color: var(--accent-cyan); }
+  .turs-tag-nt { background: rgba(210,168,255,0.12); color: #d2a8ff; }
+  .turs-lc-detail { font-size: 0.8em; color: var(--text-muted); margin-bottom: 2px; }
+  .turs-meas { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+  .turs-mchip {
+    font-size: 0.75em; padding: 2px 7px; border-radius: 3px;
+    background: var(--bg-secondary); color: var(--text-secondary);
+  }
+  .turs-mchip.bl { border-left: 2px solid var(--text-muted); }
+  .turs-mchip.dec { border-left: 2px solid #7ee787; }
+  .turs-mchip.inc { border-left: 2px solid #f85149; }
+  .turs-mchip.nd { border-left: 2px solid #f0883e; color: #f0883e; }
+  .turs-resp-card {
+    padding: 8px 14px; border-bottom: 1px solid rgba(255,255,255,0.03);
+  }
+  .turs-resp-card:hover { background: var(--bg-secondary); }
+  .turs-rc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+  .turs-rc-visit { font-size: 0.85em; color: var(--text-muted); }
+  .turs-rc-date { font-size: 0.8em; color: var(--text-muted); }
+  .turs-rc-row { display: flex; justify-content: space-between; align-items: center; margin-top: 3px; font-size: 0.85em; }
+  .turs-rc-label { color: var(--text-muted); }
+  .turs-resp-badge { padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 700; }
+  .turs-b-CR { background: #7ee78733; color: #7ee787; }
+  .turs-b-PR { background: #58a6ff33; color: #58a6ff; }
+  .turs-b-SD { background: #e3b34133; color: #e3b341; }
+  .turs-b-PD { background: #f8514933; color: #f85149; }
+  .turs-b-NE { background: rgba(72,79,88,0.2); color: #484f58; }
+  .turs-b-NON { background: rgba(210,168,255,0.12); color: #d2a8ff; }
+  .turs-detail {
+    margin-top: 12px; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); overflow: hidden;
+  }
+  .turs-detail-header {
+    padding: 10px 16px; border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .turs-detail-title {
+    font-size: 0.82em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .turs-detail-tabs { display: flex; gap: 0; margin-left: auto; }
+  .turs-dtab {
+    padding: 5px 14px; font-size: 0.8em; color: var(--text-muted); cursor: pointer;
+    border: 1px solid var(--border); background: transparent; transition: all 0.15s;
+  }
+  .turs-dtab:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
+  .turs-dtab:last-child { border-radius: 0 var(--radius-sm) var(--radius-sm) 0; }
+  .turs-dtab.active { background: var(--bg-secondary); color: var(--accent-cyan); border-color: var(--accent-cyan); }
+  .turs-dtab:hover:not(.active) { color: var(--text-secondary); }
+  .turs-detail-wrap { max-height: 300px; overflow: auto; }
+  .turs-detail-wrap::-webkit-scrollbar { width: 5px; height: 5px; }
+  .turs-detail-wrap::-webkit-scrollbar-track { background: transparent; }
+  .turs-detail-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .turs-dtable {
+    width: 100%; border-collapse: collapse; font-size: 0.88em;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .turs-dtable thead { position: sticky; top: 0; z-index: 2; }
+  .turs-dtable th {
+    background: var(--bg-secondary); color: var(--text-muted); font-weight: 600; font-size: 0.78em;
+    text-transform: uppercase; letter-spacing: 0.3px;
+    padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  .turs-dtable td {
+    padding: 6px 10px; border-bottom: 1px solid rgba(255,255,255,0.03);
+    color: var(--text-secondary); white-space: nowrap;
+  }
+  .turs-dtable tr:hover td { background: rgba(57,210,192,0.03); }
+  .turs-col-hl { color: var(--text-primary); font-weight: 600; }
+  .turs-col-dim { color: var(--text-muted); }
+  .turs-nd-tag { color: #f0883e; font-size: 0.78em; font-weight: 600; padding: 2px 6px; background: rgba(240,136,62,0.12); border-radius: 3px; }
+  .turs-resp-inline { padding: 2px 7px; border-radius: 3px; font-size: 0.8em; font-weight: 600; }
+  .turs-tooltip {
+    display: none; position: fixed; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-md); padding: 10px 14px; font-size: 0.9em; z-index: 999;
+    pointer-events: none; box-shadow: 0 4px 16px rgba(0,0,0,0.5); min-width: 160px;
+  }
+
+  /* Tooltip */
+  .lb-tooltip {
+    display: none; position: fixed; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-md); padding: 10px 14px; font-size: 0.9em; z-index: 999;
+    pointer-events: none; box-shadow: 0 4px 16px rgba(0,0,0,0.5); min-width: 130px;
+  }
+  .lb-tooltip .tt-date { color: var(--text-muted); font-size: 0.9em; }
+  .lb-tooltip .tt-val { font-size: 1.2em; font-weight: 600; margin: 3px 0; }
+  .lb-tooltip .tt-unit { font-size: 0.9em; color: var(--text-muted); }
+  .lb-tooltip .tt-cs { font-size: 0.88em; margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--border); }
 </style>
 {% endblock %}
 
@@ -136,7 +377,7 @@
 
   <a href="{% url 'trial_viewer' run_id %}" title="Simulation"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><span>Sim</span></a>
   <a href="{% url 'game_landing' run_id %}" title="Training"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg><span>Train</span></a>
-  <a href="{% url 'doc_hub' run_id %}" class="sb-active" title="Documents"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Docs</span></a>
+  <a href="{% url 'crf_tables' run_id %}" class="sb-active" title="Data"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg><span>Data</span></a>
   <a href="{% url 'compare_dashboard' run_id %}" title="A/B Test"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>A/B</span></a>
 </nav>
 {% endblock %}
@@ -186,6 +427,119 @@
   <!-- Domain tabs -->
   <div class="domain-tabs" id="domainTabs"></div>
 
+  <!-- Lab Trend Chart (LB domain only) -->
+  <div class="lb-chart-section" id="lbChartSection">
+    <div class="lb-chart-controls">
+      <div class="select-group">
+        <label>Patient</label>
+        <select id="lbPatientSelect"></select>
+      </div>
+      <div class="select-group">
+        <label>Lab Test</label>
+        <select id="lbLabSelect"></select>
+      </div>
+    </div>
+    <div class="lb-chart-layout">
+      <div class="lb-chart-panel">
+        <div class="lb-chart-title" id="lbChartTitle">—</div>
+        <div class="lb-chart-subtitle" id="lbChartSubtitle">—</div>
+        <div class="lb-chart-area"><canvas id="lbChartCanvas"></canvas></div>
+        <div class="lb-ref-info">
+          <span><span class="lb-ref-line-sample"></span> Normal range boundary</span>
+        </div>
+      </div>
+      <div class="lb-side-panel">
+        <div class="lb-side-header">Measurements</div>
+        <div class="lb-side-row-head"><span>Day</span><span>Value</span><span>Sig</span></div>
+        <div class="lb-side-scroll" id="lbSideScroll"></div>
+      </div>
+    </div>
+  </div>
+  <div class="lb-tooltip" id="lbTooltip">
+    <div class="tt-date" id="lbTtDate"></div>
+    <div class="tt-val" id="lbTtVal"></div>
+    <div class="tt-unit" id="lbTtUnit"></div>
+    <div class="tt-cs" id="lbTtCs"></div>
+  </div>
+
+  <!-- TU+RS Integrated View -->
+  <div class="turs-section" id="tursSection">
+    <div class="turs-controls">
+      <div class="select-group">
+        <label>Patient</label>
+        <select id="tursPatientSelect"></select>
+      </div>
+    </div>
+    <div class="turs-main">
+      <div class="turs-chart-panel">
+        <div class="turs-chart-label">Target Lesion — % Change from Baseline (Spider Plot)</div>
+        <div class="turs-chart-area turs-spider-area"><canvas id="tursSpiderCanvas"></canvas></div>
+        <div class="turs-chart-label" style="margin-top:10px;">Overall Response (RECIST 1.1)</div>
+        <div class="turs-chart-area turs-resp-area"><canvas id="tursRespCanvas"></canvas></div>
+        <div class="turs-legend">
+          <span><span class="turs-lg-dash" style="border-color:#f85149"></span> -30% PR</span>
+          <span><span class="turs-lg-dash" style="border-color:#58a6ff"></span> +20% PD</span>
+          <span style="font-weight:600;">━ SUM</span>
+          <span>● Lesion</span>
+        </div>
+      </div>
+      <div class="turs-side">
+        <div class="turs-side-header">Assessment Details</div>
+        <div class="turs-side-tabs">
+          <div class="turs-side-tab active" data-stab="lesions" onclick="tursSwitchSideTab('lesions')">Lesions</div>
+          <div class="turs-side-tab" data-stab="response" onclick="tursSwitchSideTab('response')">Response</div>
+        </div>
+        <div class="turs-side-scroll" id="tursSideScroll"></div>
+      </div>
+    </div>
+    <div class="turs-detail">
+      <div class="turs-detail-header">
+        <span class="turs-detail-title">Detail Data</span>
+        <div class="turs-detail-tabs">
+          <div class="turs-dtab active" data-dtab="tu" onclick="tursSwitchDetailTab('tu')">TU — Lesions</div>
+          <div class="turs-dtab" data-dtab="rs" onclick="tursSwitchDetailTab('rs')">RS — Response</div>
+        </div>
+      </div>
+      <div class="turs-detail-wrap" id="tursDetailWrap"></div>
+    </div>
+  </div>
+  <div class="turs-tooltip" id="tursTooltip"></div>
+
+  <!-- VS Vital Signs Chart -->
+  <div class="lb-chart-section" id="vsChartSection">
+    <div class="lb-chart-controls">
+      <div class="select-group">
+        <label>Patient</label>
+        <select id="vsPatientSelect"></select>
+      </div>
+      <div class="select-group">
+        <label>Vital Sign</label>
+        <select id="vsVitalSelect"></select>
+      </div>
+    </div>
+    <div class="lb-chart-layout">
+      <div class="lb-chart-panel">
+        <div class="lb-chart-title" id="vsChartTitle">—</div>
+        <div class="lb-chart-subtitle" id="vsChartSubtitle">—</div>
+        <div class="lb-chart-area"><canvas id="vsChartCanvas"></canvas></div>
+        <div class="lb-ref-info">
+          <span><span class="lb-ref-line-sample"></span> Normal range boundary</span>
+        </div>
+      </div>
+      <div class="lb-side-panel">
+        <div class="lb-side-header">Measurements</div>
+        <div class="vs-side-row-head"><span></span><span>Day</span><span>Value</span></div>
+        <div class="lb-side-scroll" id="vsSideScroll"></div>
+      </div>
+    </div>
+  </div>
+  <div class="lb-tooltip" id="vsTooltip">
+    <div class="tt-date" id="vsTtDate"></div>
+    <div class="tt-val" id="vsTtVal"></div>
+    <div class="tt-unit" id="vsTtUnit"></div>
+    <div class="tt-cs" id="vsTtCs"></div>
+  </div>
+
   <!-- Table area -->
   <div class="crf-table-wrap">
     <div id="tableArea">
@@ -203,8 +557,8 @@
 (function() {
   const RUN_ID = "{{ run_id }}";
   const PATIENTS = {{ patient_ids_json|safe }};
-  const DOMAIN_LABELS = {{ domain_labels_json|safe }};
-  const DOMAIN_ORDER = ["AE","EC","CM","LB","VS","PE","EG","DM","MH","DS","DD","TU","RS"];
+  const DOMAIN_LABELS = Object.assign({{ domain_labels_json|safe }}, {"TU+RS": "TU+RS (Tumor & Response)"});
+  const DOMAIN_ORDER = ["AE","EC","CM","LB","VS","DM","MH","DS","DD","TU+RS"];
 
   // Build domain tabs
   (function buildTabs() {
@@ -225,7 +579,7 @@
   let currentMode = "{{ available_modes.0|default:'natural' }}";
   let currentPatient = "";
   let currentPage = 1;
-  const PER_PAGE = 100;
+  const PER_PAGE = 25;
 
   // Sort state
   let sortKey = null;    // column key to sort by
@@ -265,9 +619,30 @@
     loadDomainData();
   };
 
-  window.downloadExcel = function() {
-    const url = `/api/crf/${RUN_ID}/excel/?source=${currentSource}&mode=${currentMode}`;
-    window.open(url, '_blank');
+  window.downloadExcel = async function() {
+    const btn = document.querySelector('.btn-excel');
+    const origText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;vertical-align:-2px;margin-right:6px;"></span>Exporting...';
+
+    try {
+      const url = `/api/crf/${RUN_ID}/excel/?source=${currentSource}&mode=${currentMode}`;
+      const res = await fetch(url);
+      if (!res.ok) throw new Error('Export failed');
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      const cd = res.headers.get('Content-Disposition') || '';
+      const match = cd.match(/filename="?([^"]+)"?/);
+      a.download = match ? match[1] : `CRF_${RUN_ID}.xlsx`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    } catch (err) {
+      alert('Excel export failed: ' + err.message);
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = origText;
+    }
   };
 
   function loadDomainData() {
@@ -393,6 +768,1170 @@
 
     pag.innerHTML = html;
   }
+
+  // ═══ Lab Trend Chart (LB domain) ═══════════════════════════
+  const LAB_RANGES = JSON.parse('{{ lab_ranges_json|escapejs }}' || '{}');
+  const COLOR_OK = '#7ee787', COLOR_ABOVE = '#f85149', COLOR_BELOW = '#58a6ff';
+  const LAB_ABBR = {
+    absolute_neutrophil_count: 'ANC', alanine_aminotransferase: 'ALT',
+    aspartate_aminotransferase: 'AST', total_bilirubin: 'Bilirubin',
+    bilirubin: 'Bilirubin', glucose_fasting: 'Glucose (fasting)',
+    weight_kg: 'Weight', height_cm: 'Height',
+  };
+  function labDisplayName(raw) { return LAB_ABBR[raw] || (raw.includes('_') ? raw.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) : raw); }
+  let _lbCache = {};
+  let _lbChartState = { points: [], positions: [] };
+
+  function showLbChart(show) {
+    const el = document.getElementById('lbChartSection');
+    if (el) el.classList.toggle('visible', show);
+  }
+
+  function showTursView(show) {
+    const el = document.getElementById('tursSection');
+    if (el) el.classList.toggle('visible', show);
+  }
+
+  function showVsChart(show) {
+    const el = document.getElementById('vsChartSection');
+    if (el) el.classList.toggle('visible', show);
+  }
+
+  // Override switchDomain to show/hide chart / TU+RS / VS views
+  const _origSwitchDomain = window.switchDomain;
+  window.switchDomain = function(domain) {
+    const isLB = domain === 'LB';
+    const isTURS = domain === 'TU+RS';
+    const isVS = domain === 'VS';
+    const isSpecial = isLB || isTURS || isVS;
+    showLbChart(isLB);
+    showTursView(isTURS);
+    showVsChart(isVS);
+    // Hide table + pagination for special views
+    document.querySelector('.crf-table-wrap').style.display = isSpecial ? 'none' : '';
+    document.getElementById('pagination').style.display = isSpecial ? 'none' : '';
+    if (!isTURS && !isVS) _origSwitchDomain(domain);
+    else {
+      currentDomain = domain;
+      currentPage = 1;
+      resetSort();
+      document.querySelectorAll('.domain-tab').forEach(t => t.classList.toggle('active', t.dataset.domain === domain));
+    }
+    if (isLB) initLbChart();
+    if (isTURS) initTursView();
+    if (isVS) initVsChart();
+  };
+
+  async function fetchPatientTimeline(pid) {
+    const key = `${pid}_${currentMode}`;
+    if (_lbCache[key]) return _lbCache[key];
+    const resp = await fetch(`/api/patient/${RUN_ID}/${pid}/?mode=${currentMode}`);
+    const data = await resp.json();
+    _lbCache[key] = data.days;
+    return data.days;
+  }
+
+  function extractLbSeries(days, labName) {
+    const points = [];
+    for (const d of days) {
+      const lbResults = d.LB?.results?.[labName];
+      const val = lbResults?.LBORRES ?? null;
+      if (val != null && typeof val === 'number') points.push({ day: d.day, value: val });
+    }
+    return points;
+  }
+
+  function getLbNames(days) {
+    const names = new Set();
+    for (const d of days) {
+      const lbr = d.LB?.results;
+      if (lbr) Object.keys(lbr).forEach(k => names.add(k));
+    }
+    return [...names].sort();
+  }
+
+  function getLbConfig(labName, days) {
+    // 1. Try extracting from inline LBORNRLO/LBORNRHI (new data format)
+    if (days) {
+      for (const d of days) {
+        const r = d.LB?.results?.[labName];
+        if (r && r.LBORNRLO != null) {
+          return { unit: r.LBORRESU || '', normalLow: r.LBORNRLO, normalHigh: r.LBORNRHI };
+        }
+      }
+    }
+    // 2. Try LAB_RANGES with raw name, abbreviated name, and lowercase
+    const candidates = [labName, LAB_ABBR[labName], labName.toLowerCase()];
+    const abbr = LAB_ABBR[labName];
+    if (abbr) candidates.push(abbr.toLowerCase());
+    for (const k of candidates) {
+      if (!k) continue;
+      const r = LAB_RANGES[k];
+      if (r) return { unit: r.unit || '', normalLow: r.normal_range?.min ?? r.LLN, normalHigh: r.normal_range?.max ?? r.ULN };
+    }
+    return null;
+  }
+
+  function renderLbCanvas(points, config) {
+    const canvas = document.getElementById('lbChartCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
+    canvas.style.width = rect.width + 'px'; canvas.style.height = rect.height + 'px';
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.scale(dpr, dpr);
+
+    const W = rect.width, H = rect.height;
+    const PAD = { top: 24, right: 48, bottom: 36, left: 56 };
+    const plotW = W - PAD.left - PAD.right, plotH = H - PAD.top - PAD.bottom;
+
+    if (points.length === 0) {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = '#484f58'; ctx.font = '13px -apple-system, sans-serif';
+      ctx.textAlign = 'center'; ctx.fillText('No data', W / 2, H / 2);
+      _lbChartState.positions = [];
+      return;
+    }
+
+    const allVals = points.map(p => p.value);
+    let dataMin = Math.min(...allVals), dataMax = Math.max(...allVals);
+    const dataRange = dataMax - dataMin;
+    let zoomedIn = false;
+    if (config) {
+      const normalSpan = config.normalHigh - config.normalLow;
+      // Auto-zoom: if data variation < 25% of normal range, focus on data
+      if (normalSpan > 0 && dataRange < normalSpan * 0.25) {
+        zoomedIn = true;
+        // Padding relative to data only (not normalSpan — avoids unit mismatch blow-up)
+        const pad = Math.max(dataRange * 1.5, 0.5);
+        dataMin -= pad; dataMax += pad;
+      } else {
+        dataMin = Math.min(dataMin, config.normalLow);
+        dataMax = Math.max(dataMax, config.normalHigh);
+      }
+    }
+    const valPad = zoomedIn ? 0 : ((dataMax - dataMin) * 0.18 || 1);
+    const yMin = dataMin - valPad, yMax = dataMax + valPad;
+    const maxDay = Math.max(...points.map(p => p.day), 21);
+
+    function xPos(d) { return PAD.left + ((d - 1) / Math.max(maxDay - 1, 1)) * plotW; }
+    function yPos(v) { return PAD.top + (1 - (v - yMin) / (yMax - yMin)) * plotH; }
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid
+    ctx.strokeStyle = '#1c2128'; ctx.lineWidth = 1;
+    for (let i = 0; i <= 5; i++) {
+      const v = yMin + (yMax - yMin) * (i / 5); const y = yPos(v);
+      ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(W - PAD.right, y); ctx.stroke();
+      ctx.fillStyle = '#484f58'; ctx.font = '10px -apple-system, sans-serif';
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      const lbl = (yMax - yMin) > 50 ? Math.round(v) : (yMax - yMin) > 5 ? Math.round(v * 10) / 10 : Math.round(v * 100) / 100;
+      ctx.fillText(lbl, PAD.left - 6, y);
+    }
+
+    // X-axis
+    ctx.fillStyle = '#484f58'; ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    const xTicks = [1];
+    for (let d = 21; d <= maxDay; d += 21) xTicks.push(d);
+    if (xTicks[xTicks.length - 1] < maxDay - 5) xTicks.push(maxDay);
+    xTicks.filter(d => d <= maxDay).forEach(d => ctx.fillText('D' + d, xPos(d), H - PAD.bottom + 8));
+
+    // Normal range — full lines when visible, edge arrows when off-screen
+    let yHigh, yLow;
+    if (config) {
+      const nHigh = config.normalHigh, nLow = config.normalLow;
+      const highVisible = nHigh >= yMin && nHigh <= yMax;
+      const lowVisible  = nLow >= yMin && nLow <= yMax;
+
+      if (highVisible && lowVisible) {
+        // Both in view — draw full threshold lines + band
+        yHigh = yPos(nHigh); yLow = yPos(nLow);
+        ctx.setLineDash([6, 4]); ctx.strokeStyle = '#484f58'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(PAD.left, yHigh); ctx.lineTo(W - PAD.right, yHigh); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(PAD.left, yLow); ctx.lineTo(W - PAD.right, yLow); ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.fillStyle = '#7ee78706';
+        ctx.fillRect(PAD.left, yHigh, plotW, yLow - yHigh);
+        ctx.fillStyle = '#f8514988'; ctx.font = '9px -apple-system, sans-serif';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+        ctx.fillText(nHigh, W - PAD.right + 4, yHigh - 2);
+        ctx.fillStyle = '#58a6ff88'; ctx.textBaseline = 'top';
+        ctx.fillText(nLow, W - PAD.right + 4, yLow + 2);
+      } else {
+        // Zoomed in — draw edge indicators for off-screen thresholds
+        yHigh = yPos(nHigh); yLow = yPos(nLow);
+        const edgeTop = PAD.top + 2, edgeBot = PAD.top + plotH - 2;
+        ctx.font = '9px -apple-system, sans-serif'; ctx.textAlign = 'left';
+
+        if (!highVisible && nHigh > yMax) {
+          // High threshold above view — arrow at top edge
+          const ay = edgeTop;
+          ctx.fillStyle = '#f8514966';
+          ctx.beginPath(); ctx.moveTo(PAD.left + 6, ay); ctx.lineTo(PAD.left + 12, ay + 7); ctx.lineTo(PAD.left, ay + 7); ctx.fill();
+          ctx.fillStyle = '#f8514988'; ctx.textBaseline = 'top';
+          ctx.fillText('High: ' + nHigh, PAD.left + 16, ay);
+        } else if (highVisible) {
+          yHigh = yPos(nHigh);
+          ctx.setLineDash([6, 4]); ctx.strokeStyle = '#484f58'; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.moveTo(PAD.left, yHigh); ctx.lineTo(W - PAD.right, yHigh); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#f8514988'; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+          ctx.fillText(nHigh, W - PAD.right + 4, yHigh - 2);
+        }
+
+        if (!lowVisible && nLow < yMin) {
+          // Low threshold below view — arrow at bottom edge
+          const ay = edgeBot;
+          ctx.fillStyle = '#58a6ff66';
+          ctx.beginPath(); ctx.moveTo(PAD.left + 6, ay); ctx.lineTo(PAD.left + 12, ay - 7); ctx.lineTo(PAD.left, ay - 7); ctx.fill();
+          ctx.fillStyle = '#58a6ff88'; ctx.textBaseline = 'bottom';
+          ctx.fillText('Low: ' + nLow, PAD.left + 16, ay);
+        } else if (lowVisible) {
+          yLow = yPos(nLow);
+          ctx.setLineDash([6, 4]); ctx.strokeStyle = '#484f58'; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.moveTo(PAD.left, yLow); ctx.lineTo(W - PAD.right, yLow); ctx.stroke();
+          ctx.setLineDash([]);
+          ctx.fillStyle = '#58a6ff88'; ctx.textAlign = 'left'; ctx.textBaseline = 'top';
+          ctx.fillText(nLow, W - PAD.right + 4, yLow + 2);
+        }
+      }
+    }
+
+    // Line segments
+    const pxPts = points.map(p => ({ x: xPos(p.day), y: yPos(p.value) }));
+    for (let i = 0; i < pxPts.length - 1; i++) {
+      const p1 = pxPts[i], p2 = pxPts[i + 1];
+      for (let s = 0; s < 30; s++) {
+        const t1 = s / 30, t2 = (s + 1) / 30;
+        const x1 = p1.x + (p2.x - p1.x) * t1, y1 = p1.y + (p2.y - p1.y) * t1;
+        const x2 = p1.x + (p2.x - p1.x) * t2, y2 = p1.y + (p2.y - p1.y) * t2;
+        const midY = (y1 + y2) / 2;
+        if (config) {
+          ctx.strokeStyle = midY < yHigh ? COLOR_ABOVE : midY > yLow ? COLOR_BELOW : COLOR_OK;
+        } else {
+          ctx.strokeStyle = COLOR_OK;
+        }
+        ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      }
+    }
+
+    // Data points
+    const positions = [];
+    for (let i = 0; i < points.length; i++) {
+      const p = points[i], x = pxPts[i].x, y = pxPts[i].y;
+      let color = COLOR_OK;
+      if (config) {
+        if (p.value > config.normalHigh) color = COLOR_ABOVE;
+        else if (p.value < config.normalLow) color = COLOR_BELOW;
+      }
+      positions.push({ x, y, point: p, radius: 8 });
+    }
+    _lbChartState.positions = positions;
+  }
+
+  function renderLbSidePanel(points, config) {
+    const scroll = document.getElementById('lbSideScroll');
+    if (!scroll) return;
+    let html = '';
+    for (const p of points) {
+      let cls = 'ok', outOfRange = false;
+      if (config) {
+        if (p.value > config.normalHigh) { cls = 'above'; outOfRange = true; }
+        else if (p.value < config.normalLow) { cls = 'below'; outOfRange = true; }
+      }
+      let cs = 'NCS';
+      if (outOfRange && config) {
+        const range = config.normalHigh - config.normalLow;
+        const dev = cls === 'above' ? (p.value - config.normalHigh) / range : (config.normalLow - p.value) / range;
+        cs = dev > 0.12 ? 'CS' : 'NCS';
+      }
+      const csTag = cs === 'CS' ? '<span class="lb-cs-tag lb-cs-yes">CS</span>' : '<span class="lb-cs-tag lb-cs-no">NCS</span>';
+      const displayVal = typeof p.value === 'number' ? (Math.abs(p.value) >= 100 ? Math.round(p.value) : (Math.abs(p.value) >= 1 ? p.value.toFixed(1) : p.value.toFixed(2))) : p.value;
+      html += `<div class="lb-data-row"><span class="day">D${p.day}</span><span class="val ${cls}">${displayVal}</span><span class="cs">${csTag}</span></div>`;
+    }
+    scroll.innerHTML = html || '<div style="padding:10px;color:var(--text-muted);">No data</div>';
+  }
+
+  async function initLbChart() {
+    const patientSel = document.getElementById('lbPatientSelect');
+    const labSel = document.getElementById('lbLabSelect');
+    if (!patientSel || !labSel) return;
+
+    // Populate patient select (sync with filter if set)
+    const selectedPid = currentPatient || PATIENTS[0];
+    patientSel.innerHTML = PATIENTS.map(pid =>
+      `<option value="${pid}"${pid === selectedPid ? ' selected' : ''}>${pid}</option>`
+    ).join('');
+
+    async function loadPatientLabs() {
+      const pid = patientSel.value;
+      let days;
+      try {
+        days = await fetchPatientTimeline(pid);
+      } catch(e) {
+        labSel.innerHTML = '<option>Error</option>';
+        return;
+      }
+
+      const labNames = getLbNames(days);
+      if (labNames.length === 0) {
+        labSel.innerHTML = '<option>No labs</option>';
+        renderLbCanvas([], null);
+        renderLbSidePanel([], null);
+        document.getElementById('lbChartTitle').textContent = pid + ' — No labs';
+        document.getElementById('lbChartSubtitle').textContent = '—';
+        return;
+      }
+
+      const prevLab = labSel.value;
+      labSel.innerHTML = labNames.map(n => `<option value="${n}"${n === prevLab ? ' selected' : ''}>${labDisplayName(n)}</option>`).join('');
+      if (!labNames.includes(prevLab)) labSel.selectedIndex = 0;
+
+      updateLbRender(days);
+    }
+
+    function updateLbRender(days) {
+      const pid = patientSel.value;
+      const labName = labSel.value;
+      const config = getLbConfig(labName, days);
+      const points = extractLbSeries(days, labName);
+      _lbChartState.points = points;
+      _lbChartState.days = days;
+
+      document.getElementById('lbChartTitle').textContent = `${pid} — ${labDisplayName(labName)}`;
+      let zoomNote = '';
+      if (config && points.length > 0) {
+        const vals = points.map(p => p.value);
+        const dr = Math.max(...vals) - Math.min(...vals);
+        const ns = config.normalHigh - config.normalLow;
+        if (ns > 0 && dr < ns * 0.25) zoomNote = '  · auto-zoomed to data range';
+      }
+      document.getElementById('lbChartSubtitle').textContent = config
+        ? `Normal range: ${config.normalLow}–${config.normalHigh} ${config.unit}${zoomNote}`
+        : '—';
+
+      requestAnimationFrame(() => {
+        renderLbCanvas(points, config);
+        renderLbSidePanel(points, config);
+      });
+    }
+
+    patientSel.onchange = () => loadPatientLabs();
+    labSel.onchange = async () => {
+      const pid = patientSel.value;
+      const days = await fetchPatientTimeline(pid);
+      updateLbRender(days);
+    };
+
+    await loadPatientLabs();
+  }
+
+  // Tooltip for LB chart
+  (function() {
+    const canvas = document.getElementById('lbChartCanvas');
+    if (!canvas) return;
+    const tip = document.getElementById('lbTooltip');
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      let hit = null, minD = Infinity;
+      for (const pp of _lbChartState.positions) {
+        const d = Math.sqrt((mx - pp.x) ** 2 + (my - pp.y) ** 2);
+        if (d < pp.radius * 2.5 && d < minD) { minD = d; hit = pp; }
+      }
+      if (hit) {
+        const p = hit.point;
+        const labSel = document.getElementById('lbLabSelect');
+        const labName = labSel ? labSel.value : '';
+        const config = getLbConfig(labName, _lbChartState.days);
+        tip.style.display = 'block';
+        tip.style.left = (e.clientX + 16) + 'px';
+        tip.style.top = (e.clientY - 10) + 'px';
+        document.getElementById('lbTtDate').textContent = 'Day ' + p.day;
+        const ttVal = document.getElementById('lbTtVal');
+        ttVal.textContent = p.value;
+        let color = COLOR_OK;
+        if (config && p.value > config.normalHigh) color = COLOR_ABOVE;
+        else if (config && p.value < config.normalLow) color = COLOR_BELOW;
+        ttVal.style.color = color;
+        document.getElementById('lbTtUnit').textContent = config ? config.unit : '';
+        let outOfRange = config && (p.value > config.normalHigh || p.value < config.normalLow);
+        let cs = 'NCS';
+        if (outOfRange && config) {
+          const range = config.normalHigh - config.normalLow;
+          const dev = p.value > config.normalHigh ? (p.value - config.normalHigh) / range : (config.normalLow - p.value) / range;
+          cs = dev > 0.12 ? 'CS' : 'NCS';
+        }
+        const csH = cs === 'CS'
+          ? '<span style="padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;background:#f8514933;color:#f85149;">CS</span> Clinically Significant'
+          : '<span style="padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;background:#7ee78722;color:#7ee787;">NCS</span>';
+        document.getElementById('lbTtCs').innerHTML = csH;
+        canvas.style.cursor = 'crosshair';
+      } else {
+        tip.style.display = 'none';
+        canvas.style.cursor = 'default';
+      }
+    });
+    canvas.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+
+    window.addEventListener('resize', () => {
+      if (currentDomain === 'LB' && _lbChartState.points.length > 0) {
+        const labSel = document.getElementById('lbLabSelect');
+        const config = labSel ? getLbConfig(labSel.value, _lbChartState.days) : null;
+        renderLbCanvas(_lbChartState.points, config);
+      }
+    });
+  })();
+
+  // ═══ VS Vital Signs Chart ════════════════════════════════════
+  const VS_VITALS = {
+    SBP:  { label: 'SBP (Systolic BP)',  unit: 'mmHg', lo: 90,   hi: 140,  key: 'SBP' },
+    DBP:  { label: 'DBP (Diastolic BP)', unit: 'mmHg', lo: 60,   hi: 90,   key: 'DBP' },
+    HR:   { label: 'HR (Heart Rate)',     unit: 'bpm',  lo: 60,   hi: 100,  key: 'HR' },
+    BT:   { label: 'Temp (Body Temp)',    unit: '°C',   lo: 36.1, hi: 37.2, key: 'BT' },
+    RR:   { label: 'RR (Respiratory)',    unit: '/min', lo: 12,   hi: 20,   key: 'RR' },
+    SpO2: { label: 'SpO2 (O₂ Sat)',      unit: '%',    lo: 95,   hi: 100,  key: 'SpO2' },
+    weight_kg: { label: 'Weight',         unit: 'kg',   lo: null, hi: null, key: 'weight_kg' },
+  };
+  let _vsCache = {};
+  let _vsChartState = { points: [], positions: [] };
+
+  async function initVsChart() {
+    const patSel = document.getElementById('vsPatientSelect');
+    const vitSel = document.getElementById('vsVitalSelect');
+    if (!patSel || !vitSel) return;
+
+    const selectedPid = currentPatient || PATIENTS[0];
+    patSel.innerHTML = PATIENTS.map(pid =>
+      `<option value="${pid}"${pid === selectedPid ? ' selected' : ''}>${pid}</option>`
+    ).join('');
+
+    // Populate vital select
+    vitSel.innerHTML = Object.entries(VS_VITALS).map(([k, v]) =>
+      `<option value="${k}">${v.label}</option>`
+    ).join('');
+
+    async function loadPatientVs() {
+      const pid = patSel.value;
+      const cacheKey = `${pid}_${currentMode}_${currentSource}`;
+      if (!_vsCache[cacheKey]) {
+        try {
+          const resp = await fetch(`/api/crf/${RUN_ID}/vs/?source=${currentSource}&mode=${currentMode}&per_page=0&patient=${pid}`);
+          const data = await resp.json();
+          _vsCache[cacheKey] = data.rows || [];
+        } catch(e) {
+          _vsCache[cacheKey] = [];
+        }
+      }
+      updateVsRender(_vsCache[cacheKey]);
+    }
+
+    function updateVsRender(rows) {
+      const pid = patSel.value;
+      const vitalKey = vitSel.value;
+      const cfg = VS_VITALS[vitalKey];
+      // Build day index from day_date (since _inject_dates replaces day with day_date)
+      const allDates = [...new Set(rows.map(r => r.day_date).filter(Boolean))].sort();
+      const dateToDay = {}; allDates.forEach((d, i) => dateToDay[d] = i + 1);
+      const points = [];
+      for (const row of rows) {
+        const val = row[cfg.key];
+        if (val != null && typeof val === 'number') {
+          const dayDate = row.day_date || '';
+          const dayNum = dateToDay[dayDate] || (points.length + 1);
+          const stale = row._stale === true || row.stale_days > 0;
+          const observed = row.VSPERF === true || !stale;
+          points.push({ day: dayNum, dayDate, value: val, stale, observed });
+        }
+      }
+      _vsChartState.points = points;
+
+      document.getElementById('vsChartTitle').textContent = `${pid} — ${cfg.label}`;
+      document.getElementById('vsChartSubtitle').textContent =
+        (cfg.lo != null && cfg.hi != null) ? `Normal range: ${cfg.lo}–${cfg.hi} ${cfg.unit}` : cfg.unit;
+
+      requestAnimationFrame(() => {
+        renderVsCanvas(points, cfg);
+        renderVsSidePanel(points, cfg);
+      });
+    }
+
+    patSel.onchange = () => { _vsCache = {}; loadPatientVs(); };
+    vitSel.onchange = () => {
+      const pid = patSel.value;
+      const cacheKey = `${pid}_${currentMode}_${currentSource}`;
+      if (_vsCache[cacheKey]) updateVsRender(_vsCache[cacheKey]);
+      else loadPatientVs();
+    };
+
+    await loadPatientVs();
+  }
+
+  function renderVsCanvas(points, cfg) {
+    const canvas = document.getElementById('vsChartCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
+    canvas.style.width = rect.width + 'px'; canvas.style.height = rect.height + 'px';
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.scale(dpr, dpr);
+
+    const W = rect.width, H = rect.height;
+    const PAD = { top: 24, right: 48, bottom: 36, left: 56 };
+    const plotW = W - PAD.left - PAD.right, plotH = H - PAD.top - PAD.bottom;
+
+    if (points.length === 0) {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = '#484f58'; ctx.font = '13px -apple-system, sans-serif';
+      ctx.textAlign = 'center'; ctx.fillText('No data', W / 2, H / 2);
+      _vsChartState.positions = [];
+      return;
+    }
+
+    const allVals = points.map(p => p.value);
+    let dataMin = Math.min(...allVals), dataMax = Math.max(...allVals);
+    if (cfg.lo != null) dataMin = Math.min(dataMin, cfg.lo);
+    if (cfg.hi != null) dataMax = Math.max(dataMax, cfg.hi);
+    const valPad = (dataMax - dataMin) * 0.18 || 1;
+    const yMin = dataMin - valPad, yMax = dataMax + valPad;
+    const maxDay = Math.max(...points.map(p => p.day), 21);
+
+    function xPos(d) { return PAD.left + ((d - 1) / Math.max(maxDay - 1, 1)) * plotW; }
+    function yPos(v) { return PAD.top + (1 - (v - yMin) / (yMax - yMin)) * plotH; }
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid
+    ctx.strokeStyle = '#1c2128'; ctx.lineWidth = 1;
+    for (let i = 0; i <= 5; i++) {
+      const v = yMin + (yMax - yMin) * (i / 5); const y = yPos(v);
+      ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(W - PAD.right, y); ctx.stroke();
+      ctx.fillStyle = '#484f58'; ctx.font = '10px -apple-system, sans-serif';
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      const lbl = (yMax - yMin) > 50 ? Math.round(v) : (yMax - yMin) > 5 ? Math.round(v * 10) / 10 : Math.round(v * 100) / 100;
+      ctx.fillText(lbl, PAD.left - 6, y);
+    }
+
+    // X-axis
+    ctx.fillStyle = '#484f58'; ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    const xTicks = [1];
+    for (let d = 21; d <= maxDay; d += 21) xTicks.push(d);
+    if (xTicks[xTicks.length - 1] < maxDay - 5) xTicks.push(maxDay);
+    xTicks.filter(d => d <= maxDay).forEach(d => ctx.fillText('D' + d, xPos(d), H - PAD.bottom + 8));
+
+    // Normal range band
+    let yHigh, yLow;
+    if (cfg.lo != null && cfg.hi != null) {
+      ctx.setLineDash([6, 4]); ctx.strokeStyle = '#484f58'; ctx.lineWidth = 1.5;
+      yHigh = yPos(cfg.hi);
+      ctx.beginPath(); ctx.moveTo(PAD.left, yHigh); ctx.lineTo(W - PAD.right, yHigh); ctx.stroke();
+      ctx.fillStyle = '#f8514988'; ctx.font = '9px -apple-system, sans-serif';
+      ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+      ctx.fillText(cfg.hi, W - PAD.right + 4, yHigh - 2);
+      yLow = yPos(cfg.lo);
+      ctx.beginPath(); ctx.moveTo(PAD.left, yLow); ctx.lineTo(W - PAD.right, yLow); ctx.stroke();
+      ctx.fillStyle = '#58a6ff88'; ctx.textBaseline = 'top';
+      ctx.fillText(cfg.lo, W - PAD.right + 4, yLow + 2);
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#7ee78706';
+      ctx.fillRect(PAD.left, yHigh, plotW, yLow - yHigh);
+    }
+
+    // Line segments with color coding + dashed for stale gaps
+    const pxPts = points.map(p => ({ x: xPos(p.day), y: yPos(p.value) }));
+    const hasRange = cfg.lo != null && cfg.hi != null;
+    for (let i = 0; i < pxPts.length - 1; i++) {
+      const p1 = pxPts[i], p2 = pxPts[i + 1];
+      const segStale = points[i + 1].stale;
+      ctx.setLineDash(segStale ? [4, 4] : []);
+      ctx.globalAlpha = segStale ? 0.45 : 1;
+      for (let s = 0; s < 30; s++) {
+        const t1 = s / 30, t2 = (s + 1) / 30;
+        const x1 = p1.x + (p2.x - p1.x) * t1, y1 = p1.y + (p2.y - p1.y) * t1;
+        const x2 = p1.x + (p2.x - p1.x) * t2, y2 = p1.y + (p2.y - p1.y) * t2;
+        const midY = (y1 + y2) / 2;
+        if (hasRange) {
+          ctx.strokeStyle = midY < yHigh ? COLOR_ABOVE : midY > yLow ? COLOR_BELOW : COLOR_OK;
+        } else {
+          ctx.strokeStyle = COLOR_OK;
+        }
+        ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      }
+    }
+    ctx.setLineDash([]); ctx.globalAlpha = 1;
+
+    // Dots: filled circle on observation days, hollow ring on stale days
+    const positions = [];
+    for (let i = 0; i < points.length; i++) {
+      const p = points[i], x = pxPts[i].x, y = pxPts[i].y;
+      let dotColor;
+      if (hasRange) {
+        dotColor = y < yHigh ? COLOR_ABOVE : y > yLow ? COLOR_BELOW : COLOR_OK;
+      } else {
+        dotColor = COLOR_OK;
+      }
+      if (p.observed) {
+        // Filled dot for actual measurement
+        ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fillStyle = dotColor; ctx.fill();
+        ctx.strokeStyle = '#0d1117'; ctx.lineWidth = 1.5; ctx.stroke();
+      }
+      positions.push({ x, y, point: p, radius: 12 });
+    }
+    _vsChartState.positions = positions;
+  }
+
+  function renderVsSidePanel(points, cfg) {
+    const scroll = document.getElementById('vsSideScroll');
+    if (!scroll) return;
+    const hasRange = cfg.lo != null && cfg.hi != null;
+    let html = '';
+    for (const p of points) {
+      if (!p.observed) continue;
+      let cls = 'ok';
+      if (hasRange) {
+        if (p.value > cfg.hi) cls = 'above';
+        else if (p.value < cfg.lo) cls = 'below';
+      }
+      const displayVal = typeof p.value === 'number'
+        ? (Math.abs(p.value) >= 100 ? Math.round(p.value) : (Math.abs(p.value) >= 1 ? p.value.toFixed(1) : p.value.toFixed(2)))
+        : p.value;
+      html += `<div class="vs-data-row"><span></span><span class="day">D${p.day}</span><span class="val ${cls}">${displayVal}</span></div>`;
+    }
+    scroll.innerHTML = html || '<div style="padding:10px;color:var(--text-muted);">No data</div>';
+  }
+
+  // Tooltip for VS chart
+  (function() {
+    const canvas = document.getElementById('vsChartCanvas');
+    if (!canvas) return;
+    const tip = document.getElementById('vsTooltip');
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      let hit = null, minD = Infinity;
+      for (const pp of _vsChartState.positions) {
+        const d = Math.sqrt((mx - pp.x) ** 2 + (my - pp.y) ** 2);
+        if (d < pp.radius * 2.5 && d < minD) { minD = d; hit = pp; }
+      }
+      if (hit) {
+        const p = hit.point;
+        const vitSel = document.getElementById('vsVitalSelect');
+        const vitalKey = vitSel ? vitSel.value : 'SBP';
+        const cfg = VS_VITALS[vitalKey];
+        const hasRange = cfg && cfg.lo != null && cfg.hi != null;
+        tip.style.display = 'block';
+        tip.style.left = (e.clientX + 16) + 'px';
+        tip.style.top = (e.clientY - 10) + 'px';
+        document.getElementById('vsTtDate').textContent = 'Day ' + p.day + (p.dayDate ? ' (' + p.dayDate + ')' : '');
+        const ttVal = document.getElementById('vsTtVal');
+        ttVal.textContent = p.value;
+        let color = COLOR_OK;
+        if (hasRange && p.value > cfg.hi) color = COLOR_ABOVE;
+        else if (hasRange && p.value < cfg.lo) color = COLOR_BELOW;
+        ttVal.style.color = color;
+        document.getElementById('vsTtUnit').textContent = cfg ? cfg.unit : '';
+        const outOfRange = hasRange && (p.value > cfg.hi || p.value < cfg.lo);
+        const staleTag = p.stale
+          ? ' <span style="padding:2px 5px;border-radius:3px;font-size:9px;background:#484f5844;color:#8b949e;">stale</span>'
+          : '';
+        const csH = outOfRange
+          ? '<span style="padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;background:#f8514933;color:#f85149;">Abnormal</span>'
+          : '<span style="padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;background:#7ee78722;color:#7ee787;">Normal</span>';
+        document.getElementById('vsTtCs').innerHTML = csH + staleTag;
+        canvas.style.cursor = 'crosshair';
+      } else {
+        tip.style.display = 'none';
+        canvas.style.cursor = 'default';
+      }
+    });
+    canvas.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+
+    window.addEventListener('resize', () => {
+      if (currentDomain === 'VS' && _vsChartState.points.length > 0) {
+        const vitSel = document.getElementById('vsVitalSelect');
+        const cfg = vitSel ? VS_VITALS[vitSel.value] : null;
+        if (cfg) renderVsCanvas(_vsChartState.points, cfg);
+      }
+    });
+  })();
+
+  // ═══ TU+RS Integrated View ═══════════════════════════════════
+  const LESION_COLORS = ['#ff7b72','#58a6ff','#7ee787','#d2a8ff','#ffa657','#39d2c0','#f778ba','#e3b341'];
+  const RESP_COLORS = { CR:'#7ee787', PR:'#58a6ff', SD:'#e3b341', PD:'#f85149', NE:'#484f58', 'NON-CR/NON-PD':'#d2a8ff' };
+  let _tursData = null;       // { tuRows, rsRows, tuCols, rsCols }
+  let _tursPatient = null;
+  let _tursSideTab = 'lesions';
+  let _tursDetailTab = 'tu';
+  let _tursSpiderPts = [];
+  let _tursRespPts = [];
+  let _tursParsed = null;     // parsed per-patient data
+
+  window.tursSwitchSideTab = function(tab) {
+    _tursSideTab = tab;
+    document.querySelectorAll('.turs-side-tab').forEach(t => t.classList.toggle('active', t.dataset.stab === tab));
+    tursRenderSide();
+  };
+  window.tursSwitchDetailTab = function(tab) {
+    _tursDetailTab = tab;
+    document.querySelectorAll('.turs-dtab').forEach(t => t.classList.toggle('active', t.dataset.dtab === tab));
+    tursRenderDetail();
+  };
+
+  async function initTursView() {
+    // Populate patient select
+    const sel = document.getElementById('tursPatientSelect');
+    const chosen = currentPatient || PATIENTS[0];
+    sel.innerHTML = PATIENTS.map(p => `<option value="${p}"${p === chosen ? ' selected' : ''}>${p}</option>`).join('');
+    sel.onchange = () => { _tursPatient = sel.value; loadTursData(); };
+    _tursPatient = chosen;
+    await loadTursData();
+  }
+
+  async function loadTursData() {
+    // Fetch both TU and RS for this patient (all pages)
+    const pid = _tursPatient;
+    const [tuRes, rsRes] = await Promise.all([
+      fetch(`/api/crf/${RUN_ID}/tu/?source=${currentSource}&mode=${currentMode}&per_page=0&patient=${pid}`).then(r => r.json()),
+      fetch(`/api/crf/${RUN_ID}/rs/?source=${currentSource}&mode=${currentMode}&per_page=0&patient=${pid}`).then(r => r.json()),
+    ]);
+    _tursData = { tuRows: tuRes.rows || [], rsRows: rsRes.rows || [], tuCols: tuRes.columns || [], rsCols: rsRes.columns || [] };
+    _tursParsed = parseTursData(_tursData);
+    tursDrawSpider();
+    tursDrawResp();
+    tursRenderSide();
+    tursRenderDetail();
+  }
+
+  function parseTursData(data) {
+    // _inject_dates replaces "day" with "day_date" (ISO string) — extract index for ordering
+    const allDates = [...new Set(data.tuRows.map(r => r.day_date).filter(Boolean))].sort();
+    const dateToIdx = {}; allDates.forEach((d, i) => dateToIdx[d] = i);
+
+    // Build lesion list and measurement timeline from TU rows
+    const lesionMap = {};
+    let lesionIdx = 0;
+    for (const row of data.tuRows) {
+      const lid = row.TULNKID || row.TULOC || `L${lesionIdx}`;
+      if (!lesionMap[lid]) {
+        lesionMap[lid] = {
+          id: lid, location: row.TULOC || '', laterality: row.TULAT || '',
+          method: row.TUMETHOD || '', direction: row.TUDIR || '', detail: row.TULOCDTL || '',
+          evaluator: row.TUEVAL || '', evaluatorId: row.TUEVALID || '',
+          type: row.TRORRES != null ? 'TARGET' : 'NON-TARGET',
+          color: LESION_COLORS[lesionIdx % LESION_COLORS.length],
+          baseline: null, measurements: [],
+        };
+        lesionIdx++;
+      }
+      const les = lesionMap[lid];
+      const size = row.TRORRES != null ? parseFloat(row.TRORRES) : null;
+      const date = row.day_date || row.TUDAT_date || '';
+      const idx = dateToIdx[date] ?? 0;
+      const notDone = String(row.TRSTAT || '').toUpperCase() === 'NOT DONE';
+      const meas = { day: idx, date, size: notDone ? null : size, notDone, reason: row.TRREASND || '' };
+      if (les.measurements.length === 0 && size != null) les.baseline = size;
+      if (size != null && les.type !== 'TARGET') les.type = 'TARGET';
+      meas.pctChange = (les.baseline && size != null && les.measurements.length > 0) ? Math.round((size - les.baseline) / les.baseline * 1000) / 10 : 0;
+      les.measurements.push(meas);
+    }
+    const lesions = Object.values(lesionMap);
+
+    // Build response timeline from RS rows
+    const responses = [];
+    for (const row of data.rsRows) {
+      const date = row.day_date || '';
+      const idx = dateToIdx[date] ?? 0;
+      responses.push({
+        day: idx, date, cycle: row._cycle || '',
+        targetResp: row.TRGRESP_RSORRES || 'NE',
+        nonTargetResp: row.NTRGRESP_RSORRES || 'NE',
+        overallResp: row.OVRLRESP_RSORRES || row.RSRESULT || 'NE',
+        bestResp: row.BESTRESP_RSORRES || '',
+        category: row.RSCAT || 'RECIST 1.1',
+      });
+    }
+
+    // Compute sum of target per assessment day (by index)
+    const targetLesions = lesions.filter(l => l.type === 'TARGET');
+    const assessDays = [...new Set(targetLesions.flatMap(l => l.measurements.map(m => m.day)))].sort((a, b) => a - b);
+    const baselineSum = targetLesions.reduce((s, l) => s + (l.baseline || 0), 0);
+    const sumByDay = {};
+    for (const day of assessDays) {
+      let sum = 0, valid = true;
+      for (const l of targetLesions) {
+        const m = l.measurements.find(m => m.day === day);
+        if (!m || m.notDone || m.size == null) { valid = false; break; }
+        sum += m.size;
+      }
+      if (valid) {
+        const pct = baselineSum > 0 ? Math.round((sum - baselineSum) / baselineSum * 1000) / 10 : 0;
+        sumByDay[day] = { sum: Math.round(sum * 10) / 10, pctChange: pct };
+      }
+    }
+
+    return { lesions, responses, assessDays, sumByDay, baselineSum, targetLesions, allDates };
+  }
+
+  function tursSetupCanvas(id) {
+    const c = document.getElementById(id);
+    const rect = c.parentElement.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    c.width = rect.width * dpr; c.height = rect.height * dpr;
+    c.style.width = rect.width + 'px'; c.style.height = rect.height + 'px';
+    const ctx = c.getContext('2d');
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.scale(dpr, dpr);
+    return { ctx, W: rect.width, H: rect.height };
+  }
+
+  function tursDrawSpider() {
+    const { ctx, W, H } = tursSetupCanvas('tursSpiderCanvas');
+    const d = _tursParsed;
+    if (!d || d.assessDays.length === 0) {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = '#484f58'; ctx.font = '13px -apple-system, sans-serif';
+      ctx.textAlign = 'center'; ctx.fillText('No tumor assessment data', W / 2, H / 2);
+      return;
+    }
+    const PAD = { top: 20, right: 30, bottom: 30, left: 55 };
+    const plotW = W - PAD.left - PAD.right, plotH = H - PAD.top - PAD.bottom;
+    const maxDay = Math.max(...d.assessDays);
+    const minDay = Math.min(...d.assessDays);
+    const daySpan = maxDay - minDay || 1;
+
+    // Y range
+    const allPcts = [];
+    for (const l of d.targetLesions) for (const m of l.measurements) if (!m.notDone && m.pctChange != null) allPcts.push(m.pctChange);
+    for (const day of d.assessDays) if (d.sumByDay[day]) allPcts.push(d.sumByDay[day].pctChange);
+    const pMin = Math.min(-35, ...allPcts) - 5;
+    const pMax = Math.max(25, ...allPcts) + 5;
+
+    const xPos = day => PAD.left + ((day - minDay) / daySpan) * plotW;
+    const yPos = pct => PAD.top + (1 - (pct - pMin) / (pMax - pMin)) * plotH;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid
+    ctx.strokeStyle = '#1c2128'; ctx.lineWidth = 1;
+    for (let v = Math.ceil(pMin / 10) * 10; v <= pMax; v += 10) {
+      const y = yPos(v);
+      ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(W - PAD.right, y); ctx.stroke();
+      ctx.fillStyle = '#484f58'; ctx.font = '9px -apple-system,sans-serif';
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      ctx.fillText(v + '%', PAD.left - 6, y);
+    }
+    // X labels
+    ctx.fillStyle = '#484f58'; ctx.font = '9px -apple-system,sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    d.assessDays.forEach((day, i) => {
+      const dateStr = d.allDates[day] || '';
+      const label = i === 0 ? 'BL' : (dateStr ? dateStr.slice(5) : 'V' + (i + 1));
+      ctx.fillText(label, xPos(day), H - PAD.bottom + 8);
+    });
+    // Zero + thresholds
+    ctx.strokeStyle = '#8b949e44'; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(PAD.left, yPos(0)); ctx.lineTo(W - PAD.right, yPos(0)); ctx.stroke();
+    // -30% PR threshold (red, 40% opacity dashed)
+    ctx.setLineDash([6, 4]);
+    ctx.strokeStyle = '#f8514966'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(PAD.left, yPos(-30)); ctx.lineTo(W - PAD.right, yPos(-30)); ctx.stroke();
+    // +20% PD threshold (blue, 40% opacity dashed)
+    ctx.strokeStyle = '#58a6ff66';
+    ctx.beginPath(); ctx.moveTo(PAD.left, yPos(20)); ctx.lineTo(W - PAD.right, yPos(20)); ctx.stroke();
+    ctx.setLineDash([]);
+    // Threshold labels
+    ctx.font = '10px -apple-system,sans-serif';
+    ctx.fillStyle = '#f8514966'; ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+    ctx.fillText('−30% PR', W - PAD.right + 4, yPos(-30) - 2);
+    ctx.fillStyle = '#58a6ff66'; ctx.textBaseline = 'top';
+    ctx.fillText('+20% PD', W - PAD.right + 4, yPos(20) + 2);
+
+    _tursSpiderPts = [];
+    // Individual lesion lines
+    for (const les of d.targetLesions) {
+      ctx.strokeStyle = les.color + '88'; ctx.lineWidth = 1.5; ctx.beginPath();
+      let started = false;
+      for (const m of les.measurements) {
+        if (m.notDone || m.size == null) continue;
+        const x = xPos(m.day), y = yPos(m.pctChange);
+        if (!started) { ctx.moveTo(x, y); started = true; } else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+      for (const m of les.measurements) {
+        const x = xPos(m.day);
+        if (m.notDone) {
+          const y = yPos(0);
+          ctx.strokeStyle = '#f0883e88'; ctx.lineWidth = 1.5;
+          ctx.beginPath(); ctx.moveTo(x - 4, y - 4); ctx.lineTo(x + 4, y + 4); ctx.stroke();
+          ctx.beginPath(); ctx.moveTo(x + 4, y - 4); ctx.lineTo(x - 4, y + 4); ctx.stroke();
+          _tursSpiderPts.push({ x, y, lesion: les, meas: m, type: 'lesion' });
+        } else if (m.size != null) {
+          const y = yPos(m.pctChange);
+          ctx.beginPath(); ctx.arc(x, y, 3, 0, Math.PI * 2);
+          ctx.fillStyle = les.color; ctx.fill();
+          _tursSpiderPts.push({ x, y, lesion: les, meas: m, type: 'lesion' });
+        }
+      }
+      const lastM = les.measurements.filter(m => !m.notDone && m.size != null).pop();
+      if (lastM) {
+        ctx.fillStyle = les.color; ctx.font = '9px -apple-system,sans-serif';
+        ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+        ctx.fillText(les.id, xPos(lastM.day) + 8, yPos(lastM.pctChange));
+      }
+    }
+    // Sum line
+    ctx.strokeStyle = '#e6edf3'; ctx.lineWidth = 2.5; ctx.beginPath();
+    const sumPts = [];
+    let sumStarted = false;
+    for (const day of d.assessDays) {
+      if (!d.sumByDay[day]) continue;
+      const x = xPos(day), y = yPos(d.sumByDay[day].pctChange);
+      if (!sumStarted) { ctx.moveTo(x, y); sumStarted = true; } else ctx.lineTo(x, y);
+      sumPts.push({ x, y, day, ...d.sumByDay[day] });
+    }
+    ctx.stroke();
+    for (const sp of sumPts) {
+      ctx.beginPath(); ctx.arc(sp.x, sp.y, 4.5, 0, Math.PI * 2);
+      ctx.fillStyle = '#e6edf3'; ctx.fill();
+      ctx.strokeStyle = '#0d1117'; ctx.lineWidth = 1.5; ctx.stroke();
+      _tursSpiderPts.push({ x: sp.x, y: sp.y, sum: sp, type: 'sum' });
+    }
+    if (sumPts.length) {
+      const last = sumPts[sumPts.length - 1];
+      ctx.fillStyle = '#e6edf3'; ctx.font = 'bold 10px -apple-system,sans-serif';
+      ctx.textAlign = 'left'; ctx.textBaseline = 'middle';
+      ctx.fillText('SUM', last.x + 8, last.y);
+    }
+  }
+
+  function tursDrawResp() {
+    const { ctx, W, H } = tursSetupCanvas('tursRespCanvas');
+    const d = _tursParsed;
+    if (!d || d.assessDays.length === 0) { ctx.clearRect(0, 0, W, H); return; }
+    if (d.responses.length === 0) { ctx.clearRect(0, 0, W, H); return; }
+    const PAD = { top: 10, right: 30, bottom: 20, left: 55 };
+    const plotW = W - PAD.left - PAD.right;
+    const maxDay = Math.max(...d.assessDays), minDay = Math.min(...d.assessDays);
+    const daySpan = maxDay - minDay || 1;
+    const xPos = day => PAD.left + ((day - minDay) / daySpan) * plotW;
+    const midY = (H - PAD.bottom + PAD.top) / 2;
+
+    ctx.clearRect(0, 0, W, H);
+    ctx.strokeStyle = '#30363d'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(PAD.left, midY); ctx.lineTo(W - PAD.right, midY); ctx.stroke();
+
+    _tursRespPts = [];
+    for (const r of d.responses) {
+      const x = xPos(r.day);
+      const resp = r.overallResp;
+      const color = RESP_COLORS[resp] || RESP_COLORS['NE'];
+      const isBaseline = r.day === d.assessDays[0];
+
+      ctx.strokeStyle = '#484f58'; ctx.lineWidth = 1;
+      ctx.beginPath(); ctx.moveTo(x, midY - 4); ctx.lineTo(x, midY + 4); ctx.stroke();
+
+      if (!isBaseline) {
+        const bW = 28, bH = 18;
+        ctx.fillStyle = color + '33'; ctx.strokeStyle = color; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.roundRect(x - bW / 2, midY - bH - 8, bW, bH, 4);
+        ctx.fill(); ctx.stroke();
+        ctx.fillStyle = color; ctx.font = 'bold 10px -apple-system,sans-serif';
+        ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+        ctx.fillText(resp.replace('NON-CR/NON-PD', 'NON'), x, midY - bH / 2 - 8);
+        ctx.strokeStyle = color + '66'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.moveTo(x, midY - 8); ctx.lineTo(x, midY - 4); ctx.stroke();
+        _tursRespPts.push({ x, y: midY - bH / 2 - 8, resp: r });
+      }
+      ctx.fillStyle = '#484f58'; ctx.font = '9px -apple-system,sans-serif';
+      ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+      ctx.fillText(isBaseline ? 'BL' : (r.date ? r.date.slice(5) : ''), x, midY + 8);
+    }
+    // Baseline dot
+    if (d.assessDays.length) {
+      const blX = xPos(d.assessDays[0]);
+      ctx.beginPath(); ctx.arc(blX, midY, 3, 0, Math.PI * 2);
+      ctx.fillStyle = '#8b949e'; ctx.fill();
+    }
+  }
+
+  function tursRespBadge(resp) {
+    let cls = 'turs-b-NE';
+    if (resp === 'CR') cls = 'turs-b-CR';
+    else if (resp === 'PR') cls = 'turs-b-PR';
+    else if (resp === 'SD') cls = 'turs-b-SD';
+    else if (resp === 'PD') cls = 'turs-b-PD';
+    else if (resp && resp.includes('NON')) cls = 'turs-b-NON';
+    return `<span class="turs-resp-badge ${cls}">${resp}</span>`;
+  }
+
+  function tursRenderSide() {
+    const scroll = document.getElementById('tursSideScroll');
+    if (!_tursParsed) { scroll.innerHTML = ''; return; }
+    const d = _tursParsed;
+
+    if (_tursSideTab === 'lesions') {
+      let html = '';
+      for (const les of d.lesions) {
+        const isT = les.type === 'TARGET';
+        let measHtml = '';
+        if (isT) {
+          for (const m of les.measurements) {
+            const label = m.day === d.assessDays[0] ? 'BL' : (m.date ? m.date.slice(5) : 'V' + (d.assessDays.indexOf(m.day) + 1));
+            if (m.notDone) {
+              measHtml += `<span class="turs-mchip nd">${label}: N/D</span>`;
+            } else if (m.size != null) {
+              const cls = m.day === d.assessDays[0] ? 'bl' : m.pctChange < 0 ? 'dec' : m.pctChange > 0 ? 'inc' : 'bl';
+              const pctStr = m.day === d.assessDays[0] ? '' : ` (${m.pctChange > 0 ? '+' : ''}${m.pctChange}%)`;
+              measHtml += `<span class="turs-mchip ${cls}">${label}: ${m.size}mm${pctStr}</span>`;
+            }
+          }
+        }
+        html += `<div class="turs-lesion-card">
+          <div class="turs-lc-header">
+            <span class="turs-lc-id" style="color:${les.color}">${les.id}: ${les.location}</span>
+            <span class="turs-type-tag ${isT ? 'turs-tag-target' : 'turs-tag-nt'}">${isT ? 'Target' : 'Non-target'}</span>
+          </div>
+          <div class="turs-lc-detail">${les.laterality ? les.laterality + ' · ' : ''}${les.method}</div>
+          ${isT ? `<div class="turs-lc-detail">Baseline: ${les.baseline} mm</div>` : ''}
+          ${measHtml ? `<div class="turs-meas">${measHtml}</div>` : ''}
+        </div>`;
+      }
+      scroll.innerHTML = html || '<div style="padding:12px;color:var(--text-muted);">No lesion data</div>';
+    } else {
+      let html = '';
+      for (const r of d.responses) {
+        const isBaseline = r.day === d.assessDays[0];
+        html += `<div class="turs-resp-card">
+          <div class="turs-rc-header">
+            <span class="turs-rc-visit">${r.cycle} · Day ${r.day}</span>
+            <span class="turs-rc-date">${r.date}</span>
+          </div>
+          ${isBaseline ? '<div style="font-size:0.68em;color:var(--text-muted);margin-top:3px;">Baseline</div>' : `
+          <div class="turs-rc-row"><span class="turs-rc-label">Target</span>${tursRespBadge(r.targetResp)}</div>
+          <div class="turs-rc-row"><span class="turs-rc-label">Non-target</span>${tursRespBadge(r.nonTargetResp)}</div>
+          <div class="turs-rc-row"><span class="turs-rc-label" style="font-weight:600;color:var(--text-primary)">Overall</span>${tursRespBadge(r.overallResp)}</div>
+          `}
+        </div>`;
+      }
+      scroll.innerHTML = html || '<div style="padding:12px;color:var(--text-muted);">No response data</div>';
+    }
+  }
+
+  function tursRenderDetail() {
+    const wrap = document.getElementById('tursDetailWrap');
+    if (!_tursData) { wrap.innerHTML = ''; return; }
+
+    if (_tursDetailTab === 'tu') {
+      const cols = _tursData.tuCols;
+      const rows = _tursData.tuRows;
+      let html = '<table class="turs-dtable"><thead><tr>';
+      for (const c of cols) html += `<th>${c.label}</th>`;
+      html += '</tr></thead><tbody>';
+      for (const row of rows) {
+        const nd = String(row.TRSTAT || '').toUpperCase() === 'NOT DONE';
+        html += `<tr${nd ? ' style="background:rgba(248,81,73,0.03)"' : ''}>`;
+        for (const c of cols) {
+          let v = row[c.key];
+          if (v == null) v = '<span class="turs-col-dim">—</span>';
+          else if (c.key === 'TULNKID' || c.key === 'TULOC') v = `<span class="turs-col-hl">${v}</span>`;
+          else if (c.key === 'TRSTAT' && nd) v = '<span class="turs-nd-tag">NOT DONE</span>';
+          else if (c.key === 'TRREASND' && v) v = `<span style="color:#f0883e">${v}</span>`;
+          html += `<td>${v}</td>`;
+        }
+        html += '</tr>';
+      }
+      html += '</tbody></table>';
+      wrap.innerHTML = html;
+    } else {
+      const cols = _tursData.rsCols;
+      const rows = _tursData.rsRows;
+      let html = '<table class="turs-dtable"><thead><tr>';
+      for (const c of cols) html += `<th>${c.label}</th>`;
+      html += '</tr></thead><tbody>';
+      for (const row of rows) {
+        html += '<tr>';
+        for (const c of cols) {
+          let v = row[c.key];
+          if (v == null) v = '<span class="turs-col-dim">—</span>';
+          else if (c.key.includes('RSORRES') || c.key === 'RSRESULT') {
+            const color = RESP_COLORS[v] || '#484f58';
+            v = `<span class="turs-resp-inline" style="background:${color}22;color:${color};">${v}</span>`;
+          }
+          html += `<td>${v}</td>`;
+        }
+        html += '</tr>';
+      }
+      html += '</tbody></table>';
+      wrap.innerHTML = html;
+    }
+  }
+
+  // Spider tooltip
+  (function() {
+    const spiderC = document.getElementById('tursSpiderCanvas');
+    const respC = document.getElementById('tursRespCanvas');
+    const tip = document.getElementById('tursTooltip');
+    if (!spiderC || !respC) return;
+
+    spiderC.addEventListener('mousemove', e => {
+      const rect = spiderC.getBoundingClientRect();
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      let hit = null, minD = Infinity;
+      for (const pp of _tursSpiderPts) {
+        const dist = Math.sqrt((mx - pp.x) ** 2 + (my - pp.y) ** 2);
+        if (dist < 15 && dist < minD) { minD = dist; hit = pp; }
+      }
+      if (hit) {
+        tip.style.display = 'block'; tip.style.left = (e.clientX + 16) + 'px'; tip.style.top = (e.clientY - 10) + 'px';
+        if (hit.type === 'sum') {
+          const s = hit.sum;
+          tip.innerHTML = `<div style="color:var(--text-muted);font-size:0.78em;">Day ${s.day} · Sum of Targets</div>
+            <div style="font-size:1.1em;font-weight:600;margin:3px 0;">${s.sum} mm</div>
+            <div style="font-size:0.85em;color:${s.pctChange <= -30 ? '#58a6ff' : s.pctChange >= 20 ? '#f85149' : '#e3b341'};">${s.pctChange > 0 ? '+' : ''}${s.pctChange}%</div>`;
+        } else {
+          const m = hit.meas, l = hit.lesion;
+          if (m.notDone) {
+            tip.innerHTML = `<div style="color:${l.color};font-weight:600;">${l.id}: ${l.location}</div><div style="color:#f0883e;font-weight:600;margin-top:3px;">NOT DONE</div><div style="font-size:0.78em;color:var(--text-muted);">${m.reason}</div>`;
+          } else {
+            tip.innerHTML = `<div style="color:${l.color};font-weight:600;">${l.id}: ${l.location}</div>
+              <div style="font-size:0.78em;color:var(--text-muted);">Day ${m.day}</div>
+              <div style="font-size:1.1em;font-weight:600;margin:3px 0;">${m.size} mm</div>
+              ${m.pctChange ? `<div style="font-size:0.85em;color:${m.pctChange <= -30 ? '#58a6ff' : m.pctChange >= 20 ? '#f85149' : '#e3b341'};">${m.pctChange > 0 ? '+' : ''}${m.pctChange}%</div>` : ''}`;
+          }
+        }
+        spiderC.style.cursor = 'crosshair';
+      } else { tip.style.display = 'none'; spiderC.style.cursor = 'default'; }
+    });
+
+    respC.addEventListener('mousemove', e => {
+      const rect = respC.getBoundingClientRect();
+      const mx = e.clientX - rect.left;
+      let hit = null, minD = Infinity;
+      for (const pp of _tursRespPts) {
+        const dist = Math.abs(mx - pp.x);
+        if (dist < 20 && dist < minD) { minD = dist; hit = pp; }
+      }
+      if (hit) {
+        const r = hit.resp;
+        tip.style.display = 'block'; tip.style.left = (e.clientX + 16) + 'px'; tip.style.top = (e.clientY - 10) + 'px';
+        tip.innerHTML = `<div style="color:var(--text-muted);font-size:0.78em;">${r.cycle} · Day ${r.day}</div>
+          <div style="margin:4px 0;">
+            <div style="display:flex;justify-content:space-between;gap:10px;font-size:0.82em;margin:2px 0;"><span style="color:var(--text-muted)">Target</span>${tursRespBadge(r.targetResp)}</div>
+            <div style="display:flex;justify-content:space-between;gap:10px;font-size:0.82em;margin:2px 0;"><span style="color:var(--text-muted)">Non-target</span>${tursRespBadge(r.nonTargetResp)}</div>
+            <div style="display:flex;justify-content:space-between;gap:10px;font-size:0.82em;margin:2px 0;border-top:1px solid var(--border);padding-top:2px;"><span style="font-weight:600;">Overall</span>${tursRespBadge(r.overallResp)}</div>
+          </div>`;
+        respC.style.cursor = 'pointer';
+      } else { tip.style.display = 'none'; respC.style.cursor = 'default'; }
+    });
+
+    [spiderC, respC].forEach(c => c.addEventListener('mouseleave', () => { tip.style.display = 'none'; }));
+  })();
 
   // Initial load
   loadDomainData();

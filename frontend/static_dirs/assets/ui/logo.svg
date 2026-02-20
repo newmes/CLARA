@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="i1" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#0F766E"/>
+      <stop offset="50%" stop-color="#14B8A6"/>
+      <stop offset="100%" stop-color="#0F766E"/>
+    </linearGradient>
+    <linearGradient id="i2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2DD4BF"/>
+      <stop offset="100%" stop-color="#0D9488"/>
+    </linearGradient>
+    <linearGradient id="i3" x1="0%" y1="50%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#5EEAD4" stop-opacity="0"/>
+      <stop offset="30%" stop-color="#5EEAD4"/>
+      <stop offset="70%" stop-color="#67E8F9"/>
+      <stop offset="100%" stop-color="#67E8F9" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="gi">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <clipPath id="eyeClip">
+      <path d="M32 256 Q256 80 480 256 Q256 432 32 256Z"/>
+    </clipPath>
+  </defs>
+
+  <!-- Eye outer shape -->
+  <path d="M32 256 Q256 80 480 256 Q256 432 32 256Z" 
+    fill="url(#i1)" opacity="0.1"/>
+  <path d="M32 256 Q256 80 480 256 Q256 432 32 256Z" 
+    fill="none" stroke="url(#i1)" stroke-width="4" stroke-linejoin="round"/>
+
+  <!-- Inner eye shape - second layer -->
+  <path d="M100 256 Q256 148 412 256 Q256 364 100 256Z" 
+    fill="none" stroke="#14B8A6" stroke-width="1.5" opacity="0.25" stroke-linejoin="round"/>
+
+  <!-- Iris circle -->
+  <circle cx="256" cy="256" r="72" fill="#081210"/>
+  <circle cx="256" cy="256" r="72" fill="url(#i2)" opacity="0.12"/>
+  <circle cx="256" cy="256" r="72" fill="none" stroke="url(#i2)" stroke-width="3"/>
+
+  <!-- Pupil -->
+  <circle cx="256" cy="256" r="32" fill="#0D3D38"/>
+  <circle cx="256" cy="256" r="32" fill="none" stroke="#14B8A6" stroke-width="1.5" opacity="0.5"/>
+
+  <!-- Pulse line through the eye - the core identity -->
+  <g clip-path="url(#eyeClip)">
+    <path d="M32 256 L180 256 L220 256 L240 212 L258 312 L276 192 L294 298 L310 244 L324 256 L480 256"
+      fill="none" stroke="url(#i3)" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" filter="url(#gi)"/>
+  </g>
+
+  <!-- Subtle highlight on iris -->
+  <circle cx="238" cy="238" r="10" fill="#2DD4BF" opacity="0.12"/>
+
+  <!-- Three phase dots along bottom curve -->
+  <circle cx="190" cy="356" r="3.5" fill="#2DD4BF" opacity="0.5"/>
+  <circle cx="256" cy="380" r="3.5" fill="#14B8A6" opacity="0.65"/>
+  <circle cx="322" cy="356" r="3.5" fill="#0D9488" opacity="0.5"/>
+</svg>

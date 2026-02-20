@@ -1,112 +1,237 @@
 {% extends "base/base.html" %}
 {% load static %}
 
-{% block title %}VITAL — Simulation Runs{% endblock %}
+{% block title %}VITAL — Virtual Intelligent Trial Adverse-event Lifecycle{% endblock %}
 
 {% block extra_head %}
 <style>
-  .landing-container {
-    margin-top: 3em; max-width: 740px; margin-left: auto; margin-right: auto;
-    padding: 0 20px;
+  /* ═══════════════════════════════════════════════════════════════
+     Landing Page — Redesign
+     ═══════════════════════════════════════════════════════════════ */
+
+  /* ── Animated Background Grid ── */
+  .landing-bg {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    z-index: -1; pointer-events: none; overflow: hidden;
   }
-  .landing-title {
-    font-size: 1.7em; font-weight: 800;
-    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text; margin-bottom: 0.3em;
+  .landing-bg::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(57,210,192,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(57,210,192,0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 70% 50% at 50% 30%, black 30%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 70% 50% at 50% 30%, black 30%, transparent 80%);
   }
-  .landing-sub {
-    color: var(--text-secondary); font-size: 0.95em; margin-bottom: 2em; line-height: 1.7;
+  .landing-bg .orb {
+    position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.07;
+    animation: orbFloat 20s ease-in-out infinite alternate;
   }
-  .landing-hr {
-    border: none; border-top: 1px solid var(--border); margin: 1.5em 0;
-    background: linear-gradient(90deg, var(--accent-cyan), transparent);
-    height: 1px; opacity: 0.3;
+  .landing-bg .orb-1 {
+    width: 500px; height: 500px; top: -10%; left: 15%;
+    background: var(--accent-cyan);
+  }
+  .landing-bg .orb-2 {
+    width: 400px; height: 400px; bottom: 10%; right: 10%;
+    background: #2ec4b6;
+    animation-delay: -10s; animation-direction: alternate-reverse;
+  }
+  @keyframes orbFloat {
+    from { transform: translate(0, 0) scale(1); }
+    to { transform: translate(30px, -20px) scale(1.1); }
   }
 
-  /* Section Label with gradient left bar */
+  /* ── Layout ── */
+  .landing-wrap {
+    max-width: 960px; margin: 0 auto; padding: 0 24px 4em;
+  }
+
+  /* ── Hero ── */
+  .hero {
+    padding: 3em 0 2em; text-align: center;
+  }
+  .hero-title {
+    font-size: 3.2em; font-weight: 800; letter-spacing: 2px;
+    background: linear-gradient(135deg, #2ec4b6 0%, var(--accent-cyan) 40%, #58d5c8 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    filter: drop-shadow(0 0 24px rgba(57,210,192,0.3));
+    margin-bottom: 0.1em;
+  }
+  .hero-acronym {
+    font-size: 0.82em; font-weight: 500; letter-spacing: 2px;
+    color: var(--text-secondary);
+    margin-bottom: 0.8em;
+  }
+  .hero-desc {
+    color: var(--text-muted); font-size: 0.95em;
+    max-width: 540px; margin: 0 auto 2em; line-height: 1.7;
+  }
+
+  /* ── Stats Row ── */
+  .stats-row {
+    display: flex; justify-content: center; gap: 32px;
+    margin-bottom: 2.5em;
+  }
+  .stat-item {
+    text-align: center;
+  }
+  .stat-num {
+    font: 700 1.8em 'JetBrains Mono', monospace;
+    color: var(--accent-cyan);
+    line-height: 1.2;
+  }
+  .stat-label {
+    font-size: 0.7em; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1.5px; color: var(--text-muted); margin-top: 2px;
+  }
+
+  /* ── Actions Row ── */
+  .actions-row {
+    display: flex; justify-content: center; gap: 12px; margin-bottom: 2.5em;
+  }
+  .btn-hero {
+    display: inline-flex; align-items: center; gap: 10px;
+    padding: 13px 28px; border-radius: var(--radius-xl); font-weight: 700;
+    font-size: 0.92em; font-family: 'JetBrains Mono', monospace;
+    cursor: pointer; transition: all 0.25s ease; border: 1px solid;
+    text-decoration: none;
+  }
+  .btn-hero:hover { text-decoration: none; }
+  .btn-hero svg { transition: transform 0.25s; }
+  .btn-hero-primary {
+    background: rgba(57,210,192,0.12);
+    border-color: var(--accent-cyan); color: var(--accent-cyan);
+    box-shadow: 0 0 20px rgba(57,210,192,0.12);
+  }
+  .btn-hero-primary:hover {
+    background: rgba(57,210,192,0.22);
+    box-shadow: 0 4px 32px rgba(57,210,192,0.25);
+    transform: translateY(-2px); color: var(--accent-cyan);
+  }
+  .btn-hero-primary:hover svg { transform: rotate(90deg); }
+
+  /* ── Divider ── */
+  .landing-divider {
+    border: none; height: 1px; margin: 0 0 2em;
+    background: linear-gradient(90deg, transparent, rgba(57,210,192,0.3), transparent);
+  }
+
+  /* ── Section Label ── */
   .section-label {
     color: var(--text-muted); font-size: 0.7em; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1em;
+    text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1.2em;
     display: flex; align-items: center; gap: 12px;
   }
   .section-label::before {
     content: ''; width: 3px; height: 14px; border-radius: 2px;
-    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+    background: linear-gradient(135deg, var(--accent-cyan), #2ec4b6);
     flex-shrink: 0;
   }
   .section-label::after {
     content: ''; flex: 1; height: 1px; background: var(--border);
   }
 
-  /* Run Cards — base */
+  /* ── Run Cards Grid ── */
+  .runs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: 14px;
+  }
+
+  /* ── Run Card ── */
   .run-card {
-    display: block; background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: var(--radius-lg); padding: 14px 18px; margin-bottom: 8px;
-    cursor: pointer; transition: all 0.2s ease; text-decoration: none; color: var(--text-primary);
+    background: var(--bg-glass);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 18px 20px;
+    cursor: pointer; transition: all 0.25s ease;
+    text-decoration: none; color: var(--text-primary);
     position: relative; overflow: hidden;
   }
   .run-card::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
-    opacity: 0;
-    transition: opacity 0.2s;
+    background: linear-gradient(90deg, var(--accent-cyan), rgba(57,210,192,0.3));
+    opacity: 0; transition: opacity 0.25s;
+  }
+  .run-card:hover {
+    border-color: rgba(57,210,192,0.35);
+    background: rgba(22,27,34,0.9);
+    box-shadow: 0 4px 24px rgba(57,210,192,0.12), 0 0 0 1px rgba(57,210,192,0.08);
+    text-decoration: none; color: var(--text-primary);
+    transform: translateY(-2px);
   }
   .run-card:hover::before { opacity: 1; }
-  .run-card:hover {
-    border-color: var(--accent-cyan); background: var(--bg-card-hover);
-    box-shadow: 0 0 12px rgba(57,210,192,0.15);
-    text-decoration: none; color: var(--text-primary);
-    transform: translateY(-1px);
+
+  .run-card-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 12px; margin-bottom: 10px;
   }
-  .run-card h4 {
-    margin: 0; font-family: 'JetBrains Mono', monospace;
-    font-size: 0.95em; font-weight: 600;
+  .run-card-title {
+    font: 700 1.05em 'JetBrains Mono', monospace;
+    color: var(--text-primary); margin: 0;
+    display: flex; align-items: center; gap: 8px;
   }
+  .run-card-title .drug-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 8px;
+    background: linear-gradient(135deg, rgba(57,210,192,0.12), rgba(88,166,255,0.08));
+    border: 1px solid rgba(57,210,192,0.15); flex-shrink: 0;
+    color: var(--accent-cyan);
+  }
+  .run-card-title .drug-icon svg { width: 16px; height: 16px; }
   .run-card .arrow {
-    color: var(--accent-cyan); float: right; font-size: 1.2em;
+    color: var(--text-muted); transition: all 0.2s;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .run-card:hover .arrow { color: var(--accent-cyan); transform: translateX(3px); }
+
+  .run-card-meta {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .meta-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 10px;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    font-size: 0.72em; color: var(--text-muted); font-weight: 500;
+  }
+  .meta-chip svg { width: 11px; height: 11px; opacity: 0.6; }
+  .meta-chip.indication {
+    color: var(--text-secondary); max-width: 260px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
 
-  /* Run Card inline action links */
+  /* ── Run Actions ── */
   .run-actions {
-    display: flex; gap: 4px; margin-top: 8px; padding-top: 8px;
-    border-top: 1px solid var(--border-light);
+    display: flex; gap: 4px; padding-top: 12px;
+    border-top: 1px solid rgba(48,54,61,0.6);
   }
-  .run-actions a {
+  .run-actions a, .run-actions button {
     display: inline-flex; align-items: center; gap: 5px;
-    padding: 4px 10px; border-radius: 14px; font-size: 0.72em; font-weight: 600;
+    padding: 5px 12px; border-radius: 16px; font-size: 0.72em; font-weight: 600;
     text-decoration: none; transition: all 0.15s; white-space: nowrap;
     background: var(--bg-elevated); border: 1px solid var(--border);
-    color: var(--text-muted);
+    color: var(--text-muted); cursor: pointer; font-family: inherit;
   }
-  .run-actions a:hover { text-decoration: none; transform: translateY(-1px); }
-  .run-actions a svg { flex-shrink: 0; }
-  .run-actions a.act-cyan { color: var(--accent-cyan); border-color: rgba(57,210,192,0.25); }
-  .run-actions a.act-cyan:hover { background: rgba(57,210,192,0.1); box-shadow: 0 2px 8px rgba(57,210,192,0.15); }
-  .run-actions a.act-purple { color: var(--accent-purple); border-color: rgba(188,140,255,0.25); }
-  .run-actions a.act-purple:hover { background: rgba(188,140,255,0.1); box-shadow: 0 2px 8px rgba(188,140,255,0.15); }
-  .run-actions a.act-blue { color: var(--accent-blue); border-color: rgba(88,166,255,0.25); }
-  .run-actions a.act-blue:hover { background: rgba(88,166,255,0.1); box-shadow: 0 2px 8px rgba(88,166,255,0.15); }
-  .run-actions a.act-green { color: var(--accent-green); border-color: rgba(63,185,80,0.25); }
-  .run-actions a.act-green:hover { background: rgba(63,185,80,0.1); box-shadow: 0 2px 8px rgba(63,185,80,0.15); }
-  .run-actions button.act-red {
-    display: inline-flex; align-items: center; gap: 5px;
-    padding: 4px 10px; border-radius: 14px; font-size: 0.72em; font-weight: 600;
-    white-space: nowrap; transition: all 0.15s;
-    background: var(--bg-elevated); border: 1px solid rgba(248,81,73,0.25);
-    color: var(--accent-red);
+  .run-actions a:hover, .run-actions button:hover {
+    text-decoration: none; transform: translateY(-1px);
   }
-  .run-actions button.act-red:hover { background: rgba(248,81,73,0.1); box-shadow: 0 2px 8px rgba(248,81,73,0.15); transform: translateY(-1px); }
+  .run-actions a svg, .run-actions button svg { flex-shrink: 0; }
+  .act-cyan { color: var(--accent-cyan) !important; border-color: rgba(57,210,192,0.25) !important; }
+  .act-cyan:hover { background: rgba(57,210,192,0.1) !important; box-shadow: 0 2px 8px rgba(57,210,192,0.15); }
+  .act-purple { color: var(--accent-purple) !important; border-color: rgba(188,140,255,0.25) !important; }
+  .act-purple:hover { background: rgba(188,140,255,0.1) !important; box-shadow: 0 2px 8px rgba(188,140,255,0.15); }
+  .act-blue { color: var(--accent-blue) !important; border-color: rgba(88,166,255,0.25) !important; }
+  .act-blue:hover { background: rgba(88,166,255,0.1) !important; box-shadow: 0 2px 8px rgba(88,166,255,0.15); }
+  .act-green { color: var(--accent-green) !important; border-color: rgba(63,185,80,0.25) !important; }
+  .act-green:hover { background: rgba(63,185,80,0.1) !important; box-shadow: 0 2px 8px rgba(63,185,80,0.15); }
+  .act-red { color: var(--accent-red) !important; border-color: rgba(248,81,73,0.25) !important; }
+  .act-red:hover { background: rgba(248,81,73,0.1) !important; box-shadow: 0 2px 8px rgba(248,81,73,0.15); }
 
-  /* Run Meta chips */
-  .run-meta {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 2px 8px; border-radius: 10px;
-    background: var(--bg-elevated); border: 1px solid var(--border);
-    font-size: 0.75em; color: var(--text-muted); margin-top: 2px;
-  }
-
-  /* Running card — pulsing cyan left border */
+  /* Running card */
   @keyframes pulseLeft {
     0%, 100% { border-left-color: var(--accent-cyan); }
     50% { border-left-color: rgba(57,210,192,0.3); }
@@ -116,44 +241,71 @@
     animation: pulseLeft 2s infinite;
   }
 
-  /* Empty state */
-  .empty-msg {
-    background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: var(--radius-md); color: var(--text-secondary);
-    text-align: center; padding: 2.5em; position: relative; overflow: hidden;
+  /* ── Modes Badges ── */
+  .mode-badges {
+    display: flex; gap: 4px; margin-left: auto;
   }
-  .empty-msg::before {
+  .mode-badge {
+    font-size: 0.62em; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; padding: 2px 7px; border-radius: 6px;
+  }
+  .mode-badge.natural { background: rgba(110,118,129,0.15); color: var(--text-muted); }
+  .mode-badge.care-ai { background: rgba(57,210,192,0.12); color: var(--accent-cyan); }
+
+  /* ── Empty State ── */
+  .empty-state {
+    text-align: center; padding: 3.5em 2em;
+    background: var(--bg-glass);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border); border-radius: var(--radius-xl);
+    position: relative; overflow: hidden;
+  }
+  .empty-state::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
     background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
-    opacity: 0.4;
+    opacity: 0.5;
   }
-  .empty-msg strong {
-    font-size: 1.1em;
-    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  .empty-state .empty-icon {
+    margin-bottom: 16px;
+  }
+  .empty-state .empty-icon svg {
+    width: 48px; height: 48px; stroke: var(--accent-cyan); opacity: 0.5;
+  }
+  .empty-state strong {
+    display: block; font-size: 1.1em; margin-bottom: 8px;
+    background: linear-gradient(135deg, var(--accent-cyan), #2ec4b6);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  .empty-msg code {
+  .empty-state p {
+    color: var(--text-muted); font-size: 0.88em; margin: 0;
+  }
+  .empty-state code {
+    display: inline-block; margin-top: 12px;
     background: var(--bg-elevated); color: var(--accent-orange);
-    padding: 2px 6px; border-radius: 3px; font-size: 0.88em;
+    padding: 6px 14px; border-radius: 6px; font-size: 0.85em;
+    border: 1px solid var(--border);
   }
 
-  /* New Sim button */
-  .new-sim-btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 11px 24px; background: linear-gradient(135deg, rgba(57,210,192,0.15), rgba(88,166,255,0.1));
-    border: 1px solid var(--accent-cyan); border-radius: var(--radius-lg);
-    color: var(--accent-cyan); font: 600 0.9em 'JetBrains Mono', monospace;
-    cursor: pointer; transition: all 0.2s ease; margin-bottom: 16px;
+  /* ── Feature Pills (below hero) ── */
+  .feature-pills {
+    display: flex; justify-content: center; gap: 8px; flex-wrap: wrap;
+    margin-bottom: 2em;
   }
-  .new-sim-btn:hover {
-    background: linear-gradient(135deg, rgba(57,210,192,0.25), rgba(88,166,255,0.15));
-    box-shadow: 0 4px 20px rgba(57,210,192,0.2); transform: translateY(-1px);
+  .feature-pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 20px;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    font-size: 0.75em; font-weight: 600; color: var(--text-muted);
+    transition: all 0.2s;
   }
-  .new-sim-btn svg { transition: transform 0.2s; }
-  .new-sim-btn:hover svg { transform: rotate(90deg); }
+  .feature-pill svg { width: 13px; height: 13px; opacity: 0.7; }
+  .feature-pill:hover {
+    border-color: rgba(57,210,192,0.2); background: rgba(57,210,192,0.04);
+    color: var(--text-secondary);
+  }
 
-  /* Modal overlay — glassmorphism */
+  /* ── Modal overlay — glassmorphism ── */
   .sim-modal-overlay {
     position: fixed; top: 0; left: 0; right: 0; bottom: 0;
     background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
@@ -162,27 +314,32 @@
   }
   .sim-modal-overlay.visible { display: flex; }
 
-  /* Modal — glass + gradient top bar */
+  /* Modal */
   .sim-modal {
     background: rgba(22,27,34,0.95); backdrop-filter: blur(12px);
     border: 1px solid var(--border);
-    border-radius: var(--radius-xl); padding: 24px; width: 420px; max-width: 90vw;
+    border-radius: var(--radius-xl); padding: 28px; width: 440px; max-width: 90vw;
     box-shadow: var(--shadow-modal);
     position: relative; overflow: hidden;
   }
   .sim-modal::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+    background: linear-gradient(90deg, var(--accent-cyan), rgba(57,210,192,0.3));
   }
-  .sim-modal h3 { color: var(--accent-cyan); margin-top: 0; font-size: 1.1em; }
-  .sim-form-group { margin-bottom: 12px; }
+  .sim-modal h3 {
+    font-size: 1.15em; font-weight: 700; margin: 0 0 20px;
+    background: linear-gradient(135deg, var(--accent-cyan), #2ec4b6);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .sim-form-group { margin-bottom: 14px; }
   .sim-form-group label {
-    display: block; font-size: 0.78em; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;
+    display: block; font-size: 0.72em; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 5px; font-weight: 600;
   }
   .sim-form-group input, .sim-form-group select {
     width: 100%; padding: 10px 14px; background: var(--bg-elevated);
-    border: 1px solid var(--border); border-radius: 6px;
+    border: 1px solid var(--border); border-radius: 8px;
     color: var(--text-primary); font: 0.88em 'JetBrains Mono', monospace;
     transition: border-color 0.2s, box-shadow 0.2s;
   }
@@ -190,27 +347,35 @@
     outline: none; border-color: var(--accent-cyan);
     box-shadow: 0 0 0 3px rgba(57,210,192,0.1);
   }
-  .sim-form-actions { display: flex; gap: 8px; margin-top: 16px; }
+  .sim-form-actions { display: flex; gap: 10px; margin-top: 20px; }
   .sim-form-actions button {
-    padding: 8px 18px; border-radius: var(--radius-md); border: 1px solid var(--border);
-    cursor: pointer; font: 600 0.85em 'JetBrains Mono', monospace;
-    transition: all var(--transition-fast);
+    padding: 10px 20px; border-radius: var(--radius-lg); border: 1px solid var(--border);
+    cursor: pointer; font: 600 0.88em 'JetBrains Mono', monospace;
+    transition: all 0.2s;
   }
-
-  /* Start button — more prominent */
   .sim-btn-start {
-    background: rgba(57,210,192,0.15); color: var(--accent-cyan);
-    border-color: var(--accent-cyan);
-    padding: 10px 24px; font-size: 0.9em;
-    box-shadow: 0 0 12px rgba(57,210,192,0.15);
-    transition: all 0.2s ease;
+    background: linear-gradient(135deg, rgba(57,210,192,0.18), rgba(88,166,255,0.1));
+    color: var(--accent-cyan); border-color: var(--accent-cyan);
+    box-shadow: 0 0 12px rgba(57,210,192,0.12);
   }
   .sim-btn-start:hover {
-    background: rgba(57,210,192,0.3);
-    box-shadow: 0 0 20px rgba(57,210,192,0.3);
+    background: linear-gradient(135deg, rgba(57,210,192,0.3), rgba(88,166,255,0.18));
+    box-shadow: 0 0 24px rgba(57,210,192,0.25);
     transform: translateY(-1px);
   }
   .sim-btn-cancel { background: var(--bg-elevated); color: var(--text-secondary); }
+  .sim-btn-cancel:hover { background: var(--bg-card-hover); }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .runs-grid { grid-template-columns: 1fr; }
+    .hero-title { font-size: 2.4em; }
+    .stats-row { gap: 20px; }
+  }
+  @media (max-width: 500px) {
+    .stats-row { flex-direction: column; gap: 12px; }
+    .feature-pills { gap: 4px; }
+  }
 </style>
 {% endblock %}
 
@@ -218,77 +383,165 @@
 {% endblock %}
 
 {% block content %}
-<div class="landing-container">
-  <div class="landing-title fade-up">VITAL</div>
-  <p class="landing-sub fade-up fade-up-1">
-    <strong style="color:var(--text-secondary); font-weight:500; letter-spacing:0.5px;">Virtual Intelligent Trial Adverse-event Lifecycle</strong><br>
-    Explore day-by-day patient data, adverse events, treatment decisions,
-    and Care AI interactions across simulation runs.
-  </p>
+<!-- Animated BG -->
+<div class="landing-bg">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+</div>
 
-  <button class="new-sim-btn fade-up fade-up-2" onclick="showSimModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg> New Simulation</button>
-
-  <hr class="landing-hr">
-
-  {% if runs %}
-  <div class="section-label">Simulation Runs</div>
-  {% for run in runs %}
-  <div style="margin-bottom:8px;" id="run-{{ run.id }}">
-    {% if run.status == 'completed' %}
-    <div class="run-card" style="cursor:pointer;" onclick="window.location='{% url 'trial_viewer' run.id %}'">
-      <span class="arrow"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg></span>
-      <h4>{% if run.drug_name %}{{ run.drug_name }}{% else %}{{ run.id }}{% endif %}</h4>
-      <div style="display:flex; align-items:center; gap:8px; margin-top:4px; flex-wrap:wrap;">
-        <span class="run-status status-badge completed">Completed</span>
-        {% if run.indication %}<span class="run-meta" style="color:var(--text-secondary)">{{ run.indication|truncatechars:40 }}</span>{% endif %}
-        {% if run.n_patients %}<span class="run-meta">{{ run.n_patients }} patients</span>{% endif %}
-        {% if run.total_days %}<span class="run-meta">{{ run.total_days }} days</span>{% endif %}
-      </div>
-      <div class="run-actions" onclick="event.stopPropagation();">
-        <a href="{% url 'trial_viewer' run.id %}" class="act-cyan" title="Day-by-day trial dashboard">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><polygon points="10 8 16 11 10 14" fill="currentColor" stroke="none"/></svg>
-          Simulation
-        </a>
-        <a href="{% url 'game_landing' run.id %}" class="act-purple" title="Clinical training for nurses">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.66 2.69 3 6 3s6-1.34 6-3v-5"/></svg>
-          Training
-        </a>
-        <a href="{% url 'doc_hub' run.id %}" class="act-blue" title="SAE regulatory documents">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          Documents
-        </a>
-        <a href="{% url 'compare_dashboard' run.id %}" class="act-green" title="Natural vs Care AI comparison">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-          A/B Test
-        </a>
-      </div>
-    </div>
-    {% else %}
-    <div class="run-card running-card" style="cursor:pointer;" onclick="window.location='{% url 'trial_viewer' run.id %}?live=1'">
-      <h4>{{ run.id }}</h4>
-      <div style="display:flex; align-items:center; gap:8px; margin-top:4px;">
-        <span class="run-status status-badge {{ run.status }}">{{ run.status }}</span>
-        {% if run.drug_name %}<span class="run-meta">{{ run.drug_name }}</span>{% endif %}
-        {% if run.n_patients %}<span class="run-meta">{{ run.n_patients }} patients</span>{% endif %}
-      </div>
-      <div class="run-actions" onclick="event.stopPropagation();">
-        <a href="{% url 'trial_viewer' run.id %}?live=1" class="act-cyan" title="Live trial dashboard">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><polygon points="10 8 16 11 10 14" fill="currentColor" stroke="none"/></svg>
-          Live View
-        </a>
-        <button onclick="stopSim('{{ run.id }}')" class="act-red" title="Stop simulation" style="cursor:pointer; font:inherit;">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
-          Stop
-        </button>
-      </div>
-    </div>
-    {% endif %}
+<div class="landing-wrap">
+  <!-- Hero -->
+  <div class="hero fade-up">
+    <div class="hero-title">VITAL</div>
+    <div class="hero-acronym fade-up fade-up-1">Virtual Intelligent Trial Adverse-event Lifecycle</div>
+    <p class="hero-desc fade-up fade-up-2">
+      AI-powered clinical trial simulation engine.<br>
+      Explore patient journeys, adverse events, and evaluate Care AI impact.
+    </p>
   </div>
-  {% endfor %}
+
+  <!-- Stats -->
+  <div class="stats-row fade-up fade-up-2">
+    <div class="stat-item">
+      <div class="stat-num">{{ runs|length }}</div>
+      <div class="stat-label">Runs</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" id="stat-patients">--</div>
+      <div class="stat-label">Patients</div>
+    </div>
+    <div class="stat-item">
+      <div class="stat-num" id="stat-days">--</div>
+      <div class="stat-label">Sim Days</div>
+    </div>
+  </div>
+
+  <!-- Feature Pills -->
+  <div class="feature-pills fade-up fade-up-3">
+    <span class="feature-pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      Hazard Engine
+    </span>
+    <span class="feature-pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      Observation Model
+    </span>
+    <span class="feature-pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Care AI Nurse
+    </span>
+    <span class="feature-pill">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      A/B Compare
+    </span>
+  </div>
+
+  <!-- CTA -->
+  <div class="actions-row fade-up fade-up-3">
+    <button class="btn-hero btn-hero-primary" onclick="showSimModal()">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Simulation
+    </button>
+  </div>
+
+  <hr class="landing-divider">
+
+  <!-- Runs Section -->
+  {% if runs %}
+  <div class="section-label fade-up fade-up-4">Simulation Runs</div>
+  <div class="runs-grid">
+    {% for run in runs %}
+    <div id="run-{{ run.id }}" class="fade-up">
+      {% if run.status == 'completed' %}
+      <div class="run-card" onclick="window.location='{% url 'trial_viewer' run.id %}'">
+        <div class="run-card-header">
+          <div class="run-card-title">
+            <span class="drug-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            {% if run.drug_name %}{{ run.drug_name }}{% else %}{{ run.id|truncatechars:28 }}{% endif %}
+          </div>
+          <span class="arrow">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </span>
+        </div>
+        <div class="run-card-meta">
+          <span class="status-badge completed">Completed</span>
+          {% if run.indication %}<span class="meta-chip indication" title="{{ run.indication }}">{{ run.indication|truncatechars:35 }}</span>{% endif %}
+          {% if run.n_patients %}
+          <span class="meta-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            {{ run.n_patients }} patients
+          </span>
+          {% endif %}
+          {% if run.total_days %}
+          <span class="meta-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            {{ run.total_days }} days
+          </span>
+          {% endif %}
+        </div>
+        <div class="run-actions" onclick="event.stopPropagation();">
+          <a href="{% url 'trial_viewer' run.id %}" class="act-cyan" title="Day-by-day trial dashboard">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><polygon points="10 8 16 11 10 14" fill="currentColor" stroke="none"/></svg>
+            Simulation
+          </a>
+          <a href="{% url 'game_landing' run.id %}" class="act-purple" title="Clinical training for nurses">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.66 2.69 3 6 3s6-1.34 6-3v-5"/></svg>
+            Training
+          </a>
+          <a href="{% url 'doc_hub' run.id %}" class="act-blue" title="SAE regulatory documents">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Documents
+          </a>
+          <a href="{% url 'compare_dashboard' run.id %}" class="act-green" title="Natural vs Care AI comparison">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            A/B Test
+          </a>
+        </div>
+      </div>
+
+      {% else %}
+      <!-- Running / In-progress card -->
+      <div class="run-card running-card" onclick="window.location='{% url 'trial_viewer' run.id %}?live=1'">
+        <div class="run-card-header">
+          <div class="run-card-title">
+            <span class="drug-icon" style="border-color:rgba(57,210,192,0.3);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </span>
+            {% if run.drug_name %}{{ run.drug_name }}{% else %}{{ run.id|truncatechars:28 }}{% endif %}
+          </div>
+        </div>
+        <div class="run-card-meta">
+          <span class="status-badge {{ run.status }}">{{ run.status }}</span>
+          {% if run.n_patients %}<span class="meta-chip">{{ run.n_patients }} patients</span>{% endif %}
+        </div>
+        <div class="run-actions" onclick="event.stopPropagation();">
+          <a href="{% url 'trial_viewer' run.id %}?live=1" class="act-cyan" title="Live trial dashboard">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16" fill="currentColor" stroke="none"/></svg>
+            Live View
+          </a>
+          <button onclick="stopSim('{{ run.id }}')" class="act-red" title="Stop simulation" style="cursor:pointer;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+            Stop
+          </button>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
   {% else %}
-  <div class="empty-msg">
-    <strong>No simulation runs found.</strong><br>
-    Click <strong>+ New Simulation</strong> above to start one, or run from CLI:
+  <!-- Empty state -->
+  <div class="empty-state fade-up fade-up-4">
+    <div class="empty-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+      </svg>
+    </div>
+    <strong>No simulation runs yet</strong>
+    <p>Click <strong>+ New Simulation</strong> above to start one, or run from CLI:</p>
     <code>python src/run_simulation_v2.py --patients 10 --days 84</code>
   </div>
   {% endif %}
@@ -332,13 +585,40 @@
       <button class="sim-btn-start" id="sim-start-btn" onclick="startSimulation()">Start Simulation</button>
       <button class="sim-btn-cancel" onclick="hideSimModal()">Cancel</button>
     </div>
-    <div id="sim-status-msg" style="margin-top:10px; font-size:0.85em; display:none;"></div>
+    <div id="sim-status-msg" style="margin-top:12px; font-size:0.85em; display:none;"></div>
   </div>
 </div>
 
 <script>
+/* ── Compute stats from template data ── */
+(function() {
+  const runs = [
+    {% for run in runs %}
+    { patients: {{ run.n_patients|default:"0" }}, days: {{ run.total_days|default:"0" }} },
+    {% endfor %}
+  ];
+  let totalP = 0, totalD = 0;
+  runs.forEach(r => { totalP += r.patients; totalD += r.days; });
+  const pEl = document.getElementById('stat-patients');
+  const dEl = document.getElementById('stat-days');
+  if (pEl) pEl.textContent = totalP || '--';
+  if (dEl) dEl.textContent = totalD || '--';
+})();
+
+/* ── Modal ── */
+function showSimModal() {
+  document.getElementById('sim-modal').classList.add('visible');
+}
+function hideSimModal() {
+  document.getElementById('sim-modal').classList.remove('visible');
+}
+document.getElementById('sim-modal').addEventListener('click', function(e) {
+  if (e.target === this) hideSimModal();
+});
+
+/* ── Stop Sim ── */
 async function stopSim(runId) {
-  const action = confirm('Stop this simulation?\n\nChoose OK to stop (keep data), or Cancel to abort.');
+  const action = confirm('Stop this simulation?\n\nOK to stop (keep data), Cancel to abort.');
   if (!action) return;
   const del = confirm('Also delete the partial run data?');
   try {
@@ -348,6 +628,10 @@ async function stopSim(runId) {
       body: JSON.stringify({delete: del}),
     });
     const data = await resp.json();
+    if (!resp.ok) {
+      alert(data.error || 'Failed to stop simulation');
+      return;
+    }
     alert(`Simulation ${data.status}`);
     location.reload();
   } catch(e) {
@@ -355,13 +639,7 @@ async function stopSim(runId) {
   }
 }
 
-function showSimModal() {
-  document.getElementById('sim-modal').classList.add('visible');
-}
-function hideSimModal() {
-  document.getElementById('sim-modal').classList.remove('visible');
-}
-
+/* ── Start Sim ── */
 async function startSimulation() {
   const btn = document.getElementById('sim-start-btn');
   const msg = document.getElementById('sim-status-msg');
@@ -389,7 +667,7 @@ async function startSimulation() {
     const data = await resp.json();
     if (resp.ok) {
       msg.style.color = 'var(--accent-green)';
-      msg.innerHTML = `Started! Run ID: <code>${data.run_id}</code><br>Redirecting to live view...`;
+      msg.innerHTML = `Started! Run ID: <code style="background:var(--bg-elevated);padding:2px 8px;border-radius:4px;color:var(--accent-orange)">${data.run_id}</code><br>Redirecting to live view...`;
       setTimeout(() => {
         window.location.href = data.url + '?live=1';
       }, 1500);
@@ -407,9 +685,9 @@ async function startSimulation() {
   }
 }
 
-// Poll running simulations for status updates
+/* ── Poll running simulations ── */
 document.addEventListener('DOMContentLoaded', () => {
-  const runningEls = document.querySelectorAll('.run-status.running, .run-status.generating_patients');
+  const runningEls = document.querySelectorAll('.status-badge.running, .status-badge.generating_patients');
   if (runningEls.length === 0) return;
 
   setInterval(async () => {
@@ -419,10 +697,10 @@ document.addEventListener('DOMContentLoaded', () => {
       data.runs.forEach(run => {
         const el = document.getElementById('run-' + run.id);
         if (!el) return;
-        const badge = el.querySelector('.run-status');
+        const badge = el.querySelector('.status-badge');
         if (badge && run.status !== badge.textContent.trim().toLowerCase()) {
-          badge.className = 'run-status status-badge ' + run.status;
-          badge.textContent = run.status === 'completed' ? 'Replay' : run.status;
+          badge.className = 'status-badge ' + run.status;
+          badge.textContent = run.status === 'completed' ? 'Completed' : run.status;
           if (run.status === 'completed') location.reload();
         }
       });
