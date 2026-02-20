@@ -1650,31 +1650,9 @@
     language_barrier: 'M24 34 L28 38 L32 34 M24 37 L32 37',
   };
 
-  const SPRITE_MAP = {
-    F: {
-      light:  [1,5,6,9,11,14,15,24,25,29,33,36,37,41,45,49,52,55,58,62,66,70,73,74,75,76,77,78,82,85,86,87,89,92,93,95],
-      medium: [12,28,30,32,44,53,61,63,65,67,69,71,88,90],
-      dark:   [2,31,54,64,68,72,91,94],
-    },
-    M: {
-      light:  [7,17,21,40,48,96],
-      medium: [3,16,18,20,26,34,38,42,46,50,56,59,79,81],
-      dark:   [4,8,10,13,19,22,23,27,35,39,43,47,51,57,60,80,83,84,97],
-    },
-  };
-  function _skinTone(race) {
-    const r = (race || '').toUpperCase();
-    return r.includes('BLACK') ? 'dark' : r.includes('ASIAN') ? 'medium' : r.includes('WHITE') ? 'light' : 'medium';
-  }
-  function getCharSpriteNum(patientId, sex, race) {
-    const gender = ((sex || '').charAt(0) || 'M').toUpperCase() === 'F' ? 'F' : 'M';
-    const tone = _skinTone(race);
-    const pool = (SPRITE_MAP[gender] && SPRITE_MAP[gender][tone]) || SPRITE_MAP.M.light;
-    const num = parseInt((patientId || '').replace(/\D/g, ''), 10) || 1;
-    return pool[(num - 1) % pool.length];
-  }
+  // Use global _pickSprite / SPRITE_MAP from trial_map.js (single source of truth)
   function getCharSpriteUrl(patientId, sex, race) {
-    const n = getCharSpriteNum(patientId, sex, race);
+    const n = _pickSprite({patient_id: patientId, sex: sex, race: race}, 0);
     return `/static/assets/characters/patient_${String(n).padStart(2, '0')}.png`;
   }
 
