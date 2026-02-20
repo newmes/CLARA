@@ -126,36 +126,95 @@ def _load_rule_set(run_path: Path) -> dict:
     return {}
 
 
-def _list_patients(run_path: Path) -> list[str]:
-    """List patient IDs from simulation files (exclude _hospital variants)."""
+def _extract_lab_ranges(run_path: Path, mode: str = "natural") -> dict:
+    """Extract lab reference ranges from LB data (LBORNRLO/LBORNRHI).
+
+    Used when rule_set.json is missing or has no lab_reference_ranges.
+    Reads the first patient's first day with LB data and builds a ranges dict.
+    """
+    from frontend.viewer.crf_aggregator import LAB_ABBREVIATIONS, _lab_display_name
     sim_dir = run_path / "simulations"
     if not sim_dir.exists():
-        return []
+        return {}
+    # Find any JSONL file to extract ranges from
+    for fpath in sorted(sim_dir.glob(f"*_{mode}.jsonl")):
+        if "_hospital" in fpath.stem:
+            continue
+        with open(fpath, encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if not line:
+                    continue
+                record = json.loads(line)
+                lb = record.get("LB")
+                if not lb or not lb.get("LBPERF"):
+                    continue
+                results = lb.get("results", {})
+                ranges = {}
+                for test_name, vals in results.items():
+                    lo = vals.get("LBORNRLO")
+                    hi = vals.get("LBORNRHI")
+                    if lo is not None or hi is not None:
+                        display = _lab_display_name(test_name)
+                        ranges[display] = {
+                            "unit": vals.get("LBORRESU", ""),
+                            "normal_range": {"min": lo, "max": hi},
+                            "LLN": lo,
+                            "ULN": hi,
+                        }
+                if ranges:
+                    return ranges
+    return {}
+
+
+def _list_patients(run_path: Path) -> list[str]:
+    """List patient IDs from simulation files (exclude _hospital variants).
+    Falls back to patients/ directory if no simulation files exist yet."""
     ids = set()
-    for f in sim_dir.glob("*_natural.jsonl"):
-        if "_hospital" in f.stem:
-            continue
-        pid = f.stem.replace("_natural", "")
-        ids.add(pid)
-    for f in sim_dir.glob("*_care_ai.jsonl"):
-        if "_hospital" in f.stem:
-            continue
-        pid = f.stem.replace("_care_ai", "")
-        ids.add(pid)
+    sim_dir = run_path / "simulations"
+    if sim_dir.exists():
+        for f in sim_dir.glob("*_natural.jsonl"):
+            if "_hospital" in f.stem:
+                continue
+            pid = f.stem.replace("_natural", "")
+            ids.add(pid)
+        for f in sim_dir.glob("*_care_ai.jsonl"):
+            if "_hospital" in f.stem:
+                continue
+            pid = f.stem.replace("_care_ai", "")
+            ids.add(pid)
+    # Fallback: count from patients/ directory
+    if not ids:
+        patients_dir = run_path / "patients"
+        if patients_dir.exists():
+            for f in patients_dir.glob("*.json"):
+                ids.add(f.stem)
     return sorted(ids)
 
 
 def _load_day_for_patient(run_path: Path, patient_id: str, day: int,
                           mode: str = "natural") -> dict | None:
-    """Load a single day's data for a patient from JSONL."""
+    """Load a single day's data for a patient from JSONL.
+
+    If the requested day is beyond the last entry AND the patient is
+    deceased on the last day, return the death-day record so that
+    downstream code still sees location='DECEASED'.
+    """
     f = run_path / "simulations" / f"{patient_id}_{mode}.jsonl"
     if not f.exists():
         return None
+    last_record = None
     with open(f) as fh:
         for line in fh:
             record = json.loads(line)
             if record.get("day") == day:
                 return record
+            last_record = record
+    # Day not found — check if patient died before this day
+    if last_record and last_record.get("day", 0) < day:
+        loc = (last_record.get("objective") or {}).get("location", "")
+        if loc == "DECEASED":
+            return last_record
     return None
 
 
@@ -395,6 +454,7 @@ def _patient_summary(profile: dict, day_data: dict | None,
         "patient_id": profile.get("patient_id", "?"),
         "age": dm.get("AGE", "?"),
         "sex": dm.get("SEX", "?"),
+        "race": dm.get("RACE", ""),
         "persona_type": persona.get("type", "unknown"),
         "persona_desc": persona.get("description", ""),
         "view_mode": view_mode,
@@ -405,7 +465,7 @@ def _patient_summary(profile: dict, day_data: dict | None,
         hr_obj = hr_data.get("objective", {})
         gt_obj = day_data.get("objective", {})
         obs_types = hr_data.get("observation_types", [])
-        is_visit = bool(obs_types)
+        is_visit = ("scheduled_visit" in obs_types or "er_visit" in obs_types)
 
         if view_mode == "hr":
             # ── Hospital Record mode: ONLY what the hospital knows ──
@@ -625,9 +685,9 @@ def trial_viewer(request, run_id: str, day: int = 1):
     total_days = _count_days(run_path, mode)
     rule_set = _load_rule_set(run_path)
 
-    # Ensure map is generated for this patient count
+    # Ensure map is generated for this run
     try:
-        _ensure_map_for_patients(len(patient_ids))
+        _ensure_map_for_run(run_path, len(patient_ids))
     except Exception:
         pass  # non-critical; map will fall back to default
 
@@ -685,6 +745,7 @@ def trial_viewer(request, run_id: str, day: int = 1):
         "patient_ids_json": json.dumps(patient_ids),
         "is_live": is_live,
         "model_name": _load_run_meta(run_path).get("model", ""),
+        "lab_ranges_json": json.dumps(rule_set.get("lab_reference_ranges", {}) or _extract_lab_ranges(run_path)),
     }
     return render(request, "trial/trial.html", context)
 
@@ -886,7 +947,7 @@ def patient_state(request, run_id: str, patient_id: str, day: int = None):
             # Location for display
             current_day_data["_display_location"] = hr_obj.get("location", gt_obj.get("location", "HOME"))
             current_day_data["_hr_obs_types"] = obs_types
-            current_day_data["_hr_is_visit"] = bool(obs_types)
+            current_day_data["_hr_is_visit"] = ("scheduled_visit" in obs_types or "er_visit" in obs_types)
         else:
             # GT mode: standard safe_AE mapping
             safe_aes = []
@@ -907,7 +968,7 @@ def patient_state(request, run_id: str, patient_id: str, day: int = None):
             current_day_data["_display_location"] = gt_obj.get("location", "HOME")
             hr = current_day_data.get("hospital_record", {})
             obs_types = hr.get("observation_types", [])
-            current_day_data["_hr_is_visit"] = bool(obs_types)
+            current_day_data["_hr_is_visit"] = ("scheduled_visit" in obs_types or "er_visit" in obs_types)
             current_day_data["_hr_obs_types"] = obs_types
 
     # Filter: only show data up to and including the current viewing day
@@ -1115,7 +1176,8 @@ def api_patient_timeline(request, run_id: str, patient_id: str):
     if not run_path.exists():
         return JsonResponse({"error": "not found"}, status=404)
 
-    all_days = _load_all_days_for_patient(run_path, patient_id)
+    mode = request.GET.get("mode", "natural")
+    all_days = _load_all_days_for_patient(run_path, patient_id, mode)
     profile = _load_patient_profile(run_path, patient_id)
 
     return JsonResponse({
@@ -1467,28 +1529,32 @@ def api_game_sessions(request):
 # Map Generation
 # ═══════════════════════════════════════════════════════
 
-def _ensure_map_for_patients(n_patients: int) -> dict:
-    """Generate map if needed, return map metadata."""
-    meta_path = MAP_ASSETS_DIR / "map_meta.json"
-    if meta_path.exists():
+def _ensure_map_for_run(run_path: Path, n_patients: int) -> tuple[dict, dict]:
+    """Generate map for a specific run if needed. Returns (tilemap, meta)."""
+    map_dir = run_path / "map"
+    meta_path = map_dir / "map_meta.json"
+    tilemap_path = map_dir / "tilemap.json"
+
+    if meta_path.exists() and tilemap_path.exists():
         with open(meta_path) as f:
             meta = json.load(f)
-        if meta.get("n_patients", 0) >= n_patients:
-            return meta
+        if meta.get("n_patients", 0) == n_patients:
+            with open(tilemap_path) as f:
+                tilemap = json.load(f)
+            return tilemap, meta
 
-    # Regenerate
+    # Generate map sized for this run's patient count
     import sys
     tools_dir = Path(settings.BASE_DIR) / "tools"
-    sys.path.insert(0, str(tools_dir))
+    if str(tools_dir) not in sys.path:
+        sys.path.insert(0, str(tools_dir))
     from generate_map import generate_map
     tilemap, meta = generate_map(n_patients)
 
-    MAP_ASSETS_DIR.mkdir(parents=True, exist_ok=True)
-    (MAP_ASSETS_DIR / "clinical_trial.json").write_text(
-        json.dumps(tilemap), encoding="utf-8")
-    meta_path.write_text(
-        json.dumps(meta, indent=2), encoding="utf-8")
-    return meta
+    map_dir.mkdir(parents=True, exist_ok=True)
+    tilemap_path.write_text(json.dumps(tilemap), encoding="utf-8")
+    meta_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+    return tilemap, meta
 
 
 @require_GET
@@ -1499,9 +1565,20 @@ def api_map_meta(request, run_id: str):
         return JsonResponse({"error": "not found"}, status=404)
 
     patient_ids = _list_patients(run_path)
-    n = len(patient_ids)
-    meta = _ensure_map_for_patients(n)
+    _, meta = _ensure_map_for_run(run_path, len(patient_ids))
     return JsonResponse(meta)
+
+
+@require_GET
+def api_map_tilemap(request, run_id: str):
+    """Serve the Tiled JSON tilemap for a specific run."""
+    run_path = _get_run_path(run_id)
+    if not run_path.exists():
+        return JsonResponse({"error": "not found"}, status=404)
+
+    patient_ids = _list_patients(run_path)
+    tilemap, _ = _ensure_map_for_run(run_path, len(patient_ids))
+    return JsonResponse(tilemap)
 
 
 # ═══════════════════════════════════════════════════════
@@ -1941,7 +2018,23 @@ def api_sim_stop(request, run_id: str):
     Signals the runner to cancel, then optionally deletes the run data.
     POST body: {"delete": true/false}
     """
+    # Optionally delete run data
+    try:
+        body = json.loads(request.body) if request.body else {}
+    except Exception:
+        body = {}
+
+    should_delete = body.get("delete", False)
+
     if run_id not in _live_sims:
+        # Server may have restarted — _live_sims lost but run dir still exists.
+        # Allow delete even if not tracked in memory.
+        if should_delete:
+            run_path = _get_run_path(run_id)
+            if run_path.exists():
+                import shutil
+                shutil.rmtree(run_path, ignore_errors=True)
+            return JsonResponse({"status": "stopped_and_deleted", "run_id": run_id})
         return JsonResponse({"error": "Run not found or not a live simulation"},
                             status=404)
 
@@ -1953,14 +2046,6 @@ def api_sim_stop(request, run_id: str):
         runner.log("⛔ Stop requested by user")
 
     sim_info["status"] = "cancelling"
-
-    # Optionally delete run data
-    try:
-        body = json.loads(request.body) if request.body else {}
-    except Exception:
-        body = {}
-
-    should_delete = body.get("delete", False)
 
     if should_delete:
         run_path = _get_run_path(run_id)
@@ -2016,9 +2101,16 @@ def api_sim_log(request, run_id: str):
 # ═══════════════════════════════════════════════════════
 
 def _load_patient_data(run_path, patient_id, mode="natural"):
-    """Load patient profile + day records for doc agent."""
+    """Load patient profile + day records for doc agent.
+
+    Uses hospital record (HR) when available — SAE reporting should be
+    based on what the hospital actually observed, not ground truth.
+    Falls back to GT for older runs that lack *_hospital.jsonl.
+    """
     profile_path = run_path / "patients" / f"{patient_id}.json"
-    sim_path = run_path / "simulations" / f"{patient_id}_{mode}.jsonl"
+    hr_path = run_path / "simulations" / f"{patient_id}_{mode}_hospital.jsonl"
+    gt_path = run_path / "simulations" / f"{patient_id}_{mode}.jsonl"
+    sim_path = hr_path if hr_path.exists() else gt_path
 
     if not profile_path.exists() or not sim_path.exists():
         return None, None
@@ -2182,9 +2274,10 @@ def api_doc_download(request, run_id, patient_id, filename):
     else:
         content_type = "application/octet-stream"
 
+    disposition = "inline" if filename.endswith(".pdf") else "attachment"
     with open(file_path, "rb") as f:
         response = HttpResponse(f.read(), content_type=content_type)
-        response["Content-Disposition"] = f'attachment; filename="{filename}"'
+        response["Content-Disposition"] = f'{disposition}; filename="{filename}"'
         return response
 
 
@@ -2423,8 +2516,7 @@ def api_doc_update_status(request):
     # Validate transitions
     current = data.get("status", "draft")
     allowed_transitions = {
-        "draft": {"under_review"},
-        "under_review": {"accepted", "draft"},
+        "draft": {"accepted"},
         "accepted": {"draft"},
     }
     if new_status != current and new_status not in allowed_transitions.get(current, set()):
@@ -2583,7 +2675,7 @@ def doc_hub(request, run_id: str):
                 "ae_term": ae_term,
                 "ae_slug": ae_slug,
                 "grade": ae.get("_grade", 0),
-                "onset_day": ae.get("AESTDAT"),
+                "onset_day": sae["day"],
                 "severity": ae.get("AESEV", ""),
                 "action": ae.get("AEACN", ""),
                 "serious": ae.get("AESER", False),
@@ -2657,6 +2749,10 @@ def crf_tables(request, run_id: str):
         except Exception:
             pass
 
+    rule_set = _load_rule_set(run_path)
+    lab_ranges = rule_set.get("lab_reference_ranges", {})
+    if not lab_ranges:
+        lab_ranges = _extract_lab_ranges(run_path)
     context = {
         "run_id": run_id,
         "patient_ids": patient_ids,
@@ -2666,6 +2762,7 @@ def crf_tables(request, run_id: str):
         "indication": indication,
         "domain_labels_json": json.dumps(DOMAIN_LABELS),
         "model_name": _load_run_meta(run_path).get("model", ""),
+        "lab_ranges_json": json.dumps(lab_ranges),
     }
     return render(request, "doc/crf_tables.html", context)
 
