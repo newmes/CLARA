@@ -201,14 +201,45 @@
   .speech-bubble::before { content: ''; position: absolute; left: -14px; top: 10px;
     border: 6px solid transparent; border-right-color: rgba(88,166,255,0.15); }
 
-  /* Care AI Chat */
-  .care-chat { max-height: 400px; overflow-y: auto; }
-  .chat-bubble { padding: 8px 12px; border-radius: 8px; margin: 5px 0; font-size: 0.88em; max-width: 92%; }
-  .chat-patient { background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.2); border-left: 3px solid var(--accent-blue); }
-  .chat-nurse { background: rgba(57,210,192,0.05); border: 1px solid rgba(57,210,192,0.15); border-left: 3px solid var(--accent-cyan); }
-  .chat-role { font-size: 0.65em; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; color: var(--text-muted); }
-  .chat-patient .chat-role { color: var(--accent-blue); }
-  .chat-nurse .chat-role { color: var(--accent-green); }
+  /* Care AI Chat — KakaoTalk style */
+  .care-chat-container { }
+  .care-chat-header { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .care-chat {
+    max-height: 360px; overflow-y: auto; padding: 12px;
+    background: rgba(13,17,23,0.5); border-radius: 8px;
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .chat-row { display: flex; gap: 8px; margin-bottom: 12px; align-items: flex-start; }
+  .chat-row.is-patient { flex-direction: row; }
+  .chat-row.is-nurse { flex-direction: row-reverse; }
+  .chat-avatar {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .chat-avatar.avatar-patient { background: rgba(88,166,255,0.15); }
+  .chat-avatar.avatar-nurse { background: rgba(57,210,192,0.15); }
+  .chat-avatar svg { width: 20px; height: 20px; }
+  .chat-content { max-width: 82%; display: flex; flex-direction: column; }
+  .chat-row.is-patient .chat-content { align-items: flex-start; }
+  .chat-row.is-nurse .chat-content { align-items: flex-end; }
+  .chat-name { font-size: 0.72em; color: var(--text-muted); margin-bottom: 2px; font-family: 'JetBrains Mono', monospace; }
+  .chat-bubble { padding: 10px 14px; font-size: 0.88em; line-height: 1.55; color: var(--text-primary); }
+  .chat-row.is-patient .chat-bubble { background: var(--bg-elevated); border-radius: 2px 12px 12px 12px; }
+  .chat-row.is-nurse .chat-bubble { background: rgba(57,210,192,0.1); border-radius: 12px 2px 12px 12px; }
+  .chat-row.is-nurse .chat-bubble + .chat-bubble { margin-top: 4px; }
+  .chat-meta { font-size: 0.75em; color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
+  .chat-meta .meta-tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 0.9em; margin: 1px 2px 1px 0; }
+  .chat-meta .meta-hiding { background: rgba(248,81,73,0.1); color: var(--accent-red); }
+  .chat-meta .meta-visible { background: rgba(188,140,255,0.1); color: var(--accent-purple); }
+  .chat-meta .meta-newinfo { background: rgba(63,185,80,0.1); color: var(--accent-green); }
+  .chat-assessment { border-top: 1px solid var(--border); margin-top: 12px; padding-top: 10px; }
+  .chat-assessment-card {
+    background: var(--bg-elevated); border-radius: 8px; padding: 10px 14px;
+    border: 1px solid var(--border);
+  }
+  .chat-assessment-card .assess-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+  .chat-assessment-card .assess-summary { font-size: 0.88em; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px; }
+  .chat-assessment-card .assess-actions { display: flex; flex-wrap: wrap; gap: 4px; }
   .severity-badge { display: inline-block; padding: 2px 10px; border-radius: 3px; font-size: 0.78em; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
   .sev-green { background: rgba(63,185,80,0.15); color: var(--accent-green); border: 1px solid rgba(63,185,80,0.3); }
   .sev-yellow { background: rgba(227,179,65,0.15); color: #e3b341; border: 1px solid rgba(227,179,65,0.3); }
@@ -916,7 +947,10 @@
     document.getElementById('ae-timeline').innerHTML = html;
   }
 
-  // ── Care AI Call ──
+  // ── Care AI Call (KakaoTalk style) ──
+  const AVATAR_PATIENT = `<div class="chat-avatar avatar-patient"><svg viewBox="0 0 24 24" fill="none" stroke="#58a6ff" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/></svg></div>`;
+  const AVATAR_NURSE = `<div class="chat-avatar avatar-nurse"><svg viewBox="0 0 24 24" fill="none" stroke="#39d2c0" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M6 21v-2a4 4 0 014-4h4a4 4 0 014 4v2"/><path d="M9 3h6M12 1v4"/></svg></div>`;
+
   function renderCareCall() {
     const el = document.getElementById('care-call-detail');
     if (!el) return;
@@ -927,53 +961,92 @@
     const sevLevel = assessment.severity_level || 'green';
     const sevClass = 'sev-' + sevLevel;
 
-    let html = `<div style="margin-bottom:8px">
+    let html = '<div class="care-chat-container">';
+    html += `<div class="care-chat-header">
       <span class="severity-badge ${sevClass}">${sevLevel.toUpperCase()}</span>
-      <span style="color:var(--text-secondary); margin-left:8px">${assessment.summary || ''}</span>
-      ${cr.terminated_early ? '<span style="color:var(--accent-orange); font-size:0.8em; margin-left:6px">⚡ Early termination</span>' : ''}
+      ${cr.terminated_early ? '<span style="color:var(--accent-orange); font-size:0.78em">Early end</span>' : ''}
     </div>`;
-
     html += '<div class="care-chat">';
+
+    let assessmentHtml = '';
+
     (cr.turns || []).forEach(t => {
       const isP = t.role === 'patient';
-      const cls = isP ? 'chat-patient' : 'chat-nurse';
       const c = t.content || {};
-      let text = '';
-      if (isP && t.turn === 1) {
-        text = c.greeting || '';
-        (c.reported_symptoms || []).forEach(s => { text += `<br>• ${s.symptom || s} <span style="color:var(--text-muted)">(${s.severity_perception || '?'})</span>`; });
-        if ((c.omitted_symptoms||[]).length) text += `<br><span style="color:var(--accent-red);font-size:0.85em">🙈 Hiding: ${c.omitted_symptoms.join(', ')}</span>`;
-        if ((c.video_visible||[]).length) text += `<br><span style="color:var(--accent-purple);font-size:0.85em">👁 Visible: ${c.video_visible.join(', ')}</span>`;
-      } else if (!isP && t.turn === 2) {
-        text = c.acknowledgment || '';
-        (c.questions||[]).forEach(q => { text += `<br><span style="color:var(--accent-blue)">❓</span> ${q.question}`; if(q.target_ae) text += ` <span style="color:var(--text-muted);font-size:0.8em">(→${q.target_ae})</span>`; });
-      } else if (isP && t.turn === 3) {
-        (c.responses||[]).forEach(r => { text += (r.answer || JSON.stringify(r).substring(0,120)) + '<br>'; });
-        if (c.new_info_revealed) text += '<span style="color:var(--accent-green);font-size:0.85em">💡 New info revealed</span>';
-      } else if (!isP && t.turn === 4) {
-        text = (c.assessment||{}).summary || '';
-        (c.actions||[]).forEach(a => { text += `<br><span class="action-tag">${a.action}</span> ${a.reason||''}`; });
+      const rowCls = isP ? 'is-patient' : 'is-nurse';
+      const avatar = isP ? AVATAR_PATIENT : AVATAR_NURSE;
+      const name = isP ? 'Patient' : 'Care AI Nurse';
+
+      if (!isP && t.turn === 4) {
+        const assess = c.assessment || {};
+        const actions = c.actions || [];
+        assessmentHtml += '<div class="chat-assessment"><div class="chat-assessment-card">';
+        assessmentHtml += `<div class="assess-header"><span class="severity-badge ${sevClass}">${sevLevel.toUpperCase()}</span><span style="font-size:0.78em; color:var(--text-muted)">Nurse Assessment</span></div>`;
+        assessmentHtml += `<div class="assess-summary">${assess.summary || assessment.summary || ''}</div>`;
+        if (actions.length) {
+          assessmentHtml += '<div class="assess-actions">';
+          actions.forEach(a => { assessmentHtml += `<span class="action-tag">${a.action}${a.reason ? ' — ' + a.reason : ''}</span>`; });
+          assessmentHtml += '</div>';
+        }
+        assessmentHtml += '</div></div>';
+        return;
       }
-      if (!text) text = JSON.stringify(c).substring(0,250);
-      html += `<div class="chat-bubble ${cls}"><div class="chat-role">${isP?'👤':'🩺'} T${t.turn} ${t.role}</div><div>${text}</div></div>`;
+
+      html += `<div class="chat-row ${rowCls}">${avatar}<div class="chat-content"><div class="chat-name">${name}</div>`;
+
+      if (isP && t.turn === 1) {
+        let mainText = c.greeting || '';
+        if (c.general_wellbeing) mainText += (mainText ? '<br>' : '') + c.general_wellbeing;
+        if (c.reported_symptoms && c.reported_symptoms.length) {
+          mainText += '<br>';
+          c.reported_symptoms.forEach(s => {
+            const sym = s.symptom || s;
+            const sev = s.severity_perception ? ` (${s.severity_perception})` : '';
+            mainText += `<br>• ${sym}${sev}`;
+          });
+        }
+        if (!mainText) mainText = JSON.stringify(c).substring(0, 200);
+        html += `<div class="chat-bubble">${mainText}</div>`;
+        const metaParts = [];
+        if ((c.omitted_symptoms || []).length) metaParts.push(`<span class="meta-tag meta-hiding">Hiding: ${c.omitted_symptoms.join(', ')}</span>`);
+        if ((c.video_visible || []).length) metaParts.push(`<span class="meta-tag meta-visible">Visible: ${c.video_visible.join(', ')}</span>`);
+        if (metaParts.length) html += `<div class="chat-meta">${metaParts.join(' ')}</div>`;
+
+      } else if (!isP && t.turn === 2) {
+        if (c.acknowledgment) html += `<div class="chat-bubble">${c.acknowledgment}</div>`;
+        (c.questions || []).forEach(q => {
+          html += `<div class="chat-bubble">${q.question}${q.target_ae ? ` <span style="color:var(--text-muted); font-size:0.82em">(${q.target_ae})</span>` : ''}</div>`;
+        });
+
+      } else if (isP && t.turn === 3) {
+        let respText = '';
+        (c.responses || []).forEach(r => {
+          const ans = r.answer || JSON.stringify(r).substring(0, 120);
+          respText += (respText ? '<br><br>' : '') + ans;
+        });
+        if (!respText) respText = JSON.stringify(c).substring(0, 200);
+        html += `<div class="chat-bubble">${respText}</div>`;
+        if (c.new_info_revealed) html += `<div class="chat-meta"><span class="meta-tag meta-newinfo">New info revealed</span></div>`;
+
+      } else {
+        html += `<div class="chat-bubble">${JSON.stringify(c).substring(0, 250)}</div>`;
+      }
+
+      html += '</div></div>';
     });
-    html += '</div>';
 
-    // Detection summary
+    // Detection summary inside assessment area
     const det = cr.detection || {};
-    if ((det.aes_detected||[]).length) {
-      html += `<div style="margin-top:8px;font-size:0.85em"><strong style="color:var(--accent-green)">Detected:</strong> ${det.aes_detected.join(', ')}</div>`;
-    }
-    if ((det.early_warning_signs||[]).length) {
-      html += `<div style="font-size:0.85em"><strong style="color:var(--accent-orange)">Early warnings:</strong> ${det.early_warning_signs.join(', ')}</div>`;
+    if ((det.aes_detected||[]).length || (det.early_warning_signs||[]).length) {
+      assessmentHtml += '<div style="margin-top:8px; font-size:0.85em;">';
+      if ((det.aes_detected||[]).length) assessmentHtml += `<div><strong style="color:var(--accent-green)">Detected:</strong> ${det.aes_detected.join(', ')}</div>`;
+      if ((det.early_warning_signs||[]).length) assessmentHtml += `<div><strong style="color:var(--accent-orange)">Early warnings:</strong> ${det.early_warning_signs.join(', ')}</div>`;
+      assessmentHtml += '</div>';
     }
 
-    // Actions
-    if ((cr.actions||[]).length) {
-      html += '<div style="margin-top:6px">';
-      cr.actions.forEach(a => { html += `<span class="action-tag">${a.action}</span> `; });
-      html += '</div>';
-    }
+    html += assessmentHtml;
+    html += '</div>'; // close care-chat
+    html += '</div>'; // close care-chat-container
     el.innerHTML = html;
   }
 
