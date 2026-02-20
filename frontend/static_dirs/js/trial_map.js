@@ -280,8 +280,34 @@ class TrialMap {
       }
     }
 
-    // Roads from Ground layer data — auto-tile with bitmask
+    // Roads from Ground layer data — 9-patch auto-tile with bitmask
     // Bitmask: bit0=UP(1), bit1=RIGHT(2), bit2=DOWN(4), bit3=LEFT(8)
+    // Tileset layout (4x4 = 16 frames):
+    //   TL(0)  T-a(1)  T-b(2)  TR(3)
+    //   L-a(4) C-a(5)  C-b(6)  R-a(7)
+    //   L-b(8) C-c(9)  C-d(10) R-b(11)
+    //   BL(12) B-a(13) B-b(14) BR(15)
+    const roadFrame = (mask, x, y) => {
+      const px = x & 1, py = y & 1;
+      switch (mask) {
+        case  6: return 0;                          // TL corner (RIGHT+DOWN)
+        case 12: return 3;                          // TR corner (DOWN+LEFT)
+        case  3: return 12;                         // BL corner (UP+RIGHT)
+        case  9: return 15;                         // BR corner (UP+LEFT)
+        case 14: return px ? 2 : 1;                 // top edge (R+D+L)
+        case 11: return px ? 14 : 13;               // bottom edge (U+R+L)
+        case  7: return py ? 8 : 4;                 // left edge (U+R+D)
+        case 13: return py ? 11 : 7;                // right edge (U+D+L)
+        case 15: return [5, 6, 9, 10][py * 2 + px]; // center (all)
+        case  5: return py ? 9 : 5;                 // vertical straight (U+D)
+        case 10: return px ? 6 : 5;                 // horizontal straight (R+L)
+        case  4: return px ? 2 : 1;                 // dead-end down → top cap
+        case  1: return px ? 14 : 13;               // dead-end up → bottom cap
+        case  2: return py ? 8 : 4;                 // dead-end right → left cap
+        case  8: return py ? 11 : 7;                // dead-end left → right cap
+        default: return 5;                          // isolated → center fill
+      }
+    };
     const groundLayer = layers['Ground'];
     if (groundLayer) {
       const gData = groundLayer.layer.data;
@@ -297,13 +323,12 @@ class TrialMap {
             this._occupiedTiles.add(`${x},${y}`);
             const rx = x * TILE + TILE / 2;
             const ry = y * TILE + TILE / 2;
-            // Compute 4-bit neighbor bitmask
             let mask = 0;
             if (isRoad(x, y - 1)) mask |= 1;  // up
             if (isRoad(x + 1, y)) mask |= 2;  // right
             if (isRoad(x, y + 1)) mask |= 4;  // down
             if (isRoad(x - 1, y)) mask |= 8;  // left
-            scene.add.image(rx, ry, 'road-autotile', mask).setDepth(0);
+            scene.add.image(rx, ry, 'road-autotile', roadFrame(mask, x, y)).setDepth(0);
           }
         }
       }
