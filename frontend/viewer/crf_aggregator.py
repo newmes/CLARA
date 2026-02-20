@@ -20,8 +20,8 @@ LAB_ABBREVIATIONS: dict[str, str] = {
     "total_bilirubin": "Bilirubin",
     "bilirubin": "Bilirubin",
     "glucose_fasting": "Glucose (fasting)",
-    "weight_kg": "Weight",
-    "height_cm": "Height",
+    "weight_kg": "Weight (lbs)",
+    "height_cm": "Height (in)",
 }
 
 
@@ -29,6 +29,29 @@ def _lab_display_name(raw_name: str) -> str:
     """Return human-friendly lab test name."""
     return LAB_ABBREVIATIONS.get(raw_name, raw_name.replace("_", " ").title()
                                   if "_" in raw_name else raw_name)
+
+
+# ─── Unit conversions (metric → US) ──────────────────────────────────
+
+def _c_to_f(val):
+    """Celsius → Fahrenheit."""
+    if val is None or not isinstance(val, (int, float)):
+        return val
+    return round(val * 9 / 5 + 32, 1)
+
+
+def _kg_to_lbs(val):
+    """Kilograms → Pounds."""
+    if val is None or not isinstance(val, (int, float)):
+        return val
+    return round(val * 2.20462, 1)
+
+
+def _cm_to_in(val):
+    """Centimeters → Inches."""
+    if val is None or not isinstance(val, (int, float)):
+        return val
+    return round(val / 2.54, 1)
 
 
 # ─── Column definitions per domain ─────────────────────────────────────
@@ -155,10 +178,10 @@ VS_COLUMNS = [
     {"key": "SYSBP", "label": "SBP (mmHg)"},
     {"key": "DIABP", "label": "DBP (mmHg)"},
     {"key": "PULSE", "label": "HR (bpm)"},
-    {"key": "TEMP", "label": "Temp (C)"},
+    {"key": "TEMP", "label": "Temp (°F)"},
     {"key": "RESP", "label": "RR (/min)"},
-    {"key": "HEIGHT", "label": "Height"},
-    {"key": "WEIGHT", "label": "Weight (kg)"},
+    {"key": "HEIGHT", "label": "Height (in)"},
+    {"key": "WEIGHT", "label": "Weight (lbs)"},
     {"key": "SpO2", "label": "SpO2 (%)"},
 ]
 
@@ -747,10 +770,10 @@ def aggregate_vs(
                 "SYSBP": vs.get("SYSBP_VSORRES"),
                 "DIABP": vs.get("DIABP_VSORRES"),
                 "PULSE": vs.get("PULSE_VSORRES"),
-                "TEMP": vs.get("TEMP_VSORRES"),
+                "TEMP": _c_to_f(vs.get("TEMP_VSORRES")),
                 "RESP": vs.get("RESP_VSORRES"),
-                "HEIGHT": vs.get("HEIGHT_VSORRES"),
-                "WEIGHT": vs.get("WEIGHT_VSORRES"),
+                "HEIGHT": _cm_to_in(vs.get("HEIGHT_VSORRES")),
+                "WEIGHT": _kg_to_lbs(vs.get("WEIGHT_VSORRES")),
                 "SpO2": vs.get("_SpO2") or vs.get("OXYSAT_VSORRES"),
             })
     page_rows, total = _paginate(rows, page, per_page)
@@ -799,16 +822,16 @@ def _aggregate_vs_hr(
                     "DIABP_VSORRESU": vs.get("DIABP_VSORRESU"),
                     "PULSE_VSORRES": pulse,
                     "PULSE_VSORRESU": vs.get("PULSE_VSORRESU"),
-                    "TEMP_VSORRES": temp,
-                    "TEMP_VSORRESU": vs.get("TEMP_VSORRESU"),
+                    "TEMP_VSORRES": _c_to_f(temp),
+                    "TEMP_VSORRESU": "°F",
                     "RESP_VSORRES": resp,
                     "RESP_VSORRESU": vs.get("RESP_VSORRESU"),
                     "OXYSAT_VSORRES": spo2,
                     "_SpO2_unit": vs.get("_SpO2_unit"),
-                    "HEIGHT_VSORRES": height,
-                    "HEIGHT_VSORRESU": vs.get("HEIGHT_VSORRESU"),
-                    "WEIGHT_VSORRES": weight,
-                    "WEIGHT_VSORRESU": vs.get("WEIGHT_VSORRESU"),
+                    "HEIGHT_VSORRES": _cm_to_in(height),
+                    "HEIGHT_VSORRESU": "in",
+                    "WEIGHT_VSORRES": _kg_to_lbs(weight),
+                    "WEIGHT_VSORRESU": "lbs",
                     "BP_VSPOS": vs.get("BP_VSPOS"),
                     "BP_VSLOC": vs.get("BP_VSLOC"),
                     "PULSE_VSLOC": vs.get("PULSE_VSLOC"),
@@ -818,10 +841,10 @@ def _aggregate_vs_hr(
                     "SBP": sysbp,
                     "DBP": diabp,
                     "HR": pulse,
-                    "BT": temp,
+                    "BT": _c_to_f(temp),
                     "RR": resp,
-                    "height_cm": height,
-                    "weight_kg": weight,
+                    "height_cm": _cm_to_in(height),
+                    "weight_kg": _kg_to_lbs(weight),
                     "SpO2": spo2,
                     "stale_days": 0 if vs.get("VSPERF") else None,
                 })
@@ -854,16 +877,16 @@ def _aggregate_vs_hr(
                     "DIABP_VSORRESU": None,
                     "PULSE_VSORRES": pulse,
                     "PULSE_VSORRESU": None,
-                    "TEMP_VSORRES": temp,
-                    "TEMP_VSORRESU": None,
+                    "TEMP_VSORRES": _c_to_f(temp),
+                    "TEMP_VSORRESU": "°F",
                     "RESP_VSORRES": resp,
                     "RESP_VSORRESU": None,
                     "OXYSAT_VSORRES": spo2,
                     "_SpO2_unit": None,
-                    "HEIGHT_VSORRES": height,
-                    "HEIGHT_VSORRESU": None,
-                    "WEIGHT_VSORRES": weight,
-                    "WEIGHT_VSORRESU": None,
+                    "HEIGHT_VSORRES": _cm_to_in(height),
+                    "HEIGHT_VSORRESU": "in",
+                    "WEIGHT_VSORRES": _kg_to_lbs(weight),
+                    "WEIGHT_VSORRESU": "lbs",
                     "BP_VSPOS": None,
                     "BP_VSLOC": None,
                     "PULSE_VSLOC": None,
@@ -873,10 +896,10 @@ def _aggregate_vs_hr(
                     "SBP": sysbp,
                     "DBP": diabp,
                     "HR": pulse,
-                    "BT": temp,
+                    "BT": _c_to_f(temp),
                     "RR": resp,
-                    "height_cm": height,
-                    "weight_kg": weight,
+                    "height_cm": _cm_to_in(height),
+                    "weight_kg": _kg_to_lbs(weight),
                     "SpO2": spo2,
                     "stale_days": stale,
                 })

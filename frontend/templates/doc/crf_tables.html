@@ -735,7 +735,7 @@
         } else if (isGrade && typeof val === 'number') {
           val = `<span class="grade-badge grade-${val}">G${val}</span>`;
         } else if (typeof val === 'boolean') {
-          val = val ? 'Yes' : 'No';
+          val = val ? 'Yes' : '<span style="color:var(--text-muted);">—</span>';
         }
         html += `<td${cls}>${val}</td>`;
       }
@@ -776,7 +776,7 @@
     absolute_neutrophil_count: 'ANC', alanine_aminotransferase: 'ALT',
     aspartate_aminotransferase: 'AST', total_bilirubin: 'Bilirubin',
     bilirubin: 'Bilirubin', glucose_fasting: 'Glucose (fasting)',
-    weight_kg: 'Weight', height_cm: 'Height',
+    weight_kg: 'Weight (lbs)', height_cm: 'Height (in)',
   };
   function labDisplayName(raw) { return LAB_ABBR[raw] || (raw.includes('_') ? raw.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) : raw); }
   let _lbCache = {};
@@ -1192,10 +1192,10 @@
     SBP:  { label: 'SBP (Systolic BP)',  unit: 'mmHg', lo: 90,   hi: 140,  key: 'SBP' },
     DBP:  { label: 'DBP (Diastolic BP)', unit: 'mmHg', lo: 60,   hi: 90,   key: 'DBP' },
     HR:   { label: 'HR (Heart Rate)',     unit: 'bpm',  lo: 60,   hi: 100,  key: 'HR' },
-    BT:   { label: 'Temp (Body Temp)',    unit: '°C',   lo: 36.1, hi: 37.2, key: 'BT' },
+    BT:   { label: 'Temp (Body Temp)',    unit: '°F',   lo: 97.0, hi: 99.0, key: 'BT' },
     RR:   { label: 'RR (Respiratory)',    unit: '/min', lo: 12,   hi: 20,   key: 'RR' },
     SpO2: { label: 'SpO2 (O₂ Sat)',      unit: '%',    lo: 95,   hi: 100,  key: 'SpO2' },
-    weight_kg: { label: 'Weight',         unit: 'kg',   lo: null, hi: null, key: 'weight_kg' },
+    weight_kg: { label: 'Weight',         unit: 'lbs',  lo: null, hi: null, key: 'weight_kg' },
   };
   let _vsCache = {};
   let _vsChartState = { points: [], positions: [] };
@@ -1248,15 +1248,17 @@
           points.push({ day: dayNum, dayDate, value: val, stale, observed });
         }
       }
-      _vsChartState.points = points;
+      // Only plot actually measured data (exclude carry-forward / stale)
+      const observed = points.filter(p => p.observed);
+      _vsChartState.points = observed;
 
       document.getElementById('vsChartTitle').textContent = `${pid} — ${cfg.label}`;
       document.getElementById('vsChartSubtitle').textContent =
         (cfg.lo != null && cfg.hi != null) ? `Normal range: ${cfg.lo}–${cfg.hi} ${cfg.unit}` : cfg.unit;
 
       requestAnimationFrame(() => {
-        renderVsCanvas(points, cfg);
-        renderVsSidePanel(points, cfg);
+        renderVsCanvas(observed, cfg);
+        renderVsSidePanel(observed, cfg);
       });
     }
 
@@ -1343,14 +1345,11 @@
       ctx.fillRect(PAD.left, yHigh, plotW, yLow - yHigh);
     }
 
-    // Line segments with color coding + dashed for stale gaps
+    // Line segments with color coding (observed data only)
     const pxPts = points.map(p => ({ x: xPos(p.day), y: yPos(p.value) }));
     const hasRange = cfg.lo != null && cfg.hi != null;
     for (let i = 0; i < pxPts.length - 1; i++) {
       const p1 = pxPts[i], p2 = pxPts[i + 1];
-      const segStale = points[i + 1].stale;
-      ctx.setLineDash(segStale ? [4, 4] : []);
-      ctx.globalAlpha = segStale ? 0.45 : 1;
       for (let s = 0; s < 30; s++) {
         const t1 = s / 30, t2 = (s + 1) / 30;
         const x1 = p1.x + (p2.x - p1.x) * t1, y1 = p1.y + (p2.y - p1.y) * t1;
@@ -1364,9 +1363,8 @@
         ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
       }
     }
-    ctx.setLineDash([]); ctx.globalAlpha = 1;
 
-    // Dots: filled circle on observation days, hollow ring on stale days
+    // Dots: filled circle for each measurement
     const positions = [];
     for (let i = 0; i < points.length; i++) {
       const p = points[i], x = pxPts[i].x, y = pxPts[i].y;
@@ -1376,12 +1374,9 @@
       } else {
         dotColor = COLOR_OK;
       }
-      if (p.observed) {
-        // Filled dot for actual measurement
-        ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2);
-        ctx.fillStyle = dotColor; ctx.fill();
-        ctx.strokeStyle = '#0d1117'; ctx.lineWidth = 1.5; ctx.stroke();
-      }
+      ctx.beginPath(); ctx.arc(x, y, 4, 0, Math.PI * 2);
+      ctx.fillStyle = dotColor; ctx.fill();
+      ctx.strokeStyle = '#0d1117'; ctx.lineWidth = 1.5; ctx.stroke();
       positions.push({ x, y, point: p, radius: 12 });
     }
     _vsChartState.positions = positions;
@@ -1439,13 +1434,10 @@
         ttVal.style.color = color;
         document.getElementById('vsTtUnit').textContent = cfg ? cfg.unit : '';
         const outOfRange = hasRange && (p.value > cfg.hi || p.value < cfg.lo);
-        const staleTag = p.stale
-          ? ' <span style="padding:2px 5px;border-radius:3px;font-size:9px;background:#484f5844;color:#8b949e;">stale</span>'
-          : '';
         const csH = outOfRange
           ? '<span style="padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;background:#f8514933;color:#f85149;">Abnormal</span>'
           : '<span style="padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;background:#7ee78722;color:#7ee787;">Normal</span>';
-        document.getElementById('vsTtCs').innerHTML = csH + staleTag;
+        document.getElementById('vsTtCs').innerHTML = csH;
         canvas.style.cursor = 'crosshair';
       } else {
         tip.style.display = 'none';
