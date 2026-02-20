@@ -622,15 +622,35 @@
   .ae-list .ae-dur { color: var(--text-muted); font-size: 0.88em; margin-left: auto; }
 
   /* Lab/vitals grid */
-  .lab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 6px; }
+  .lab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 5px; }
   .lab-item {
-    background: var(--bg-elevated); border-radius: 5px; padding: 7px 10px;
-    display: flex; flex-direction: column; gap: 2px;
+    background: var(--bg-elevated); border-radius: 6px; padding: 8px 10px 7px;
+    display: flex; flex-direction: column; gap: 3px; position: relative;
+    border-left: 3px solid transparent;
   }
-  .lab-item .lab-name { color: var(--text-muted); font-size: 0.82em; line-height: 1.2; text-transform: uppercase; letter-spacing: 0.3px; }
+  .lab-item.lab-ok { border-left-color: #2ea04366; }
+  .lab-item.lab-high { border-left-color: #f85149; background: rgba(248,81,73,0.04); }
+  .lab-item.lab-low { border-left-color: #58a6ff; background: rgba(88,166,255,0.04); }
+  .lab-item .lab-name { color: var(--text-muted); font-size: 0.72em; line-height: 1.2; text-transform: uppercase; letter-spacing: 0.3px; }
+  .lab-item .lab-val-row { display: flex; align-items: baseline; gap: 4px; }
   .lab-item .lab-val {
-    font: 600 1em 'JetBrains Mono', monospace; color: var(--text-primary);
+    font: 600 1.05em 'JetBrains Mono', monospace; color: var(--text-primary);
   }
+  .lab-item.lab-high .lab-val { color: #f85149; }
+  .lab-item.lab-low .lab-val { color: #58a6ff; }
+  .lab-item .lab-unit { font-size: 0.68em; color: var(--text-muted); }
+  .lab-item .lab-range-bar {
+    height: 3px; border-radius: 2px; background: rgba(255,255,255,0.06); position: relative; margin-top: 1px;
+  }
+  .lab-item .lab-range-fill {
+    position: absolute; top: 0; height: 100%; border-radius: 2px; background: #2ea04366;
+    min-width: 2px;
+  }
+  .lab-item.lab-high .lab-range-fill { background: #f85149; }
+  .lab-item.lab-low .lab-range-fill { background: #58a6ff; }
+  .lab-item .lab-flag { position: absolute; top: 5px; right: 7px; font-size: 0.6em; font-weight: 700; letter-spacing: 0.5px; }
+  .lab-flag-h { color: #f85149; }
+  .lab-flag-l { color: #58a6ff; }
 
   /* Full record link */
   .full-record-link {
@@ -1202,6 +1222,12 @@
 <script>
 (function() {
   const RUN_ID = "{{ run_id }}";
+  const LAB_RANGES = JSON.parse('{{ lab_ranges_json|escapejs }}' || '{}');
+  const VITALS_RANGES = {
+    temp: {unit:'°C', min:36.1, max:37.2}, hr: {unit:'bpm', min:60, max:100},
+    spo2: {unit:'%', min:95, max:100}, rr: {unit:'/min', min:12, max:20},
+    sbp: {unit:'mmHg', min:90, max:140}, dbp: {unit:'mmHg', min:60, max:90}
+  };
   const TOTAL_DAYS = {{ total_days }};
   const CYCLE_LENGTH = {{ cycle_length }};
   let currentDay = {{ day }};
@@ -1970,13 +1996,13 @@
       }
     }
 
-    // ── Labs ──
+    // ── Labs (color-coded with ranges) ──
     const labGrid = document.getElementById('detail-labs');
     let labs;
     if (viewMode === 'hr' && hrObj.labs) {
       labs = {};
       for (const [n, info] of Object.entries(hrObj.labs)) {
-        const val = typeof info === 'object' ? (info.value ?? '—') : info;
+        const val = typeof info === 'object' ? (info.value ?? null) : info;
         const trend = typeof info === 'object' ? (info.trend || '') : '';
         labs[n] = {val, trend};
       }
@@ -1992,35 +2018,62 @@
       labHtml += `<div style="grid-column:1/-1;font-size:0.72em;color:#d29922;margin-bottom:4px;">Labs ${staleDays}d old</div>`;
     }
     labHtml += Object.entries(labs).map(([n, o]) => {
-      const tIcon = o.trend.includes('decrease') ? '↓' : o.trend.includes('increase') ? '↑' : '';
-      const tColor = o.trend.includes('decrease') ? '#3498db' : o.trend.includes('increase') ? '#e74c3c' : '';
-      const tHtml = tIcon ? `<span style="font-size:0.78em;color:${tColor};margin-left:3px;">${tIcon}</span>` : '';
-      return `<div class="lab-item"><span class="lab-name">${n}</span><span class="lab-val">${o.val !== null ? o.val : '—'}${tHtml}</span></div>`;
+      const ref = LAB_RANGES[n];
+      const v = o.val;
+      const isNum = typeof v === 'number';
+      let cls = 'lab-ok', flag = '', barPct = 50;
+      let unit = ref?.unit || '';
+      const lo = ref?.normal_range?.min ?? ref?.LLN;
+      const hi = ref?.normal_range?.max ?? ref?.ULN;
+      if (isNum && lo != null && hi != null) {
+        if (v > hi) { cls = 'lab-high'; flag = '<span class="lab-flag lab-flag-h">H</span>'; }
+        else if (v < lo) { cls = 'lab-low'; flag = '<span class="lab-flag lab-flag-l">L</span>'; }
+        const span = (hi - lo) * 0.4;
+        barPct = Math.max(2, Math.min(100, ((v - (lo - span)) / ((hi + span) - (lo - span))) * 100));
+      }
+      const tIcon = o.trend.includes('decrease') ? ' ↓' : o.trend.includes('increase') ? ' ↑' : '';
+      const displayVal = v !== null ? v : '—';
+      const unitHtml = unit ? `<span class="lab-unit">${unit}</span>` : '';
+      const barHtml = (isNum && lo != null) ? `<div class="lab-range-bar"><div class="lab-range-fill" style="width:${barPct}%"></div></div>` : '';
+      return `<div class="lab-item ${cls}">${flag}<span class="lab-name">${n}</span><div class="lab-val-row"><span class="lab-val">${displayVal}${tIcon}</span>${unitHtml}</div>${barHtml}</div>`;
     }).join('');
     labGrid.innerHTML = labHtml || '<div style="color:var(--text-muted);font-size:0.82em;">No labs</div>';
 
-    // ── Vitals ──
+    // ── Vitals (color-coded) ──
     const vitalGrid = document.getElementById('detail-vitals');
-    let vitals;
+    let rawVitals;
     if (viewMode === 'hr' && hrObj.vitals) {
       const hv = hrObj.vitals;
-      vitals = { temp: hv.BT, bp: `${hv.SBP ?? '?'}/${hv.DBP ?? '?'}`, hr: hv.HR, spo2: hv.SpO2, rr: hv.RR, weight: hv.weight_kg };
+      rawVitals = { temp: hv.BT, sbp: hv.SBP, dbp: hv.DBP, hr: hv.HR, spo2: hv.SpO2, rr: hv.RR, weight: hv.weight_kg };
     } else {
-      vitals = p.vitals || {};
+      const pv = p.vitals || {};
+      rawVitals = { temp: pv.temp, sbp: pv.sbp, dbp: pv.dbp, hr: pv.hr, spo2: pv.spo2, rr: pv.rr, weight: pv.weight };
+    }
+    function vitalItem(label, val, key) {
+      const ref = VITALS_RANGES[key];
+      let cls = 'lab-ok', flag = '';
+      if (ref && typeof val === 'number') {
+        if (val > ref.max) { cls = 'lab-high'; flag = '<span class="lab-flag lab-flag-h">H</span>'; }
+        else if (val < ref.min) { cls = 'lab-low'; flag = '<span class="lab-flag lab-flag-l">L</span>'; }
+      }
+      const unit = ref?.unit || '';
+      const display = val != null ? val : '—';
+      return `<div class="lab-item ${cls}">${flag}<span class="lab-name">${label}</span><div class="lab-val-row"><span class="lab-val">${display}</span><span class="lab-unit">${unit}</span></div></div>`;
     }
     const vSD = viewMode === 'hr' ? (hrObj.vitals_stale_days || 0) : 0;
     let vHtml = '';
     if (vSD > 0) {
-      vHtml += `<div style="grid-column:1/-1;font-size:0.72em;color:#d29922;margin-bottom:4px;">⚠ Vitals ${vSD}d old</div>`;
+      vHtml += `<div style="grid-column:1/-1;font-size:0.72em;color:#d29922;margin-bottom:4px;">Vitals ${vSD}d old</div>`;
     }
-    vHtml += `
-      <div class="lab-item"><span class="lab-name">Temp</span><span class="lab-val">${vitals.temp || '—'}°C</span></div>
-      <div class="lab-item"><span class="lab-name">BP</span><span class="lab-val">${vitals.bp || '—'}</span></div>
-      <div class="lab-item"><span class="lab-name">HR</span><span class="lab-val">${vitals.hr || '—'} bpm</span></div>
-      <div class="lab-item"><span class="lab-name">SpO2</span><span class="lab-val">${vitals.spo2 || '—'}%</span></div>
-      <div class="lab-item"><span class="lab-name">RR</span><span class="lab-val">${vitals.rr || '—'}/min</span></div>
-      <div class="lab-item"><span class="lab-name">Weight</span><span class="lab-val">${vitals.weight || '—'} kg</span></div>
-    `;
+    const bpVal = (rawVitals.sbp != null && rawVitals.dbp != null) ? `${rawVitals.sbp}/${rawVitals.dbp}` : '—';
+    const bpCls = (rawVitals.sbp > 140 || rawVitals.dbp > 90) ? 'lab-high' : (rawVitals.sbp != null && rawVitals.sbp < 90) ? 'lab-low' : 'lab-ok';
+    const bpFlag = bpCls === 'lab-high' ? '<span class="lab-flag lab-flag-h">H</span>' : bpCls === 'lab-low' ? '<span class="lab-flag lab-flag-l">L</span>' : '';
+    vHtml += vitalItem('Temp', rawVitals.temp, 'temp');
+    vHtml += `<div class="lab-item ${bpCls}">${bpFlag}<span class="lab-name">BP</span><div class="lab-val-row"><span class="lab-val">${bpVal}</span><span class="lab-unit">mmHg</span></div></div>`;
+    vHtml += vitalItem('HR', rawVitals.hr, 'hr');
+    vHtml += vitalItem('SpO2', rawVitals.spo2, 'spo2');
+    vHtml += vitalItem('RR', rawVitals.rr, 'rr');
+    vHtml += `<div class="lab-item lab-ok"><span class="lab-name">Weight</span><div class="lab-val-row"><span class="lab-val">${rawVitals.weight || '—'}</span><span class="lab-unit">kg</span></div></div>`;
     vitalGrid.innerHTML = vHtml;
 
     // ── Subjective ──

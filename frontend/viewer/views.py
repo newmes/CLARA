@@ -703,6 +703,7 @@ def trial_viewer(request, run_id: str, day: int = 1):
         "patient_ids_json": json.dumps(patient_ids),
         "is_live": is_live,
         "model_name": _load_run_meta(run_path).get("model", ""),
+        "lab_ranges_json": json.dumps(rule_set.get("lab_reference_ranges", {})),
     }
     return render(request, "trial/trial.html", context)
 
@@ -1133,7 +1134,8 @@ def api_patient_timeline(request, run_id: str, patient_id: str):
     if not run_path.exists():
         return JsonResponse({"error": "not found"}, status=404)
 
-    all_days = _load_all_days_for_patient(run_path, patient_id)
+    mode = request.GET.get("mode", "natural")
+    all_days = _load_all_days_for_patient(run_path, patient_id, mode)
     profile = _load_patient_profile(run_path, patient_id)
 
     return JsonResponse({
@@ -2661,6 +2663,7 @@ def crf_tables(request, run_id: str):
         except Exception:
             pass
 
+    rule_set = _load_rule_set(run_path)
     context = {
         "run_id": run_id,
         "patient_ids": patient_ids,
@@ -2670,6 +2673,7 @@ def crf_tables(request, run_id: str):
         "indication": indication,
         "domain_labels_json": json.dumps(DOMAIN_LABELS),
         "model_name": _load_run_meta(run_path).get("model", ""),
+        "lab_ranges_json": json.dumps(rule_set.get("lab_reference_ranges", {})),
     }
     return render(request, "doc/crf_tables.html", context)
 

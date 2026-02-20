@@ -894,6 +894,8 @@ class TrialMap {
     patients.forEach((p, i) => {
       const loc = (p.location || '').toUpperCase();
       if (loc === 'DECEASED') return;
+      const ds = (p.disposition || p.DS?.DSDECOD || '').toUpperCase();
+      if (ds.includes('DEATH') || ds.includes('DECEASED') || ds.includes('DIED')) return;
       const text = _buildBubbleText(p);
       if (text) {
         const maxGrade = Math.max(...(p.active_aes || []).map(ae => ae.grade || 0));
