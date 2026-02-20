@@ -1459,13 +1459,15 @@
 
   // ── View Tab Switching ──
   document.querySelectorAll('#view-tabs button').forEach(tab => {
-    tab.addEventListener('click', function() {
-      const targetId = this.dataset.view;
+    tab.addEventListener('click', function(e) {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const targetId = btn.dataset.view;
       document.querySelectorAll('#view-tabs button').forEach(t => {
         t.classList.remove('active-cyan');
       });
       document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
-      this.classList.add('active-cyan');
+      btn.classList.add('active-cyan');
       document.getElementById(targetId).classList.add('active');
     });
   });
@@ -1997,8 +1999,10 @@
 
   // ── Mode Toggle ──
   document.querySelectorAll('#mode-toggle button').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const newMode = this.dataset.mode;
+    btn.addEventListener('click', function(e) {
+      const b = e.target.closest('button');
+      if (!b) return;
+      const newMode = b.dataset.mode;
       if (newMode === currentMode) return;
       currentMode = newMode;
       const url = new URL(window.location);
@@ -2009,14 +2013,16 @@
 
   // ── Global View Toggle (GT vs Hospital Record) ──
   document.querySelectorAll('#view-toggle button').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const newView = this.dataset.view;
+    btn.addEventListener('click', function(e) {
+      const clicked = e.target.closest('button');
+      if (!clicked) return;
+      const newView = clicked.dataset.view;
       if (newView === currentView) return;
       currentView = newView;
       document.querySelectorAll('#view-toggle button').forEach(b => {
         b.classList.remove('active-amber', 'active-cyan');
       });
-      this.classList.add(newView === 'hr' ? 'active-amber' : 'active-cyan');
+      clicked.classList.add(newView === 'hr' ? 'active-amber' : 'active-cyan');
       const url = new URL(window.location);
       url.searchParams.set('view', newView);
       history.replaceState(null, '', url.toString());
