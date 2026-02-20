@@ -375,14 +375,14 @@ class TrialMap {
         }
       } else {
         px = home.x * TILE + TILE / 2;
-        py = home.y * TILE + TILE / 2;
+        py = home.y * TILE - 16;  // inside house (image extends upward)
       }
 
       const sprite = scene.add.sprite(px, py, spriteKey, 1);
       sprite.setScale(0.5);
       sprite.setDepth(10);
       if (hidden) { sprite.setVisible(false); }
-      else if (isHosp) { sprite.setAlpha(0.7); }
+      else { sprite.setAlpha(0.7); }  // translucent inside building (hospital or home)
       sprite.setInteractive({ useHandCursor: true });
       sprite.on('pointerdown', () => {
         if (this.onPatientClick) this.onPatientClick(p.patient_id);
@@ -404,7 +404,7 @@ class TrialMap {
 
       const homeWpId = this.homePositions[i]?.waypoint_id || null;
       sprite.setData('homeX', home.x * TILE + TILE / 2);
-      sprite.setData('homeY', home.y * TILE + TILE / 2);
+      sprite.setData('homeY', home.y * TILE - 16);
       sprite.setData('homeWpId', homeWpId);
       sprite.setData('spriteKey', spriteKey);
       sprite.setData('patientIdx', i);
@@ -519,7 +519,7 @@ class TrialMap {
         }
       } else {
         tx = home.x * TILE + TILE / 2;
-        ty = home.y * TILE + TILE / 2;
+        ty = home.y * TILE - 16;  // inside house
       }
 
       // Visibility: hide overflow hospital patients, show everyone else
@@ -529,8 +529,8 @@ class TrialMap {
       if (label) label.setVisible(!hidden);
       if (dot) dot.setVisible(!hidden);
 
-      // Opacity: translucent inside hospital, opaque at home
-      sprite.setAlpha(hidden ? 0 : isHosp ? 0.7 : 1.0);
+      // Opacity: translucent inside any building (hospital or home)
+      sprite.setAlpha(hidden ? 0 : 0.7);
 
       const dx = tx - sprite.x;
       const dy = ty - sprite.y;
@@ -542,9 +542,9 @@ class TrialMap {
 
         let animDur = 0;
         if (path.length >= 2) {
-          animDur = this._walkAlongPath(sprite, p.patient_id, path, tx, ty, spriteKey, !isHosp);
+          animDur = this._walkAlongPath(sprite, p.patient_id, path, tx, ty, spriteKey, true);
         } else {
-          animDur = this._directTween(sprite, p.patient_id, tx, ty, spriteKey, dist, !isHosp);
+          animDur = this._directTween(sprite, p.patient_id, tx, ty, spriteKey, dist, true);
         }
         if (animDur > maxAnimDuration) maxAnimDuration = animDur;
         sprite.setData('currentWpId', targetWpId);
