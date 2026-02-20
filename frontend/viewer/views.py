@@ -1667,8 +1667,34 @@ def api_sim_start(request):
     except Exception:
         return JsonResponse({"error": "Invalid JSON body"}, status=400)
 
-    drug = body.get("drug", "Padcev + Pembrolizumab")
-    indication = body.get("indication", "metastatic urothelial carcinoma")
+    DRUG_PRESETS = {
+        "padcev_pembro": {
+            "drug": "Padcev + Pembrolizumab",
+            "indication": "metastatic urothelial carcinoma",
+            "rule_set": None,
+        },
+        "darbepoetin": {
+            "drug": "Darbepoetin alfa",
+            "indication": "Small Cell Lung Cancer (SCLC), Extensive Stage",
+            "rule_set": "rule_set_darbepoetin_sclc.json",
+        },
+        "ep_sclc": {
+            "drug": "Etoposide + Cisplatin",
+            "indication": "extensive-stage small cell lung cancer (ES-SCLC)",
+            "rule_set": "rule_set_ep_sclc.json",
+        },
+    }
+    drug_preset = body.get("drug_preset", body.get("drug", "padcev_pembro"))
+    preset = DRUG_PRESETS.get(drug_preset)
+    if preset:
+        drug = preset["drug"]
+        indication = preset["indication"]
+        rule_set_file = preset["rule_set"]
+    else:
+        drug = body.get("drug", "Padcev + Pembrolizumab")
+        indication = body.get("indication", "metastatic urothelial carcinoma")
+        rule_set_file = None
+
     n_patients = int(body.get("patients", 10))
     n_days = int(body.get("days", 126))
     mode = body.get("mode", "both")
@@ -1710,10 +1736,13 @@ def api_sim_start(request):
 
             # Phase 0: Rules
             if skip_rules:
-                base_rule_path = DATA_DIR / "rule_set.json"
-                calibrated = DATA_DIR / "rule_set_calibrated_ev302.json"
-                if calibrated.exists():
-                    base_rule_path = calibrated
+                if rule_set_file:
+                    base_rule_path = DATA_DIR / rule_set_file
+                else:
+                    base_rule_path = DATA_DIR / "rule_set.json"
+                    calibrated = DATA_DIR / "rule_set_calibrated_ev302.json"
+                    if calibrated.exists():
+                        base_rule_path = calibrated
                 runner.load_rules(str(base_rule_path))
                 import shutil
                 shutil.copy2(base_rule_path, run_dir / "rule_set.json")
@@ -2824,3 +2853,123 @@ def api_crf_excel_download(request, run_id: str):
     )
     response["Content-Disposition"] = f'attachment; filename="CRF_{run_id}_{source}.xlsx"'
     return response
+
+
+# ─── Multimodal Enhance API ──────────────────────────────────
+
+_mm_bridges: dict[str, object] = {}
+
+
+@csrf_exempt
+@require_POST
+def api_multimodal_enhance(request):
+    """Generate face image + voice audio for a care_record turn on demand.
+
+    POST JSON: {run_id, patient_id, day, turn_index (0-based, patient turns only)}
+    Returns:   {face_b64, audio_b64, mm_meta} or {error}
+    """
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    run_id = body.get("run_id", "")
+    patient_id = body.get("patient_id", "")
+    day = int(body.get("day", 0))
+    turn_index = int(body.get("turn_index", 0))
+
+    if not run_id or not patient_id or day < 1:
+        return JsonResponse({"error": "run_id, patient_id, day required"}, status=400)
+
+    run_path = _get_run_path(run_id)
+    if not run_path:
+        return JsonResponse({"error": f"Run not found: {run_id}"}, status=404)
+
+    # Load patient profile
+    patient_file = run_path / "patients" / f"{patient_id}.json"
+    if not patient_file.exists():
+        return JsonResponse({"error": f"Patient not found: {patient_id}"}, status=404)
+
+    with open(patient_file) as f:
+        patient_json = json.load(f)
+
+    # Load day data from care_ai JSONL
+    sim_dir = run_path / "simulations"
+    care_file = sim_dir / f"{patient_id}_care_ai.jsonl"
+    if not care_file.exists():
+        return JsonResponse({"error": "No care_ai data for this patient"}, status=404)
+
+    day_data = None
+    with open(care_file) as f:
+        for line in f:
+            d = json.loads(line)
+            if d.get("day") == day:
+                day_data = d
+                break
+
+    if not day_data:
+        return JsonResponse({"error": f"Day {day} not found"}, status=404)
+
+    care_records = day_data.get("care_record", [])
+    if not care_records:
+        return JsonResponse({"error": "No care_record for this day"}, status=404)
+
+    cr = care_records[0] if isinstance(care_records, list) else care_records
+    turns = cr.get("turns", [])
+
+    patient_turns = [t for t in turns if t.get("role") == "patient"]
+    if turn_index >= len(patient_turns):
+        return JsonResponse({"error": f"turn_index {turn_index} out of range"}, status=400)
+
+    # Extract text from patient turn
+    turn = patient_turns[turn_index]
+    content = turn.get("content", {})
+    text_parts = []
+    if isinstance(content, str):
+        text_parts.append(content)
+    else:
+        if g := content.get("greeting"):
+            text_parts.append(g)
+        if wb := content.get("general_wellbeing"):
+            text_parts.append(wb)
+        for sym in content.get("reported_symptoms", []):
+            if isinstance(sym, dict) and sym.get("verbal_expression"):
+                text_parts.append(sym["verbal_expression"])
+        for resp in content.get("responses", []):
+            if a := resp.get("answer"):
+                text_parts.append(a)
+    text = " ".join(text_parts) if text_parts else "I'm not feeling great today."
+
+    active_aes = day_data.get("AE", [])
+    mood_snapshot = cr.get("mood_snapshot", {})
+
+    # Get or create bridge (cached per patient within run)
+    bridge_key = f"{run_id}:{patient_id}"
+    try:
+        from src.multimodal.game_bridge import MultimodalGameBridge
+
+        if bridge_key not in _mm_bridges:
+            _mm_bridges[bridge_key] = MultimodalGameBridge(patient_json, enabled=True)
+
+        bridge = _mm_bridges[bridge_key]
+        media = bridge.generate_turn_media(
+            text=text,
+            active_aes=active_aes,
+            day=day,
+            mood_snapshot=mood_snapshot,
+        )
+        return JsonResponse({
+            "face_b64": media.get("face_b64"),
+            "audio_b64": media.get("audio_b64"),
+            "mm_meta": media.get("mm_meta", {}),
+            "text": text,
+            "day": day,
+            "patient_id": patient_id,
+        })
+
+    except ImportError as e:
+        return JsonResponse({"error": f"Multimodal module not available: {e}"}, status=500)
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return JsonResponse({"error": f"Generation failed: {e}"}, status=500)

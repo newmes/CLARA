@@ -93,7 +93,9 @@ def main():
     parser.add_argument("--patients-only", action="store_true",
                         help="Only run Phase 0-1 (Rules + Patients, no daily sim)")
     parser.add_argument("--skip-rules", action="store_true",
-                        help="Skip Rule Agent (reuse existing data/rule_set.json)")
+                        help="Skip Rule Agent (reuse existing rule_set.json)")
+    parser.add_argument("--rule-set", default=None,
+                        help="Path to a specific rule_set.json (implies --skip-rules)")
     parser.add_argument("--data-dir", default="data",
                         help="Base data directory")
     parser.add_argument("--seed", type=int, default=None,
@@ -104,6 +106,13 @@ def main():
     parser.add_argument("--workers", type=int, default=5,
                         help="Parallel workers (default: 5). Set to 1 for sequential.")
     args = parser.parse_args()
+
+    if args.rule_set:
+        import json as _json
+        with open(args.rule_set) as _f:
+            _peek = _json.load(_f)
+        args.drug = _peek.get("drug_name", args.drug)
+        args.indication = _peek.get("indication", args.indication)
 
     run_dir = _make_run_dir(args.data_dir, args.drug, args.patients, args.days)
     print(f"Run directory: {run_dir}")
@@ -134,9 +143,22 @@ def main():
         print("Architecture: 3-Phase (no fate table)")
         print("=" * 60)
 
+        if args.rule_set:
+            args.skip_rules = True
+
         if args.skip_rules:
-            base_rule_path = Path(args.data_dir) / "rule_set.json"
+            base_rule_path = Path(args.rule_set) if args.rule_set else Path(args.data_dir) / "rule_set.json"
+            if not base_rule_path.exists():
+                print(f"ERROR: rule_set not found: {base_rule_path}")
+                sys.exit(1)
             runner.load_rules(str(base_rule_path))
+            loaded_drug = runner.rule_set.get("drug_name", args.drug)
+            loaded_indication = runner.rule_set.get("indication", args.indication)
+            if loaded_drug != args.drug:
+                runner.drug_name = loaded_drug
+                runner.indication = loaded_indication
+                print(f"  Drug overridden from rule_set: {loaded_drug}")
+                print(f"  Indication: {loaded_indication}")
             import shutil
             shutil.copy2(base_rule_path, run_dir / "rule_set.json")
         else:

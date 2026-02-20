@@ -96,8 +96,11 @@ Also add conditional dependencies between comorbidities:
     base_prob_map = {c['condition']: c['base_probability'] for c in comorbidity_rules}
     for item in adjusted_list:
         condition = item.get('condition', '')
-        raw_prob = item.get('adjusted_probability', item.get('base_probability', 0))
-        base_p = base_prob_map.get(condition, raw_prob)
+        try:
+            raw_prob = float(item.get('adjusted_probability', item.get('base_probability', 0)))
+        except (ValueError, TypeError):
+            raw_prob = 0.1
+        base_p = float(base_prob_map.get(condition, raw_prob))
         prob = max(base_p * 0.5, min(raw_prob, base_p * 2.0, 0.95))
         if sampler.boolean(prob):
             original = next(

@@ -1,12 +1,14 @@
 """
-Validation v3: Simulation vs rule_set.json
+Validation v4: Simulation vs rule_set.json
 
 Statistical methods:
-  - Binomial / chi-square / KS tests for basic comparison
-  - TOST equivalence testing (FDA-style)
+  - SMD (Standardized Mean Difference) — clinical trial Table 1 standard
+  - TOST equivalence testing (FDA bioequivalence)
+  - Coverage probability (expected within simulation 95% CI)
+  - Chi-square goodness-of-fit for categorical distributions
+  - Binomial exact test, KS test, Anderson-Darling
   - Benjamini-Hochberg FDR correction
   - Post-hoc power analysis
-  - Anderson-Darling goodness-of-fit
 
 Usage:
     python validation/validate_vs_ruleset.py <run_dir> [--mode natural]
@@ -156,6 +158,41 @@ def _power_mean(n, expected_std, margin_sigma=EQUIV_MARGIN_CONTINUOUS_SIGMA, alp
     return round(float(power), 3)
 
 
+def _smd_proportion(obs_p, expected_p):
+    """SMD for binary variable (Austin 2009, standardized difference)."""
+    denom = math.sqrt((obs_p * (1 - obs_p) + expected_p * (1 - expected_p)) / 2)
+    if denom < 1e-12:
+        return 0.0
+    return (obs_p - expected_p) / denom
+
+
+def _smd_continuous(obs_mean, obs_std, expected_mean, expected_std):
+    """Cohen's d — SMD for continuous variable."""
+    pooled_sd = math.sqrt((obs_std**2 + expected_std**2) / 2)
+    if pooled_sd < 1e-12:
+        return 0.0
+    return (obs_mean - expected_mean) / pooled_sd
+
+
+def _chi2_gof(observed_counts: list[int], expected_proportions: list[float]):
+    """Chi-square goodness-of-fit test for categorical distribution."""
+    n = sum(observed_counts)
+    if n == 0 or len(observed_counts) < 2:
+        return {"chi2": None, "p": None, "df": None}
+    raw_expected = [p * n for p in expected_proportions]
+    total_exp = sum(raw_expected)
+    expected_counts = [e * n / total_exp for e in raw_expected] if total_exp > 0 else raw_expected
+    if any(e < 1 for e in expected_counts):
+        return {"chi2": None, "p": None, "df": None, "note": "expected count < 1"}
+    chi2, p = sp_stats.chisquare(observed_counts, f_exp=expected_counts)
+    return {"chi2": round(float(chi2), 3), "p": round(float(p), 6), "df": len(observed_counts) - 1}
+
+
+def _coverage(ci_lo, ci_hi, expected):
+    """Does the expected value fall within the simulation 95% CI?"""
+    return ci_lo <= expected <= ci_hi
+
+
 # ── scoring ─────────────────────────────────────────────
 def score_proportion(label, obs_k, n, expected_p, section):
     obs_p = obs_k / n if n > 0 else 0
@@ -165,6 +202,8 @@ def score_proportion(label, obs_k, n, expected_p, section):
     margin = EQUIV_MARGIN_PROPORTION.get(section, 0.10)
     tost = _tost_proportion(obs_p, n, expected_p, margin)
     power = _power_proportion(n, expected_p, margin)
+    smd = _smd_proportion(obs_p, expected_p)
+    covered = _coverage(ci[0], ci[1], expected_p)
 
     if tost.get("equivalent"):
         grade = "A"
@@ -187,6 +226,7 @@ def score_proportion(label, obs_k, n, expected_p, section):
         "binomial_p": bt["p"], "test": test_str,
         "tost_p": tost["p"], "tost_equiv": tost["equivalent"], "tost_margin": margin,
         "power": power, "grade": grade,
+        "smd": round(smd, 4), "abs_smd": round(abs(smd), 4), "covered": covered,
     }
 
 def score_continuous(label, values, expected_mean, expected_std, dist_name, section):
@@ -199,6 +239,11 @@ def score_continuous(label, values, expected_mean, expected_std, dist_name, sect
     tost = _tost_mean(values, expected_mean)
     power = _power_mean(len(values), max(expected_std, 1e-9))
     z = (obs_mean - expected_mean) / max(expected_std / math.sqrt(len(values)), 1e-9)
+    smd = _smd_continuous(obs_mean, obs_std, expected_mean, max(expected_std, 1e-9))
+    se = obs_std / math.sqrt(len(values))
+    ci_lo = obs_mean - 1.96 * se
+    ci_hi = obs_mean + 1.96 * se
+    covered = _coverage(ci_lo, ci_hi, expected_mean)
 
     if tost.get("equivalent"):
         grade = "A"
@@ -221,10 +266,12 @@ def score_continuous(label, values, expected_mean, expected_std, dist_name, sect
         "observed_mean": round(obs_mean, 2), "observed_std": round(obs_std, 2),
         "expected_mean": round(expected_mean, 2), "expected_std": round(expected_std, 2),
         "n": len(values), "z": round(z, 2),
+        "ci_95": [round(ci_lo, 3), round(ci_hi, 3)],
         "ks_p": ks["p"], "ks_stat": ks.get("stat"),
         "ad_stat": ad.get("stat"), "ad_cv_5pct": ad.get("cv_5pct"), "ad_verdict": ad.get("verdict"),
         "tost_p": tost["p"], "tost_equiv": tost["equivalent"],
         "power": power, "test": test_str, "grade": grade,
+        "smd": round(smd, 4), "abs_smd": round(abs(smd), 4), "covered": covered,
     }
 
 
@@ -715,78 +762,263 @@ def compute_overall_score(all_rows):
     }
 
 
+# ── statistical summary ────────────────────────────────
+SMD_THRESHOLDS = {"negligible": 0.1, "small": 0.2, "medium": 0.5}
+
+def compute_statistical_summary(all_rows, fdr_stats):
+    """Compute rigorous statistical summary metrics."""
+    smds = [r["abs_smd"] for r in all_rows if "abs_smd" in r]
+    covered = [r["covered"] for r in all_rows if "covered" in r]
+    tost_results = [(r.get("tost_equiv", False)) for r in all_rows if "tost_equiv" in r]
+
+    n_comparisons = len(smds)
+    mean_abs_smd = float(np.mean(smds)) if smds else None
+    median_abs_smd = float(np.median(smds)) if smds else None
+    smd_negligible = sum(1 for s in smds if s < SMD_THRESHOLDS["negligible"])
+    smd_small = sum(1 for s in smds if s < SMD_THRESHOLDS["small"])
+    smd_medium = sum(1 for s in smds if s < SMD_THRESHOLDS["medium"])
+    smd_large = sum(1 for s in smds if s >= SMD_THRESHOLDS["medium"])
+
+    coverage_n = len(covered)
+    coverage_rate = sum(covered) / coverage_n if coverage_n else 0
+
+    tost_n = len(tost_results)
+    tost_rate = sum(tost_results) / tost_n if tost_n else 0
+
+    section_smds = defaultdict(list)
+    section_coverage = defaultdict(list)
+    section_tost = defaultdict(list)
+    for r in all_rows:
+        sec = r.get("section", "")
+        if "abs_smd" in r:
+            section_smds[sec].append(r["abs_smd"])
+        if "covered" in r:
+            section_coverage[sec].append(r["covered"])
+        if "tost_equiv" in r:
+            section_tost[sec].append(r["tost_equiv"])
+
+    section_stats = {}
+    for sec in set(list(section_smds.keys()) + list(section_coverage.keys())):
+        sec_s = section_smds.get(sec, [])
+        sec_c = section_coverage.get(sec, [])
+        sec_t = section_tost.get(sec, [])
+        section_stats[sec] = {
+            "n": len(sec_s),
+            "mean_abs_smd": round(float(np.mean(sec_s)), 4) if sec_s else None,
+            "median_abs_smd": round(float(np.median(sec_s)), 4) if sec_s else None,
+            "pct_smd_lt_0.1": round(sum(1 for s in sec_s if s < 0.1) / len(sec_s) * 100, 1) if sec_s else None,
+            "coverage_rate": round(sum(sec_c) / len(sec_c) * 100, 1) if sec_c else None,
+            "tost_equiv_rate": round(sum(sec_t) / len(sec_t) * 100, 1) if sec_t else None,
+        }
+
+    return {
+        "n_comparisons": n_comparisons,
+        "mean_abs_smd": round(mean_abs_smd, 4) if mean_abs_smd is not None else None,
+        "median_abs_smd": round(median_abs_smd, 4) if median_abs_smd is not None else None,
+        "smd_negligible": smd_negligible,
+        "smd_small": smd_small,
+        "smd_medium": smd_medium,
+        "smd_large": smd_large,
+        "pct_smd_lt_0.1": round(smd_negligible / n_comparisons * 100, 1) if n_comparisons else 0,
+        "pct_smd_lt_0.2": round(smd_small / n_comparisons * 100, 1) if n_comparisons else 0,
+        "coverage_n": coverage_n,
+        "coverage_rate": round(coverage_rate * 100, 1),
+        "tost_n": tost_n,
+        "tost_rate": round(tost_rate * 100, 1),
+        "fdr_tested": fdr_stats.get("n_tested", 0),
+        "fdr_significant": fdr_stats.get("n_significant_fdr", 0),
+        "fdr_non_significant_rate": round(
+            (1 - fdr_stats.get("n_significant_fdr", 0) / max(fdr_stats.get("n_tested", 1), 1)) * 100, 1),
+        "sections": section_stats,
+    }
+
+
+def compute_chi2_for_categories(patients, simulations, rule_set, all_patient_aes):
+    """Chi-square goodness-of-fit for grouped categorical distributions."""
+    results = []
+    demos = rule_set.get("demographics", {})
+    N = len(patients)
+
+    for field in ("sex", "race", "smoking", "ecog_ps"):
+        spec = demos.get(field, {})
+        if spec.get("type") != "categorical":
+            continue
+        options = spec.get("options", {})
+        counts = Counter()
+        for p in patients.values():
+            val = str(p["emr"]["demographics"].get(field, ""))
+            counts[val] += 1
+        cats = sorted(options.keys())
+        obs = [counts.get(c, 0) for c in cats]
+        exp_p = [options[c] for c in cats]
+        chi2 = _chi2_gof(obs, exp_p)
+        results.append({"variable": field, "type": "Demographics", "categories": len(cats), **chi2})
+
+    trd = rule_set.get("disease_baseline", {}).get("tumor_response_distribution", {})
+    if trd:
+        best_responses = Counter()
+        for pid, days in simulations.items():
+            nadir = 0
+            for d in days:
+                tumor = d.get("objective", {}).get("tumor", {})
+                change = tumor.get("estimated_change_pct", 0)
+                if change < nadir:
+                    nadir = change
+            if nadir <= -90:
+                best_responses["CR"] += 1
+            elif nadir <= -30:
+                best_responses["PR"] += 1
+            elif nadir < 20:
+                best_responses["SD"] += 1
+            else:
+                best_responses["PD"] += 1
+        cats = sorted(trd.keys())
+        obs = [best_responses.get(c, 0) for c in cats]
+        exp_p = [trd[c] for c in cats]
+        chi2 = _chi2_gof(obs, exp_p)
+        results.append({"variable": "tumor_response", "type": "Efficacy", "categories": len(cats), **chi2})
+
+    ae_profile = rule_set.get("ae_profile", [])
+    for ae_spec in ae_profile:
+        ae_term = ae_spec["ae_term"]
+        grade_dist = ae_spec.get("grade_distribution", {})
+        if not grade_dist:
+            continue
+        affected = [pid for pid, aes in all_patient_aes.items() if ae_term in aes]
+        if len(affected) < 10:
+            continue
+        grade_counts = Counter()
+        for pid in affected:
+            mg = all_patient_aes[pid][ae_term]["max_grade"]
+            grade_counts[str(mg)] += 1
+        cats = sorted(grade_dist.keys())
+        obs = [grade_counts.get(c, 0) for c in cats]
+        exp_p = [grade_dist[c] for c in cats]
+        chi2 = _chi2_gof(obs, exp_p)
+        results.append({"variable": f"AE_grade_{ae_term}", "type": "AE Grade Distribution",
+                        "categories": len(cats), "n_affected": len(affected), **chi2})
+
+    return results
+
+
 # ── report generation ───────────────────────────────────
-def generate_report(all_rows, summary, fdr_stats, run_dir, mode):
+def generate_report(all_rows, summary, fdr_stats, stat_summary, chi2_results, run_dir, mode):
     lines = []
-    lines.append(f"# Validation Report v3: Simulation vs rule_set.json")
+    lines.append(f"# Validation Report v4: Simulation vs rule_set.json")
     lines.append(f"Run: `{run_dir.name}` | Mode: `{mode}` | Generated: {datetime.now().isoformat()[:19]}")
     lines.append("")
-    lines.append(f"## Overall: **{summary['overall_grade']}** ({summary['overall_score']}/100)")
+
+    lines.append("## 1. Statistical Summary")
+    lines.append("")
+    lines.append("### Primary Metrics")
+    lines.append("")
+    lines.append("| Metric | Value | Interpretation |")
+    lines.append("|--------|-------|----------------|")
+    ms = stat_summary["mean_abs_smd"]
+    md = stat_summary["median_abs_smd"]
+    ms_interp = "negligible" if ms and ms < 0.1 else "small" if ms and ms < 0.2 else "medium" if ms and ms < 0.5 else "large"
+    lines.append(f"| Mean |SMD| | {ms:.4f} | {ms_interp} (< 0.1 = negligible) |" if ms else "| Mean |SMD| | N/A | |")
+    lines.append(f"| Median |SMD| | {md:.4f} | |" if md else "| Median |SMD| | N/A | |")
+    lines.append(f"| SMD < 0.1 (negligible) | {stat_summary['smd_negligible']}/{stat_summary['n_comparisons']} ({stat_summary['pct_smd_lt_0.1']}%) | |")
+    lines.append(f"| SMD < 0.2 (small) | {stat_summary['smd_small']}/{stat_summary['n_comparisons']} ({stat_summary['pct_smd_lt_0.2']}%) | Clinical trial Table 1 standard |")
+    lines.append(f"| TOST Equivalence | {summary['tost_equivalent']}/{summary['tost_total']} ({stat_summary['tost_rate']}%) | FDA bioequivalence criterion |")
+    lines.append(f"| 95% CI Coverage | {sum(1 for r in all_rows if r.get('covered'))}/{stat_summary['coverage_n']} ({stat_summary['coverage_rate']}%) | Expected within sim 95% CI |")
+    lines.append(f"| FDR Non-significant | {stat_summary['fdr_tested'] - stat_summary['fdr_significant']}/{stat_summary['fdr_tested']} ({stat_summary['fdr_non_significant_rate']}%) | After BH multiple-testing correction |")
     lines.append("")
 
-    lines.append("### Grade Meaning")
-    lines.append("| Grade | Meaning |")
-    lines.append("|-------|---------|")
-    lines.append("| A | Equivalent (TOST) or within 1 sigma |")
-    lines.append("| B | Within 2 sigma — acceptable variation |")
-    lines.append("| C | Within 3 sigma or FDR non-significant — investigate |")
-    lines.append("| D | >3 sigma AND FDR-significant — engine issue |")
+    lines.append("### SMD Interpretation Guide")
+    lines.append("| |SMD| Range | Interpretation | Clinical Significance |")
+    lines.append("|------------|----------------|------------------------|")
+    lines.append("| < 0.1 | Negligible | Well-balanced (Table 1 standard) |")
+    lines.append("| 0.1 – 0.2 | Small | Acceptable imbalance |")
+    lines.append("| 0.2 – 0.5 | Medium | Notable — investigate |")
+    lines.append("| > 0.5 | Large | Clinically meaningful deviation |")
     lines.append("")
 
-    lines.append("### TOST Equivalence")
-    lines.append(f"Equivalent: **{summary['tost_equivalent']}/{summary['tost_total']}** comparisons")
+    lines.append("### Per-Section Statistical Profile")
+    lines.append("")
+    lines.append("| Section | N | Mean |SMD| | Median |SMD| | %SMD<0.1 | Coverage% | TOST% |")
+    lines.append("|---------|---|-----------|-------------|----------|-----------|-------|")
+    for sec in sorted(stat_summary["sections"].keys()):
+        si = stat_summary["sections"][sec]
+        m_smd = f"{si['mean_abs_smd']:.4f}" if si['mean_abs_smd'] is not None else "—"
+        md_smd = f"{si['median_abs_smd']:.4f}" if si['median_abs_smd'] is not None else "—"
+        p10 = f"{si['pct_smd_lt_0.1']}" if si['pct_smd_lt_0.1'] is not None else "—"
+        cov = f"{si['coverage_rate']}" if si['coverage_rate'] is not None else "—"
+        tost = f"{si['tost_equiv_rate']}" if si['tost_equiv_rate'] is not None else "—"
+        lines.append(f"| {sec} | {si['n']} | {m_smd} | {md_smd} | {p10} | {cov} | {tost} |")
     lines.append("")
 
-    lines.append("### Multiple Comparison Correction (BH-FDR)")
-    lines.append(f"- Tested: {fdr_stats['n_tested']} p-values")
-    lines.append(f"- Raw significant (p<0.05): {fdr_stats['n_significant_raw']}")
-    lines.append(f"- FDR significant (q<0.05): {fdr_stats['n_significant_fdr']}")
+    if chi2_results:
+        lines.append("### Chi-Square Goodness-of-Fit (Categorical Distributions)")
+        lines.append("")
+        lines.append("| Variable | Type | k | χ² | p-value | Verdict |")
+        lines.append("|----------|------|---|-----|---------|---------|")
+        for c in chi2_results:
+            chi2_val = f"{c['chi2']:.2f}" if c.get("chi2") is not None else "—"
+            p_val = f"{c['p']:.4f}" if c.get("p") is not None else "—"
+            verdict = ""
+            if c.get("p") is not None:
+                verdict = "✓ Consistent" if c["p"] >= 0.05 else "✗ Deviated"
+            lines.append(f"| {c['variable']} | {c['type']} | {c.get('categories','?')} | {chi2_val} | {p_val} | {verdict} |")
+        lines.append("")
+
+    lines.append("---")
+    lines.append("")
+    lines.append(f"## 2. Overall Grade: **{summary['overall_grade']}** ({summary['overall_score']}/100)")
     lines.append("")
 
-    lines.append("### Section Scores")
-    lines.append("| Section | Score | Grade | Items | Weight |")
-    lines.append("|---------|-------|-------|-------|--------|")
+    lines.append("### Section Scores (weighted average)")
+    lines.append("| Section | Score | Items | Weight |")
+    lines.append("|---------|-------|-------|--------|")
     for sec, info in sorted(summary["sections"].items(), key=lambda x: -x[1]["avg_score"]):
-        g = "A" if info["avg_score"] >= 85 else "B" if info["avg_score"] >= 70 else "C" if info["avg_score"] >= 50 else "D"
-        lines.append(f"| {sec} | {info['avg_score']} | {g} | {info['n_items']} | {info['weight']} |")
+        lines.append(f"| {sec} | {info['avg_score']} | {info['n_items']} | {info['weight']} |")
+    lines.append("")
+
+    lines.append("---")
+    lines.append("")
+    lines.append("## 3. Detailed Comparisons")
     lines.append("")
 
     for section in sorted(set(r.get("section", "") for r in all_rows)):
         sec_rows = [r for r in all_rows if r.get("section") == section]
         if not sec_rows:
             continue
-        lines.append(f"## {section}")
+        lines.append(f"### {section}")
         lines.append("")
-        lines.append("| Label | Obs | Exp | Grade | Test | FDR q |")
-        lines.append("|-------|-----|-----|-------|------|-------|")
-        for r in sorted(sec_rows, key=lambda x: x.get("grade", "?")):
+        lines.append("| Label | Obs | Exp | |SMD| | 95% CI covers | Grade | Test | FDR q |")
+        lines.append("|-------|-----|-----|-------|---------------|-------|------|-------|")
+        for r in sorted(sec_rows, key=lambda x: -x.get("abs_smd", 0)):
             obs = r.get("observed", r.get("observed_mean", r.get("observed_ratio", "?")))
             exp = r.get("expected", r.get("expected_mean", r.get("expected_multiplier", "?")))
             if isinstance(obs, float):
                 obs = f"{obs:.3f}"
             if isinstance(exp, float):
                 exp = f"{exp:.3f}"
+            smd_val = f"{r.get('abs_smd', '?'):.3f}" if isinstance(r.get("abs_smd"), (int, float)) else "—"
+            cov = "✓" if r.get("covered") else "✗" if r.get("covered") is not None else "—"
             fdr_q = r.get("fdr_p")
-            fdr_str = f"{fdr_q:.4g}" if fdr_q is not None else "-"
-            test = r.get("test", r.get("note", "-"))
-            lines.append(f"| {r.get('label','')} | {obs} | {exp} | {r.get('grade','?')} | {test} | {fdr_str} |")
+            fdr_str = f"{fdr_q:.4g}" if fdr_q is not None else "—"
+            test = r.get("test", r.get("note", "—"))
+            lines.append(f"| {r.get('label','')} | {obs} | {exp} | {smd_val} | {cov} | {r.get('grade','?')} | {test} | {fdr_str} |")
         lines.append("")
 
-    confirmed = [r for r in all_rows if r.get("grade") == "D" and r.get("fdr_significant")]
-    if confirmed:
-        lines.append("## Confirmed Engine Issues (FDR-significant D grades)")
+    large_smd = [r for r in all_rows if r.get("abs_smd", 0) >= 0.5 and r.get("fdr_significant")]
+    if large_smd:
+        lines.append("## 4. Confirmed Deviations (|SMD| ≥ 0.5 AND FDR-significant)")
         lines.append("")
-        for r in confirmed:
-            lines.append(f"- **{r.get('label')}** ({r.get('section')}): obs={r.get('observed', r.get('observed_mean', '?'))}, "
-                        f"exp={r.get('expected', r.get('expected_mean', '?'))}, q={r.get('fdr_p', '?')}")
+        for r in sorted(large_smd, key=lambda x: -x.get("abs_smd", 0)):
+            obs = r.get('observed', r.get('observed_mean', '?'))
+            exp = r.get('expected', r.get('expected_mean', '?'))
+            lines.append(f"- **{r.get('label')}** ({r.get('section')}): obs={obs}, exp={exp}, "
+                        f"|SMD|={r.get('abs_smd', '?')}, q={r.get('fdr_p', '?')}")
         lines.append("")
 
     low_power = [r for r in all_rows if r.get("power") is not None and r["power"] < 0.5]
     if low_power:
-        lines.append("## Low Statistical Power Warnings (<50%)")
+        lines.append("## 5. Low Statistical Power Warnings (<50%)")
         lines.append("")
-        for r in low_power:
-            lines.append(f"- {r.get('label')} ({r.get('section')}): power={r['power']}")
+        lines.append(f"*{len(low_power)} comparisons have insufficient power to detect meaningful differences.*")
         lines.append("")
 
     return "\n".join(lines)
@@ -849,28 +1081,49 @@ def main():
     print("Computing overall score...")
     summary = compute_overall_score(all_rows)
 
+    print("Computing statistical summary (SMD, coverage, chi-square)...")
+    stat_summary = compute_statistical_summary(all_rows, fdr_stats)
+    chi2_results = compute_chi2_for_categories(patients, simulations, rule_set, all_patient_aes)
+
     out_dir = run_dir / "validation"
     out_dir.mkdir(parents=True, exist_ok=True)
 
-    json_path = out_dir / f"ruleset_validation_{mode}_v3.json"
+    json_path = out_dir / f"ruleset_validation_{mode}_v4.json"
     with open(json_path, "w") as f:
-        json.dump({"summary": summary, "fdr": fdr_stats, "details": all_rows},
+        json.dump({"summary": summary, "fdr": fdr_stats, "statistical_summary": stat_summary,
+                   "chi2_gof": chi2_results, "details": all_rows},
                   f, indent=2, ensure_ascii=False, default=str)
     print(f"JSON saved: {json_path}")
 
-    report = generate_report(all_rows, summary, fdr_stats, run_dir, mode)
-    md_path = out_dir / f"ruleset_validation_{mode}_v3.md"
+    report = generate_report(all_rows, summary, fdr_stats, stat_summary, chi2_results, run_dir, mode)
+    md_path = out_dir / f"ruleset_validation_{mode}_v4.md"
     with open(md_path, "w") as f:
         f.write(report)
     print(f"Report saved: {md_path}")
 
     print(f"\n{'='*60}")
-    print(f"Overall: {summary['overall_grade']} ({summary['overall_score']}/100)")
-    print(f"TOST equivalent: {summary['tost_equivalent']}/{summary['tost_total']}")
-    print(f"FDR significant: {fdr_stats['n_significant_fdr']}/{fdr_stats['n_tested']}")
-    for sec, info in sorted(summary["sections"].items(), key=lambda x: -x[1]["avg_score"]):
-        print(f"  {sec:25s}: {info['avg_score']:5.1f} ({info['n_items']} items)")
+    print(f"STATISTICAL SUMMARY (v4)")
     print(f"{'='*60}")
+    ms = stat_summary["mean_abs_smd"]
+    md = stat_summary["median_abs_smd"]
+    print(f"  Mean |SMD|:        {ms:.4f}  ({'negligible' if ms < 0.1 else 'small' if ms < 0.2 else 'medium' if ms < 0.5 else 'large'})" if ms else "")
+    print(f"  Median |SMD|:      {md:.4f}" if md else "")
+    print(f"  SMD < 0.1:         {stat_summary['smd_negligible']}/{stat_summary['n_comparisons']} ({stat_summary['pct_smd_lt_0.1']}%)")
+    print(f"  SMD < 0.2:         {stat_summary['smd_small']}/{stat_summary['n_comparisons']} ({stat_summary['pct_smd_lt_0.2']}%)")
+    print(f"  TOST equivalent:   {summary['tost_equivalent']}/{summary['tost_total']} ({stat_summary['tost_rate']}%)")
+    print(f"  95% CI coverage:   {stat_summary['coverage_rate']}%")
+    print(f"  FDR non-sig:       {stat_summary['fdr_tested'] - stat_summary['fdr_significant']}/{stat_summary['fdr_tested']} ({stat_summary['fdr_non_significant_rate']}%)")
+    chi2_ok = sum(1 for c in chi2_results if c.get("p") is not None and c["p"] >= 0.05)
+    chi2_total = sum(1 for c in chi2_results if c.get("p") is not None)
+    print(f"  Chi² consistent:   {chi2_ok}/{chi2_total}")
+    print(f"{'─'*60}")
+    print(f"  Grade: {summary['overall_grade']} ({summary['overall_score']}/100)")
+    print(f"{'='*60}")
+    print(f"\n  Per-section SMD:")
+    for sec in sorted(stat_summary["sections"].keys()):
+        si = stat_summary["sections"][sec]
+        m = si["mean_abs_smd"]
+        print(f"    {sec:25s}: |SMD|={m:.4f}  TOST={si['tost_equiv_rate']}%  Cov={si['coverage_rate']}%" if m else f"    {sec:25s}: —")
 
 
 if __name__ == "__main__":

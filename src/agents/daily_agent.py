@@ -35,13 +35,13 @@ from src.engine.hazard import (
 from config.defaults import (
     OU_THETA_VITALS, OU_THETA_LABS,
     VITALS_NOISE, LABS_NOISE_FRACTION, LABS_NOISE_FRACTION_MAP,
-    SLOW_MARKER_LABS, LAB_ROUNDING, VITAL_ROUNDING,
+    SLOW_MARKER_LABS, LAB_ROUNDING, VITAL_ROUNDING, CHEMO_WEIGHT_LOSS_PER_DAY,
     MAX_AE_CASCADE_HAZARD,
     DEFAULT_AE_LAB_LINKS, DEFAULT_CM_LAB_EFFECTS, DEFAULT_CM_SIDE_EFFECTS,
     ctcae_max_grade, ctcae_lab_range,
-    ACUTE_ONSET_AES, MAX_ONSET_GRADE_GRADUAL,
+    ACUTE_ONSET_AES,
     IO_SPECIFIC_AES, ADC_CHEMO_SPECIFIC_AES, IO_DRUG_KEYWORDS,
-    MAX_DAILY_LAB_DELTA,
+    MAX_DAILY_LAB_DELTA, normalize_lab_key, normalize_ae_term,
     ZERO_AE_BOOST_START_DAY, ZERO_AE_BOOST_PER_DAY, ZERO_AE_BOOST_MAX,
     CONMED_AE_TIER,
     TUMOR_DAILY_RATE_FULL, TUMOR_DAILY_RATE_PARTIAL_HOLD,
@@ -227,12 +227,12 @@ class DailySimulator:
         _logger.info(f"  Drug classification: IO={self.io_drugs}, non-IO={self.non_io_drugs}")
 
         # ── RECIST 스캔 스케줄 ──
-        cycle_len = rule_set.get("trial_design", {}).get("cycle_length_days", 21)
+        cycle_len = int(rule_set.get("trial_design", {}).get("cycle_length_days", 21))
         first_scan_day = cycle_len * 2 + 7
         scan_interval = cycle_len * 2
         self.recist_scan_days: list[int] = []
         scan_day = first_scan_day
-        effective_days = self.actual_duration or rule_set.get("trial_design", {}).get("planned_duration_days", 180)
+        effective_days = int(self.actual_duration or rule_set.get("trial_design", {}).get("planned_duration_days", 180))
         while scan_day <= effective_days:
             self.recist_scan_days.append(scan_day)
             scan_day += scan_interval
@@ -301,7 +301,7 @@ class DailySimulator:
 
     def _get_causative_drugs(self, ae_term: str) -> set[str]:
         """AE에 대한 인과 약물(들)을 결정한다."""
-        normalized = ae_term.lower().replace(" ", "_").replace("-", "_")
+        normalized = normalize_ae_term(ae_term)
         for io_ae in IO_SPECIFIC_AES:
             if io_ae in normalized or normalized in io_ae:
                 if self.io_drugs:
@@ -358,7 +358,7 @@ class DailySimulator:
         result: dict[str, dict] = {}
         for rule in rules:
             ae_term = rule.get("ae_term", "default")
-            result[ae_term.lower()] = rule
+            result[normalize_ae_term(ae_term)] = rule
         if "default" not in result:
             result["default"] = {
                 "grade_actions": {"1": "DOSE NOT CHANGED", "2": "DOSE NOT CHANGED",
@@ -368,7 +368,7 @@ class DailySimulator:
 
         # FDA PI 오버라이드 적용 (LLM 규칙보다 우선)
         for ae_term, overrides in FDA_DOSE_MOD_OVERRIDES.items():
-            key = ae_term.lower()
+            key = normalize_ae_term(ae_term)
             if key in result:
                 result[key].setdefault("grade_actions", {}).update(overrides["grade_actions"])
             else:
@@ -392,7 +392,7 @@ class DailySimulator:
         for rule in rules:
             ae_term = rule.get("ae_term", "")
             if ae_term:
-                result[ae_term.lower()] = rule.get("treatments", [])
+                result[normalize_ae_term(ae_term)] = rule.get("treatments", [])
         return result
 
     # ═══════════════════════════════════════════════════════
@@ -468,7 +468,7 @@ class DailySimulator:
 
         response = self.sampler.categorical(tumor_dist)
 
-        cycle_len = self.rule_set.get("trial_design", {}).get("cycle_length_days", 21)
+        cycle_len = int(self.rule_set.get("trial_design", {}).get("cycle_length_days", 21))
         onset_day = self.sampler.numeric("normal", {
             "mean": 3 * cycle_len,
             "std": cycle_len,
@@ -524,6 +524,7 @@ class DailySimulator:
                      cycle_day: int, is_hospital: bool) -> dict:
         """하루의 환자 상태를 생성하는 10-step 파이프라인."""
         set_caller("daily_agent")
+        self._current_cycle_day = cycle_day
 
         # 당일 해소 AE 리셋
         self._today_resolved.clear()
@@ -811,13 +812,15 @@ class DailySimulator:
                 if total_p > 0:
                     grade_dist_clean = {k: v / total_p for k, v in grade_dist_clean.items()}
 
-                initial_grade = int(self.sampler.categorical(grade_dist_clean))
+                target_grade = int(self.sampler.categorical(grade_dist_clean))
 
-                # 점진적 AE는 G1에서 시작 (급성 제외)
+                # 점진적 AE: target보다 1단계 낮게 시작 (급성 AE는 target으로 직접 시작)
                 normalized_term = term.lower().replace(" ", "_").replace("-", "_")
                 is_acute = any(a in normalized_term for a in ACUTE_ONSET_AES)
-                if not is_acute and initial_grade > MAX_ONSET_GRADE_GRADUAL:
-                    initial_grade = MAX_ONSET_GRADE_GRADUAL
+                if is_acute:
+                    initial_grade = target_grade
+                else:
+                    initial_grade = max(1, target_grade - 1)
 
                 ae_data = {
                     "ae_term": term,
@@ -826,6 +829,7 @@ class DailySimulator:
                     "status": "active",
                     "days_active": 0,
                     "peak_grade": initial_grade,
+                    "target_grade": target_grade,
                     "days_held": 0,
                 }
                 self.occurred_aes[term] = ae_data
@@ -860,11 +864,12 @@ class DailySimulator:
             any_reduced = any(self.dose_levels.get(d, 1.0) < 1.0 for d in causative)
 
             # conmed 상태
+            _nae = normalize_ae_term(ae_term)
             has_conmed = any(
-                cm.get("CMINDC", "").lower() == ae_term.lower() or ae_term.lower() in cm.get("CMINDC", "").lower()
+                normalize_ae_term(cm.get("CMINDC", "")) == _nae or _nae in normalize_ae_term(cm.get("CMINDC", ""))
                 for cm in self.active_cm
             )
-            conmed_tier = CONMED_AE_TIER.get(ae_term.lower(), 3)
+            conmed_tier = CONMED_AE_TIER.get(_nae, 3)
 
             # 해소 체크
             if is_reversible and duration_spec is not None:
@@ -926,6 +931,7 @@ class DailySimulator:
                 conmed_tier=conmed_tier,
                 is_drug_held=any_held,
                 is_dose_reduced=any_reduced,
+                target_grade=ae_state.get("target_grade"),
             )
 
             # ── 강제 개선 로직: dose hold 지속 시 + conmed 병용 시 ──
@@ -1137,34 +1143,34 @@ class DailySimulator:
 
     def _apply_ou_labs(self, day: int, day_results: list[dict]) -> dict:
         """OU process로 lab 값을 변동시킨다."""
-        prev_labs = {}
+        raw_prev_labs = {}
         if day_results:
             prev = day_results[-1]
-            # labs는 objective 안에 있음
-            prev_labs = prev.get("objective", {}).get("labs", {})
-            if not prev_labs:
-                # 최상위에 있을 수도 (호환)
-                prev_labs = prev.get("labs", {})
-            if not prev_labs:
-                # CDASH 형식에서 찾기
+            raw_prev_labs = prev.get("objective", {}).get("labs", {})
+            if not raw_prev_labs:
+                raw_prev_labs = prev.get("labs", {})
+            if not raw_prev_labs:
                 lb = prev.get("LB", {})
                 if lb and "results" in lb:
                     for name, data in lb["results"].items():
-                        prev_labs[name] = {"value": data.get("LBORRES", data.get("value")), "unit": data.get("LBORRESU", data.get("unit", ""))}
+                        raw_prev_labs[name] = {"value": data.get("LBORRES", data.get("value")), "unit": data.get("LBORRESU", data.get("unit", ""))}
+        prev_labs = {normalize_lab_key(k): v for k, v in raw_prev_labs.items()}
 
         # Baseline labs가 없으면 이전 값에서 초기화
         if not self.baseline_labs and prev_labs:
             for name, data in prev_labs.items():
+                cname = normalize_lab_key(name)
                 val = data.get("value", data) if isinstance(data, dict) else data
                 if isinstance(val, (int, float)):
-                    self.baseline_labs[name] = float(val)
+                    self.baseline_labs[cname] = float(val)
         elif not self.baseline_labs:
             bl = self.patient.get("emr", {}).get("baseline_labs", {})
             for name, val in bl.items():
+                cname = normalize_lab_key(name)
                 if isinstance(val, (int, float)):
-                    self.baseline_labs[name] = float(val)
+                    self.baseline_labs[cname] = float(val)
                 elif isinstance(val, dict):
-                    self.baseline_labs[name] = float(val.get("value", val.get("LBORRES", 0)))
+                    self.baseline_labs[cname] = float(val.get("value", val.get("LBORRES", 0)))
 
         labs_result = {}
         active_aes = self._get_active_aes_list()
@@ -1225,15 +1231,15 @@ class DailySimulator:
                 new_val = prev_val + delta
 
             # CTCAE 일관성: 활성 AE의 grade에 맞는 lab 범위로 수렴
-            new_val = self._apply_ctcae_lab_convergence(lab_name, new_val, prev_val, active_aes)
+            new_val, onset_override = self._apply_ctcae_lab_convergence(lab_name, new_val, prev_val, active_aes)
 
             # 음수 방지 + 반올림
             new_val = max(0.0, new_val)
             decimals = LAB_ROUNDING.get(lab_name, 1)
             new_val = round(new_val, decimals)
 
-            # 반올림 후 delta 재검증 (반올림이 delta 초과를 유발할 수 있음)
-            if lab_name in MAX_DAILY_LAB_DELTA:
+            # 반올림 후 delta 재검증 — AE onset override 시에는 CTCAE 범위 우선
+            if not onset_override and lab_name in MAX_DAILY_LAB_DELTA:
                 post_round_delta = abs(new_val - round(prev_val, decimals))
                 if post_round_delta > MAX_DAILY_LAB_DELTA[lab_name] * 1.01:
                     new_val = round(prev_val, decimals)
@@ -1309,6 +1315,16 @@ class DailySimulator:
             # Target = baseline + AE shift
             target = bl + ae_vitals_shift.get(vital_name, 0.0)
 
+            # 체중: 항암 치료 중 점진적 감소 (cachexia, appetite loss)
+            if vital_name == "weight_kg" and day > 1:
+                target += CHEMO_WEIGHT_LOSS_PER_DAY * day
+
+            # 체온: 항암 투여일 전후 mild febrile reaction
+            if vital_name == "BT":
+                cycle_day = getattr(self, '_current_cycle_day', 0)
+                if cycle_day in (1, 2, 3):
+                    target += 0.3
+
             noise = self.sampler.numeric("normal", {"mean": 0, "std": noise_std})
             new_val = prev_val + OU_THETA_VITALS * (target - prev_val) + noise
 
@@ -1335,35 +1351,83 @@ class DailySimulator:
         """활성 AE에 의한 vitals 변동 target shift를 계산한다.
 
         의학적 근거:
-        - Febrile neutropenia (ANC < 0.5 + G3+) → BT↑ 38.5-40°C, HR↑ +20-40
-        - Pneumonitis G2+ → SpO2↓ -3 to -10, RR↑ +4-8
-        - Severe AE (any G4) → general tachycardia HR↑ +15
-        - Diarrhea G3+ → HR↑ (dehydration), SBP↓ -10
+        - Febrile neutropenia → BT↑ 38.5-40°C, HR↑ +20-40
+        - Pneumonitis G2+ → SpO2↓, RR↑
+        - Infection → BT↑, HR↑
+        - Anemia → HR↑ (보상성 빈맥)
+        - Diarrhea/Vomiting G2+ → HR↑ (탈수), SBP↓
+        - Hypertension → SBP↑, DBP↑
+        - Dyspnoea → SpO2↓, RR↑
+        - Severe AE (G4) → general tachycardia
         """
         shift: dict[str, float] = {}
         for ae_term, ae_state in self.occurred_aes.items():
             if ae_state.get("status") != "active":
                 continue
             grade = ae_state.get("grade", 1)
-            term_lower = ae_term.lower().replace(" ", "_").replace("-", "_")
+            term_lower = normalize_ae_term(ae_term)
 
-            if "neutropenia" in term_lower and grade >= 3:
+            # Neutropenia G3+ → fever, tachycardia
+            if "neutropenia" in term_lower and "febrile" not in term_lower and grade >= 3:
                 shift["BT"] = shift.get("BT", 0) + (1.5 if grade == 3 else 2.5)
                 shift["HR"] = shift.get("HR", 0) + (20 if grade == 3 else 35)
+            # Febrile neutropenia (any grade)
             if "febrile" in term_lower:
                 shift["BT"] = shift.get("BT", 0) + 2.0
                 shift["HR"] = shift.get("HR", 0) + 25
+                shift["RR"] = shift.get("RR", 0) + 3
 
+            # Infection → fever, tachycardia
+            if "infection" in term_lower:
+                bt_shift = {1: 0.5, 2: 1.0, 3: 1.8, 4: 2.5}.get(grade, 0.5)
+                shift["BT"] = shift.get("BT", 0) + bt_shift
+                shift["HR"] = shift.get("HR", 0) + grade * 8
+
+            # Pneumonitis → SpO2↓, RR↑
             if "pneumonitis" in term_lower and grade >= 2:
                 spo2_drop = {2: -3, 3: -6, 4: -10}.get(grade, -3)
                 shift["SpO2"] = shift.get("SpO2", 0) + spo2_drop
                 shift["RR"] = shift.get("RR", 0) + (4 if grade == 2 else 8)
 
-            if "diarrhea" in term_lower and grade >= 3:
-                shift["HR"] = shift.get("HR", 0) + 10
-                shift["SBP"] = shift.get("SBP", 0) - 10
-                shift["DBP"] = shift.get("DBP", 0) - 5
+            # Dyspnoea / dyspnea → SpO2↓, RR↑
+            if ("dyspno" in term_lower or "dyspne" in term_lower) and grade >= 1:
+                spo2_drop = {1: -1, 2: -2, 3: -4, 4: -8}.get(grade, -1)
+                shift["SpO2"] = shift.get("SpO2", 0) + spo2_drop
+                shift["RR"] = shift.get("RR", 0) + grade * 2
 
+            # Anemia → compensatory tachycardia
+            if ("anemia" in term_lower or "anaemia" in term_lower
+                    or "haemoglobin_decreased" in term_lower):
+                hr_shift = {1: 3, 2: 8, 3: 15, 4: 25}.get(grade, 3)
+                shift["HR"] = shift.get("HR", 0) + hr_shift
+
+            # Diarrhea/Vomiting G2+ → dehydration (tachycardia, hypotension)
+            if ("diarrhea" in term_lower or "diarrhoea" in term_lower) and grade >= 2:
+                shift["HR"] = shift.get("HR", 0) + grade * 5
+                shift["SBP"] = shift.get("SBP", 0) - grade * 4
+                shift["DBP"] = shift.get("DBP", 0) - grade * 2
+            if "vomiting" in term_lower and grade >= 2:
+                shift["HR"] = shift.get("HR", 0) + grade * 4
+                shift["SBP"] = shift.get("SBP", 0) - grade * 3
+
+            # Hypertension (as AE) → BP elevated
+            if "hypertension" in term_lower:
+                sbp_shift = {1: 8, 2: 15, 3: 25, 4: 40}.get(grade, 8)
+                shift["SBP"] = shift.get("SBP", 0) + sbp_shift
+                shift["DBP"] = shift.get("DBP", 0) + int(sbp_shift * 0.6)
+
+            # Pyrexia / fever
+            if "pyrexia" in term_lower or "fever" in term_lower:
+                bt_shift = {1: 0.5, 2: 1.2, 3: 2.0, 4: 2.5}.get(grade, 0.5)
+                shift["BT"] = shift.get("BT", 0) + bt_shift
+                shift["HR"] = shift.get("HR", 0) + grade * 5
+
+            # Cough → mild RR↑, SpO2↓
+            if "cough" in term_lower and grade >= 2:
+                shift["RR"] = shift.get("RR", 0) + grade
+                shift["SpO2"] = shift.get("SpO2", 0) - 1
+
+            # Any G4 AE → stress tachycardia
             if grade >= 4:
                 shift["HR"] = shift.get("HR", 0) + 15
 
@@ -1469,8 +1533,14 @@ class DailySimulator:
         return combined_mult
 
     def _apply_ctcae_lab_convergence(self, lab_name: str, new_val: float,
-                                      prev_val: float, active_aes: list[dict]) -> float:
-        """활성 AE grade와 lab 값의 CTCAE 일관성을 확보한다."""
+                                      prev_val: float, active_aes: list[dict]) -> tuple[float, bool]:
+        """활성 AE grade와 lab 값의 CTCAE 일관성을 확보한다.
+
+        Returns:
+            (adjusted_value, onset_override): onset_override가 True이면
+            AE onset 직후이므로 MAX_DAILY_LAB_DELTA 제한을 건너뛴다.
+        """
+        onset_override = False
         for ae in active_aes:
             if ae.get("status") == "resolved":
                 continue
@@ -1479,17 +1549,22 @@ class DailySimulator:
             ranges = ctcae_lab_range(ae_term, grade)
             if not ranges:
                 continue
+            days_active = ae.get("days_active", 999)
             for rng_lab, rng_min, rng_max in ranges:
-                if rng_lab != lab_name:
+                if rng_lab.lower() != lab_name.lower():
                     continue
                 target_mid = (rng_min + rng_max) / 2
-                max_delta = MAX_DAILY_LAB_DELTA.get(lab_name, abs(prev_val) * 0.1)
-                delta = target_mid - new_val
-                if abs(delta) > max_delta:
-                    delta = max_delta if delta > 0 else -max_delta
-                new_val = new_val + delta
+                if days_active <= 1:
+                    new_val = target_mid
+                    onset_override = True
+                else:
+                    max_delta = MAX_DAILY_LAB_DELTA.get(lab_name, abs(prev_val) * 0.1)
+                    delta = target_mid - new_val
+                    if abs(delta) > max_delta:
+                        delta = max_delta if delta > 0 else -max_delta
+                    new_val = new_val + delta
                 break
-        return new_val
+        return new_val, onset_override
 
     # ═══════════════════════════════════════════════════════
     # Conmed Prescription (병원 방문 시 보조약 처방)
@@ -1500,9 +1575,13 @@ class DailySimulator:
 
         orchestrator에서 병원 방문(is_visit)일 때 호출됨.
         rule_set.supportive_care_rules + 기본 fallback 사용.
+        SC 확률은 AE당 1회만 평가 (방문 반복에 의한 누적 방지).
         """
         sc_rules = self.rule_set.get("supportive_care_rules", [])
         sc_map = {r["ae_term"].lower(): r.get("treatments", []) for r in sc_rules}
+
+        if not hasattr(self, '_sc_evaluated_grades'):
+            self._sc_evaluated_grades: dict[str, int] = {}
 
         for ae in observed_aes:
             ae_term = ae.get("ae", ae.get("ae_term", ""))
@@ -1511,39 +1590,47 @@ class DailySimulator:
                 continue
 
             # 이미 이 AE에 보조약이 처방되어 있으면 건너뜀
+            _nae = normalize_ae_term(ae_term)
             already_prescribed = any(
-                cm.get("CMINDC", "").lower() == ae_term.lower()
-                or ae_term.lower() in cm.get("CMINDC", "").lower()
+                normalize_ae_term(cm.get("CMINDC", "")) == _nae
+                or _nae in normalize_ae_term(cm.get("CMINDC", ""))
                 for cm in self.active_cm
                 if not cm.get("_baseline")
             )
             if already_prescribed:
                 continue
 
-            # G1이라도 증상 완화가 필요한 AE는 supportive care 허용
+            # Grade-escalation 재평가 모델:
+            # onset 시 1회 평가 + grade가 새 threshold(G2, G3)에 도달하면 재평가
+            prev_eval_grade = self._sc_evaluated_grades.get(_nae, 0)
+            if prev_eval_grade > 0 and grade <= prev_eval_grade:
+                continue
+            self._sc_evaluated_grades[_nae] = grade
+
             G1_TREATABLE = {
-                "nausea", "pruritus", "diarrhea", "rash_maculopapular",
-                "stomatitis", "fatigue", "decreased_appetite",
-                "peripheral_neuropathy",
+                "nausea", "pruritus", "diarrhea", "diarrhoea",
+                "rash_maculopapular", "stomatitis", "fatigue",
+                "decreased_appetite", "peripheral_neuropathy",
+                "vomiting", "constipation", "headache", "pyrexia",
+                "arthralgia", "myalgia", "cancer_pain",
+                "insomnia", "cough", "dyspepsia",
             }
-            if grade < 2 and ae_term.lower() not in G1_TREATABLE:
+            if grade < 2 and _nae not in G1_TREATABLE:
                 continue
 
-            treatments = sc_map.get(ae_term.lower(), [])
+            treatments = sc_map.get(_nae, [])
             if not treatments:
                 treatments = self._default_conmed_for_ae(ae_term)
             if not treatments:
                 continue
 
-            # 확률 기반 선택
+            # 확률 기반 선택: 각 treatment의 probability로 독립 시행
             selected = None
             for tx in treatments:
                 prob = float(tx.get("probability", 0.5))
                 if self.sampler.boolean(prob):
                     selected = tx
                     break
-            if selected is None and treatments:
-                selected = treatments[0]
             if selected is None:
                 continue
 
@@ -1565,11 +1652,12 @@ class DailySimulator:
 
     def discontinue_conmed_for_resolved_ae(self, ae_term: str, day: int):
         """해소된 AE에 대한 보조약을 종료한다."""
+        _nae = normalize_ae_term(ae_term)
         for cm in self.active_cm:
             if cm.get("_baseline"):
                 continue
-            if (cm.get("CMINDC", "").lower() == ae_term.lower()
-                    or ae_term.lower() in cm.get("CMINDC", "").lower()):
+            _ncm = normalize_ae_term(cm.get("CMINDC", ""))
+            if _ncm == _nae or _nae in _ncm:
                 if cm.get("CMONGO") and cm.get("CMENDAT") is None:
                     cm["CMENDAT"] = day
                     cm["CMONGO"] = False
@@ -1616,7 +1704,7 @@ class DailySimulator:
             "dysgeusia": [],  # 효과적 치료 없음
             "alopecia": [],  # 치료 없음 (rule_set에 minoxidil이 있을 수 있음)
         }
-        return _DEFAULTS.get(ae_term.lower(), [])
+        return _DEFAULTS.get(normalize_ae_term(ae_term), [])
 
     def _get_active_cm_records(self, day: int) -> list[dict]:
         """현재 활성 상태인 CM 레코드를 반환한다 (CMENDAT이 없거나 >= day)."""
@@ -1827,7 +1915,7 @@ class DailySimulator:
         for drug in self.admin_schedule:
             dname = drug["drug_name"]
             cycle_days = drug.get("cycle_days", [1])
-            cycle_len = self.rule_set.get("trial_design", {}).get("cycle_length_days", 21)
+            cycle_len = int(self.rule_set.get("trial_design", {}).get("cycle_length_days", 21))
 
             # 다음 투약 예정일 계산
             next_admin = None
@@ -1936,7 +2024,7 @@ class DailySimulator:
                 "ECREFID": dname,
                 "ECSTDAT": day,
                 "ECDSTXT": str(actual_dose),
-                "ECDOSU": "mg",
+                "ECDOSU": dose_unit,
                 "ECROUTE": drug.get("route", "IV"),
                 "ECDOSFRQ": drug.get("frequency", ""),
                 "dose_level": dose_level,
@@ -1951,12 +2039,13 @@ class DailySimulator:
         obj = result.get("objective", {})
         labs = obj.get("labs", result.get("labs", {}))
         for lab_name, data in labs.items():
+            cname = normalize_lab_key(lab_name)
             if isinstance(data, dict):
                 val = data.get("value")
             else:
                 val = data
             if isinstance(val, (int, float)):
-                self.baseline_labs[lab_name] = float(val)
+                self.baseline_labs[cname] = float(val)
 
         vitals = obj.get("vitals", result.get("vitals", {}))
         for v_name, val in vitals.items():
@@ -2092,10 +2181,10 @@ class DailySimulator:
             grade = ae.get("grade", 1)
             if grade < 1:
                 continue
-            normalized = ae_term.lower().replace(" ", "_").replace("-", "_")
+            normalized = normalize_ae_term(ae_term)
 
             for pdc_rule in PERMANENT_DC_RULES:
-                pattern = pdc_rule["ae_pattern"]
+                pattern = normalize_ae_term(pdc_rule["ae_pattern"])
                 if pattern not in normalized and normalized not in pattern:
                     continue
                 if grade < pdc_rule["grade_threshold"]:
@@ -2135,7 +2224,7 @@ class DailySimulator:
             if grade < 1:
                 continue
 
-            rule = self.dose_mod_rules.get(ae_term.lower(), self.dose_mod_rules.get("default", {}))
+            rule = self.dose_mod_rules.get(normalize_ae_term(ae_term), self.dose_mod_rules.get("default", {}))
             grade_actions = rule.get("grade_actions", {})
             action = grade_actions.get(str(grade), "DOSE NOT CHANGED")
 

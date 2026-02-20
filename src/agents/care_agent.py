@@ -361,10 +361,16 @@ YOUR STRATEGY:
 
 Output JSON only."""
 
+        # Nurse가 관찰 가능한 정보만 전달 (omitted_symptoms 등 GT 필터링)
+        nurse_visible_t1 = {
+            k: v for k, v in patient_t1.items()
+            if k not in ("omitted_symptoms", "_turn", "_fallback")
+        }
+
         user_prompt = f"""DAY {day} — TURN 2
 
 PATIENT'S INITIAL REPORT (T1):
-{json.dumps(patient_t1, indent=2, ensure_ascii=False)}
+{json.dumps(nurse_visible_t1, indent=2, ensure_ascii=False)}
 
 RECENT CALL HISTORY:
 {recent_summary}
@@ -533,12 +539,16 @@ OUTPUT:
         recent_summary = self._summarize_recent()
         hospital_summary = self._summarize_hospital_record()
 
-        # 대화 전사록 구성
+        # 대화 전사록 구성 (Nurse에게 GT 정보 누출 방지)
+        _nurse_hidden_keys = {"omitted_symptoms", "_turn", "_fallback"}
         conversation_parts = []
         for t in turns:
             role = t["role"].upper()
             turn_n = t["turn"]
-            content_summary = json.dumps(t["content"], ensure_ascii=False)[:800]
+            content = t["content"]
+            if role == "PATIENT":
+                content = {k: v for k, v in content.items() if k not in _nurse_hidden_keys}
+            content_summary = json.dumps(content, ensure_ascii=False)[:800]
             conversation_parts.append(f"[T{turn_n} {role}]: {content_summary}")
         conversation_transcript = "\n".join(conversation_parts)
 

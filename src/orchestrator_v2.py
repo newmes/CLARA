@@ -74,6 +74,7 @@ class SimulationRunnerV2:
         self.max_retries = max_retries
         self.seed = seed
         self.rule_set = None
+        self._lab_ref: dict | None = None
         self._progress = {}  # {patient_id: {day, total_days, status}}
         self._cancelled = False
         self._log_lines: list[str] = []
@@ -156,6 +157,7 @@ class SimulationRunnerV2:
         _logger.info(f'''Phase 0: Discovering rules for {self.drug_name} ({self.indication})''')
         save_path = self.data_dir / 'rule_set.json'
         self.rule_set = rule_agent.discover_rules(drug_name=self.drug_name, indication=self.indication, model=self.model, save_path=str(save_path))
+        self._lab_ref = self.rule_set.get('lab_reference_ranges') if self.rule_set else None
         return self.rule_set
 
     def load_rules(self, path=None):
@@ -163,6 +165,7 @@ class SimulationRunnerV2:
         if not path:
             path = str(self.data_dir / 'rule_set.json')
         self.rule_set = rule_agent.load_rules(path)
+        self._lab_ref = self.rule_set.get('lab_reference_ranges') if self.rule_set else None
         return self.rule_set
 
     def create_patients(self, n):
@@ -303,7 +306,7 @@ class SimulationRunnerV2:
             day_results.append(day_result)
 
             if save:
-                cdash_record = map_day_record(day_result, patient)
+                cdash_record = map_day_record(day_result, patient, lab_ref=self._lab_ref)
                 with open(sim_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(cdash_record, ensure_ascii=False) + "\n")
                 # Hospital-only record
@@ -371,7 +374,7 @@ class SimulationRunnerV2:
                         fu_result["mood_state"] = fu_observed.get("mood_state")
                         day_results.append(fu_result)
                         if save:
-                            cdash_fu = map_day_record(fu_result, patient)
+                            cdash_fu = map_day_record(fu_result, patient, lab_ref=self._lab_ref)
                             with open(sim_path, "a", encoding="utf-8") as f:
                                 f.write(json.dumps(cdash_fu, ensure_ascii=False) + "\n")
                             hr_fu = extract_hospital_record(cdash_fu)
@@ -493,7 +496,7 @@ class SimulationRunnerV2:
             day_results.append(day_result)
 
             if save:
-                cdash_record = map_day_record(day_result, patient)
+                cdash_record = map_day_record(day_result, patient, lab_ref=self._lab_ref)
                 with open(sim_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(cdash_record, ensure_ascii=False) + "\n")
                 hr_record = extract_hospital_record(cdash_record)
@@ -541,7 +544,7 @@ class SimulationRunnerV2:
                         fu_result["care_record"] = [fu_care]
                         day_results.append(fu_result)
                         if save:
-                            cdash_fu = map_day_record(fu_result, patient)
+                            cdash_fu = map_day_record(fu_result, patient, lab_ref=self._lab_ref)
                             with open(sim_path, "a", encoding="utf-8") as f:
                                 f.write(json.dumps(cdash_fu, ensure_ascii=False) + "\n")
                             hr_fu = extract_hospital_record(cdash_fu)
@@ -572,7 +575,8 @@ class SimulationRunnerV2:
                 last_error = e
                 _tb = f'''{type(e).__name__}: {e}'''
                 pid = simulator.patient.get('patient_id', '?')
-                _logger.error(f'''[{pid}] Day {day} attempt {attempt + 1} failed: {_tb}''')
+                import traceback as _traceback_mod
+                _logger.error(f'''[{pid}] Day {day} attempt {attempt + 1} failed: {_tb}\n{_traceback_mod.format_exc()}''')
                 if attempt < self.max_retries:
                     time.sleep(1)
         raise RuntimeError(f'''Day {day} failed after {self.max_retries + 1} attempts: {last_error}''')
@@ -626,7 +630,8 @@ class SimulationRunnerV2:
                 'error': None,
             }
         except Exception as e:
-            _logger.error(f'''[{pid}] Simulation failed: {e}''')
+            import traceback
+            _logger.error(f'''[{pid}] Simulation failed: {e}\n{traceback.format_exc()}''')
             return {
                 'pid': pid,
                 'results': [],
@@ -747,7 +752,7 @@ class SimulationRunnerV2:
             day_results.append(day_result)
 
             if save:
-                cdash_record = map_day_record(day_result, patient)
+                cdash_record = map_day_record(day_result, patient, lab_ref=self._lab_ref)
                 with open(sim_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(cdash_record, ensure_ascii=False) + "\n")
                 hr_record = extract_hospital_record(cdash_record)
@@ -801,7 +806,7 @@ class SimulationRunnerV2:
                             fu_result["care_record"] = []
                         day_results.append(fu_result)
                         if save:
-                            cdash_fu = map_day_record(fu_result, patient)
+                            cdash_fu = map_day_record(fu_result, patient, lab_ref=self._lab_ref)
                             with open(sim_path, "a", encoding="utf-8") as f:
                                 f.write(json.dumps(cdash_fu, ensure_ascii=False) + "\n")
                         if fu_result.get("objective", {}).get("location") == "DECEASED":

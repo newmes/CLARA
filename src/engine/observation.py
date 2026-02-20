@@ -31,6 +31,7 @@ from src.engine.mood import (
     should_visit_er,
 )
 from src.engine.sampler import Sampler
+from config.defaults import normalize_ae_term
 
 # ══════════════════════════════════════════════════════
 # A. AE 감지 채널 정의
@@ -288,6 +289,24 @@ AE_DETECTION_CHANNELS: dict[str, dict[str, Any]] = {
         "channels": ["patient_reported", "lab", "physical_exam"],
         "patient_aware_threshold": 1,
     },
+
+    # ── 신경 (중증) ──
+    "encephalitis": {
+        "channels": ["patient_reported", "lab", "physical_exam"],
+        "patient_aware_threshold": 1,
+    },
+
+    # ── 피부 (추가) ──
+    "skin_reaction": {
+        "channels": ["patient_reported", "video_detectable", "physical_exam"],
+        "patient_aware_threshold": 1,
+        "video_signs": ["visible_rash", "erythema", "skin_lesions"],
+    },
+    "dry_skin": {
+        "channels": ["patient_reported", "video_detectable"],
+        "patient_aware_threshold": 1,
+        "video_signs": ["visible_dryness", "flaking_skin"],
+    },
 }
 
 def get_ae_channels(ae_term: str) -> dict[str, Any]:
@@ -296,12 +315,11 @@ def get_ae_channels(ae_term: str) -> dict[str, Any]:
     미등록 AE는 경고 로그를 남기고 patient_reported로 처리.
     AE_DETECTION_CHANNELS에 등록되지 않은 AE가 나오면 즉시 확인 필요.
     """
-    # 정확한 매칭 먼저
-    if ae_term in AE_DETECTION_CHANNELS:
-        return AE_DETECTION_CHANNELS[ae_term]
-    # 부분 매칭 (e.g., "peripheral_neuropathy_sensory" → "peripheral_neuropathy")
+    normalized = normalize_ae_term(ae_term)
+    if normalized in AE_DETECTION_CHANNELS:
+        return AE_DETECTION_CHANNELS[normalized]
     for key in AE_DETECTION_CHANNELS:
-        if key in ae_term or ae_term in key:
+        if key in normalized or normalized in key:
             return AE_DETECTION_CHANNELS[key]
     import logging
     logging.getLogger(__name__).warning(
@@ -553,13 +571,9 @@ class ObservationModel:
         if full_exam:
             self.known_vitals = copy.deepcopy(obj.get("vitals", {}))
         elif "video_call" in obs_types:
-            # Care AI: 환자가 말해주는 vitals만 (체온 등)
-            # 정확한 혈압/심박수는 알 수 없음
-            patient_temp = obj.get("vitals", {}).get("body_temperature")
-            if patient_temp:
-                if "body_temperature" not in self.known_vitals:
-                    self.known_vitals["body_temperature"] = {}
-                self.known_vitals["body_temperature"] = patient_temp
+            patient_temp = obj.get("vitals", {}).get("BT")
+            if patient_temp is not None:
+                self.known_vitals["BT"] = patient_temp
 
         # ── ECOG ──
         if full_exam:
