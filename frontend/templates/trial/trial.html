@@ -1229,6 +1229,7 @@
 <script>
 (function() {
   const RUN_ID = "{{ run_id }}";
+  setSpriteOffset(RUN_ID);
   const LAB_RANGES = JSON.parse('{{ lab_ranges_json|escapejs }}' || '{}');
   const VITALS_RANGES = {
     temp: {unit:'°F', min:97.0, max:99.0}, hr: {unit:'bpm', min:60, max:100},
