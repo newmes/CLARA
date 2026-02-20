@@ -411,7 +411,7 @@ def _patient_summary(profile: dict, day_data: dict | None,
         hr_obj = hr_data.get("objective", {})
         gt_obj = day_data.get("objective", {})
         obs_types = hr_data.get("observation_types", [])
-        is_visit = bool(obs_types)
+        is_visit = ("scheduled_visit" in obs_types or "er_visit" in obs_types)
 
         if view_mode == "hr":
             # ── Hospital Record mode: ONLY what the hospital knows ──
@@ -892,7 +892,7 @@ def patient_state(request, run_id: str, patient_id: str, day: int = None):
             # Location for display
             current_day_data["_display_location"] = hr_obj.get("location", gt_obj.get("location", "HOME"))
             current_day_data["_hr_obs_types"] = obs_types
-            current_day_data["_hr_is_visit"] = bool(obs_types)
+            current_day_data["_hr_is_visit"] = ("scheduled_visit" in obs_types or "er_visit" in obs_types)
         else:
             # GT mode: standard safe_AE mapping
             safe_aes = []
@@ -913,7 +913,7 @@ def patient_state(request, run_id: str, patient_id: str, day: int = None):
             current_day_data["_display_location"] = gt_obj.get("location", "HOME")
             hr = current_day_data.get("hospital_record", {})
             obs_types = hr.get("observation_types", [])
-            current_day_data["_hr_is_visit"] = bool(obs_types)
+            current_day_data["_hr_is_visit"] = ("scheduled_visit" in obs_types or "er_visit" in obs_types)
             current_day_data["_hr_obs_types"] = obs_types
 
     # Filter: only show data up to and including the current viewing day
