@@ -776,7 +776,7 @@
     absolute_neutrophil_count: 'ANC', alanine_aminotransferase: 'ALT',
     aspartate_aminotransferase: 'AST', total_bilirubin: 'Bilirubin',
     bilirubin: 'Bilirubin', glucose_fasting: 'Glucose (fasting)',
-    weight_kg: 'Weight', height_cm: 'Height',
+    weight_kg: 'Weight (lbs)', height_cm: 'Height (in)',
   };
   function labDisplayName(raw) { return LAB_ABBR[raw] || (raw.includes('_') ? raw.replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()) : raw); }
   let _lbCache = {};
@@ -1192,10 +1192,10 @@
     SBP:  { label: 'SBP (Systolic BP)',  unit: 'mmHg', lo: 90,   hi: 140,  key: 'SBP' },
     DBP:  { label: 'DBP (Diastolic BP)', unit: 'mmHg', lo: 60,   hi: 90,   key: 'DBP' },
     HR:   { label: 'HR (Heart Rate)',     unit: 'bpm',  lo: 60,   hi: 100,  key: 'HR' },
-    BT:   { label: 'Temp (Body Temp)',    unit: '°C',   lo: 36.1, hi: 37.2, key: 'BT' },
+    BT:   { label: 'Temp (Body Temp)',    unit: '°F',   lo: 97.0, hi: 99.0, key: 'BT' },
     RR:   { label: 'RR (Respiratory)',    unit: '/min', lo: 12,   hi: 20,   key: 'RR' },
     SpO2: { label: 'SpO2 (O₂ Sat)',      unit: '%',    lo: 95,   hi: 100,  key: 'SpO2' },
-    weight_kg: { label: 'Weight',         unit: 'kg',   lo: null, hi: null, key: 'weight_kg' },
+    weight_kg: { label: 'Weight',         unit: 'lbs',  lo: null, hi: null, key: 'weight_kg' },
   };
   let _vsCache = {};
   let _vsChartState = { points: [], positions: [] };
