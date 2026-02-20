@@ -124,6 +124,84 @@
     text-align: center; padding: 3em; color: var(--text-muted);
     font-size: 0.95em;
   }
+
+  /* ── Lab Trend Chart ── */
+  .lb-chart-section { display: none; margin-bottom: 1em; }
+  .lb-chart-section.visible { display: block; }
+  .lb-chart-controls {
+    display: flex; gap: 10px; align-items: center; margin-bottom: 8px; flex-wrap: wrap;
+  }
+  .lb-chart-controls .select-group { display: flex; flex-direction: column; gap: 2px; }
+  .lb-chart-controls .select-group label {
+    font-size: 0.65em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .lb-chart-controls select {
+    background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-primary);
+    padding: 5px 10px; border-radius: var(--radius-sm); font-size: 0.85em; cursor: pointer;
+  }
+  .lb-chart-controls select:hover { border-color: var(--accent-cyan); }
+  .lb-chart-layout { display: flex; gap: 12px; align-items: stretch; height: 500px; }
+  .lb-chart-panel {
+    flex: 1; min-width: 0; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); padding: 16px; position: relative;
+    display: flex; flex-direction: column; overflow: hidden;
+  }
+  .lb-chart-title { font-size: 0.92em; color: var(--text-primary); margin-bottom: 2px; }
+  .lb-chart-subtitle { font-size: 0.75em; color: var(--text-muted); margin-bottom: 12px; }
+  .lb-chart-area { position: relative; width: 100%; flex: 1; min-height: 0; }
+  .lb-chart-area canvas { display: block; width: 100%; height: 100%; }
+  .lb-ref-info {
+    display: flex; gap: 16px; margin-top: 8px; font-size: 0.72em; color: var(--text-muted);
+    padding-top: 8px; border-top: 1px solid var(--border);
+  }
+  .lb-ref-info span { display: flex; align-items: center; gap: 6px; }
+  .lb-ref-line-sample { width: 20px; height: 0; border-top: 2px dashed var(--text-muted); }
+  .lb-side-panel {
+    width: 200px; flex-shrink: 0; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-lg); display: flex; flex-direction: column; overflow: hidden;
+  }
+  .lb-side-header {
+    padding: 10px 14px; border-bottom: 1px solid var(--border);
+    font-size: 0.72em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+    background: var(--bg-secondary); flex-shrink: 0;
+  }
+  .lb-side-row-head {
+    display: grid; grid-template-columns: 42px 1fr 42px; padding: 5px 14px;
+    font-size: 0.65em; color: var(--text-muted); text-transform: uppercase;
+    border-bottom: 1px solid var(--border); background: var(--bg-secondary);
+  }
+  .lb-side-row-head span:nth-child(2) { text-align: right; padding-right: 8px; }
+  .lb-side-row-head span:nth-child(3) { text-align: center; }
+  .lb-side-scroll { flex: 1; overflow-y: auto; padding: 2px 0; }
+  .lb-side-scroll::-webkit-scrollbar { width: 5px; }
+  .lb-side-scroll::-webkit-scrollbar-track { background: transparent; }
+  .lb-side-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  .lb-data-row {
+    display: grid; grid-template-columns: 42px 1fr 42px;
+    padding: 4px 14px; font-size: 0.78em; align-items: center;
+    border-bottom: 1px solid rgba(255,255,255,0.03); transition: background 0.1s;
+  }
+  .lb-data-row:hover { background: var(--bg-secondary); }
+  .lb-data-row .day { color: var(--text-muted); }
+  .lb-data-row .val { font-weight: 600; text-align: right; padding-right: 8px; }
+  .lb-data-row .val.ok { color: #7ee787; }
+  .lb-data-row .val.above { color: #f85149; }
+  .lb-data-row .val.below { color: #58a6ff; }
+  .lb-data-row .cs { text-align: center; }
+  .lb-cs-tag { padding: 1px 5px; border-radius: 3px; font-size: 0.72em; font-weight: 600; }
+  .lb-cs-yes { background: #f8514933; color: #f85149; }
+  .lb-cs-no { background: #7ee78722; color: #7ee787; }
+
+  /* Tooltip */
+  .lb-tooltip {
+    display: none; position: fixed; background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: var(--radius-md); padding: 8px 12px; font-size: 0.82em; z-index: 999;
+    pointer-events: none; box-shadow: 0 4px 16px rgba(0,0,0,0.5); min-width: 130px;
+  }
+  .lb-tooltip .tt-date { color: var(--text-muted); font-size: 0.85em; }
+  .lb-tooltip .tt-val { font-size: 1.2em; font-weight: 600; margin: 3px 0; }
+  .lb-tooltip .tt-unit { font-size: 0.85em; color: var(--text-muted); }
+  .lb-tooltip .tt-cs { font-size: 0.82em; margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--border); }
 </style>
 {% endblock %}
 
@@ -185,6 +263,41 @@
 
   <!-- Domain tabs -->
   <div class="domain-tabs" id="domainTabs"></div>
+
+  <!-- Lab Trend Chart (LB domain only) -->
+  <div class="lb-chart-section" id="lbChartSection">
+    <div class="lb-chart-controls">
+      <div class="select-group">
+        <label>Patient</label>
+        <select id="lbPatientSelect"></select>
+      </div>
+      <div class="select-group">
+        <label>Lab Test</label>
+        <select id="lbLabSelect"></select>
+      </div>
+    </div>
+    <div class="lb-chart-layout">
+      <div class="lb-chart-panel">
+        <div class="lb-chart-title" id="lbChartTitle">—</div>
+        <div class="lb-chart-subtitle" id="lbChartSubtitle">—</div>
+        <div class="lb-chart-area"><canvas id="lbChartCanvas"></canvas></div>
+        <div class="lb-ref-info">
+          <span><span class="lb-ref-line-sample"></span> Normal range boundary</span>
+        </div>
+      </div>
+      <div class="lb-side-panel">
+        <div class="lb-side-header">Measurements</div>
+        <div class="lb-side-row-head"><span>Day</span><span>Value</span><span>Sig</span></div>
+        <div class="lb-side-scroll" id="lbSideScroll"></div>
+      </div>
+    </div>
+  </div>
+  <div class="lb-tooltip" id="lbTooltip">
+    <div class="tt-date" id="lbTtDate"></div>
+    <div class="tt-val" id="lbTtVal"></div>
+    <div class="tt-unit" id="lbTtUnit"></div>
+    <div class="tt-cs" id="lbTtCs"></div>
+  </div>
 
   <!-- Table area -->
   <div class="crf-table-wrap">
@@ -393,6 +506,312 @@
 
     pag.innerHTML = html;
   }
+
+  // ═══ Lab Trend Chart (LB domain) ═══════════════════════════
+  const LAB_RANGES = JSON.parse('{{ lab_ranges_json|escapejs }}' || '{}');
+  const COLOR_OK = '#7ee787', COLOR_ABOVE = '#f85149', COLOR_BELOW = '#58a6ff';
+  let _lbCache = {};
+  let _lbChartState = { points: [], positions: [] };
+
+  function showLbChart(show) {
+    const el = document.getElementById('lbChartSection');
+    if (el) el.classList.toggle('visible', show);
+  }
+
+  // Override switchDomain to show/hide chart
+  const _origSwitchDomain = window.switchDomain;
+  window.switchDomain = function(domain) {
+    showLbChart(domain === 'LB');
+    _origSwitchDomain(domain);
+    if (domain === 'LB') initLbChart();
+  };
+
+  async function fetchPatientTimeline(pid) {
+    const key = `${pid}_${currentMode}`;
+    if (_lbCache[key]) return _lbCache[key];
+    const resp = await fetch(`/api/patient/${RUN_ID}/${pid}/?mode=${currentMode}`);
+    const data = await resp.json();
+    _lbCache[key] = data.days;
+    return data.days;
+  }
+
+  function extractLbSeries(days, labName) {
+    const points = [];
+    for (const d of days) {
+      const lbResults = d.LB?.results?.[labName];
+      const val = lbResults?.LBORRES ?? null;
+      if (val != null && typeof val === 'number') points.push({ day: d.day, value: val });
+    }
+    return points;
+  }
+
+  function getLbNames(days) {
+    const names = new Set();
+    for (const d of days) {
+      const lbr = d.LB?.results;
+      if (lbr) Object.keys(lbr).forEach(k => names.add(k));
+    }
+    return [...names].sort();
+  }
+
+  function getLbConfig(labName) {
+    const r = LAB_RANGES[labName];
+    if (r) return { unit: r.unit || '', normalLow: r.normal_range?.min ?? r.LLN, normalHigh: r.normal_range?.max ?? r.ULN };
+    return null;
+  }
+
+  function renderLbCanvas(points, config) {
+    const canvas = document.getElementById('lbChartCanvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const rect = canvas.parentElement.getBoundingClientRect();
+    const dpr = window.devicePixelRatio || 1;
+    canvas.width = rect.width * dpr; canvas.height = rect.height * dpr;
+    canvas.style.width = rect.width + 'px'; canvas.style.height = rect.height + 'px';
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.scale(dpr, dpr);
+
+    const W = rect.width, H = rect.height;
+    const PAD = { top: 24, right: 48, bottom: 36, left: 56 };
+    const plotW = W - PAD.left - PAD.right, plotH = H - PAD.top - PAD.bottom;
+
+    if (points.length === 0) {
+      ctx.clearRect(0, 0, W, H);
+      ctx.fillStyle = '#484f58'; ctx.font = '13px -apple-system, sans-serif';
+      ctx.textAlign = 'center'; ctx.fillText('No data', W / 2, H / 2);
+      _lbChartState.positions = [];
+      return;
+    }
+
+    const allVals = points.map(p => p.value);
+    let dataMin = Math.min(...allVals), dataMax = Math.max(...allVals);
+    if (config) { dataMin = Math.min(dataMin, config.normalLow); dataMax = Math.max(dataMax, config.normalHigh); }
+    const valPad = (dataMax - dataMin) * 0.18 || 1;
+    const yMin = dataMin - valPad, yMax = dataMax + valPad;
+    const maxDay = Math.max(...points.map(p => p.day), 21);
+
+    function xPos(d) { return PAD.left + ((d - 1) / Math.max(maxDay - 1, 1)) * plotW; }
+    function yPos(v) { return PAD.top + (1 - (v - yMin) / (yMax - yMin)) * plotH; }
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Grid
+    ctx.strokeStyle = '#1c2128'; ctx.lineWidth = 1;
+    for (let i = 0; i <= 5; i++) {
+      const v = yMin + (yMax - yMin) * (i / 5); const y = yPos(v);
+      ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(W - PAD.right, y); ctx.stroke();
+      ctx.fillStyle = '#484f58'; ctx.font = '10px -apple-system, sans-serif';
+      ctx.textAlign = 'right'; ctx.textBaseline = 'middle';
+      const lbl = (yMax - yMin) > 50 ? Math.round(v) : (yMax - yMin) > 5 ? Math.round(v * 10) / 10 : Math.round(v * 100) / 100;
+      ctx.fillText(lbl, PAD.left - 6, y);
+    }
+
+    // X-axis
+    ctx.fillStyle = '#484f58'; ctx.font = '10px -apple-system, sans-serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'top';
+    const xTicks = [1];
+    for (let d = 21; d <= maxDay; d += 21) xTicks.push(d);
+    if (xTicks[xTicks.length - 1] < maxDay - 5) xTicks.push(maxDay);
+    xTicks.filter(d => d <= maxDay).forEach(d => ctx.fillText('D' + d, xPos(d), H - PAD.bottom + 8));
+
+    // Normal range
+    let yHigh, yLow;
+    if (config) {
+      ctx.setLineDash([6, 4]); ctx.strokeStyle = '#484f58'; ctx.lineWidth = 1.5;
+      yHigh = yPos(config.normalHigh);
+      ctx.beginPath(); ctx.moveTo(PAD.left, yHigh); ctx.lineTo(W - PAD.right, yHigh); ctx.stroke();
+      ctx.fillStyle = '#f8514988'; ctx.font = '9px -apple-system, sans-serif';
+      ctx.textAlign = 'left'; ctx.textBaseline = 'bottom';
+      ctx.fillText(config.normalHigh, W - PAD.right + 4, yHigh - 2);
+      yLow = yPos(config.normalLow);
+      ctx.beginPath(); ctx.moveTo(PAD.left, yLow); ctx.lineTo(W - PAD.right, yLow); ctx.stroke();
+      ctx.fillStyle = '#58a6ff88'; ctx.textBaseline = 'top';
+      ctx.fillText(config.normalLow, W - PAD.right + 4, yLow + 2);
+      ctx.setLineDash([]);
+      ctx.fillStyle = '#7ee78706';
+      ctx.fillRect(PAD.left, yHigh, plotW, yLow - yHigh);
+    }
+
+    // Line segments
+    const pxPts = points.map(p => ({ x: xPos(p.day), y: yPos(p.value) }));
+    for (let i = 0; i < pxPts.length - 1; i++) {
+      const p1 = pxPts[i], p2 = pxPts[i + 1];
+      for (let s = 0; s < 30; s++) {
+        const t1 = s / 30, t2 = (s + 1) / 30;
+        const x1 = p1.x + (p2.x - p1.x) * t1, y1 = p1.y + (p2.y - p1.y) * t1;
+        const x2 = p1.x + (p2.x - p1.x) * t2, y2 = p1.y + (p2.y - p1.y) * t2;
+        const midY = (y1 + y2) / 2;
+        if (config) {
+          ctx.strokeStyle = midY < yHigh ? COLOR_ABOVE : midY > yLow ? COLOR_BELOW : COLOR_OK;
+        } else {
+          ctx.strokeStyle = COLOR_OK;
+        }
+        ctx.lineWidth = 2.5; ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke();
+      }
+    }
+
+    // Data points
+    const positions = [];
+    for (let i = 0; i < points.length; i++) {
+      const p = points[i], x = pxPts[i].x, y = pxPts[i].y;
+      let color = COLOR_OK;
+      if (config) {
+        if (p.value > config.normalHigh) color = COLOR_ABOVE;
+        else if (p.value < config.normalLow) color = COLOR_BELOW;
+      }
+      const r = color !== COLOR_OK ? 5 : 3;
+      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+      if (color !== COLOR_OK) { ctx.strokeStyle = '#0d1117'; ctx.lineWidth = 1.5; ctx.stroke(); }
+      positions.push({ x, y, point: p, radius: r + 3 });
+    }
+    _lbChartState.positions = positions;
+  }
+
+  function renderLbSidePanel(points, config) {
+    const scroll = document.getElementById('lbSideScroll');
+    if (!scroll) return;
+    let html = '';
+    for (const p of points) {
+      let cls = 'ok', outOfRange = false;
+      if (config) {
+        if (p.value > config.normalHigh) { cls = 'above'; outOfRange = true; }
+        else if (p.value < config.normalLow) { cls = 'below'; outOfRange = true; }
+      }
+      let cs = 'NCS';
+      if (outOfRange && config) {
+        const range = config.normalHigh - config.normalLow;
+        const dev = cls === 'above' ? (p.value - config.normalHigh) / range : (config.normalLow - p.value) / range;
+        cs = dev > 0.12 ? 'CS' : 'NCS';
+      }
+      const csTag = cs === 'CS' ? '<span class="lb-cs-tag lb-cs-yes">CS</span>' : '<span class="lb-cs-tag lb-cs-no">NCS</span>';
+      const displayVal = typeof p.value === 'number' ? (Math.abs(p.value) >= 100 ? Math.round(p.value) : (Math.abs(p.value) >= 1 ? p.value.toFixed(1) : p.value.toFixed(2))) : p.value;
+      html += `<div class="lb-data-row"><span class="day">D${p.day}</span><span class="val ${cls}">${displayVal}</span><span class="cs">${csTag}</span></div>`;
+    }
+    scroll.innerHTML = html || '<div style="padding:10px;color:var(--text-muted);">No data</div>';
+  }
+
+  async function initLbChart() {
+    const patientSel = document.getElementById('lbPatientSelect');
+    const labSel = document.getElementById('lbLabSelect');
+    if (!patientSel || !labSel) return;
+
+    // Populate patient select (sync with filter if set)
+    const selectedPid = currentPatient || PATIENTS[0];
+    patientSel.innerHTML = PATIENTS.map(pid =>
+      `<option value="${pid}"${pid === selectedPid ? ' selected' : ''}>${pid}</option>`
+    ).join('');
+
+    async function loadPatientLabs() {
+      const pid = patientSel.value;
+      let days;
+      try {
+        days = await fetchPatientTimeline(pid);
+      } catch(e) {
+        labSel.innerHTML = '<option>Error</option>';
+        return;
+      }
+
+      const labNames = getLbNames(days);
+      if (labNames.length === 0) {
+        labSel.innerHTML = '<option>No labs</option>';
+        renderLbCanvas([], null);
+        renderLbSidePanel([], null);
+        document.getElementById('lbChartTitle').textContent = pid + ' — No labs';
+        document.getElementById('lbChartSubtitle').textContent = '—';
+        return;
+      }
+
+      const prevLab = labSel.value;
+      labSel.innerHTML = labNames.map(n => `<option value="${n}"${n === prevLab ? ' selected' : ''}>${n}</option>`).join('');
+      if (!labNames.includes(prevLab)) labSel.selectedIndex = 0;
+
+      updateLbRender(days);
+    }
+
+    function updateLbRender(days) {
+      const pid = patientSel.value;
+      const labName = labSel.value;
+      const config = getLbConfig(labName);
+      const points = extractLbSeries(days, labName);
+      _lbChartState.points = points;
+
+      document.getElementById('lbChartTitle').textContent = `${pid} — ${labName}`;
+      document.getElementById('lbChartSubtitle').textContent = config
+        ? `Normal range: ${config.normalLow}–${config.normalHigh} ${config.unit}`
+        : '—';
+
+      requestAnimationFrame(() => {
+        renderLbCanvas(points, config);
+        renderLbSidePanel(points, config);
+      });
+    }
+
+    patientSel.onchange = () => loadPatientLabs();
+    labSel.onchange = async () => {
+      const pid = patientSel.value;
+      const days = await fetchPatientTimeline(pid);
+      updateLbRender(days);
+    };
+
+    await loadPatientLabs();
+  }
+
+  // Tooltip for LB chart
+  (function() {
+    const canvas = document.getElementById('lbChartCanvas');
+    if (!canvas) return;
+    const tip = document.getElementById('lbTooltip');
+
+    canvas.addEventListener('mousemove', (e) => {
+      const rect = canvas.getBoundingClientRect();
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      let hit = null, minD = Infinity;
+      for (const pp of _lbChartState.positions) {
+        const d = Math.sqrt((mx - pp.x) ** 2 + (my - pp.y) ** 2);
+        if (d < pp.radius * 2.5 && d < minD) { minD = d; hit = pp; }
+      }
+      if (hit) {
+        const p = hit.point;
+        const labSel = document.getElementById('lbLabSelect');
+        const labName = labSel ? labSel.value : '';
+        const config = getLbConfig(labName);
+        tip.style.display = 'block';
+        tip.style.left = (e.clientX + 16) + 'px';
+        tip.style.top = (e.clientY - 10) + 'px';
+        document.getElementById('lbTtDate').textContent = 'Day ' + p.day;
+        const ttVal = document.getElementById('lbTtVal');
+        ttVal.textContent = p.value;
+        let color = COLOR_OK;
+        if (config && p.value > config.normalHigh) color = COLOR_ABOVE;
+        else if (config && p.value < config.normalLow) color = COLOR_BELOW;
+        ttVal.style.color = color;
+        document.getElementById('lbTtUnit').textContent = config ? config.unit : '';
+        let outOfRange = config && (p.value > config.normalHigh || p.value < config.normalLow);
+        let cs = 'NCS';
+        if (outOfRange && config) {
+          const range = config.normalHigh - config.normalLow;
+          const dev = p.value > config.normalHigh ? (p.value - config.normalHigh) / range : (config.normalLow - p.value) / range;
+          cs = dev > 0.12 ? 'CS' : 'NCS';
+        }
+        const csH = cs === 'CS'
+          ? '<span style="padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;background:#f8514933;color:#f85149;">CS</span> Clinically Significant'
+          : '<span style="padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;background:#7ee78722;color:#7ee787;">NCS</span>';
+        document.getElementById('lbTtCs').innerHTML = csH;
+        canvas.style.cursor = 'crosshair';
+      } else {
+        tip.style.display = 'none';
+        canvas.style.cursor = 'default';
+      }
+    });
+    canvas.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+
+    window.addEventListener('resize', () => {
+      if (currentDomain === 'LB' && _lbChartState.points.length > 0) {
+        const labSel = document.getElementById('lbLabSelect');
+        const config = labSel ? getLbConfig(labSel.value) : null;
+        renderLbCanvas(_lbChartState.points, config);
+      }
+    });
+  })();
 
   // Initial load
   loadDomainData();
