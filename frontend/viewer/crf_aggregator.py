@@ -11,6 +11,26 @@ from pathlib import Path
 from typing import Any
 
 
+# ─── Lab name abbreviation mapping ────────────────────────────────────
+# New data uses full names; map them to standard abbreviations for display.
+LAB_ABBREVIATIONS: dict[str, str] = {
+    "absolute_neutrophil_count": "ANC",
+    "alanine_aminotransferase": "ALT",
+    "aspartate_aminotransferase": "AST",
+    "total_bilirubin": "Bilirubin",
+    "bilirubin": "Bilirubin",
+    "glucose_fasting": "Glucose (fasting)",
+    "weight_kg": "Weight",
+    "height_cm": "Height",
+}
+
+
+def _lab_display_name(raw_name: str) -> str:
+    """Return human-friendly lab test name."""
+    return LAB_ABBREVIATIONS.get(raw_name, raw_name.replace("_", " ").title()
+                                  if "_" in raw_name else raw_name)
+
+
 # ─── Column definitions per domain ─────────────────────────────────────
 
 DM_COLUMNS = [
@@ -26,6 +46,7 @@ DM_COLUMNS = [
 
 MH_COLUMNS = [
     {"key": "patient_id", "label": "Subject"},
+    {"key": "MHYN", "label": "Reported"},
     {"key": "MHTERM", "label": "Condition"},
     {"key": "MHDAT", "label": "Collection Date"},
     {"key": "MHSTDAT", "label": "Start Date"},
@@ -35,6 +56,7 @@ MH_COLUMNS = [
 
 AE_COLUMNS = [
     {"key": "patient_id", "label": "Subject"},
+    {"key": "AEYN", "label": "Reported"},
     {"key": "AETERM", "label": "Adverse Event"},
     {"key": "AESTDAT", "label": "Start Day"},
     {"key": "AEONGO", "label": "Ongoing"},
@@ -54,18 +76,35 @@ AE_COLUMNS = [
     {"key": "AEOUT", "label": "Outcome"},
     {"key": "_status", "label": "Status"},
     {"key": "_days_active", "label": "Days Active"},
+    {"key": "_visual", "label": "Visual Details"},
 ]
 
 AE_HR_COLUMNS = [
     {"key": "patient_id", "label": "Subject"},
-    {"key": "ae", "label": "Adverse Event"},
-    {"key": "grade", "label": "Grade"},
-    {"key": "onset_day", "label": "Onset Day"},
-    {"key": "_onset_cycle", "label": "Onset Cycle"},
+    {"key": "AEYN", "label": "Reported"},
+    {"key": "AETERM", "label": "Adverse Event"},
+    {"key": "AESTDAT", "label": "Start Day"},
+    {"key": "AEONGO", "label": "Ongoing"},
+    {"key": "AEENDAT", "label": "End Day"},
+    {"key": "AESEV", "label": "Severity"},
+    {"key": "_grade", "label": "Grade"},
+    {"key": "AESER", "label": "Serious"},
+    {"key": "AESDTH", "label": "Results in Death"},
+    {"key": "AESLIFE", "label": "Life-Threatening"},
+    {"key": "AESHOSP", "label": "Hospitalization"},
+    {"key": "AESDISAB", "label": "Disability"},
+    {"key": "AESCONG", "label": "Congenital Anomaly"},
+    {"key": "AESMIE", "label": "Other Medically Important"},
+    {"key": "AEREL", "label": "Related"},
+    {"key": "AEACN", "label": "Action Taken"},
+    {"key": "AEACNOTH", "label": "Other Action"},
+    {"key": "AEOUT", "label": "Outcome"},
+    {"key": "_status", "label": "Status"},
+    {"key": "_days_active", "label": "Days Active"},
+    {"key": "_visual", "label": "Visual Details"},
     {"key": "detected_day", "label": "Detected Day"},
     {"key": "detection_delay", "label": "Detection Delay"},
     {"key": "channel", "label": "Detection Channel"},
-    {"key": "status", "label": "Status"},
 ]
 
 EC_COLUMNS = [
@@ -83,12 +122,16 @@ EC_COLUMNS = [
     {"key": "ECADJ", "label": "Adjustment Reason"},
     {"key": "ECCINTD", "label": "Interruption Duration"},
     {"key": "ECCINTDU", "label": "Duration Unit"},
+    {"key": "ECITRPYN", "label": "Interrupted"},
     {"key": "ECTRTCMP", "label": "Completed"},
+    {"key": "_dose_mg", "label": "Dose (mg)"},
+    {"key": "_cumulative_dose_mg", "label": "Cumulative Dose (mg)"},
     {"key": "_dose_level", "label": "Dose Level"},
 ]
 
 CM_COLUMNS = [
     {"key": "patient_id", "label": "Subject"},
+    {"key": "CMYN", "label": "Reported"},
     {"key": "CMTRT", "label": "Medication"},
     {"key": "CMINDC", "label": "Indication"},
     {"key": "CMDSTXT", "label": "Dose"},
@@ -123,15 +166,29 @@ VS_HR_COLUMNS = [
     {"key": "patient_id", "label": "Subject"},
     {"key": "day", "label": "Day"},
     {"key": "_cycle", "label": "Cycle"},
-    {"key": "SBP", "label": "SBP (mmHg)"},
-    {"key": "DBP", "label": "DBP (mmHg)"},
-    {"key": "HR", "label": "HR (bpm)"},
-    {"key": "BT", "label": "Temp (C)"},
-    {"key": "RR", "label": "RR (/min)"},
-    {"key": "height_cm", "label": "Height (cm)"},
-    {"key": "weight_kg", "label": "Weight (kg)"},
-    {"key": "SpO2", "label": "SpO2 (%)"},
-    {"key": "stale_days", "label": "Stale Days"},
+    {"key": "VSPERF", "label": "Performed"},
+    {"key": "VSDAT", "label": "Assessment Date"},
+    {"key": "SYSBP_VSORRES", "label": "SBP"},
+    {"key": "SYSBP_VSORRESU", "label": "SBP Unit"},
+    {"key": "DIABP_VSORRES", "label": "DBP"},
+    {"key": "DIABP_VSORRESU", "label": "DBP Unit"},
+    {"key": "PULSE_VSORRES", "label": "HR"},
+    {"key": "PULSE_VSORRESU", "label": "HR Unit"},
+    {"key": "TEMP_VSORRES", "label": "Temp"},
+    {"key": "TEMP_VSORRESU", "label": "Temp Unit"},
+    {"key": "RESP_VSORRES", "label": "RR"},
+    {"key": "RESP_VSORRESU", "label": "RR Unit"},
+    {"key": "OXYSAT_VSORRES", "label": "SpO2"},
+    {"key": "_SpO2_unit", "label": "SpO2 Unit"},
+    {"key": "HEIGHT_VSORRES", "label": "Height"},
+    {"key": "HEIGHT_VSORRESU", "label": "Height Unit"},
+    {"key": "WEIGHT_VSORRES", "label": "Weight"},
+    {"key": "WEIGHT_VSORRESU", "label": "Weight Unit"},
+    {"key": "BP_VSPOS", "label": "BP Position"},
+    {"key": "BP_VSLOC", "label": "BP Location"},
+    {"key": "PULSE_VSLOC", "label": "Pulse Location"},
+    {"key": "TEMP_VSLOC", "label": "Temp Location"},
+    {"key": "_stale", "label": "Stale"},
 ]
 
 LB_COLUMNS = [
@@ -140,6 +197,10 @@ LB_COLUMNS = [
     {"key": "test_name", "label": "Test"},
     {"key": "LBORRES", "label": "Result"},
     {"key": "LBORRESU", "label": "Unit"},
+    {"key": "LBORNRLO", "label": "Normal Low"},
+    {"key": "LBORNRHI", "label": "Normal High"},
+    {"key": "LBNRIND", "label": "Normal/Abnormal"},
+    {"key": "LBCLSIG", "label": "Clin. Significant"},
     {"key": "LBCAT", "label": "Category"},
     {"key": "_trend", "label": "Trend"},
 ]
@@ -148,11 +209,18 @@ LB_HR_COLUMNS = [
     {"key": "patient_id", "label": "Subject"},
     {"key": "day", "label": "Day"},
     {"key": "_cycle", "label": "Cycle"},
+    {"key": "LBPERF", "label": "Performed"},
+    {"key": "LBDAT", "label": "Lab Date"},
     {"key": "test_name", "label": "Test"},
-    {"key": "value", "label": "Result"},
-    {"key": "unit", "label": "Unit"},
-    {"key": "trend", "label": "Trend"},
-    {"key": "stale_days", "label": "Stale Days"},
+    {"key": "LBORRES", "label": "Result"},
+    {"key": "LBORRESU", "label": "Unit"},
+    {"key": "LBORNRLO", "label": "Normal Low"},
+    {"key": "LBORNRHI", "label": "Normal High"},
+    {"key": "LBNRIND", "label": "Normal/Abnormal"},
+    {"key": "LBCLSIG", "label": "Clin. Significant"},
+    {"key": "LBCAT", "label": "Category"},
+    {"key": "_trend", "label": "Trend"},
+    {"key": "_stale", "label": "Stale"},
 ]
 
 DS_COLUMNS = [
@@ -177,6 +245,7 @@ DD_COLUMNS = [
 
 TU_COLUMNS = [
     {"key": "patient_id", "label": "Subject"},
+    {"key": "TUYN", "label": "Assessed"},
     {"key": "day", "label": "Day"},
     {"key": "_cycle", "label": "Cycle"},
     {"key": "TULNKID", "label": "Lesion Link ID"},
@@ -190,6 +259,8 @@ TU_COLUMNS = [
     {"key": "TUEVALID", "label": "Evaluator ID"},
     {"key": "TRORRES", "label": "Target Lesion Result"},
     {"key": "TRORRESU", "label": "Result Unit"},
+    {"key": "_baseline_mm", "label": "Baseline (mm)"},
+    {"key": "_change_pct", "label": "Change (%)"},
     {"key": "TRSTAT", "label": "Status"},
     {"key": "TRREASND", "label": "Reason Not Done"},
     {"key": "TURESULT", "label": "Result"},
@@ -199,6 +270,7 @@ RS_COLUMNS = [
     {"key": "patient_id", "label": "Subject"},
     {"key": "day", "label": "Day"},
     {"key": "_cycle", "label": "Cycle"},
+    {"key": "RSPERF", "label": "Performed"},
     {"key": "RSCAT", "label": "Assessment Category"},
     {"key": "RSEVAL", "label": "Evaluator"},
     {"key": "RSEVALID", "label": "Evaluator ID"},
@@ -206,8 +278,12 @@ RS_COLUMNS = [
     {"key": "NTRGRESP_RSORRES", "label": "Non-Target Response"},
     {"key": "OVRLRESP_RSORRES", "label": "Overall Response"},
     {"key": "BESTRESP_RSORRES", "label": "Best Overall Response"},
+    {"key": "_tumor_change_pct", "label": "Tumor Change (%)"},
+    {"key": "_nadir_pct", "label": "Nadir (%)"},
+    {"key": "_description", "label": "Description"},
     {"key": "RSRESULT", "label": "Response"},
     {"key": "RSTESTCD", "label": "Test Code"},
+    {"key": "RSREASND", "label": "Reason Not Done"},
 ]
 
 PE_COLUMNS = [
@@ -278,6 +354,36 @@ def _iter_jsonl(run_path: Path, patient_id: str, mode: str = "natural"):
             line = line.strip()
             if line:
                 yield json.loads(line)
+
+
+def _iter_hospital_jsonl(run_path: Path, patient_id: str, mode: str = "natural"):
+    """Yield parsed records from a hospital JSONL file.
+
+    Prefers the dedicated *_hospital.jsonl (v2.3+).
+    Falls back to extracting hospital_record from the GT file (older runs).
+    """
+    hr_path = run_path / "simulations" / f"{patient_id}_{mode}_hospital.jsonl"
+    if hr_path.exists():
+        with open(hr_path, encoding="utf-8") as fh:
+            for line in fh:
+                line = line.strip()
+                if line:
+                    yield json.loads(line)
+    else:
+        # Legacy: extract hospital_record from GT file
+        for record in _iter_jsonl(run_path, patient_id, mode):
+            hr = record.get("hospital_record")
+            if hr:
+                merged = {
+                    "day": record.get("day"),
+                    "cycle": record.get("cycle"),
+                    "cycle_day": record.get("cycle_day"),
+                }
+                merged.update(hr)
+                yield merged
+            else:
+                # Oldest format: no hospital_record at all, use GT directly
+                yield record
 
 
 def _load_patient_json(run_path: Path, patient_id: str) -> dict | None:
@@ -369,6 +475,7 @@ def aggregate_mh(
         for mh in profile.get("MH", []):
             rows.append({
                 "patient_id": pid,
+                "MHYN": mh.get("MHYN"),
                 "MHTERM": mh.get("MHTERM"),
                 "MHDAT": mh.get("MHDAT"),
                 "MHSTDAT": mh.get("MHSTDAT"),
@@ -404,6 +511,7 @@ def aggregate_ae(
                 key = (pid, ae.get("AETERM"), ae.get("AESTDAT"))
                 rows_map[key] = {
                     "patient_id": pid,
+                    "AEYN": ae.get("AEYN"),
                     "AETERM": ae.get("AETERM"),
                     "AESTDAT": ae.get("AESTDAT"),
                     "AEONGO": ae.get("AEONGO"),
@@ -423,6 +531,7 @@ def aggregate_ae(
                     "AEOUT": ae.get("AEOUT"),
                     "_status": ae.get("_status"),
                     "_days_active": ae.get("_days_active"),
+                    "_visual": ae.get("_visual"),
                 }
     rows = sorted(rows_map.values(), key=lambda r: (r["patient_id"], r["AESTDAT"] or 0))
     page_rows, total = _paginate(rows, page, per_page)
@@ -436,38 +545,95 @@ def _aggregate_ae_hr(
     page: int,
     per_page: int,
 ) -> tuple[list[dict], int, list[dict]]:
-    """AE from hospital_record.objective.active_aes — deduplicated."""
+    """AE from hospital record — full CDISC fields + detection metadata.
+
+    Reads top-level AE[] from *_hospital.jsonl (full CDISC),
+    enriched with detection info from objective.active_aes.
+    Falls back to GT hospital_record for older runs.
+    """
     rows_map: dict[tuple, dict] = {}
     for pid in patients:
-        # Build day→cycle map for onset cycle lookup
-        day_cycle: dict[int, str] = {}
-        for record in _iter_jsonl(run_path, pid, mode):
-            d = record.get("day")
-            if d is not None:
-                day_cycle[d] = _fmt_cycle(record.get("cycle"), record.get("cycle_day"))
-            hr = record.get("hospital_record", {})
-            hr_aes = hr.get("objective", {}).get("active_aes", [])
-            day = d or hr.get("day")
-            for ae in hr_aes:
-                ae_name = ae.get("ae") or ae.get("AETERM", "")
-                onset = ae.get("onset_day") or ae.get("AESTDAT")
-                key = (pid, ae_name, onset)
+        for record in _iter_hospital_jsonl(run_path, pid, mode):
+            day = record.get("day")
+            # Build detection lookup from objective.active_aes
+            obj = record.get("objective", {})
+            if not obj:
+                obj = record.get("hospital_record", {}).get("objective", {})
+            detection_map: dict[str, dict] = {}
+            for det in obj.get("active_aes", []):
+                det_name = det.get("ae", "")
+                detection_map[det_name] = det
+
+            # Read full CDISC AE from top-level
+            for ae in record.get("AE", []):
+                ae_term = ae.get("AETERM", "")
+                onset = ae.get("AESTDAT")
+                key = (pid, ae_term, onset)
+                det = detection_map.get(ae_term, {})
                 rows_map[key] = {
                     "patient_id": pid,
-                    "ae": ae_name,
-                    "grade": ae.get("grade") or ae.get("_grade"),
-                    "onset_day": onset,
-                    "_onset_cycle": None,  # filled below
-                    "detected_day": ae.get("detected_day") or day,
-                    "detection_delay": ae.get("detection_delay"),
-                    "channel": ae.get("channel", ""),
-                    "status": ae.get("status", ""),
+                    "AEYN": ae.get("AEYN"),
+                    "AETERM": ae_term,
+                    "AESTDAT": onset,
+                    "AEONGO": ae.get("AEONGO"),
+                    "AEENDAT": ae.get("AEENDAT"),
+                    "AESEV": ae.get("AESEV"),
+                    "_grade": ae.get("_grade") or ae.get("AETOXGR"),
+                    "AESER": ae.get("AESER"),
+                    "AESDTH": ae.get("AESDTH"),
+                    "AESLIFE": ae.get("AESLIFE"),
+                    "AESHOSP": ae.get("AESHOSP"),
+                    "AESDISAB": ae.get("AESDISAB"),
+                    "AESCONG": ae.get("AESCONG"),
+                    "AESMIE": ae.get("AESMIE"),
+                    "AEREL": ae.get("AEREL"),
+                    "AEACN": ae.get("AEACN"),
+                    "AEACNOTH": ae.get("AEACNOTH"),
+                    "AEOUT": ae.get("AEOUT"),
+                    "_status": ae.get("_status"),
+                    "_days_active": ae.get("_days_active"),
+                    "_visual": ae.get("_visual"),
+                    "detected_day": det.get("detected_day") or day,
+                    "detection_delay": det.get("detection_delay"),
+                    "channel": det.get("channel", ""),
                 }
-        # Fill onset cycle from day→cycle map
-        for row in rows_map.values():
-            if row["patient_id"] == pid and row["onset_day"]:
-                row["_onset_cycle"] = day_cycle.get(row["onset_day"])
-    rows = sorted(rows_map.values(), key=lambda r: (r["patient_id"], r["onset_day"] or 0))
+
+            # Legacy fallback: if no top-level AE but objective.active_aes exists
+            if not record.get("AE") and detection_map:
+                for det in obj.get("active_aes", []):
+                    ae_name = det.get("ae", "")
+                    onset = det.get("onset_day")
+                    key = (pid, ae_name, onset)
+                    if key not in rows_map:
+                        rows_map[key] = {
+                            "patient_id": pid,
+                            "AEYN": None,
+                            "AETERM": ae_name,
+                            "AESTDAT": onset,
+                            "AEONGO": None,
+                            "AEENDAT": None,
+                            "AESEV": None,
+                            "_grade": det.get("grade"),
+                            "AESER": None,
+                            "AESDTH": None,
+                            "AESLIFE": None,
+                            "AESHOSP": None,
+                            "AESDISAB": None,
+                            "AESCONG": None,
+                            "AESMIE": None,
+                            "AEREL": None,
+                            "AEACN": None,
+                            "AEACNOTH": None,
+                            "AEOUT": None,
+                            "_status": det.get("status"),
+                            "_days_active": None,
+                            "_visual": None,
+                            "detected_day": det.get("detected_day"),
+                            "detection_delay": det.get("detection_delay"),
+                            "channel": det.get("channel", ""),
+                        }
+
+    rows = sorted(rows_map.values(), key=lambda r: (r["patient_id"], r["AESTDAT"] or 0))
     page_rows, total = _paginate(rows, page, per_page)
     return page_rows, total, AE_HR_COLUMNS
 
@@ -502,7 +668,10 @@ def aggregate_ec(
                     "ECADJ": ec.get("ECADJ"),
                     "ECCINTD": ec.get("ECCINTD"),
                     "ECCINTDU": ec.get("ECCINTDU"),
+                    "ECITRPYN": ec.get("ECITRPYN"),
                     "ECTRTCMP": ec.get("ECTRTCMP"),
+                    "_dose_mg": ec.get("_dose_mg"),
+                    "_cumulative_dose_mg": ec.get("_cumulative_dose_mg"),
                     "_dose_level": ec.get("_dose_level"),
                 })
     page_rows, total = _paginate(rows, page, per_page)
@@ -526,6 +695,7 @@ def aggregate_cm(
                 key = (pid, drug)
                 rows_map[key] = {
                     "patient_id": pid,
+                    "CMYN": cm.get("CMYN"),
                     "CMTRT": drug,
                     "CMINDC": cm.get("CMINDC"),
                     "CMDSTXT": cm.get("CMDSTXT"),
@@ -581,7 +751,7 @@ def aggregate_vs(
                 "RESP": vs.get("RESP_VSORRES"),
                 "HEIGHT": vs.get("HEIGHT_VSORRES"),
                 "WEIGHT": vs.get("WEIGHT_VSORRES"),
-                "SpO2": vs.get("_SpO2"),
+                "SpO2": vs.get("_SpO2") or vs.get("OXYSAT_VSORRES"),
             })
     page_rows, total = _paginate(rows, page, per_page)
     return page_rows, total, VS_COLUMNS
@@ -594,31 +764,122 @@ def _aggregate_vs_hr(
     page: int,
     per_page: int,
 ) -> tuple[list[dict], int, list[dict]]:
-    """VS from hospital_record.objective.vitals — only non-stale observations."""
+    """VS from hospital record — reads top-level VS from *_hospital.jsonl.
+
+    Includes full CDISC fields (units, positions, locations) plus
+    backward-compatible simplified keys (SBP, DBP, HR, etc.) for chart rendering.
+    Falls back to objective.vitals for older runs.
+    """
     rows = []
     for pid in patients:
-        for record in _iter_jsonl(run_path, pid, mode):
-            hr = record.get("hospital_record", {})
-            obj = hr.get("objective", {})
-            vitals = obj.get("vitals")
-            if not vitals:
-                continue
-            stale = obj.get("vitals_stale_days", 0)
-            day = record.get("day", hr.get("day"))
-            rows.append({
-                "patient_id": pid,
-                "day": day,
-                "_cycle": _fmt_cycle(record.get("cycle"), record.get("cycle_day")),
-                "SBP": vitals.get("SBP"),
-                "DBP": vitals.get("DBP"),
-                "HR": vitals.get("HR"),
-                "BT": vitals.get("BT"),
-                "RR": vitals.get("RR"),
-                "height_cm": vitals.get("height_cm"),
-                "weight_kg": vitals.get("weight_kg"),
-                "SpO2": vitals.get("SpO2"),
-                "stale_days": stale,
-            })
+        for record in _iter_hospital_jsonl(run_path, pid, mode):
+            day = record.get("day")
+            cycle_display = _fmt_cycle(record.get("cycle"), record.get("cycle_day"))
+
+            vs = record.get("VS")
+            if vs:
+                # New format: top-level VS with full CDISC fields
+                sysbp = vs.get("SYSBP_VSORRES")
+                diabp = vs.get("DIABP_VSORRES")
+                pulse = vs.get("PULSE_VSORRES")
+                temp = vs.get("TEMP_VSORRES")
+                resp = vs.get("RESP_VSORRES")
+                height = vs.get("HEIGHT_VSORRES")
+                weight = vs.get("WEIGHT_VSORRES")
+                spo2 = vs.get("_SpO2") or vs.get("OXYSAT_VSORRES")
+                rows.append({
+                    "patient_id": pid,
+                    "day": day,
+                    "_cycle": cycle_display,
+                    "VSPERF": vs.get("VSPERF"),
+                    "VSDAT": vs.get("VSDAT"),
+                    "SYSBP_VSORRES": sysbp,
+                    "SYSBP_VSORRESU": vs.get("SYSBP_VSORRESU"),
+                    "DIABP_VSORRES": diabp,
+                    "DIABP_VSORRESU": vs.get("DIABP_VSORRESU"),
+                    "PULSE_VSORRES": pulse,
+                    "PULSE_VSORRESU": vs.get("PULSE_VSORRESU"),
+                    "TEMP_VSORRES": temp,
+                    "TEMP_VSORRESU": vs.get("TEMP_VSORRESU"),
+                    "RESP_VSORRES": resp,
+                    "RESP_VSORRESU": vs.get("RESP_VSORRESU"),
+                    "OXYSAT_VSORRES": spo2,
+                    "_SpO2_unit": vs.get("_SpO2_unit"),
+                    "HEIGHT_VSORRES": height,
+                    "HEIGHT_VSORRESU": vs.get("HEIGHT_VSORRESU"),
+                    "WEIGHT_VSORRES": weight,
+                    "WEIGHT_VSORRESU": vs.get("WEIGHT_VSORRESU"),
+                    "BP_VSPOS": vs.get("BP_VSPOS"),
+                    "BP_VSLOC": vs.get("BP_VSLOC"),
+                    "PULSE_VSLOC": vs.get("PULSE_VSLOC"),
+                    "TEMP_VSLOC": vs.get("TEMP_VSLOC"),
+                    "_stale": vs.get("_stale"),
+                    # Backward-compatible keys for VS chart
+                    "SBP": sysbp,
+                    "DBP": diabp,
+                    "HR": pulse,
+                    "BT": temp,
+                    "RR": resp,
+                    "height_cm": height,
+                    "weight_kg": weight,
+                    "SpO2": spo2,
+                    "stale_days": 0 if vs.get("VSPERF") else None,
+                })
+            else:
+                # Legacy: objective.vitals
+                obj = record.get("objective", {})
+                if not obj:
+                    obj = record.get("hospital_record", {}).get("objective", {})
+                vitals = obj.get("vitals")
+                if not vitals:
+                    continue
+                stale = obj.get("vitals_stale_days", 0)
+                sysbp = vitals.get("SBP")
+                diabp = vitals.get("DBP")
+                pulse = vitals.get("HR")
+                temp = vitals.get("BT")
+                resp = vitals.get("RR")
+                height = vitals.get("height_cm")
+                weight = vitals.get("weight_kg")
+                spo2 = vitals.get("SpO2")
+                rows.append({
+                    "patient_id": pid,
+                    "day": day,
+                    "_cycle": cycle_display,
+                    "VSPERF": None,
+                    "VSDAT": None,
+                    "SYSBP_VSORRES": sysbp,
+                    "SYSBP_VSORRESU": None,
+                    "DIABP_VSORRES": diabp,
+                    "DIABP_VSORRESU": None,
+                    "PULSE_VSORRES": pulse,
+                    "PULSE_VSORRESU": None,
+                    "TEMP_VSORRES": temp,
+                    "TEMP_VSORRESU": None,
+                    "RESP_VSORRES": resp,
+                    "RESP_VSORRESU": None,
+                    "OXYSAT_VSORRES": spo2,
+                    "_SpO2_unit": None,
+                    "HEIGHT_VSORRES": height,
+                    "HEIGHT_VSORRESU": None,
+                    "WEIGHT_VSORRES": weight,
+                    "WEIGHT_VSORRESU": None,
+                    "BP_VSPOS": None,
+                    "BP_VSLOC": None,
+                    "PULSE_VSLOC": None,
+                    "TEMP_VSLOC": None,
+                    "_stale": stale > 0 if stale else None,
+                    # Backward-compatible keys
+                    "SBP": sysbp,
+                    "DBP": diabp,
+                    "HR": pulse,
+                    "BT": temp,
+                    "RR": resp,
+                    "height_cm": height,
+                    "weight_kg": weight,
+                    "SpO2": spo2,
+                    "stale_days": stale,
+                })
     page_rows, total = _paginate(rows, page, per_page)
     return page_rows, total, VS_HR_COLUMNS
 
@@ -653,9 +914,13 @@ def aggregate_lb(
                 rows.append({
                     "patient_id": pid,
                     "day": day,
-                    "test_name": test_name,
+                    "test_name": _lab_display_name(test_name),
                     "LBORRES": vals.get("LBORRES"),
                     "LBORRESU": vals.get("LBORRESU"),
+                    "LBORNRLO": vals.get("LBORNRLO"),
+                    "LBORNRHI": vals.get("LBORNRHI"),
+                    "LBNRIND": vals.get("LBNRIND"),
+                    "LBCLSIG": vals.get("LBCLSIG"),
                     "LBCAT": vals.get("LBCAT"),
                     "_trend": vals.get("_trend"),
                 })
@@ -670,29 +935,86 @@ def _aggregate_lb_hr(
     page: int,
     per_page: int,
 ) -> tuple[list[dict], int, list[dict]]:
-    """LB from hospital_record.objective.labs."""
+    """LB from hospital record — reads top-level LB from *_hospital.jsonl.
+
+    Includes full CDISC fields (ranges, indicators, categories) plus
+    backward-compatible simplified keys (value, unit, trend, stale_days)
+    for chart rendering.  Falls back to objective.labs for older runs.
+    """
     rows = []
     for pid in patients:
-        for record in _iter_jsonl(run_path, pid, mode):
-            hr = record.get("hospital_record", {})
-            obj = hr.get("objective", {})
-            labs = obj.get("labs")
-            if not labs:
-                continue
-            stale = obj.get("labs_stale_days", 0)
-            day = record.get("day", hr.get("day"))
+        for record in _iter_hospital_jsonl(run_path, pid, mode):
+            day = record.get("day")
             cycle_display = _fmt_cycle(record.get("cycle"), record.get("cycle_day"))
-            for test_name, vals in labs.items():
-                rows.append({
-                    "patient_id": pid,
-                    "day": day,
-                    "_cycle": cycle_display,
-                    "test_name": test_name,
-                    "value": vals.get("value"),
-                    "unit": vals.get("unit"),
-                    "trend": vals.get("trend"),
-                    "stale_days": stale,
-                })
+
+            lb = record.get("LB")
+            if lb and lb.get("results"):
+                # New format: top-level LB with full CDISC fields
+                results = lb["results"]
+                lb_perf = lb.get("LBPERF")
+                lb_dat = lb.get("LBDAT")
+                lb_stale = lb.get("_stale", False)
+                obj = record.get("objective", {})
+                stale_days = obj.get("labs_stale_days", 0)
+                for test_name, vals in results.items():
+                    result_val = vals.get("LBORRES")
+                    result_unit = vals.get("LBORRESU")
+                    rows.append({
+                        "patient_id": pid,
+                        "day": day,
+                        "_cycle": cycle_display,
+                        "LBPERF": lb_perf,
+                        "LBDAT": lb_dat,
+                        "test_name": _lab_display_name(test_name),
+                        "LBORRES": result_val,
+                        "LBORRESU": result_unit,
+                        "LBORNRLO": vals.get("LBORNRLO"),
+                        "LBORNRHI": vals.get("LBORNRHI"),
+                        "LBNRIND": vals.get("LBNRIND"),
+                        "LBCLSIG": vals.get("LBCLSIG"),
+                        "LBCAT": vals.get("LBCAT"),
+                        "_trend": vals.get("_trend"),
+                        "_stale": vals.get("_stale", lb_stale),
+                        # Backward-compatible keys for LB chart
+                        "value": result_val,
+                        "unit": result_unit,
+                        "trend": vals.get("_trend"),
+                        "stale_days": stale_days,
+                    })
+            else:
+                # Legacy: objective.labs
+                obj = record.get("objective", {})
+                if not obj:
+                    obj = record.get("hospital_record", {}).get("objective", {})
+                labs = obj.get("labs")
+                if not labs:
+                    continue
+                stale = obj.get("labs_stale_days", 0)
+                for test_name, vals in labs.items():
+                    result_val = vals.get("value")
+                    result_unit = vals.get("unit")
+                    rows.append({
+                        "patient_id": pid,
+                        "day": day,
+                        "_cycle": cycle_display,
+                        "LBPERF": None,
+                        "LBDAT": None,
+                        "test_name": _lab_display_name(test_name),
+                        "LBORRES": result_val,
+                        "LBORRESU": result_unit,
+                        "LBORNRLO": None,
+                        "LBORNRHI": None,
+                        "LBNRIND": None,
+                        "LBCLSIG": None,
+                        "LBCAT": None,
+                        "_trend": vals.get("trend"),
+                        "_stale": None,
+                        # Backward-compatible keys
+                        "value": result_val,
+                        "unit": result_unit,
+                        "trend": vals.get("trend"),
+                        "stale_days": stale,
+                    })
     page_rows, total = _paginate(rows, page, per_page)
     return page_rows, total, LB_HR_COLUMNS
 
@@ -786,6 +1108,7 @@ def aggregate_tu(
             for item in items:
                 rows.append({
                     "patient_id": pid,
+                    "TUYN": item.get("TUYN"),
                     "day": day,
                     "_cycle": cycle_display,
                     "TULNKID": item.get("TULNKID"),
@@ -799,6 +1122,8 @@ def aggregate_tu(
                     "TUEVALID": item.get("TUEVALID"),
                     "TRORRES": item.get("TRORRES"),
                     "TRORRESU": item.get("TRORRESU"),
+                    "_baseline_mm": item.get("_baseline_mm"),
+                    "_change_pct": item.get("_change_pct"),
                     "TRSTAT": item.get("TRSTAT"),
                     "TRREASND": item.get("TRREASND"),
                     "TURESULT": item.get("TURESULT", ""),
@@ -830,6 +1155,7 @@ def aggregate_rs(
                     "patient_id": pid,
                     "day": day,
                     "_cycle": cycle_display,
+                    "RSPERF": item.get("RSPERF"),
                     "RSCAT": item.get("RSCAT"),
                     "RSEVAL": item.get("RSEVAL", ""),
                     "RSEVALID": item.get("RSEVALID"),
@@ -837,8 +1163,12 @@ def aggregate_rs(
                     "NTRGRESP_RSORRES": item.get("NTRGRESP_RSORRES"),
                     "OVRLRESP_RSORRES": item.get("OVRLRESP_RSORRES"),
                     "BESTRESP_RSORRES": item.get("BESTRESP_RSORRES"),
+                    "_tumor_change_pct": item.get("_tumor_change_pct"),
+                    "_nadir_pct": item.get("_nadir_pct"),
+                    "_description": item.get("_description", ""),
                     "RSRESULT": item.get("RSRESULT", item.get("RSORRES", "")),
                     "RSTESTCD": item.get("RSTESTCD", ""),
+                    "RSREASND": item.get("RSREASND"),
                 })
     page_rows, total = _paginate(rows, page, per_page)
     return page_rows, total, RS_COLUMNS

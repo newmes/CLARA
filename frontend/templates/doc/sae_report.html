@@ -13,7 +13,7 @@
 {% block extra_head %}
 <style>
 .report-container {
-  max-width: 1600px; margin: 16px auto; padding: 0 24px;
+  margin: 16px 0 0; padding: 0 24px 3em;
 }
 
 /* Header */
@@ -61,62 +61,123 @@
 /* Form sections */
 .form-section {
   background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: var(--radius-xl); margin-bottom: 16px; overflow: hidden;
+  border-radius: var(--radius-xl); margin-bottom: 20px; overflow: hidden;
+  transition: box-shadow 0.2s;
+}
+.form-section:hover {
+  box-shadow: 0 2px 16px rgba(0,0,0,0.15);
+}
+.form-section.sec-critical {
+  border-color: rgba(248,81,73,0.25);
 }
 .form-section-header {
-  padding: 14px 20px;
-  background: linear-gradient(135deg, var(--bg-elevated), rgba(57,210,192,0.03));
+  padding: 16px 24px;
+  background: var(--bg-elevated);
   border-bottom: 1px solid var(--border);
   display: flex; align-items: center; justify-content: space-between;
   cursor: pointer; user-select: none; transition: background 0.2s;
+  position: relative;
 }
+.form-section-header::before {
+  content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  border-radius: 0 2px 2px 0;
+}
+.form-section[data-accent="cyan"] .form-section-header::before { background: var(--accent-cyan); }
+.form-section[data-accent="red"] .form-section-header::before { background: var(--accent-red); }
+.form-section[data-accent="blue"] .form-section-header::before { background: var(--accent-blue); }
+.form-section[data-accent="green"] .form-section-header::before { background: var(--accent-green); }
+.form-section[data-accent="purple"] .form-section-header::before { background: var(--accent-purple); }
 .form-section-header:hover {
-  background: linear-gradient(135deg, var(--bg-elevated), rgba(57,210,192,0.06));
+  background: linear-gradient(135deg, var(--bg-elevated), rgba(57,210,192,0.04));
 }
 .form-section-header h3 {
-  font-size: 1.0em; font-weight: 700; margin: 0; display: flex;
-  align-items: center; gap: 8px;
+  font-size: 0.95em; font-weight: 700; margin: 0; display: flex;
+  align-items: center; gap: 10px;
 }
 .form-section-header .sec-label {
-  font-size: 0.72em; background: linear-gradient(135deg, rgba(57,210,192,0.2), rgba(88,166,255,0.15));
-  color: var(--accent-cyan); padding: 3px 10px; border-radius: 20px; font-weight: 700;
-  letter-spacing: 0.5px;
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 26px; height: 26px; border-radius: 8px; font-weight: 800;
+  font-size: 0.75em; letter-spacing: 0;
+  flex-shrink: 0;
 }
-.form-section-header .toggle-icon { color: var(--text-muted); font-size: 0.9em; }
-.form-section-body { padding: 16px 20px; }
+.form-section[data-accent="cyan"] .sec-label {
+  background: rgba(57,210,192,0.12); color: var(--accent-cyan);
+}
+.form-section[data-accent="red"] .sec-label {
+  background: rgba(248,81,73,0.12); color: var(--accent-red);
+}
+.form-section[data-accent="blue"] .sec-label {
+  background: rgba(88,166,255,0.12); color: var(--accent-blue);
+}
+.form-section[data-accent="green"] .sec-label {
+  background: rgba(63,185,80,0.12); color: var(--accent-green);
+}
+.form-section[data-accent="purple"] .sec-label {
+  background: rgba(163,113,247,0.12); color: var(--accent-purple);
+}
+.form-section-header .sec-title { letter-spacing: 0.2px; }
+.form-section-header .sec-count {
+  font-size: 0.72em; color: var(--text-muted); font-weight: 500;
+  margin-left: auto; margin-right: 12px;
+}
+.form-section-header .toggle-icon {
+  color: var(--text-muted); font-size: 0.75em;
+  transition: transform 0.2s;
+}
+.form-section-body { padding: 20px 24px; }
 .form-section.collapsed .form-section-body { display: none; }
 .form-section.collapsed .toggle-icon { transform: rotate(-90deg); }
 
-/* Fields */
-.field-row {
-  display: grid; grid-template-columns: 180px 1fr; gap: 8px 16px;
-  align-items: start; padding: 6px 0;
-  border-bottom: 1px solid rgba(48,54,61,0.5);
+/* Field group: inline multi-column layout */
+.field-group {
+  display: grid; gap: 16px; margin-bottom: 16px;
+  padding-bottom: 16px; border-bottom: 1px solid rgba(48,54,61,0.3);
 }
-.field-row:last-child { border-bottom: none; }
+.field-group:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
+.field-group.cols-2 { grid-template-columns: 1fr 1fr; }
+.field-group.cols-3 { grid-template-columns: 1fr 1fr 1fr; }
+.field-group.cols-4 { grid-template-columns: 1fr 1fr 1fr 1fr; }
+.field-group.cols-2-1 { grid-template-columns: 2fr 1fr; }
+.field-group.cols-1 { grid-template-columns: 1fr; }
+.field-group-title {
+  grid-column: 1 / -1;
+  font-size: 0.72em; font-weight: 700; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 1px;
+  padding-bottom: 4px;
+}
+
+/* Fields — vertical layout */
+.field-row {
+  display: flex; flex-direction: column; gap: 5px;
+  align-items: stretch;
+}
+.field-row.full-width { grid-column: 1 / -1; }
 .field-label {
-  font-size: 0.82em; color: var(--text-muted); font-weight: 600;
-  padding-top: 6px; line-height: 1.3;
+  font-size: 0.78em; color: var(--text-muted); font-weight: 600;
+  line-height: 1.3; display: flex; align-items: center; gap: 5px;
 }
 .field-label .field-id {
   font-family: 'JetBrains Mono', monospace; color: var(--accent-blue);
-  font-size: 0.88em; margin-right: 4px;
+  font-size: 0.85em;
 }
+
+/* Human review highlight */
 .field-row.human-review {
-  background: rgba(255,180,50,0.06);
+  background: rgba(255,180,50,0.05);
+  border: 1px solid rgba(255,180,50,0.15);
   border-left: 3px solid #ffb432;
-  padding-left: 12px; margin-left: -15px;
-  border-radius: 4px;
+  padding: 14px 16px;
+  border-radius: 8px;
+  margin: 0;
 }
 .field-row.human-review .field-label .field-id {
   color: #ffb432;
 }
 .human-review-tag {
-  grid-column: 1 / -1;
-  font-size: 0.72em; font-weight: 700; color: #ffb432;
+  font-size: 0.68em; font-weight: 700; color: #ffb432;
   letter-spacing: 0.5px; text-transform: uppercase;
-  padding-bottom: 0; margin-bottom: -4px;
-  display: flex; align-items: center; gap: 6px;
+  display: inline-flex; align-items: center; gap: 5px;
+  margin-bottom: 6px;
 }
 .human-review-tag::before {
   content: ''; display: inline-block; width: 6px; height: 6px;
@@ -127,35 +188,96 @@
 .field-input input,
 .field-input select,
 .field-input textarea {
-  width: 100%; padding: 6px 10px; border-radius: var(--radius-md);
+  width: 100%; padding: 8px 12px; border-radius: var(--radius-md);
   border: 1px solid var(--border); background: var(--bg-primary);
-  color: var(--text-primary); font-size: 0.9em; font-family: inherit;
-  transition: border-color var(--transition-fast);
+  color: var(--text-primary); font-size: 0.88em; font-family: inherit;
+  transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 .field-input input:focus,
 .field-input select:focus,
 .field-input textarea:focus {
   outline: none; border-color: var(--accent-blue);
-  box-shadow: 0 0 0 2px rgba(88,166,255,0.15);
+  box-shadow: 0 0 0 3px rgba(88,166,255,0.1);
 }
-.field-input textarea { min-height: 44px; resize: vertical; line-height: 1.5; overflow: hidden; }
+.field-input textarea {
+  min-height: 44px; resize: vertical; line-height: 1.6; overflow: hidden;
+}
+
+/* Seriousness checkboxes — card style */
+.seriousness-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+}
+.seriousness-item {
+  display: flex; align-items: center; gap: 10px;
+  padding: 10px 14px; border-radius: var(--radius-md);
+  border: 1px solid var(--border); background: var(--bg-primary);
+  cursor: pointer; transition: all var(--transition-fast);
+  font-size: 0.84em; color: var(--text-secondary);
+  user-select: none;
+}
+.seriousness-item:hover {
+  border-color: rgba(248,81,73,0.3); background: rgba(248,81,73,0.03);
+}
+.seriousness-item input[type="checkbox"] {
+  width: 16px; height: 16px; accent-color: var(--accent-red);
+  flex-shrink: 0; cursor: pointer;
+}
+.seriousness-item:has(input:checked) {
+  border-color: rgba(248,81,73,0.4); background: rgba(248,81,73,0.06);
+  color: var(--text-primary); font-weight: 600;
+}
+.seriousness-item .ser-icon {
+  font-size: 1.1em; flex-shrink: 0; width: 20px; text-align: center;
+  filter: grayscale(0.5);
+}
+.seriousness-item:has(input:checked) .ser-icon { filter: none; }
 .field-input .checkbox-row {
   display: flex; align-items: center; gap: 8px; padding: 4px 0;
 }
 .field-input .checkbox-row input[type="checkbox"] { width: auto; }
 
-/* Narrative editor */
+/* Narrative editor — prominent */
 .narrative-editor {
   background: var(--bg-primary); border: 1px solid var(--border);
-  border-radius: var(--radius-lg); padding: 14px; min-height: 120px;
+  border-radius: var(--radius-lg); padding: 16px 18px; min-height: 140px;
   font-size: 0.92em; line-height: 1.7; position: relative;
 }
 .narrative-editor textarea {
-  width: 100%; min-height: 100px; background: transparent;
+  width: 100%; min-height: 120px; background: transparent;
   border: none; color: var(--text-primary); font-size: 0.92em;
-  line-height: 1.7; resize: vertical; font-family: inherit; overflow: hidden;
+  line-height: 1.8; resize: vertical; font-family: inherit; overflow: hidden;
 }
 .narrative-editor textarea:focus { outline: none; box-shadow: none; }
+
+/* Narrative prominance wrapper */
+.narrative-highlight {
+  background: linear-gradient(135deg, rgba(163,113,247,0.04), rgba(88,166,255,0.03));
+  border: 1px solid rgba(163,113,247,0.15);
+  border-radius: var(--radius-lg); padding: 18px 20px;
+}
+.narrative-highlight .field-label {
+  font-size: 0.88em; color: var(--text-primary); margin-bottom: 8px;
+}
+
+/* Inline dates */
+.inline-dates {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+
+/* Compact section for E, G */
+.form-section.sec-compact .form-section-body {
+  padding: 14px 24px;
+}
+.form-section.sec-compact .field-group {
+  margin-bottom: 10px; padding-bottom: 10px;
+}
+
+/* Divider within section */
+.sec-divider {
+  height: 1px; background: rgba(48,54,61,0.4);
+  margin: 4px 0;
+  grid-column: 1 / -1;
+}
 
 
 /* Error state */
@@ -289,7 +411,7 @@
 
   <a href="{% url 'trial_viewer' run_id %}" title="Simulation"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><span>Sim</span></a>
   <a href="{% url 'game_landing' run_id %}" title="Training"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg><span>Train</span></a>
-  <a href="{% url 'doc_hub' run_id %}" class="sb-active" title="Documents"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg><span>Docs</span></a>
+  <a href="{% url 'crf_tables' run_id %}" class="sb-active" title="Data"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg><span>Data</span></a>
   <a href="{% url 'compare_dashboard' run_id %}" title="A/B Test"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>A/B</span></a>
 </nav>
 {% endblock %}
@@ -331,7 +453,7 @@
     </div>
     <div class="report-actions">
       <button class="btn-rpt primary" id="btnRegenerate" onclick="regenerateAI()" title="Re-generate narrative with {{ model_name|default:'AI' }}">
-        <img src="{% static 'assets/gemma.png' %}" alt="" style="width:18px;height:18px;vertical-align:-3px;">
+        <img src="{% static 'assets/ui/gemma.png' %}" alt="" style="width:18px;height:18px;vertical-align:-3px;">
         Re-generate AI
       </button>
       <span id="workflowButtons">
@@ -369,238 +491,307 @@
   <div class="tab-panel active" id="tab-medwatch">
 
     <!-- Section A: Patient Information -->
-    <div class="form-section" id="sec-a">
+    <div class="form-section" id="sec-a" data-accent="cyan">
       <div class="form-section-header" onclick="toggleSection('sec-a')">
-        <h3><span class="sec-label">A</span> Patient Information</h3>
+        <h3><span class="sec-label">A</span> <span class="sec-title">Patient Information</span></h3>
+        <span class="sec-count">7 fields</span>
         <span class="toggle-icon">▼</span>
       </div>
       <div class="form-section-body">
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">A1</span> Patient ID</div>
-          <div class="field-input"><input type="text" data-path="section_a.patient_id"></div>
-        </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">A2</span> Age</div>
-          <div class="field-input"><input type="number" data-path="section_a.age"></div>
-        </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">A2</span> Date of Birth</div>
-          <div class="field-input"><input type="date" data-path="section_a.dob"></div>
-        </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">A3</span> Sex</div>
-          <div class="field-input">
-            <select data-path="section_a.sex">
-              <option value="Male">Male</option>
-              <option value="Female">Female</option>
-              <option value="Unknown">Unknown</option>
-            </select>
+        <!-- Identity row -->
+        <div class="field-group cols-3">
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">A1</span> Patient ID</div>
+            <div class="field-input"><input type="text" data-path="section_a.patient_id"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">A2</span> Age</div>
+            <div class="field-input"><input type="number" data-path="section_a.age"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">A3</span> Sex</div>
+            <div class="field-input">
+              <select data-path="section_a.sex">
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Unknown">Unknown</option>
+              </select>
+            </div>
           </div>
         </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">A4</span> Weight (kg)</div>
-          <div class="field-input"><input type="number" step="0.1" data-path="section_a.weight"></div>
+        <!-- DOB + Weight -->
+        <div class="field-group cols-2">
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">A2</span> Date of Birth</div>
+            <div class="field-input"><input type="date" data-path="section_a.dob"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">A4</span> Weight (kg)</div>
+            <div class="field-input"><input type="number" step="0.1" data-path="section_a.weight"></div>
+          </div>
         </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">A5a</span> Ethnicity</div>
-          <div class="field-input"><input type="text" data-path="section_a.ethnicity"></div>
-        </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">A5b</span> Race</div>
-          <div class="field-input"><input type="text" data-path="section_a.race"></div>
+        <!-- Ethnicity + Race -->
+        <div class="field-group cols-2">
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">A5a</span> Ethnicity</div>
+            <div class="field-input"><input type="text" data-path="section_a.ethnicity"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">A5b</span> Race</div>
+            <div class="field-input"><input type="text" data-path="section_a.race"></div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Section B: Adverse Event -->
-    <div class="form-section" id="sec-b">
+    <div class="form-section" id="sec-b" data-accent="cyan">
       <div class="form-section-header" onclick="toggleSection('sec-b')">
-        <h3><span class="sec-label">B</span> Adverse Event or Product Problem</h3>
+        <h3><span class="sec-label">B</span> <span class="sec-title">Adverse Event or Product Problem</span></h3>
+        <span class="sec-count">7 fields</span>
         <span class="toggle-icon">▼</span>
       </div>
       <div class="form-section-body">
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">B1</span> Report Type</div>
-          <div class="field-input"><input type="text" data-path="section_b.report_type"></div>
-        </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">B2</span> Seriousness</div>
-          <div class="field-input">
-            <div class="checkbox-row"><input type="checkbox" data-path="section_b.seriousness_death"> Death</div>
-            <div class="checkbox-row"><input type="checkbox" data-path="section_b.seriousness_life_threatening"> Life-threatening</div>
-            <div class="checkbox-row"><input type="checkbox" data-path="section_b.seriousness_hospitalization"> Hospitalization</div>
-            <div class="checkbox-row"><input type="checkbox" data-path="section_b.seriousness_disability"> Disability/Incapacity</div>
-            <div class="checkbox-row"><input type="checkbox" data-path="section_b.seriousness_congenital"> Congenital anomaly</div>
-            <div class="checkbox-row"><input type="checkbox" data-path="section_b.seriousness_other"> Other medically important</div>
+        <!-- Report type + Outcome -->
+        <div class="field-group cols-2">
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">B1</span> Report Type</div>
+            <div class="field-input"><input type="text" data-path="section_b.report_type"></div>
           </div>
-        </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">B3</span> Onset Date</div>
-          <div class="field-input"><input type="date" data-path="section_b.onset_date"></div>
-        </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">B4</span> Report Date</div>
-          <div class="field-input"><input type="date" data-path="section_b.report_date"></div>
-        </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">B4a</span> Outcome</div>
-          <div class="field-input">
-            <select data-path="section_b.outcome">
-              <option value="recovered/resolved">Recovered/Resolved</option>
-              <option value="recovering/resolving">Recovering/Resolving</option>
-              <option value="not recovered/not resolved">Not Recovered/Not Resolved</option>
-              <option value="recovered/resolved with sequelae">Recovered with Sequelae</option>
-              <option value="fatal">Fatal</option>
-              <option value="unknown">Unknown</option>
-            </select>
-          </div>
-        </div>
-        <div class="field-row human-review">
-          <span class="human-review-tag">Review Required</span>
-          <div class="field-label">
-            <span class="field-id">B5</span> Narrative
-          </div>
-          <div class="field-input">
-            <div class="narrative-editor">
-              <textarea data-path="section_b.narrative" rows="5"></textarea>
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">B4a</span> Outcome</div>
+            <div class="field-input">
+              <select data-path="section_b.outcome">
+                <option value="recovered/resolved">Recovered/Resolved</option>
+                <option value="recovering/resolving">Recovering/Resolving</option>
+                <option value="not recovered/not resolved">Not Recovered/Not Resolved</option>
+                <option value="recovered/resolved with sequelae">Recovered with Sequelae</option>
+                <option value="fatal">Fatal</option>
+                <option value="unknown">Unknown</option>
+              </select>
             </div>
           </div>
         </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">B6</span> Lab Data</div>
-          <div class="field-input"><textarea data-path="section_b.lab_data" rows="3"></textarea></div>
+        <!-- Seriousness criteria -->
+        <div class="field-group cols-1">
+          <div class="field-row full-width">
+            <div class="field-label"><span class="field-id">B2</span> Seriousness Criteria</div>
+            <div class="field-input">
+              <div class="seriousness-grid">
+                <label class="seriousness-item">
+                  <input type="checkbox" data-path="section_b.seriousness_death"> Death
+                </label>
+                <label class="seriousness-item">
+                  <input type="checkbox" data-path="section_b.seriousness_life_threatening"> Life-threatening
+                </label>
+                <label class="seriousness-item">
+                  <input type="checkbox" data-path="section_b.seriousness_hospitalization"> Hospitalization
+                </label>
+                <label class="seriousness-item">
+                  <input type="checkbox" data-path="section_b.seriousness_disability"> Disability / Incapacity
+                </label>
+                <label class="seriousness-item">
+                  <input type="checkbox" data-path="section_b.seriousness_congenital"> Congenital anomaly
+                </label>
+                <label class="seriousness-item">
+                  <input type="checkbox" data-path="section_b.seriousness_other"> Other medically important
+                </label>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">B7</span> Medical History</div>
-          <div class="field-input"><textarea data-path="section_b.medical_history" rows="3"></textarea></div>
+        <!-- Dates row -->
+        <div class="field-group cols-2">
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">B3</span> Onset Date</div>
+            <div class="field-input"><input type="date" data-path="section_b.onset_date"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">B4</span> Report Date</div>
+            <div class="field-input"><input type="date" data-path="section_b.report_date"></div>
+          </div>
+        </div>
+        <!-- Narrative — highlighted and prominent -->
+        <div class="field-group cols-1">
+          <div class="field-row full-width human-review">
+            <span class="human-review-tag">AI-Generated -- Review Required</span>
+            <div class="field-label">
+              <span class="field-id">B5</span> Narrative
+            </div>
+            <div class="field-input">
+              <div class="narrative-editor">
+                <textarea data-path="section_b.narrative" rows="5"></textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!-- Lab data + Medical history -->
+        <div class="field-group cols-2">
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">B6</span> Relevant Lab Data</div>
+            <div class="field-input"><textarea data-path="section_b.lab_data" rows="3"></textarea></div>
+          </div>
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">B7</span> Medical History</div>
+            <div class="field-input"><textarea data-path="section_b.medical_history" rows="3"></textarea></div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Section C: Suspect Product -->
-    <div class="form-section" id="sec-c">
+    <div class="form-section" id="sec-c" data-accent="cyan">
       <div class="form-section-header" onclick="toggleSection('sec-c')">
-        <h3><span class="sec-label">C</span> Suspect Product(s)</h3>
+        <h3><span class="sec-label">C</span> <span class="sec-title">Suspect Product(s)</span></h3>
+        <span class="sec-count">8 fields</span>
         <span class="toggle-icon">▼</span>
       </div>
       <div class="form-section-body">
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">C1</span> Drug Name</div>
-          <div class="field-input"><input type="text" data-path="section_c.drug_name"></div>
-        </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">C2</span> Dose/Freq/Route</div>
-          <div class="field-input"><input type="text" data-path="section_c.dose_frequency_route"></div>
-        </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">C3</span> Therapy Start</div>
-          <div class="field-input"><input type="date" data-path="section_c.therapy_start"></div>
-        </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">C3</span> Therapy End</div>
-          <div class="field-input"><input type="date" data-path="section_c.therapy_end"></div>
-        </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">C4</span> Indication</div>
-          <div class="field-input"><input type="text" data-path="section_c.indication"></div>
-        </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">C5</span> Product Type</div>
-          <div class="field-input"><input type="text" data-path="section_c.product_type"></div>
-        </div>
-        <div class="field-row human-review">
-          <span class="human-review-tag">Review Required</span>
-          <div class="field-label">
-            <span class="field-id">C7</span> Dechallenge
+        <!-- Drug name + Type -->
+        <div class="field-group cols-2-1">
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">C1</span> Drug Name</div>
+            <div class="field-input"><input type="text" data-path="section_c.drug_name"></div>
           </div>
-          <div class="field-input">
-            <div class="narrative-editor">
-              <textarea data-path="section_c.dechallenge" rows="3"></textarea>
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">C5</span> Product Type</div>
+            <div class="field-input"><input type="text" data-path="section_c.product_type"></div>
+          </div>
+        </div>
+        <!-- Dose + Indication -->
+        <div class="field-group cols-2">
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">C2</span> Dose / Frequency / Route</div>
+            <div class="field-input"><input type="text" data-path="section_c.dose_frequency_route"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">C4</span> Indication</div>
+            <div class="field-input"><input type="text" data-path="section_c.indication"></div>
+          </div>
+        </div>
+        <!-- Therapy dates -->
+        <div class="field-group cols-2">
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">C3</span> Therapy Start</div>
+            <div class="field-input"><input type="date" data-path="section_c.therapy_start"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">C3</span> Therapy End</div>
+            <div class="field-input"><input type="date" data-path="section_c.therapy_end"></div>
+          </div>
+        </div>
+        <!-- Dechallenge + Rechallenge -->
+        <div class="field-group cols-2">
+          <div class="field-row human-review">
+            <span class="human-review-tag">Review Required</span>
+            <div class="field-label">
+              <span class="field-id">C7</span> Dechallenge
+            </div>
+            <div class="field-input">
+              <div class="narrative-editor">
+                <textarea data-path="section_c.dechallenge" rows="3"></textarea>
+              </div>
+            </div>
+          </div>
+          <div class="field-row human-review">
+            <span class="human-review-tag">Review Required</span>
+            <div class="field-label">
+              <span class="field-id">C8</span> Rechallenge
+            </div>
+            <div class="field-input">
+              <div class="narrative-editor">
+                <textarea data-path="section_c.rechallenge" rows="3"></textarea>
+              </div>
             </div>
           </div>
         </div>
-        <div class="field-row human-review">
-          <span class="human-review-tag">Review Required</span>
-          <div class="field-label">
-            <span class="field-id">C8</span> Rechallenge
+        <!-- Concomitant meds -->
+        <div class="field-group cols-1">
+          <div class="field-row full-width">
+            <div class="field-label"><span class="field-id">C9</span> Concomitant Medications</div>
+            <div class="field-input"><textarea data-path="section_c.concomitant_meds" rows="2"></textarea></div>
           </div>
-          <div class="field-input">
-            <div class="narrative-editor">
-              <textarea data-path="section_c.rechallenge" rows="3"></textarea>
-            </div>
-          </div>
-        </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">C9</span> Concomitant Meds</div>
-          <div class="field-input"><textarea data-path="section_c.concomitant_meds" rows="2"></textarea></div>
         </div>
       </div>
     </div>
 
     <!-- Section E: Reporter -->
-    <div class="form-section collapsed" id="sec-e">
+    <div class="form-section sec-compact collapsed" id="sec-e" data-accent="cyan">
       <div class="form-section-header" onclick="toggleSection('sec-e')">
-        <h3><span class="sec-label">E</span> Initial Reporter</h3>
+        <h3><span class="sec-label">E</span> <span class="sec-title">Initial Reporter</span></h3>
+        <span class="sec-count">5 fields</span>
         <span class="toggle-icon">▼</span>
       </div>
       <div class="form-section-body">
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">E1</span> Name</div>
-          <div class="field-input"><input type="text" data-path="section_e.reporter_name"></div>
+        <div class="field-group cols-2">
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">E1</span> Name</div>
+            <div class="field-input"><input type="text" data-path="section_e.reporter_name"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">E3</span> Qualification</div>
+            <div class="field-input"><input type="text" data-path="section_e.reporter_qualification"></div>
+          </div>
         </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">E2</span> Address</div>
-          <div class="field-input"><input type="text" data-path="section_e.reporter_address"></div>
+        <div class="field-group cols-1">
+          <div class="field-row full-width">
+            <div class="field-label"><span class="field-id">E2</span> Address</div>
+            <div class="field-input"><input type="text" data-path="section_e.reporter_address"></div>
+          </div>
         </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">E2</span> Phone</div>
-          <div class="field-input"><input type="text" data-path="section_e.reporter_phone"></div>
-        </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">E2</span> Email</div>
-          <div class="field-input"><input type="email" data-path="section_e.reporter_email"></div>
-        </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">E3</span> Qualification</div>
-          <div class="field-input"><input type="text" data-path="section_e.reporter_qualification"></div>
+        <div class="field-group cols-2">
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">E2</span> Phone</div>
+            <div class="field-input"><input type="text" data-path="section_e.reporter_phone"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">E2</span> Email</div>
+            <div class="field-input"><input type="email" data-path="section_e.reporter_email"></div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Section G: Manufacturer -->
-    <div class="form-section collapsed" id="sec-g">
+    <div class="form-section sec-compact collapsed" id="sec-g" data-accent="cyan">
       <div class="form-section-header" onclick="toggleSection('sec-g')">
-        <h3><span class="sec-label">G</span> All Manufacturers</h3>
+        <h3><span class="sec-label">G</span> <span class="sec-title">All Manufacturers</span></h3>
+        <span class="sec-count">6 fields</span>
         <span class="toggle-icon">▼</span>
       </div>
       <div class="form-section-body">
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">G1</span> Contact</div>
-          <div class="field-input"><input type="text" data-path="section_g.sponsor_contact"></div>
+        <div class="field-group cols-2">
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">G1</span> Sponsor Contact</div>
+            <div class="field-input"><input type="text" data-path="section_g.sponsor_contact"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">G2</span> Report Source</div>
+            <div class="field-input"><input type="text" data-path="section_g.source"></div>
+          </div>
         </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">G2</span> Source</div>
-          <div class="field-input"><input type="text" data-path="section_g.source"></div>
+        <div class="field-group cols-2">
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">G4</span> IND Type</div>
+            <div class="field-input"><input type="text" data-path="section_g.ind_type"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">G5</span> IND Number</div>
+            <div class="field-input"><input type="text" data-path="section_g.ind_number"></div>
+          </div>
         </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">G4</span> IND Type</div>
-          <div class="field-input"><input type="text" data-path="section_g.ind_type"></div>
-        </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">G5</span> IND Number</div>
-          <div class="field-input"><input type="text" data-path="section_g.ind_number"></div>
-        </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">G7</span> AE Term</div>
-          <div class="field-input"><input type="text" data-path="section_g.ae_term"></div>
-        </div>
-        <div class="field-row">
-          <div class="field-label"><span class="field-id">G8</span> Report Number</div>
-          <div class="field-input"><input type="text" data-path="section_g.report_number"></div>
+        <div class="field-group cols-2">
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">G7</span> AE Term</div>
+            <div class="field-input"><input type="text" data-path="section_g.ae_term"></div>
+          </div>
+          <div class="field-row">
+            <div class="field-label"><span class="field-id">G8</span> Report Number</div>
+            <div class="field-input"><input type="text" data-path="section_g.report_number"></div>
+          </div>
         </div>
       </div>
     </div>
-
 
   </div>
 
@@ -825,7 +1016,7 @@ async function regenerateAI() {
     showToast('error', `Error: ${err.message}`);
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<img src="{% static "assets/gemma.png" %}" style="width:18px;height:18px;vertical-align:-3px;"> Re-generate AI';
+    btn.innerHTML = '<img src="{% static "assets/ui/gemma.png" %}" style="width:18px;height:18px;vertical-align:-3px;"> Re-generate AI';
   }
 }
 

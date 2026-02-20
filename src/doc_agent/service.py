@@ -28,6 +28,26 @@ logger = logging.getLogger(__name__)
 DOCS_OUTPUT_DIR = Path(__file__).resolve().parents[2] / "data" / "documents"
 
 
+def _parse_c7c8(raw: str) -> str:
+    """Extract answer + rationale text from C7/C8 JSON response."""
+    import json as _json, re as _re
+    text = raw.strip()
+    # Strip markdown code fences
+    if text.startswith("```"):
+        text = _re.sub(r"^```[a-z]*\n?", "", text)
+        text = _re.sub(r"\n?```$", "", text)
+        text = text.strip()
+    try:
+        obj = _json.loads(text)
+        answer = obj.get("c7_answer") or obj.get("c8_answer") or ""
+        rationale = obj.get("c7_rationale") or obj.get("c8_rationale") or ""
+        if answer and rationale:
+            return f"{answer}. {rationale}"
+        return answer or rationale or raw
+    except (_json.JSONDecodeError, AttributeError):
+        return raw
+
+
 def _try_ai_generation(crf: CRFData, settings: Settings) -> dict[str, str]:
     """Attempt AI-powered narrative/dechallenge/rechallenge.
 
@@ -52,14 +72,14 @@ def _try_ai_generation(crf: CRFData, settings: Settings) -> dict[str, str]:
         c7_prompt = format_c7_prompt(crf)
         c7_agent = Agent(name="c7", model=model, markdown=False)
         c7_result = c7_agent.run(c7_prompt)
-        dechallenge = str(c7_result.content).strip()
+        dechallenge = _parse_c7c8(str(c7_result.content))
 
         c8_prompt = format_c8_prompt(crf)
         rechallenge = "Does not apply — single exposure period"
         if len(crf.ec) >= 2:
             c8_agent = Agent(name="c8", model=model, markdown=False)
             c8_result = c8_agent.run(c8_prompt)
-            rechallenge = str(c8_result.content).strip()
+            rechallenge = _parse_c7c8(str(c8_result.content))
 
         return {
             "narrative": narrative,
@@ -180,7 +200,13 @@ def generate_documents(
         medwatch.section_c.dechallenge = ai_result["dechallenge"]
         medwatch.section_c.rechallenge = ai_result["rechallenge"]
 
-        meddra = code_meddra(crf.ae.AETERM, use_medgemma=use_ai)
+        meddra = code_meddra(
+            crf.ae.AETERM,
+            use_medgemma=use_ai,
+            base_url=settings.VLLM_BASE_URL,
+            model_id=settings.VLLM_MODEL_ID,
+            api_key=settings.VLLM_API_KEY,
+        )
 
         e2b_xml = convert_to_e2b_xml(medwatch, crf, meddra, settings)
 

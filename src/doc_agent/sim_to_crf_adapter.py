@@ -412,7 +412,8 @@ def build_crf_for_sae(
             onset = ae.get("AESTDAT", rec.get("day"))
 
             term_match = term.lower().replace("_", " ") == target_ae_term.lower().replace("_", " ")
-            day_match = target_ae_day is None or onset == target_ae_day
+            rec_day = rec.get("day")
+            day_match = target_ae_day is None or onset == target_ae_day or rec_day == target_ae_day
 
             if term_match and day_match and (grade >= 3 or ae.get("AESER")):
                 if target_ae is None or ae.get("_grade", 0) > target_ae.get("_grade", 0):

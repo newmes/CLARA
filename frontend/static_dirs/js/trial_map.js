@@ -8,8 +8,35 @@
 const TILE = 16;
 const STATIC = '/static/assets';
 
-// Available character sprite indices (1–97, PIPOYA civilian sprites, shuffled for visual diversity)
-const SPRITE_INDICES = [86,60,63,10,34,27,2,69,16,61,64,11,53,75,52,91,50,42,66,31,56,73,46,33,97,68,93,9,38,77,81,48,45,43,96,51,84,13,37,24,40,41,19,79,71,57,8,35,80,47,3,17,39,67,23,59,25,6,7,22,49,62,90,20,74,44,85,21,1,94,58,92,54,88,26,72,83,78,65,30,28,89,95,5,55,76,12,70,87,14,18,29,32,36,4,15,82];
+// Character sprite indices grouped by gender + skin tone (PIPOYA civilian sprites)
+const SPRITE_MAP = {
+  F: {
+    light: [1,5,6,9,11,14,15,21,24,25,29,36,37,45,49,52,55,62,66,69,70,73,74,75,76,77,78,79,82,85,86,87,89,92,93,95],
+    medium: [12,28,44,53,61,63,65,67,71,81,90],
+    dark:   [2,31,54,64,68,72,80,88,91,94],
+  },
+  M: {
+    light: [7,17,32,33,40,41,58,96],
+    medium: [3,13,16,18,20,26,30,34,38,42,46,48,50,56,59,83],
+    dark:   [4,8,10,19,22,23,27,35,39,43,47,51,57,60,84,97],
+  },
+};
+// Flat list of ALL indices (for preloading)
+const SPRITE_INDICES = [].concat(...Object.values(SPRITE_MAP.F), ...Object.values(SPRITE_MAP.M));
+
+/** Pick sprite index matching patient sex + race */
+function _pickSprite(p, fallbackIdx) {
+  const sex = ((p.sex || '').charAt(0) || 'M').toUpperCase();
+  const gender = sex === 'F' ? 'F' : 'M';
+  const race = (p.race || '').toUpperCase();
+  const tone = race.includes('BLACK') ? 'dark'
+             : race.includes('ASIAN') ? 'medium'
+             : race.includes('WHITE') ? 'light'
+             : 'medium';
+  const pool = (SPRITE_MAP[gender] && SPRITE_MAP[gender][tone]) || SPRITE_MAP.M.light;
+  const num = parseInt((p.patient_id || '').replace(/\D/g, ''), 10) || (fallbackIdx + 1);
+  return pool[(num - 1) % pool.length];
+}
 
 const STATUS_COLORS = {
   severe:   0xf85149,
@@ -190,21 +217,24 @@ class TrialMap {
     const s = this.game.scene.scenes[0];
     // Tilemap from per-run API (sized to actual patient count)
     s.load.tilemapTiledJSON('map', `/api/map/${this.runId}/tilemap/?v=${Date.now()}`);
-    s.load.image('tiny-town', `${STATIC}/kenney/tiny-town/Tilemap/tilemap_packed.png`);
+    s.load.image('tiny-town', `${STATIC}/tiles/kenney/tiny-town/Tilemap/tilemap_packed.png`);
     // Custom building sprites
-    s.load.image('hospital-building', `${STATIC}/hospital.png`);
-    ['green', 'orange', 'purple', 'red'].forEach(c => s.load.image(`house-${c}`, `${STATIC}/house_${c}.png`));
+    s.load.image('hospital-building', `${STATIC}/buildings/hospital.png`);
+    ['green', 'orange', 'purple', 'red'].forEach(c => s.load.image(`house-${c}`, `${STATIC}/buildings/house_${c}.png`));
     // Tombstone spritesheet (5 cols × 2 rows, 16×24 per frame)
-    s.load.spritesheet('tombs', `${STATIC}/tombs.png`, { frameWidth: 16, frameHeight: 24 });
+    s.load.spritesheet('tombs', `${STATIC}/decorations/tombs.png`, { frameWidth: 16, frameHeight: 24 });
     // Flower & stone decorations (5×4 grid, 16×16 per frame)
-    s.load.spritesheet('flower-stones', `${STATIC}/flower_stones.png`, { frameWidth: 16, frameHeight: 16 });
+    s.load.spritesheet('flower-stones', `${STATIC}/decorations/flower_stones.png`, { frameWidth: 16, frameHeight: 16 });
     // Emotion icons (2×4 grid, 16×16) — left col: None, G1, G2, G3+
-    s.load.spritesheet('emotions', `${STATIC}/emotions.png`, { frameWidth: 16, frameHeight: 16 });
+    s.load.spritesheet('emotions', `${STATIC}/characters/emotions.png`, { frameWidth: 16, frameHeight: 16 });
     // Skull icon for deceased patients (16×16)
-    s.load.image('skull', `${STATIC}/skull.png`);
+    s.load.image('skull', `${STATIC}/decorations/skull.png`);
     // Custom environment sprites
-    s.load.image('trees-atlas', `${STATIC}/trees.png`);
-    s.load.image('plants-atlas', `${STATIC}/plants.png`);
+    s.load.image('trees-atlas', `${STATIC}/decorations/trees.png`);
+    s.load.image('plants-atlas', `${STATIC}/decorations/plants.png`);
+    // Auto-tile road & grass spritesheets
+    s.load.spritesheet('road-autotile', `${STATIC}/tiles/road_autotile.png`, { frameWidth: 16, frameHeight: 16 });
+    s.load.spritesheet('grass-tiles', `${STATIC}/tiles/grass_tiles.png`, { frameWidth: 16, frameHeight: 16 });
     // Character spritesheets
     SPRITE_INDICES.forEach(i => {
       const key = `patient_${String(i).padStart(2, '0')}`;
@@ -238,30 +268,28 @@ class TrialMap {
     // Build occupied tile lookup (roads + buildings) for decoration collision check
     this._occupiedTiles = new Set();
 
-    // Grass background
-    const grassBg = scene.add.rectangle(
-      map.widthInPixels / 2, map.heightInPixels / 2,
-      map.widthInPixels, map.heightInPixels, 0x63c74d
-    );
-    grassBg.setDepth(-2);
-
-    // Grass variation patches (darker spots)
+    // Grass background — tile-based with variants
     let rng = 42;
     const nextRng = () => { rng = (rng * 1103515245 + 12345) & 0x7fffffff; return rng; };
-    for (let i = 0; i < map.widthInPixels * map.heightInPixels / 600; i++) {
-      const gx = (nextRng() % map.widthInPixels);
-      const gy = (nextRng() % map.heightInPixels);
-      const gs = 4 + (nextRng() % 8);
-      const shade = (nextRng() % 2 === 0) ? 0x5fc14c : 0x51ac69;
-      const patch = scene.add.rectangle(gx, gy, gs, gs, shade);
-      patch.setAlpha(0.4 + (nextRng() % 40) / 100);
-      patch.setDepth(-1);
+    for (let gy = 0; gy < map.height; gy++) {
+      for (let gx = 0; gx < map.width; gx++) {
+        const frame = nextRng() % 4;
+        const px = gx * TILE + TILE / 2;
+        const py = gy * TILE + TILE / 2;
+        scene.add.image(px, py, 'grass-tiles', frame).setDepth(-2);
+      }
     }
 
-    // Roads from Ground layer data
+    // Roads from Ground layer data — auto-tile with bitmask
+    // Bitmask: bit0=UP(1), bit1=RIGHT(2), bit2=DOWN(4), bit3=LEFT(8)
     const groundLayer = layers['Ground'];
     if (groundLayer) {
       const gData = groundLayer.layer.data;
+      const isRoad = (x, y) => {
+        if (y < 0 || y >= map.height || x < 0 || x >= map.width) return false;
+        const t = gData[y][x];
+        return t && ROAD_IDS.has(t.index);
+      };
       for (let y = 0; y < map.height; y++) {
         for (let x = 0; x < map.width; x++) {
           const tile = gData[y][x];
@@ -269,15 +297,13 @@ class TrialMap {
             this._occupiedTiles.add(`${x},${y}`);
             const rx = x * TILE + TILE / 2;
             const ry = y * TILE + TILE / 2;
-            // Road fill
-            scene.add.rectangle(rx, ry, TILE, TILE, 0xe4a672).setDepth(0);
-            // Subtle edge lines for top/bottom road edges
-            if (tile.index >= 13 && tile.index <= 15) {
-              scene.add.rectangle(rx, ry - TILE / 2 + 0.5, TILE, 1, 0xbc795c).setDepth(0.1);
-            }
-            if (tile.index >= 37 && tile.index <= 39) {
-              scene.add.rectangle(rx, ry + TILE / 2 - 0.5, TILE, 1, 0xbc795c).setDepth(0.1);
-            }
+            // Compute 4-bit neighbor bitmask
+            let mask = 0;
+            if (isRoad(x, y - 1)) mask |= 1;  // up
+            if (isRoad(x + 1, y)) mask |= 2;  // right
+            if (isRoad(x, y + 1)) mask |= 4;  // down
+            if (isRoad(x - 1, y)) mask |= 8;  // left
+            scene.add.image(rx, ry, 'road-autotile', mask).setDepth(0);
           }
         }
       }
@@ -399,7 +425,7 @@ class TrialMap {
     }).length;
 
     this.patients.forEach((p, i) => {
-      const spriteIdx = SPRITE_INDICES[i % SPRITE_INDICES.length];
+      const spriteIdx = _pickSprite(p, i);
       const spriteKey = `patient_${String(spriteIdx).padStart(2, '0')}`;
       const home = this._getHomePos(i);
 
@@ -546,7 +572,9 @@ class TrialMap {
     });
   }
 
-  _update() {}
+  _update() {
+    this.updateBubblePositions();
+  }
 
   _getStatusColor(p) {
     const aes = p.active_aes || [];
@@ -838,7 +866,6 @@ class TrialMap {
     const sprite = this.sprites[patientId];
     if (!sprite) return;
 
-    const bx = sprite.x, by = sprite.y - 20;
     const displayText = text.length > 24 ? text.substring(0, 22) + '...' : text;
     const tempText = this._scene.add.text(0, 0, displayText, { fontFamily: '"NeoDunggeunmo", monospace', fontSize: '8px', color: '#fff', resolution: 4 });
     const tw = tempText.width, th = tempText.height;
@@ -846,33 +873,48 @@ class TrialMap {
     const padding = 4;
     const bgWidth = tw + padding * 2, bgHeight = th + padding * 2;
 
+    // Use a container so it follows the sprite
+    const container = this._scene.add.container(sprite.x, sprite.y - 20);
+    container.setDepth(50);
+
     const bg = this._scene.add.graphics();
     bg.fillStyle(0x1b1f23, 0.92);
     bg.lineStyle(1, 0x39d2c0, 0.7);
-    bg.fillRoundedRect(bx - bgWidth / 2, by - bgHeight - 4, bgWidth, bgHeight, 3);
-    bg.strokeRoundedRect(bx - bgWidth / 2, by - bgHeight - 4, bgWidth, bgHeight, 3);
+    bg.fillRoundedRect(-bgWidth / 2, -bgHeight - 4, bgWidth, bgHeight, 3);
+    bg.strokeRoundedRect(-bgWidth / 2, -bgHeight - 4, bgWidth, bgHeight, 3);
     bg.fillStyle(0x1b1f23, 0.92);
-    bg.fillTriangle(bx - 3, by - 4, bx + 3, by - 4, bx, by);
-    bg.setDepth(50);
+    bg.fillTriangle(-3, -4, 3, -4, 0, 0);
 
-    const label = this._scene.add.text(bx, by - bgHeight / 2 - 4, displayText, {
+    const label = this._scene.add.text(0, -bgHeight / 2 - 4, displayText, {
       fontFamily: '"NeoDunggeunmo", monospace', fontSize: '8px', color: '#e6edf3',
       align: 'center', resolution: 4,
     });
-    label.setOrigin(0.5, 0.5).setDepth(51);
+    label.setOrigin(0.5, 0.5);
 
-    bg.setAlpha(0); label.setAlpha(0);
-    this._scene.tweens.add({ targets: [bg, label], alpha: 1, duration: 200 });
+    container.add([bg, label]);
+    container.setAlpha(0);
+    this._scene.tweens.add({ targets: container, alpha: 1, duration: 200 });
 
-    this.speechBubbles[patientId] = { bg, label };
+    this.speechBubbles[patientId] = { container, sprite };
     this.bubbleTimers[patientId] = this._scene.time.delayedCall(duration, () => {
       this.clearSpeechBubble(patientId);
     });
   }
 
+  /** Called every frame to keep bubbles following sprites */
+  updateBubblePositions() {
+    for (const [pid, bubble] of Object.entries(this.speechBubbles)) {
+      if (bubble.container && bubble.sprite) {
+        bubble.container.x = bubble.sprite.x;
+        bubble.container.y = bubble.sprite.y - 20;
+      }
+    }
+  }
+
   clearSpeechBubble(patientId) {
     const bubble = this.speechBubbles[patientId];
     if (bubble) {
+      if (bubble.container) bubble.container.destroy();
       if (bubble.bg) bubble.bg.destroy();
       if (bubble.label) bubble.label.destroy();
       delete this.speechBubbles[patientId];
@@ -889,15 +931,24 @@ class TrialMap {
 
   updateBubbles(patients) {
     this.clearAllBubbles();
+    if (this._hospBubbleBg) { this._hospBubbleBg.destroy(); this._hospBubbleBg = null; }
+    if (this._hospBubbleLabel) { this._hospBubbleLabel.destroy(); this._hospBubbleLabel = null; }
     const alertPatients = [];
+    const hospAEs = []; // collect AEs from hospital patients
 
     patients.forEach((p, i) => {
       const loc = (p.location || '').toUpperCase();
       if (loc === 'DECEASED') return;
       const ds = (p.disposition || p.DS?.DSDECOD || '').toUpperCase();
       if (ds.includes('DEATH') || ds.includes('DECEASED') || ds.includes('DIED')) return;
+
+      const isHosp = loc === 'HOSPITAL' || loc === 'OUTPATIENT' || loc === 'INPATIENT';
       const text = _buildBubbleText(p);
-      if (text) {
+
+      if (isHosp) {
+        // Collect for hospital summary bubble
+        if (text) hospAEs.push(text);
+      } else if (text) {
         const maxGrade = Math.max(...(p.active_aes || []).map(ae => ae.grade || 0));
         const delay = i * 300 + Math.random() * 500;
         if (this._scene) {
@@ -919,6 +970,44 @@ class TrialMap {
         }
       }
     });
+
+    // Hospital summary bubble
+    if (hospAEs.length > 0 && this._scene && this.hospitalPos) {
+      const maxShow = 4;
+      let lines = hospAEs.slice(0, maxShow);
+      if (hospAEs.length > maxShow) lines.push(`+${hospAEs.length - maxShow} more`);
+      const summaryText = lines.join('\n');
+      const bx = this.hospitalPos.x * TILE + TILE / 2;
+      const by = this.hospitalPos.y * TILE - 40 - lines.length * 5;
+      const tempText = this._scene.add.text(0, 0, summaryText, {
+        fontFamily: '"NeoDunggeunmo", monospace', fontSize: '8px', color: '#fff', resolution: 4
+      });
+      const tw = tempText.width, th = tempText.height;
+      tempText.destroy();
+      const pad = 5;
+      const bgW = tw + pad * 2, bgH = th + pad * 2;
+      const bg = this._scene.add.graphics();
+      bg.fillStyle(0x1b1f23, 0.92);
+      bg.lineStyle(1, 0xf0883e, 0.7);
+      bg.fillRoundedRect(bx - bgW / 2, by - bgH / 2, bgW, bgH, 4);
+      bg.strokeRoundedRect(bx - bgW / 2, by - bgH / 2, bgW, bgH, 4);
+      bg.fillStyle(0x1b1f23, 0.92);
+      bg.fillTriangle(bx - 3, by + bgH / 2, bx + 3, by + bgH / 2, bx, by + bgH / 2 + 5);
+      bg.setDepth(50);
+      const label = this._scene.add.text(bx, by, summaryText, {
+        fontFamily: '"NeoDunggeunmo", monospace', fontSize: '8px', color: '#e6edf3',
+        align: 'center', resolution: 4,
+      });
+      label.setOrigin(0.5, 0.5).setDepth(51);
+      bg.setAlpha(0); label.setAlpha(0);
+      this._scene.tweens.add({ targets: [bg, label], alpha: 1, duration: 300 });
+      this._hospBubbleBg = bg;
+      this._hospBubbleLabel = label;
+      this._scene.time.delayedCall(6000, () => {
+        if (this._hospBubbleBg) { this._hospBubbleBg.destroy(); this._hospBubbleBg = null; }
+        if (this._hospBubbleLabel) { this._hospBubbleLabel.destroy(); this._hospBubbleLabel = null; }
+      });
+    }
 
     if (alertPatients.length > 0 && this.onPhoneCall) {
       alertPatients.sort((a, b) => {
