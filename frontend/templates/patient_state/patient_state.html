@@ -808,14 +808,16 @@
         ${SVG.check} Fresh vitals — measured today at clinic visit
       </div>`;
     }
+    const cToF = v => v != null ? Math.round(v * 9 / 5 + 32, 1) : v;
+    const kgToLbs = v => v != null ? Math.round(v * 2.20462 * 10) / 10 : v;
     const items = [
-      { label: 'Temp', val: vs.TEMP_VSORRES, unit: '°C' },
+      { label: 'Temp', val: cToF(vs.TEMP_VSORRES), unit: '°F' },
       { label: 'SBP', val: vs.SYSBP_VSORRES, unit: 'mmHg' },
       { label: 'DBP', val: vs.DIABP_VSORRES, unit: 'mmHg' },
       { label: 'Heart Rate', val: vs.PULSE_VSORRES, unit: 'bpm' },
       { label: 'Resp Rate', val: vs.RESP_VSORRES, unit: '/min' },
       { label: 'SpO2', val: vs.OXYSAT_VSORRES, unit: '%' },
-      { label: 'Weight', val: vs.WEIGHT_VSORRES, unit: 'kg' },
+      { label: 'Weight', val: kgToLbs(vs.WEIGHT_VSORRES), unit: 'lbs' },
     ];
 
     grid.innerHTML = staleHtml + items.map(i => `
