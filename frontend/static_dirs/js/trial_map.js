@@ -8,8 +8,8 @@
 const TILE = 16;
 const STATIC = '/static/assets';
 
-// Available character sprite indices (patient_02 removed — not human)
-const SPRITE_INDICES = [1, 3, 4, 5, 6, 7, 8, 9, 10];
+// Available character sprite indices (1–97, PIPOYA civilian sprites, shuffled for visual diversity)
+const SPRITE_INDICES = [86,60,63,10,34,27,2,69,16,61,64,11,53,75,52,91,50,42,66,31,56,73,46,33,97,68,93,9,38,77,81,48,45,43,96,51,84,13,37,24,40,41,19,79,71,57,8,35,80,47,3,17,39,67,23,59,25,6,7,22,49,62,90,20,74,44,85,21,1,94,58,92,54,88,26,72,83,78,65,30,28,89,95,5,55,76,12,70,87,14,18,29,32,36,4,15,82];
 
 const STATUS_COLORS = {
   severe:   0xf85149,
@@ -434,13 +434,10 @@ class TrialMap {
       house.setDepth(4);
     });
 
-    // HUD
-    this.dayText = scene.add.text(8, 8, 'DAY 1', {
-      fontFamily: '"NeoDunggeunmo", monospace', fontSize: '14px', fontStyle: 'bold',
-      color: '#39d2c0', stroke: '#0d1117', strokeThickness: 3, resolution: 4,
-    }).setScrollFactor(0).setDepth(100);
+    // HUD — day text removed (shown in toolbar)
+    this.dayText = null;
 
-    scene.add.text(8, 28, 'Drag: pan | Scroll: zoom | Click: select', {
+    scene.add.text(8, 8, 'Drag: pan | Scroll: zoom | Click: select', {
       fontFamily: '"NeoDunggeunmo", monospace', fontSize: '8px', color: '#8b949e',
       stroke: '#0d1117', strokeThickness: 2, resolution: 4,
     }).setScrollFactor(0).setDepth(100);
