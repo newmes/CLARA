@@ -837,6 +837,55 @@ def demo_hazard(request):
     return render(request, "demo/hazard.html")
 
 
+# ─── AntiHallu API ───────────────────────────────────────────
+
+ANTIHALLU_ASSETS = Path(settings.BASE_DIR) / "static_dirs" / "assets" / "antihallu"
+
+
+@require_GET
+def api_antihallu_examples(request):
+    """Return AntiHallu example questions."""
+    try:
+        data = json.loads((ANTIHALLU_ASSETS / "examples.json").read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return JsonResponse({"error": "examples.json not found"}, status=404)
+    return JsonResponse(data)
+
+
+@csrf_exempt
+@require_POST
+def api_antihallu_generate(request):
+    """Lookup cached AntiHallu response for a question."""
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    question = body.get("question", "").strip()
+    if not question:
+        return JsonResponse({"error": "question is required"}, status=400)
+
+    try:
+        cache = json.loads((ANTIHALLU_ASSETS / "cache.json").read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return JsonResponse({"error": "cache.json not found"}, status=500)
+
+    key = question.lower()
+    if key not in cache:
+        return JsonResponse(
+            {"error": "LIVE mode required — this question is not in the cache"},
+            status=404,
+        )
+
+    entry = cache[key]
+    return JsonResponse({
+        "question": entry["question"],
+        "original": entry["original"],
+        "defended": entry["defended"],
+        "cached": True,
+    })
+
+
 def trial_viewer(request, run_id: str, day: int = 1):
     """Main trial viewer page — Generative Agents demo style."""
     run_path = _get_run_path(run_id)
