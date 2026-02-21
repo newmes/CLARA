@@ -967,9 +967,11 @@
 
 {% block nav_items %}
   <span class="nav-sep">/</span>
+  <a href="{% url 'demo_anti_hallucination' %}">Anti-Hallucination</a>
+  <span class="nav-sep">|</span>
   <a href="{% url 'demo_medgemma' %}" class="nav-active">MedGemma</a>
-  <span class="nav-sep">/</span>
-  <a href="#">Clinical AE Detection</a>
+  <span class="nav-sep">|</span>
+  <a href="{% url 'demo_hazard' %}">Hazard</a>
 {% endblock %}
 
 {% block content %}
