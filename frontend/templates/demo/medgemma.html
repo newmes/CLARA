@@ -520,15 +520,20 @@
 .mg-demo-gt-bar {
   display: flex; align-items: center; justify-content: space-between;
   gap: 16px; margin-bottom: 20px;
-  padding: 12px 16px; background: rgba(0,0,0,0.15);
-  border: 1px solid rgba(48,54,61,0.4); border-radius: 12px;
+  padding: 14px 20px; background: linear-gradient(135deg, rgba(210,153,34,0.08), rgba(210,153,34,0.03));
+  border: 1.5px solid rgba(210,153,34,0.35); border-radius: 12px;
+  position: relative; overflow: hidden;
+}
+.mg-demo-gt-bar::before {
+  content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
+  background: var(--accent-orange); border-radius: 4px 0 0 4px;
 }
 .mg-demo-gt-label {
   font-size: 0.6em; font-weight: 700; text-transform: uppercase;
-  letter-spacing: 1.2px; color: var(--text-muted);
+  letter-spacing: 1.5px; color: rgba(210,153,34,0.7);
 }
 .mg-demo-gt-value {
-  font-size: 0.9em; font-weight: 700; font-family: 'JetBrains Mono', monospace;
+  font-size: 1em; font-weight: 700; font-family: 'JetBrains Mono', monospace;
   color: var(--accent-orange);
 }
 
@@ -630,16 +635,20 @@
   content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; opacity: 0.8;
 }
 .mg-result-card.correct {
-  border: 1px solid rgba(63,185,80,0.3);
+  border: 1.5px solid rgba(63,185,80,0.4);
+  background: rgba(63,185,80,0.04);
 }
 .mg-result-card.correct::before {
   background: linear-gradient(90deg, var(--accent-green), rgba(63,185,80,0.2));
+  height: 3px;
 }
 .mg-result-card.wrong {
-  border: 1px solid rgba(248,81,73,0.3);
+  border: 1.5px solid rgba(248,81,73,0.4);
+  background: rgba(248,81,73,0.04);
 }
 .mg-result-card.wrong::before {
   background: linear-gradient(90deg, var(--accent-red), rgba(248,81,73,0.2));
+  height: 3px;
 }
 
 /* Sequential reveal animation */
@@ -671,17 +680,27 @@
   font-family: 'JetBrains Mono', monospace;
 }
 .mg-result-badge {
-  font-size: 0.6em; font-weight: 700; padding: 4px 10px; border-radius: 10px;
-  font-family: 'JetBrains Mono', monospace; text-transform: uppercase;
-  align-self: flex-start;
+  display: inline-flex; align-items: center; gap: 5px;
+  font-size: 0.65em; font-weight: 700; padding: 4px 10px; border-radius: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  align-self: flex-start; letter-spacing: 0.3px;
 }
 .mg-result-badge.pass {
   background: rgba(63,185,80,0.12); color: var(--accent-green);
-  border: 1px solid rgba(63,185,80,0.2);
+  border: 1px solid rgba(63,185,80,0.25);
 }
 .mg-result-badge.fail {
   background: rgba(248,81,73,0.12); color: var(--accent-red);
-  border: 1px solid rgba(248,81,73,0.2);
+  border: 1px solid rgba(248,81,73,0.25);
+}
+.mg-result-badge .badge-icon {
+  font-size: 1.1em; line-height: 1;
+}
+.mg-result-badge .badge-latency {
+  opacity: 0.8; font-weight: 600;
+}
+.mg-result-badge .badge-sep {
+  opacity: 0.3; font-weight: 400;
 }
 
 /* Field rows */
@@ -698,15 +717,7 @@
   color: var(--text-primary); text-align: right; max-width: 60%; word-break: break-word;
 }
 
-/* Latency display */
-.mg-latency-badge {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 2px 8px; border-radius: 8px;
-  font: 600 0.65em 'JetBrains Mono', monospace;
-  background: rgba(188,140,255,0.08);
-  border: 1px solid rgba(188,140,255,0.15);
-  color: var(--accent-purple);
-}
+/* Latency display (merged into .mg-result-badge) */
 
 /* Reasoning */
 .mg-result-section-label {
@@ -1448,7 +1459,7 @@ function buildAeTabs() {
     tab.className = 'mg-ae-tab';
     tab.dataset.ae = ae;
     tab.innerHTML = AE_DISPLAY[ae] + '<span class="tab-count">' + count + '</span>';
-    tab.onclick = function() { selectAeTab(ae); };
+    tab.onclick = function() { stopAutoDemo(); selectAeTab(ae); };
     container.appendChild(tab);
   });
 }
@@ -1478,7 +1489,7 @@ function selectAeTab(ae) {
       '<div class="mg-thumb-label">' +
       (grade > 0 ? '<span class="mg-thumb-grade ' + gradeClass + '">G' + grade + '</span>' : '<span class="mg-thumb-grade g0">OK</span>') +
       '</div>';
-    thumb.onclick = function() { selectSample(item.index); };
+    thumb.onclick = function() { stopAutoDemo(); selectSample(item.index); };
     gallery.appendChild(thumb);
   });
 }
@@ -1529,6 +1540,16 @@ function selectSample(idx) {
       '</button>' +
     '</div>' +
     '<div class="mg-result-panel" id="mgResultPanel"></div>';
+
+  /* Restore Auto Demo button state if running */
+  if (autoInterval) {
+    var autoBtn = document.getElementById('mgBtnAuto');
+    if (autoBtn) {
+      autoBtn.classList.add('active');
+      autoBtn.querySelector('.auto-text').textContent = 'Stop';
+      autoBtn.querySelector('.auto-dot').style.animation = 'mgPipPulse 1s ease-in-out infinite';
+    }
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1545,10 +1566,15 @@ function parseOutput(rawOutput) {
 
 function buildResultCard(label, pred, correct, fields, rawOutput, latency, slideClass) {
   var badgeCls = correct ? 'pass' : 'fail';
-  var badgeText = correct ? 'Correct' : 'Wrong';
+  var badgeIcon = correct ? '&#10003;' : '&#10007;';
   var cardCls = correct ? 'correct' : 'wrong';
   var predColor = correct ? 'var(--accent-green)' : 'var(--accent-red)';
-  var latencyHtml = latency ? '<span class="mg-latency-badge">' + latency.toFixed(0) + 'ms</span>' : '';
+
+  /* Single merged badge: icon + optional latency */
+  var badgeContent = '<span class="badge-icon">' + badgeIcon + '</span>';
+  if (latency) {
+    badgeContent += '<span class="badge-sep">|</span><span class="badge-latency">' + latency.toFixed(0) + 'ms</span>';
+  }
 
   return '<div class="mg-result-card ' + cardCls + ' ' + slideClass + '">' +
     '<div class="mg-result-header">' +
@@ -1556,10 +1582,7 @@ function buildResultCard(label, pred, correct, fields, rawOutput, latency, slide
         '<div class="mg-result-pred-label">' + label + '</div>' +
         '<div class="mg-result-pred" style="color:' + predColor + '">' + classDisplay(pred) + '</div>' +
       '</div>' +
-      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">' +
-        '<span class="mg-result-badge ' + badgeCls + '">' + badgeText + '</span>' +
-        latencyHtml +
-      '</div>' +
+      '<span class="mg-result-badge ' + badgeCls + '">' + badgeContent + '</span>' +
     '</div>' +
     '<div class="mg-result-fields">' +
       '<div class="mg-rf-row"><span class="mg-rf-label">AE Term</span><span class="mg-rf-value">' + fields.ae_term + '</span></div>' +
@@ -1575,7 +1598,27 @@ function buildResultCard(label, pred, correct, fields, rawOutput, latency, slide
 }
 
 /* Live inference mode: true = call vLLM API, false = use pre-computed results */
-var LIVE_MODE = true;
+var LIVE_MODE_FT = true;
+var LIVE_MODE_ZS = true;
+
+/* Helper: parse vLLM response into result card data */
+function parseLiveResponse(data, s) {
+  var detected = data.detected_aes || [];
+  var latency = data.latency_ms || 0;
+  var pred;
+  if (detected.length === 0) { pred = 'normal'; }
+  else { var best = detected[0]; pred = (best.ae_term || 'unknown') + '_g' + (best.grade || 1); }
+  var correct = pred === s.gt;
+  var fields;
+  if (detected.length === 0) {
+    fields = {ae_term:'None', grade:'N/A', confidence:'N/A', reasoning:'No adverse events detected.'};
+  } else {
+    var a = detected[0];
+    fields = { ae_term: a.ae_term||'\u2014', grade: a.grade!=null?a.grade:'\u2014',
+      confidence: a.confidence?(a.confidence*100).toFixed(0)+'%':'\u2014', reasoning: a.reasoning||'\u2014' };
+  }
+  return { pred: pred, correct: correct, fields: fields, raw: JSON.stringify(detected,null,2), latency: latency };
+}
 
 function analyzeImage() {
   if (currentSampleIdx < 0) return;
@@ -1588,136 +1631,221 @@ function analyzeImage() {
   btn.querySelector('.btn-text').textContent = 'Analyzing...';
   panel.classList.remove('visible');
 
-  /* Phase 1: Show zero-shot (pre-computed) immediately */
+  /* Show loading spinners for both slots */
+  var spinnerHtml = '<div class="mg-result-card" style="display:flex;align-items:center;justify-content:center;min-height:200px;opacity:0.5;">' +
+    '<div style="text-align:center;"><div class="mg-spinner-lg"></div><div style="margin-top:12px;color:var(--text-muted);font-size:0.85em;">Running inference...</div></div></div>';
+
+  panel.innerHTML = '<div class="mg-result-comparison">' +
+    '<div id="mgResultSlotZS">' + spinnerHtml + '</div>' +
+    '<div id="mgResultSlotFT">' + spinnerHtml + '</div>' +
+  '</div>';
+  panel.classList.add('visible');
+
+  var done = 0;
+  function checkDone() { done++; if (done >= 2) { btn.classList.remove('loading'); btn.querySelector('.btn-text').textContent = 'Analysis Complete'; } }
+
+  /* Zero-shot (base model) */
+  if (LIVE_MODE_ZS) {
+    fetch('/api/medgemma/analyze-base/', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({baseline: s.baseline, current: s.file}),
+    })
+    .then(function(resp) { if (!resp.ok) throw new Error('API error'); return resp.json(); })
+    .then(function(data) {
+      var r = parseLiveResponse(data, s);
+      var zsSlot = document.getElementById('mgResultSlotZS');
+      if (zsSlot) zsSlot.innerHTML = buildResultCard(
+        '<span style="color:var(--accent-green);">LIVE</span> Baseline (Zero-shot)',
+        r.pred, r.correct, r.fields, r.raw, r.latency, 'slide-in-left');
+      checkDone();
+    })
+    .catch(function(err) {
+      console.warn('ZS live failed, falling back:', err.message);
+      LIVE_MODE_ZS = false;
+      showZeroShotFallback(s);
+      checkDone();
+    });
+  } else {
+    showZeroShotFallback(s);
+    checkDone();
+  }
+
+  /* Finetuned model */
+  if (LIVE_MODE_FT) {
+    fetch('/api/medgemma/analyze/', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({baseline: s.baseline, current: s.file}),
+    })
+    .then(function(resp) { if (!resp.ok) throw new Error('API error'); return resp.json(); })
+    .then(function(data) {
+      var r = parseLiveResponse(data, s);
+      var ftSlot = document.getElementById('mgResultSlotFT');
+      if (ftSlot) ftSlot.innerHTML = buildResultCard(
+        '<span style="color:var(--accent-green);">LIVE</span> Finetuned (LoRA)',
+        r.pred, r.correct, r.fields, r.raw, r.latency, 'slide-in-right');
+      checkDone();
+    })
+    .catch(function(err) {
+      console.warn('FT live failed, falling back:', err.message);
+      LIVE_MODE_FT = false;
+      showFinetunedFallback(s);
+      checkDone();
+    });
+  } else {
+    showFinetunedFallback(s);
+    checkDone();
+  }
+}
+
+function showZeroShotFallback(s) {
   var zs = ZS_SAMPLES[s.file];
   var zsFields = zs ? {
-    ae_term: zs.ae_term || '\u2014',
-    grade: zs.grade != null ? zs.grade : '\u2014',
+    ae_term: zs.ae_term || '\u2014', grade: zs.grade != null ? zs.grade : '\u2014',
     confidence: zs.confidence ? (zs.confidence*100).toFixed(0)+'%' : '\u2014',
     reasoning: zs.reasoning || '\u2014'
   } : {ae_term:'\u2014',grade:'\u2014',confidence:'\u2014',reasoning:'No data available'};
   var zsRaw = zs ? JSON.stringify([{ae_term:zs.ae_term,grade:zs.grade,confidence:zs.confidence,reasoning:zs.reasoning}],null,2) : '\u2014';
-
-  panel.innerHTML = '<div class="mg-result-comparison">' +
-    '<div id="mgResultSlotZS">' +
-      buildResultCard('Baseline (Zero-shot)', zs ? zs.pred : '\u2014', zs ? zs.correct : false, zsFields, zsRaw, null, 'slide-in-left') +
-    '</div>' +
-    '<div id="mgResultSlotFT"><div class="mg-result-card" style="display:flex;align-items:center;justify-content:center;min-height:200px;opacity:0.5;">' +
-      '<div style="text-align:center;"><div class="mg-spinner-lg"></div><div style="margin-top:12px;color:var(--text-muted);font-size:0.85em;">Running finetuned model inference...</div></div>' +
-    '</div></div>' +
-  '</div>';
-  panel.classList.add('visible');
-
-  if (!LIVE_MODE) {
-    /* Fallback: use pre-computed results */
-    setTimeout(function() { showFinetunedResult(s, btn); }, 800);
-    return;
-  }
-
-  /* Phase 2: Call vLLM API for live inference */
-  fetch('/api/medgemma/analyze/', {
-    method: 'POST',
-    headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({baseline: s.baseline, current: s.file}),
-  })
-  .then(function(resp) {
-    if (!resp.ok) return resp.json().then(function(e) { throw new Error(e.error || 'API error'); });
-    return resp.json();
-  })
-  .then(function(data) {
-    var ftSlot = document.getElementById('mgResultSlotFT');
-    var detected = data.detected_aes || [];
-    var rawOutput = data.raw_output || '[]';
-    var latency = data.latency_ms || 0;
-
-    /* Determine prediction class */
-    var pred;
-    if (detected.length === 0) {
-      pred = 'normal';
-    } else {
-      var best = detected[0];
-      pred = (best.ae_term || 'unknown') + '_g' + (best.grade || 1);
-    }
-    var correct = pred === s.gt;
-
-    var fields;
-    if (detected.length === 0) {
-      fields = {ae_term:'None', grade:'N/A', confidence:'N/A', reasoning:'No adverse events detected between baseline and current photographs.'};
-    } else {
-      var a = detected[0];
-      fields = {
-        ae_term: a.ae_term || '\u2014',
-        grade: a.grade != null ? a.grade : '\u2014',
-        confidence: a.confidence ? (a.confidence*100).toFixed(0)+'%' : '\u2014',
-        reasoning: a.reasoning || '\u2014',
-      };
-    }
-    var ftRaw = JSON.stringify(detected, null, 2);
-
-    ftSlot.innerHTML = buildResultCard(
-      '<span style="color:var(--accent-green);">LIVE</span> Finetuned (LoRA)',
-      pred, correct, fields, ftRaw, latency, 'slide-in-right'
-    );
-
-    btn.classList.remove('loading');
-    btn.querySelector('.btn-text').textContent = 'Analysis Complete';
-  })
-  .catch(function(err) {
-    console.warn('Live inference failed, falling back to pre-computed:', err.message);
-    LIVE_MODE = false;
-    showFinetunedResult(s, btn);
-  });
+  var zsSlot = document.getElementById('mgResultSlotZS');
+  if (zsSlot) zsSlot.innerHTML = buildResultCard('Baseline (Zero-shot)', zs ? zs.pred : '\u2014', zs ? zs.correct : false, zsFields, zsRaw, null, 'slide-in-left');
 }
 
-function showFinetunedResult(s, btn) {
+function showFinetunedFallback(s) {
   var ftParsed = parseOutput(s.raw_output);
   var ftFields = ftParsed || {ae_term:'\u2014',grade:'\u2014',confidence:'\u2014',reasoning:'\u2014'};
   var ftRaw = ftParsed ? ftParsed.raw : s.raw_output;
-
   var ftSlot = document.getElementById('mgResultSlotFT');
-  ftSlot.innerHTML = buildResultCard('Finetuned (LoRA)', s.pred, s.correct, ftFields, ftRaw, s.latency_ms, 'slide-in-right');
-
-  btn.classList.remove('loading');
-  btn.querySelector('.btn-text').textContent = 'Analysis Complete';
+  if (ftSlot) ftSlot.innerHTML = buildResultCard('Finetuned (LoRA)', s.pred, s.correct, ftFields, ftRaw, s.latency_ms, 'slide-in-right');
 }
 
 /* ══════════════════════════════════════════════════════════════
    9. AUTO DEMO MODE (Bonus #12)
    ══════════════════════════════════════════════════════════════ */
-/* Auto demo cycles: normal -> g1 -> g3 for current AE type */
+/* Auto demo cycles through ALL AE types sequentially */
+var autoQueue = [];
+var autoTimer = null;
+var autoBusy = false;
+
 function toggleAutoDemo() {
   var btn = document.getElementById('mgBtnAuto');
-  if (autoInterval) {
-    clearInterval(autoInterval);
-    autoInterval = null;
-    btn.classList.remove('active');
-    btn.querySelector('.auto-text').textContent = 'Auto Demo';
-    btn.querySelector('.auto-dot').style.animation = '';
+  if (autoInterval || autoTimer) {
+    stopAutoDemo();
     return;
   }
 
-  btn.classList.add('active');
-  btn.querySelector('.auto-text').textContent = 'Cancel';
-  btn.querySelector('.auto-dot').style.animation = 'mgPipPulse 1s ease-in-out infinite';
+  /* Build full queue: every sample across all AE types in AE_ORDER */
+  autoQueue = [];
+  AE_ORDER.forEach(function(ae) {
+    var items = samplesByType[ae] || [];
+    items.forEach(function(item) {
+      autoQueue.push({ ae: ae, index: item.index });
+    });
+  });
+  if (autoQueue.length === 0) return;
 
-  var aeType = currentAeTab || 'normal';
-  var items = samplesByType[aeType] || [];
-  if (items.length === 0) return;
+  btn.classList.add('active');
+  btn.querySelector('.auto-text').textContent = 'Stop';
+  btn.querySelector('.auto-dot').style.animation = 'mgPipPulse 1s ease-in-out infinite';
+  autoBusy = false;
 
   var autoIdx = 0;
 
   function nextAutoSample() {
-    if (autoIdx >= items.length) autoIdx = 0;
-    selectSample(items[autoIdx].index);
-    /* Auto-analyze after a short delay */
-    setTimeout(function() {
-      if (autoInterval) analyzeImage();
-    }, 500);
+    if (!autoInterval) return;
+    if (autoBusy) return; /* wait for current analysis to finish */
+    if (autoIdx >= autoQueue.length) autoIdx = 0; /* loop */
+
+    var entry = autoQueue[autoIdx];
+    /* Switch tab if needed */
+    if (currentAeTab !== entry.ae) {
+      selectAeTab(entry.ae);
+    }
+    selectSample(entry.index);
     autoIdx++;
+
+    /* Start analysis immediately */
+    autoBusy = true;
+    if (!autoInterval) { autoBusy = false; return; }
+    autoAnalyzeImage(function() {
+      autoBusy = false;
+    });
   }
 
+  autoInterval = setInterval(nextAutoSample, 5000);
   nextAutoSample();
-  autoInterval = setInterval(nextAutoSample, 4000);
+}
+
+function stopAutoDemo() {
+  if (autoInterval) { clearInterval(autoInterval); autoInterval = null; }
+  if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
+  autoBusy = false;
+  autoQueue = [];
+  var btn = document.getElementById('mgBtnAuto');
+  if (btn) {
+    btn.classList.remove('active');
+    btn.querySelector('.auto-text').textContent = 'Auto Demo';
+    btn.querySelector('.auto-dot').style.animation = '';
+  }
+}
+
+/* analyzeImage variant for auto demo — calls onDone when both models finish */
+function autoAnalyzeImage(onDone) {
+  if (currentSampleIdx < 0) { onDone(); return; }
+  var btn = document.getElementById('mgBtnAnalyze');
+  var panel = document.getElementById('mgResultPanel');
+  var s = correctSamples[currentSampleIdx];
+
+  btn.classList.add('loading');
+  btn.disabled = true;
+  btn.querySelector('.btn-text').textContent = 'Analyzing...';
+  panel.classList.remove('visible');
+
+  var spinnerHtml = '<div class="mg-result-card" style="display:flex;align-items:center;justify-content:center;min-height:200px;opacity:0.5;">' +
+    '<div style="text-align:center;"><div class="mg-spinner-lg"></div><div style="margin-top:12px;color:var(--text-muted);font-size:0.85em;">Running inference...</div></div></div>';
+
+  panel.innerHTML = '<div class="mg-result-comparison">' +
+    '<div id="mgResultSlotZS">' + spinnerHtml + '</div>' +
+    '<div id="mgResultSlotFT">' + spinnerHtml + '</div>' +
+  '</div>';
+  panel.classList.add('visible');
+
+  var done = 0;
+  function checkDone() { done++; if (done >= 2) { btn.classList.remove('loading'); btn.querySelector('.btn-text').textContent = 'Analysis Complete'; onDone(); } }
+
+  /* Zero-shot (base) */
+  if (LIVE_MODE_ZS) {
+    fetch('/api/medgemma/analyze-base/', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({baseline: s.baseline, current: s.file}),
+    })
+    .then(function(resp) { if (!resp.ok) throw new Error('API error'); return resp.json(); })
+    .then(function(data) {
+      var r = parseLiveResponse(data, s);
+      var zsSlot = document.getElementById('mgResultSlotZS');
+      if (zsSlot) zsSlot.innerHTML = buildResultCard(
+        '<span style="color:var(--accent-green);">LIVE</span> Baseline (Zero-shot)',
+        r.pred, r.correct, r.fields, r.raw, r.latency, 'slide-in-left');
+      checkDone();
+    })
+    .catch(function(err) { LIVE_MODE_ZS = false; showZeroShotFallback(s); checkDone(); });
+  } else { showZeroShotFallback(s); checkDone(); }
+
+  /* Finetuned */
+  if (LIVE_MODE_FT) {
+    fetch('/api/medgemma/analyze/', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({baseline: s.baseline, current: s.file}),
+    })
+    .then(function(resp) { if (!resp.ok) throw new Error('API error'); return resp.json(); })
+    .then(function(data) {
+      var r = parseLiveResponse(data, s);
+      var ftSlot = document.getElementById('mgResultSlotFT');
+      if (ftSlot) ftSlot.innerHTML = buildResultCard(
+        '<span style="color:var(--accent-green);">LIVE</span> Finetuned (LoRA)',
+        r.pred, r.correct, r.fields, r.raw, r.latency, 'slide-in-right');
+      checkDone();
+    })
+    .catch(function(err) { LIVE_MODE_FT = false; showFinetunedFallback(s); checkDone(); });
+  } else { showFinetunedFallback(s); checkDone(); }
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1747,6 +1875,7 @@ document.addEventListener('keydown', function(e) {
    ══════════════════════════════════════════════════════════════ */
 document.addEventListener('keydown', function(e) {
   if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    stopAutoDemo();
     /* Navigate within current AE type tab if set */
     var items = currentAeTab ? (samplesByType[currentAeTab] || []) : [];
     if (items.length === 0) {

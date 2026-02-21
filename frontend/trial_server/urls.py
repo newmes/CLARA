@@ -110,6 +110,8 @@ urlpatterns = [
     # MedGemma API
     path('api/medgemma/analyze/',
          views.api_medgemma_analyze, name='api_medgemma_analyze'),
+    path('api/medgemma/analyze-base/',
+         views.api_medgemma_analyze_base, name='api_medgemma_analyze_base'),
 
     # CRF Tables
     path('doc/<str:run_id>/crf/',
