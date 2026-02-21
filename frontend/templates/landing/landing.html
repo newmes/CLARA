@@ -64,17 +64,6 @@
     -webkit-mask-image: radial-gradient(ellipse 80% 50% at 50% 30%, black 10%, transparent 70%);
   }
 
-  /* -- Spotlight (follows cursor) -- */
-  .spotlight {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    z-index: 0; pointer-events: none;
-    background: radial-gradient(
-      600px circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
-      rgba(57,210,192,0.04),
-      transparent 40%
-    );
-    transition: background 0.3s ease;
-  }
 
   /* -- Layout Container -- */
   .landing-wrap {
@@ -1099,8 +1088,6 @@
 <!-- Noise Overlay -->
 <div class="noise-overlay" style="filter:url(#grain);"></div>
 
-<!-- Spotlight (cursor follow) -->
-<div class="spotlight" id="spotlight"></div>
 
 <div class="landing-wrap">
 
@@ -1494,24 +1481,7 @@
 (function() {
   'use strict';
 
-  /* ─── 1. Spotlight: cursor-following radial gradient ─── */
-  var spotlight = document.getElementById('spotlight');
-  if (spotlight) {
-    document.addEventListener('mousemove', function(e) {
-      spotlight.style.setProperty('--mouse-x', e.clientX + 'px');
-      spotlight.style.setProperty('--mouse-y', e.clientY + 'px');
-    });
-  }
-
-  /* ─── 2. Tech card: per-card mouse glow ─── */
-  var techCards = document.querySelectorAll('.tech-card');
-  techCards.forEach(function(card) {
-    card.addEventListener('mousemove', function(e) {
-      var rect = card.getBoundingClientRect();
-      card.style.setProperty('--card-mouse-x', (e.clientX - rect.left) + 'px');
-      card.style.setProperty('--card-mouse-y', (e.clientY - rect.top) + 'px');
-    });
-  });
+  /* ─── 1. (removed spotlight) ─── */
 
   /* ─── 3. Scroll-triggered reveal (Intersection Observer) ─── */
   var revealEls = document.querySelectorAll('.reveal');
