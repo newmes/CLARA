@@ -1,1025 +1,1729 @@
 {% extends "base/base.html" %}
 {% load static %}
 
-{% block title %}CLARA — MedGemma Multimodal Demo{% endblock %}
+{% block title %}CLARA — MedGemma Clinical AE Detection{% endblock %}
 
 {% block extra_head %}
 <style>
-  /* =================================================================
-     MedGemma Multimodal Demo — Research Dashboard Style
-     ================================================================= */
+/* =================================================================
+   MedGemma Demo — Full Redesign: Aurora Purple / Linear Style
+   ================================================================= */
 
-  .demo-bg {
-    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-    z-index: -1; pointer-events: none; overflow: hidden;
-  }
-  .demo-bg::before {
-    content: '';
-    position: absolute; inset: 0;
-    background-image:
-      linear-gradient(rgba(188,140,255,0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(188,140,255,0.02) 1px, transparent 1px);
-    background-size: 48px 48px;
-    mask-image: radial-gradient(ellipse 70% 50% at 50% 25%, black 20%, transparent 75%);
-    -webkit-mask-image: radial-gradient(ellipse 70% 50% at 50% 25%, black 20%, transparent 75%);
-  }
+/* -- Static Ambient Glow (subtle, not animated like landing) -- */
+.mg-aurora-bg {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1; pointer-events: none; overflow: hidden;
+}
+.mg-aurora-bg::before {
+  content: '';
+  position: absolute;
+  top: -10%; left: 5%; right: 5%;
+  height: 50%;
+  background:
+    radial-gradient(ellipse 70% 60% at 30% 0%, rgba(188,140,255,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 50% at 70% 10%, rgba(88,166,255,0.04) 0%, transparent 60%);
+}
 
-  .demo-wrap {
-    max-width: 1060px; margin: 0 auto; padding: 1.5em 24px 4em;
-  }
+/* -- Dot Grid Background (Purple tint, subtle) -- */
+.mg-dot-grid {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1; pointer-events: none;
+  background-image: radial-gradient(rgba(188,140,255,0.04) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 70% 40% at 50% 20%, black 10%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 40% at 50% 20%, black 10%, transparent 70%);
+}
 
-  /* -- Header -- */
-  .demo-header {
-    margin-bottom: 1.5em;
-  }
-  .demo-back {
-    display: inline-flex; align-items: center; gap: 6px;
-    color: var(--text-muted); font-size: 0.82em; font-weight: 600;
-    text-decoration: none; margin-bottom: 1em; transition: all 0.2s;
-  }
-  .demo-back:hover { color: var(--accent-cyan); text-decoration: none; }
-  .demo-back svg { width: 14px; height: 14px; transition: transform 0.2s; }
-  .demo-back:hover svg { transform: translateX(-3px); }
+/* Hidden — kept for structural compatibility */
+.mg-noise-overlay, .mg-spotlight { display: none; }
 
-  .demo-title-row {
-    display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px;
-    flex-wrap: wrap;
-  }
-  .demo-title {
-    font-size: 1.8em; font-weight: 800; letter-spacing: 0.5px;
-    background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-cyan) 100%);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-  }
-  .demo-version {
-    font: 600 0.65em 'JetBrains Mono', monospace;
-    color: var(--accent-purple); padding: 2px 8px;
-    border: 1px solid rgba(188,140,255,0.25); border-radius: 6px;
-    background: rgba(188,140,255,0.06); white-space: nowrap;
-  }
-  .demo-subtitle {
-    color: var(--text-muted); font-size: 0.88em; max-width: 640px; line-height: 1.6;
-  }
+/* -- Layout Container -- */
+.mg-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px 4em;
+  position: relative;
+  z-index: 1;
+}
 
-  /* -- Model Info Bar -- */
-  .model-info-bar {
-    display: flex; gap: 6px; flex-wrap: wrap;
-    margin-bottom: 1.5em; padding: 12px 16px;
-    background: var(--bg-glass); backdrop-filter: blur(10px);
-    border: 1px solid var(--border); border-radius: var(--radius-xl);
-    position: relative; overflow: hidden;
-  }
-  .model-info-bar::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-    background: linear-gradient(90deg, var(--accent-purple), rgba(188,140,255,0.2), transparent);
-    opacity: 0.6;
-  }
-  .mi-item {
-    display: flex; align-items: center; gap: 6px;
-    padding: 4px 12px; border-radius: 6px;
-    background: var(--bg-elevated); border: 1px solid rgba(48,54,61,0.6);
-    font-size: 0.75em; color: var(--text-muted);
-  }
-  .mi-item strong {
-    color: var(--text-secondary); font-weight: 600;
-  }
-  .mi-item .mi-dot {
-    width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
-  }
-  .mi-dot.purple { background: var(--accent-purple); }
-  .mi-dot.cyan { background: var(--accent-cyan); }
-  .mi-dot.orange { background: var(--accent-orange); }
-  .mi-dot.green { background: var(--accent-green); }
+/* -- Scroll-triggered reveal -- */
+.mg-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mg-reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+.mg-reveal-d1 { transition-delay: 0.1s; }
+.mg-reveal-d2 { transition-delay: 0.2s; }
+.mg-reveal-d3 { transition-delay: 0.3s; }
+.mg-reveal-d4 { transition-delay: 0.4s; }
 
-  /* -- Section Labels -- */
-  .section-label {
-    color: var(--text-muted); font-size: 0.7em; font-weight: 700;
-    text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1em;
-    display: flex; align-items: center; gap: 12px;
-  }
-  .section-label::before {
-    content: ''; width: 3px; height: 14px; border-radius: 2px;
-    background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
-    flex-shrink: 0;
-  }
-  .section-label::after {
-    content: ''; flex: 1; height: 1px; background: var(--border);
-  }
+/* =================================================================
+   HERO SECTION
+   ================================================================= */
+.mg-hero {
+  padding: 4em 0 2.5em;
+  text-align: center;
+  position: relative;
+}
 
-  /* -- Multimodal Input Section -- */
-  .multimodal-inputs {
-    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
-    margin-bottom: 1.5em;
-  }
-  .mm-input-card {
-    background: var(--bg-glass); backdrop-filter: blur(10px);
-    border: 1px solid var(--border); border-radius: var(--radius-xl);
-    padding: 16px; position: relative; overflow: hidden;
-    transition: border-color 0.2s;
-  }
-  .mm-input-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    opacity: 0.5;
-  }
-  .mm-input-card.active { border-color: rgba(188,140,255,0.3); }
-  .mm-input-card.card-text::before {
-    background: linear-gradient(90deg, var(--accent-blue), rgba(88,166,255,0.2));
-  }
-  .mm-input-card.card-image::before {
-    background: linear-gradient(90deg, var(--accent-purple), rgba(188,140,255,0.2));
-  }
-  .mm-input-card.card-struct::before {
-    background: linear-gradient(90deg, var(--accent-orange), rgba(210,153,34,0.2));
-  }
-  .mmi-header {
-    display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
-  }
-  .mmi-icon {
-    width: 28px; height: 28px; border-radius: 8px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .mmi-icon svg { width: 14px; height: 14px; }
-  .mmi-icon.icon-blue {
-    background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.15);
-    color: var(--accent-blue);
-  }
-  .mmi-icon.icon-purple {
-    background: rgba(188,140,255,0.08); border: 1px solid rgba(188,140,255,0.15);
-    color: var(--accent-purple);
-  }
-  .mmi-icon.icon-orange {
-    background: rgba(210,153,34,0.08); border: 1px solid rgba(210,153,34,0.15);
-    color: var(--accent-orange);
-  }
-  .mmi-title {
-    font-size: 0.82em; font-weight: 700; color: var(--text-primary);
-  }
-  .mmi-status {
-    font: 600 0.6em 'JetBrains Mono', monospace;
-    padding: 1px 6px; border-radius: 4px; margin-left: auto;
-    white-space: nowrap;
-  }
-  .mmi-status.ready {
-    background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.2);
-    color: var(--accent-green);
-  }
-  .mmi-status.pending {
-    background: var(--bg-elevated); border: 1px solid var(--border);
-    color: var(--text-muted);
-  }
+/* Overline badge */
+.mg-hero-overline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 0.68em 'JetBrains Mono', monospace;
+  color: var(--accent-purple);
+  padding: 5px 16px;
+  border: 1px solid rgba(188,140,255,0.2);
+  border-radius: 24px;
+  background: rgba(188,140,255,0.05);
+  margin-bottom: 1.6em;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+.mg-hero-overline .mg-pulse-pip {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent-purple);
+  animation: mgPipPulse 2s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(188,140,255,0.6);
+}
+@keyframes mgPipPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
 
-  /* Narrative text input */
-  .narrative-input {
-    width: 100%; min-height: 80px; padding: 10px 12px;
-    background: rgba(0,0,0,0.2); border: 1px solid rgba(48,54,61,0.6);
-    border-radius: 8px; color: var(--text-secondary);
-    font: 0.78em/1.6 'Inter', sans-serif; resize: vertical;
-    transition: border-color 0.2s;
-  }
-  .narrative-input:focus {
-    outline: none; border-color: rgba(88,166,255,0.4);
-  }
-  .narrative-input::placeholder { color: var(--text-muted); opacity: 0.6; }
+/* Title - large manifesto style */
+.mg-hero-title {
+  font-size: 3em;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.12;
+  margin-bottom: 0.2em;
+  position: relative;
+}
+.mg-hero-title .mg-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: mgWordReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.mg-hero-title .mg-word-accent {
+  background: linear-gradient(135deg, #a855f7 0%, var(--accent-purple) 40%, #58a6ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 30px rgba(188,140,255,0.3));
+}
+.mg-hero-title .mg-word-dim {
+  color: var(--text-secondary);
+  -webkit-text-fill-color: var(--text-secondary);
+}
 
-  /* Structured data preview */
-  .struct-preview {
-    background: rgba(0,0,0,0.2); border: 1px solid rgba(48,54,61,0.6);
-    border-radius: 8px; padding: 8px 10px;
-    font: 0.68em/1.6 'JetBrains Mono', monospace;
-    color: var(--text-muted); overflow: hidden;
-    max-height: 100px;
-  }
-  .struct-preview .sp-key { color: var(--accent-orange); }
-  .struct-preview .sp-val { color: var(--text-secondary); }
-  .struct-preview .sp-num { color: var(--accent-cyan); }
+@keyframes mgWordReveal {
+  to { opacity: 1; transform: translateY(0); }
+}
 
-  /* -- Main Layout: Upload + Analysis -- */
-  .vision-layout {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-    margin-bottom: 1.5em;
-  }
+/* Subtitle */
+.mg-hero-subtitle {
+  font-size: 1.05em;
+  color: var(--text-muted);
+  font-weight: 400;
+  max-width: 700px;
+  margin: 0 auto 1.2em;
+  line-height: 1.7;
+  opacity: 0;
+  animation: mgFadeUpSoft 0.8s ease forwards 0.8s;
+}
+.mg-hero-subtitle strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
 
-  /* -- Upload Zone -- */
-  .upload-panel {
-    background: var(--bg-glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-    border: 1px solid var(--border); border-radius: var(--radius-xl);
-    position: relative; overflow: hidden;
-    display: flex; flex-direction: column;
-  }
-  .upload-panel::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--accent-purple), rgba(188,140,255,0.2));
-  }
-  .upload-panel-header {
-    padding: 12px 16px; border-bottom: 1px solid var(--border);
-    font-size: 0.78em; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 1px; color: var(--accent-purple);
-    display: flex; align-items: center; gap: 8px;
-  }
-  .upload-panel-header svg { width: 14px; height: 14px; }
+@keyframes mgFadeUpSoft {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
-  .drop-zone {
-    flex: 1; display: flex; flex-direction: column;
-    align-items: center; justify-content: center;
-    padding: 30px 20px; cursor: pointer;
-    border: 2px dashed rgba(188,140,255,0.15);
-    border-radius: 0 0 11px 11px;
-    margin: 8px; transition: all 0.3s;
-    min-height: 240px;
-  }
-  .drop-zone:hover, .drop-zone.dragover {
-    border-color: rgba(188,140,255,0.4);
-    background: rgba(188,140,255,0.03);
-  }
-  .drop-zone.has-image {
-    border-style: solid; border-color: rgba(188,140,255,0.15); padding: 8px;
-  }
-  .drop-icon { margin-bottom: 12px; opacity: 0.4; }
-  .drop-icon svg { width: 40px; height: 40px; stroke: var(--accent-purple); }
-  .drop-text {
-    font-size: 0.88em; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;
-  }
-  .drop-hint {
-    font-size: 0.75em; color: var(--text-muted);
-  }
-  .drop-zone input[type="file"] { display: none; }
+/* Hero badges inside hero */
+.mg-hero-badges {
+  display: flex; gap: 10px; margin-top: 1.2em; flex-wrap: wrap;
+  justify-content: center;
+  opacity: 0;
+  animation: mgFadeUpSoft 0.8s ease forwards 1s;
+}
+.mg-hero-badge {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 20px;
+  background: rgba(188,140,255,0.05); border: 1px solid rgba(188,140,255,0.15);
+  font-size: 0.72em; font-family: 'JetBrains Mono', monospace; font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.25s ease;
+}
+.mg-hero-badge:hover {
+  border-color: rgba(188,140,255,0.3);
+  background: rgba(188,140,255,0.08);
+  transform: translateY(-1px);
+}
+.mg-hero-badge .bv { color: var(--accent-purple); }
 
-  .preview-img {
-    width: 100%; height: 100%; object-fit: contain;
-    border-radius: 8px; display: none;
-    max-height: 280px;
-  }
+/* =================================================================
+   SECTION SHARED
+   ================================================================= */
+.mg-section-label-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 2em;
+}
+.mg-section-label-row .mg-sl-marker {
+  width: 3px; height: 18px;
+  background: linear-gradient(180deg, var(--accent-purple), rgba(88,166,255,0.6));
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.mg-section-label-row .mg-sl-text {
+  font-size: 0.78em;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.mg-section-label-row .mg-sl-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
 
-  /* -- Sample Buttons -- */
-  .sample-row {
-    display: flex; gap: 5px; flex-wrap: wrap; justify-content: center;
-    padding: 0 16px 12px;
-  }
-  .sample-btn {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 4px 10px; border-radius: 6px; font-size: 0.7em; font-weight: 600;
-    background: var(--bg-elevated); border: 1px solid var(--border);
-    color: var(--text-muted); cursor: pointer; transition: all 0.2s;
-    font-family: inherit;
-  }
-  .sample-btn:hover {
-    border-color: rgba(188,140,255,0.25); color: var(--accent-purple);
-    background: rgba(188,140,255,0.06);
-  }
-  .sample-btn svg { width: 10px; height: 10px; }
+/* =================================================================
+   QUICK STATS (4-col counter)
+   ================================================================= */
+.mg-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 3em;
+}
+.mg-stat-block {
+  text-align: center;
+  padding: 22px 16px;
+  background: rgba(22,27,34,0.6);
+  border: 1px solid rgba(48,54,61,0.5);
+  border-radius: 14px;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+.mg-stat-block::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent-purple), rgba(188,140,255,0.2));
+  opacity: 0.5;
+}
+/* Card mouse glow */
+.mg-stat-block::after {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: 14px;
+  background: radial-gradient(
+    300px circle at var(--card-mouse-x, 50%) var(--card-mouse-y, 0%),
+    rgba(188,140,255,0.06),
+    transparent 40%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s;
+}
+.mg-stat-block:hover {
+  border-color: rgba(188,140,255,0.15);
+  background: rgba(22,27,34,0.8);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+}
+.mg-stat-block:hover::after { opacity: 1; }
+.mg-stat-number {
+  font: 800 2em 'JetBrains Mono', monospace;
+  background: linear-gradient(135deg, var(--accent-purple), var(--accent-blue));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+.mg-stat-unit {
+  font-size: 0.72em;
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
 
-  /* -- Analysis Panel -- */
-  .analysis-panel {
-    background: var(--bg-glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-    border: 1px solid var(--border); border-radius: var(--radius-xl);
-    position: relative; overflow: hidden;
-    display: flex; flex-direction: column;
-  }
-  .analysis-panel::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--accent-cyan), rgba(57,210,192,0.2));
-  }
-  .analysis-header {
-    padding: 12px 16px; border-bottom: 1px solid var(--border);
-    font-size: 0.78em; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 1px; color: var(--accent-cyan);
-    display: flex; align-items: center; gap: 8px;
-  }
-  .analysis-header svg { width: 14px; height: 14px; }
-  .analysis-body {
-    flex: 1; padding: 16px; display: flex; flex-direction: column;
-  }
+/* =================================================================
+   CARD HOVER EFFECTS (shared for all cards)
+   ================================================================= */
+.mg-card {
+  background: rgba(22,27,34,0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(48,54,61,0.6);
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mg-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-purple), rgba(88,166,255,0.3));
+  opacity: 0.5;
+  transition: opacity 0.35s;
+}
+/* Mouse-tracking radial gradient glow */
+.mg-card::after {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: 18px;
+  background: radial-gradient(
+    400px circle at var(--card-mouse-x, 50%) var(--card-mouse-y, 0%),
+    rgba(188,140,255,0.06),
+    transparent 40%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s;
+}
+.mg-card:hover {
+  border-color: rgba(188,140,255,0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.3), 0 0 40px rgba(188,140,255,0.05);
+}
+.mg-card:hover::before { opacity: 1; }
+.mg-card:hover::after { opacity: 1; }
 
-  /* -- Placeholder State -- */
-  .analysis-placeholder {
-    flex: 1; display: flex; flex-direction: column;
-    align-items: center; justify-content: center; text-align: center;
-    color: var(--text-muted); padding: 30px 16px;
-  }
-  .analysis-placeholder svg { width: 36px; height: 36px; opacity: 0.25; margin-bottom: 10px; stroke: var(--text-muted); }
-  .analysis-placeholder .ph-title { font-weight: 600; font-size: 0.88em; margin-bottom: 3px; }
-  .analysis-placeholder .ph-desc { font-size: 0.75em; opacity: 0.6; }
+/* =================================================================
+   INTERACTIVE DEMO SECTION
+   ================================================================= */
+.mg-demo-container {
+  border-radius: 18px;
+  margin-bottom: 3em;
+}
+.mg-demo-container > .mg-card-inner {
+  position: relative;
+  z-index: 1;
+}
 
-  /* -- Loading State -- */
-  .analysis-loading {
-    flex: 1; display: none; flex-direction: column;
-    align-items: center; justify-content: center; gap: 14px;
-  }
-  .analysis-loading.active { display: flex; }
-  .scan-animation {
-    width: 64px; height: 64px; position: relative;
-  }
-  .scan-ring {
-    position: absolute; inset: 0; border: 2px solid rgba(188,140,255,0.15);
-    border-top-color: var(--accent-purple); border-radius: 50%;
-    animation: spin 1s linear infinite;
-  }
-  .scan-ring:nth-child(2) {
-    inset: 7px; border-top-color: var(--accent-cyan);
-    animation-direction: reverse; animation-duration: 1.5s;
-  }
-  .scan-ring:nth-child(3) {
-    inset: 14px; border-top-color: var(--accent-blue);
-    animation-duration: 2s;
-  }
-  .scan-text { font-size: 0.8em; color: var(--text-muted); font-weight: 600; }
+/* AE Type Pill Tabs */
+.mg-ae-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.mg-ae-tab {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font: 600 0.72em 'JetBrains Mono', monospace;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+.mg-ae-tab:hover {
+  border-color: rgba(188,140,255,0.3);
+  color: var(--text-secondary);
+  background: rgba(188,140,255,0.05);
+}
+.mg-ae-tab.active {
+  border-color: rgba(188,140,255,0.5);
+  color: var(--accent-purple);
+  background: rgba(188,140,255,0.1);
+  box-shadow: 0 0 12px rgba(188,140,255,0.1);
+}
+.mg-ae-tab .tab-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  border-radius: 9px;
+  background: rgba(188,140,255,0.12);
+  color: var(--accent-purple);
+  font-size: 0.85em;
+  margin-left: 4px;
+  padding: 0 5px;
+}
+.mg-ae-tab.active .tab-count {
+  background: rgba(188,140,255,0.2);
+}
 
-  /* -- Results -- */
-  .analysis-results {
-    display: none; flex-direction: column; gap: 10px;
-  }
-  .analysis-results.active { display: flex; }
+/* Thumbnail Gallery */
+.mg-thumb-gallery {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 10px;
+  padding: 16px 20px;
+  min-height: 100px;
+}
+.mg-thumb-item {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  background: var(--bg-elevated);
+}
+.mg-thumb-item:hover {
+  border-color: rgba(188,140,255,0.3);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+.mg-thumb-item.active {
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 16px rgba(188,140,255,0.2);
+}
+.mg-thumb-item img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  display: block;
+}
+.mg-thumb-label {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 4px 6px;
+  background: linear-gradient(transparent, rgba(0,0,0,0.85));
+  font: 600 0.58em 'JetBrains Mono', monospace;
+  color: #fff;
+  text-align: center;
+}
+.mg-thumb-grade {
+  display: inline-block;
+  padding: 1px 5px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  font-weight: 700;
+  margin-left: 2px;
+}
+.mg-thumb-grade.g0 { background: rgba(63,185,80,0.3); color: var(--accent-green); }
+.mg-thumb-grade.g1 { background: rgba(210,153,34,0.3); color: var(--grade-1); }
+.mg-thumb-grade.g2 { background: rgba(227,135,62,0.3); color: var(--grade-2); }
+.mg-thumb-grade.g3 { background: rgba(248,81,73,0.3); color: var(--grade-3); }
 
-  .result-row {
-    display: flex; align-items: flex-start; gap: 10px;
-    padding: 10px 12px; border-radius: var(--radius-lg);
-    background: rgba(0,0,0,0.12); border: 1px solid rgba(48,54,61,0.5);
-  }
-  .result-icon {
-    width: 28px; height: 28px; border-radius: 7px;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0;
-  }
-  .result-icon svg { width: 14px; height: 14px; }
-  .ri-purple { background: rgba(188,140,255,0.1); color: var(--accent-purple); }
-  .ri-cyan { background: rgba(57,210,192,0.1); color: var(--accent-cyan); }
-  .ri-orange { background: rgba(210,153,34,0.1); color: var(--accent-orange); }
-  .ri-green { background: rgba(63,185,80,0.1); color: var(--accent-green); }
-  .ri-red { background: rgba(248,81,73,0.1); color: var(--accent-red); }
-  .result-content { flex: 1; }
-  .result-label {
-    font-size: 0.64em; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 1.2px; color: var(--text-muted); margin-bottom: 2px;
-  }
-  .result-value {
-    font-size: 0.88em; font-weight: 600; color: var(--text-primary); line-height: 1.4;
-  }
-  .result-value small { font-weight: 400; color: var(--text-muted); font-size: 0.85em; }
+/* Demo Body */
+.mg-demo-body {
+  padding: 24px 20px;
+}
+.mg-demo-placeholder {
+  text-align: center; color: var(--text-muted); padding: 40px 20px;
+  font-size: 0.88em; line-height: 1.8;
+}
+.mg-demo-placeholder .ph-icon {
+  font-size: 2.4em; margin-bottom: 12px; opacity: 0.25;
+  display: block; filter: grayscale(1);
+}
 
-  /* -- Confidence Bar -- */
-  .confidence-bar {
-    height: 5px; border-radius: 3px; background: var(--bg-elevated);
-    overflow: hidden; margin-top: 5px;
-  }
-  .confidence-fill {
-    height: 100%; border-radius: 3px;
-    transition: width 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    width: 0;
-  }
-  .cf-high { background: linear-gradient(90deg, var(--accent-green), #2ec4b6); }
-  .cf-med { background: linear-gradient(90deg, var(--accent-orange), #e3873e); }
-  .cf-low { background: linear-gradient(90deg, var(--accent-red), #da3633); }
+/* Demo Images */
+.mg-demo-images {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
+  background: rgba(48,54,61,0.5); border-radius: 14px;
+  overflow: hidden; margin-bottom: 20px;
+}
+.mg-demo-img-wrap {
+  background: var(--bg-primary); padding: 10px; text-align: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.mg-demo-img-wrap:hover { background: rgba(22,27,34,0.9); }
+.mg-demo-img-wrap img {
+  width: 100%; max-width: 320px; aspect-ratio: 1; object-fit: cover; border-radius: 8px;
+  transition: transform 0.3s ease;
+}
+.mg-demo-img-wrap:hover img {
+  transform: scale(1.02);
+}
+.mg-demo-img-label {
+  font-size: 0.65em; color: var(--text-muted); margin-top: 6px;
+  font-family: 'JetBrains Mono', monospace; text-transform: uppercase;
+  letter-spacing: 0.8px; font-weight: 600;
+}
 
-  /* -- Detection Tags -- */
-  .detection-tags {
-    display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px;
-  }
-  .det-tag {
-    display: inline-flex; align-items: center; gap: 4px;
-    padding: 2px 8px; border-radius: 8px;
-    font-size: 0.7em; font-weight: 600;
-    background: rgba(188,140,255,0.08); border: 1px solid rgba(188,140,255,0.15);
-    color: var(--accent-purple);
-  }
-  .det-tag::before {
-    content: ''; width: 4px; height: 4px; border-radius: 50%;
-    background: var(--accent-purple); opacity: 0.5;
-  }
+/* Ground Truth Bar */
+.mg-demo-gt-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 16px; margin-bottom: 20px;
+  padding: 12px 16px; background: rgba(0,0,0,0.15);
+  border: 1px solid rgba(48,54,61,0.4); border-radius: 12px;
+}
+.mg-demo-gt-label {
+  font-size: 0.6em; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.2px; color: var(--text-muted);
+}
+.mg-demo-gt-value {
+  font-size: 0.9em; font-weight: 700; font-family: 'JetBrains Mono', monospace;
+  color: var(--accent-orange);
+}
 
-  /* -- Recommendation Box -- */
-  .rec-box {
-    padding: 10px 12px; border-radius: var(--radius-lg);
-    background: rgba(57,210,192,0.03); border: 1px solid rgba(57,210,192,0.12);
-    border-left: 3px solid rgba(57,210,192,0.4); font-size: 0.8em;
-    color: var(--text-secondary); line-height: 1.5;
-  }
-  .rec-box strong { color: var(--accent-cyan); }
+/* Keyboard nav hint */
+.mg-nav-hint {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font: 500 0.68em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  opacity: 0.5;
+  margin-top: 8px;
+}
+.mg-nav-hint kbd {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 22px; height: 20px;
+  padding: 0 5px;
+  border-radius: 4px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  font-size: 0.9em;
+  font-family: inherit;
+}
 
-  /* ================================================================
-     Fine-tuning Performance Section
-     ================================================================ */
-  .perf-grid {
-    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
-    margin-bottom: 1.5em;
-  }
-  .perf-card {
-    background: var(--bg-glass); backdrop-filter: blur(10px);
-    border: 1px solid var(--border); border-radius: var(--radius-xl);
-    padding: 16px; position: relative; overflow: hidden;
-  }
-  .perf-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-    background: linear-gradient(90deg, rgba(188,140,255,0.3), transparent);
-    opacity: 0.6;
-  }
-  .perf-label {
-    font-size: 0.65em; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 1px; color: var(--text-muted); margin-bottom: 8px;
-  }
-  .perf-values {
-    display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;
-  }
-  .perf-fine {
-    font: 700 1.3em 'JetBrains Mono', monospace;
-    color: var(--accent-green);
-  }
-  .perf-base {
-    font: 500 0.78em 'JetBrains Mono', monospace;
-    color: var(--text-muted); text-decoration: line-through;
-  }
-  .perf-delta {
-    font: 700 0.72em 'JetBrains Mono', monospace;
-    color: var(--accent-green); margin-left: auto;
-  }
-  .perf-bar {
-    height: 6px; border-radius: 3px; background: var(--bg-elevated);
-    overflow: hidden; position: relative;
-  }
-  .perf-bar-base {
-    position: absolute; top: 0; left: 0; height: 100%;
-    background: rgba(110,118,129,0.2); border-radius: 3px;
-  }
-  .perf-bar-fine {
-    position: absolute; top: 0; left: 0; height: 100%;
-    background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan));
-    border-radius: 3px; transition: width 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    width: 0;
-  }
+/* Analyze Button */
+.mg-btn-analyze {
+  background: linear-gradient(135deg, rgba(188,140,255,0.12), rgba(88,166,255,0.08));
+  border: 1px solid rgba(188,140,255,0.3); color: var(--accent-purple);
+  border-radius: 12px; padding: 12px 28px;
+  font-size: 0.85em; font-weight: 700; font-family: 'JetBrains Mono', monospace;
+  cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px;
+}
+.mg-btn-analyze:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(188,140,255,0.22), rgba(88,166,255,0.15));
+  box-shadow: 0 0 16px rgba(188,140,255,0.2);
+  transform: translateY(-1px);
+}
+.mg-btn-analyze:disabled { opacity: 0.5; cursor: not-allowed; }
+.mg-btn-analyze .spinner {
+  width: 14px; height: 14px; border: 2px solid rgba(188,140,255,0.3);
+  border-top-color: var(--accent-purple); border-radius: 50%;
+  animation: spin 0.8s linear infinite; display: none;
+}
+.mg-btn-analyze.loading .spinner { display: inline-block; }
 
-  /* ================================================================
-     Responsive
-     ================================================================ */
-  @media (max-width: 900px) {
-    .vision-layout { grid-template-columns: 1fr; }
-    .multimodal-inputs { grid-template-columns: 1fr; }
-    .perf-grid { grid-template-columns: 1fr 1fr; }
-    .demo-title { font-size: 1.4em; }
-  }
-  @media (max-width: 500px) {
-    .perf-grid { grid-template-columns: 1fr; }
-    .model-info-bar { flex-direction: column; }
-  }
+/* Auto Demo Button */
+.mg-btn-auto {
+  background: rgba(188,140,255,0.06);
+  border: 1px solid rgba(188,140,255,0.2); color: var(--accent-purple);
+  border-radius: 12px; padding: 10px 20px;
+  font-size: 0.78em; font-weight: 600; font-family: 'JetBrains Mono', monospace;
+  cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px;
+  margin-left: 10px;
+}
+.mg-btn-auto:hover {
+  background: rgba(188,140,255,0.12);
+  border-color: rgba(188,140,255,0.35);
+}
+.mg-btn-auto.active {
+  background: rgba(188,140,255,0.15);
+  border-color: var(--accent-purple);
+  box-shadow: 0 0 12px rgba(188,140,255,0.15);
+}
+.mg-btn-auto .auto-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent-purple);
+}
+.mg-btn-auto.active .auto-dot {
+  animation: mgPipPulse 1s ease-in-out infinite;
+}
+
+/* =================================================================
+   RESULT PANEL — Sequential Reveal
+   ================================================================= */
+.mg-result-panel {
+  margin-top: 20px; display: none;
+}
+.mg-result-panel.visible { display: block; }
+
+/* Comparison grid */
+.mg-result-comparison {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+}
+
+/* Result Cards */
+.mg-result-card {
+  background: rgba(0,0,0,0.2);
+  border-radius: 16px; padding: 20px; position: relative; overflow: hidden;
+  transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mg-result-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; opacity: 0.8;
+}
+.mg-result-card.correct {
+  border: 1px solid rgba(63,185,80,0.3);
+}
+.mg-result-card.correct::before {
+  background: linear-gradient(90deg, var(--accent-green), rgba(63,185,80,0.2));
+}
+.mg-result-card.wrong {
+  border: 1px solid rgba(248,81,73,0.3);
+}
+.mg-result-card.wrong::before {
+  background: linear-gradient(90deg, var(--accent-red), rgba(248,81,73,0.2));
+}
+
+/* Sequential reveal animation */
+.mg-result-card.slide-in-left {
+  animation: mgSlideInLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.mg-result-card.slide-in-right {
+  animation: mgSlideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes mgSlideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes mgSlideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.mg-result-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 14px;
+}
+.mg-result-pred-label {
+  font-size: 0.6em; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 4px;
+}
+.mg-result-pred {
+  font-size: 1.05em; font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+}
+.mg-result-badge {
+  font-size: 0.6em; font-weight: 700; padding: 4px 10px; border-radius: 10px;
+  font-family: 'JetBrains Mono', monospace; text-transform: uppercase;
+  align-self: flex-start;
+}
+.mg-result-badge.pass {
+  background: rgba(63,185,80,0.12); color: var(--accent-green);
+  border: 1px solid rgba(63,185,80,0.2);
+}
+.mg-result-badge.fail {
+  background: rgba(248,81,73,0.12); color: var(--accent-red);
+  border: 1px solid rgba(248,81,73,0.2);
+}
+
+/* Field rows */
+.mg-result-fields { margin-bottom: 14px; }
+.mg-rf-row {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 6px 0; border-bottom: 1px solid rgba(48,54,61,0.3);
+  font-size: 0.78em;
+}
+.mg-rf-row:last-child { border-bottom: none; }
+.mg-rf-label { color: var(--text-muted); font-weight: 600; }
+.mg-rf-value {
+  font-family: 'JetBrains Mono', monospace; font-weight: 600;
+  color: var(--text-primary); text-align: right; max-width: 60%; word-break: break-word;
+}
+
+/* Latency display */
+.mg-latency-badge {
+  display: inline-flex; align-items: center; gap: 4px;
+  padding: 2px 8px; border-radius: 8px;
+  font: 600 0.65em 'JetBrains Mono', monospace;
+  background: rgba(188,140,255,0.08);
+  border: 1px solid rgba(188,140,255,0.15);
+  color: var(--accent-purple);
+}
+
+/* Reasoning */
+.mg-result-section-label {
+  font-size: 0.58em; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--text-muted); margin-bottom: 6px; margin-top: 12px;
+}
+.mg-result-reasoning {
+  font-size: 0.76em; color: var(--text-secondary); line-height: 1.65;
+  padding: 10px 12px; background: rgba(0,0,0,0.12); border-radius: 8px;
+  border: 1px solid rgba(48,54,61,0.3); font-style: italic;
+}
+/* Medical term highlight */
+.mg-medical-term {
+  color: var(--accent-purple);
+  font-weight: 600;
+  font-style: normal;
+}
+
+/* Raw output toggle */
+.mg-result-toggle {
+  display: flex; align-items: center; gap: 6px; cursor: pointer;
+  font-size: 0.58em; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--text-muted); margin-top: 12px;
+  padding: 6px 0; user-select: none; transition: color 0.2s;
+}
+.mg-result-toggle:hover { color: var(--text-secondary); }
+.mg-result-toggle .toggle-arrow {
+  display: inline-block; transition: transform 0.2s; font-size: 0.8em;
+}
+.mg-result-toggle.open .toggle-arrow { transform: rotate(90deg); }
+.mg-result-output {
+  padding: 12px; background: rgba(0,0,0,0.3); border: 1px solid rgba(48,54,61,0.5);
+  border-radius: 10px; font-size: 0.68em; font-family: 'JetBrains Mono', monospace;
+  color: var(--text-secondary); max-height: 200px; overflow-y: auto;
+  white-space: pre-wrap; word-break: break-all; line-height: 1.6;
+  margin-top: 6px; display: none;
+}
+.mg-result-output.open { display: block; }
+
+/* =================================================================
+   PERFORMANCE METRICS
+   ================================================================= */
+.mg-perf-grid {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 24px;
+}
+.mg-perf-card {
+  background: rgba(22,27,34,0.75);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(48,54,61,0.6);
+  border-radius: 16px;
+  padding: 18px 16px; text-align: center; position: relative; overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mg-perf-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent-purple), rgba(188,140,255,0.2));
+  opacity: 0.4;
+}
+.mg-perf-card::after {
+  content: '';
+  position: absolute; inset: 0;
+  border-radius: 16px;
+  background: radial-gradient(
+    300px circle at var(--card-mouse-x, 50%) var(--card-mouse-y, 0%),
+    rgba(188,140,255,0.06),
+    transparent 40%
+  );
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.35s;
+}
+.mg-perf-card:hover {
+  border-color: rgba(188,140,255,0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+}
+.mg-perf-card:hover::after { opacity: 1; }
+.mg-perf-label {
+  font-size: 0.6em; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 10px;
+}
+.mg-perf-value {
+  font-size: 1.8em; font-weight: 800; color: var(--accent-green);
+  font-family: 'JetBrains Mono', monospace;
+}
+.mg-perf-delta {
+  display: inline-block; margin-top: 6px; padding: 2px 8px; border-radius: 10px;
+  font-size: 0.7em; font-weight: 700; color: var(--accent-purple);
+  font-family: 'JetBrains Mono', monospace;
+  background: rgba(188,140,255,0.08); border: 1px solid rgba(188,140,255,0.15);
+}
+.mg-perf-baseline {
+  font-size: 0.68em; color: var(--text-muted); margin-top: 6px;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* =================================================================
+   BAR CHART
+   ================================================================= */
+.mg-chart-container {
+  background: rgba(22,27,34,0.75);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(48,54,61,0.6);
+  border-radius: 18px;
+  padding: 24px; position: relative; overflow: hidden;
+  margin-bottom: 3em;
+}
+.mg-chart-container::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent-purple), rgba(88,166,255,0.3));
+  opacity: 0.4;
+}
+.mg-chart-legend {
+  display: flex; gap: 24px; margin-bottom: 18px; font-size: 0.75em;
+  font-family: 'JetBrains Mono', monospace; font-weight: 600;
+}
+.mg-chart-legend span { display: flex; align-items: center; gap: 6px; color: var(--text-secondary); }
+.mg-legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+.mg-bar-row { display: flex; align-items: center; margin-bottom: 8px; gap: 10px; }
+.mg-bar-label {
+  width: 170px; text-align: right; font-size: 0.75em;
+  font-family: 'JetBrains Mono', monospace; color: var(--text-secondary);
+  flex-shrink: 0; font-weight: 500;
+}
+.mg-bar-track {
+  flex: 1; height: 26px; background: rgba(0,0,0,0.2);
+  border-radius: 4px; position: relative; overflow: hidden;
+  border: 1px solid rgba(48,54,61,0.3);
+}
+.mg-bar-pair {
+  display: flex; flex-direction: column; gap: 2px;
+  height: 100%; justify-content: center; padding: 2px 0;
+}
+.mg-bar-fill {
+  height: 10px; border-radius: 2px;
+  display: flex; align-items: center; justify-content: flex-end; padding-right: 6px;
+  font-size: 9px; font-weight: 600; font-family: 'JetBrains Mono', monospace;
+  transition: width 1.2s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 0;
+}
+.mg-bar-fill.baseline { background: rgba(134,142,150,0.4); color: var(--text-muted); }
+.mg-bar-fill.finetuned {
+  background: linear-gradient(90deg, rgba(188,140,255,0.4), rgba(188,140,255,0.7));
+  color: var(--accent-purple);
+}
+
+/* =================================================================
+   MODEL OVERVIEW
+   ================================================================= */
+.mg-overview-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+}
+.mg-overview-card {
+  padding: 24px;
+}
+.mg-oc-label {
+  font-size: 0.65em; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 8px;
+}
+.mg-oc-value {
+  font-size: 1.05em; font-weight: 700; color: var(--accent-purple);
+  font-family: 'JetBrains Mono', monospace; margin-bottom: 6px;
+}
+.mg-oc-desc {
+  font-size: 0.78em; color: var(--text-secondary); line-height: 1.6;
+}
+
+/* =================================================================
+   IMAGE LIGHTBOX MODAL
+   ================================================================= */
+.mg-lightbox {
+  position: fixed; inset: 0; z-index: 10000;
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(8px);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.3s ease;
+  cursor: zoom-out;
+}
+.mg-lightbox.active {
+  opacity: 1; pointer-events: all;
+}
+.mg-lightbox img {
+  max-width: 90vw; max-height: 85vh;
+  border-radius: 12px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+  transform: scale(0.9);
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.mg-lightbox.active img {
+  transform: scale(1);
+}
+.mg-lightbox-close {
+  position: absolute; top: 20px; right: 24px;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.2);
+  color: #fff; font-size: 1.2em;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
+}
+.mg-lightbox-close:hover {
+  background: rgba(255,255,255,0.2);
+  transform: scale(1.1);
+}
+
+/* =================================================================
+   LIVE INFERENCE SPINNER
+   ================================================================= */
+.mg-spinner-lg {
+  width: 32px; height: 32px; margin: 0 auto;
+  border: 3px solid rgba(188,140,255,0.15);
+  border-top-color: var(--accent-purple);
+  border-radius: 50%;
+  animation: mgSpin 0.8s linear infinite;
+}
+@keyframes mgSpin {
+  to { transform: rotate(360deg); }
+}
+
+/* =================================================================
+   RESPONSIVE
+   ================================================================= */
+@media (max-width: 900px) {
+  .mg-hero-title { font-size: 2.2em; }
+  .mg-stats-row { grid-template-columns: repeat(2, 1fr); }
+  .mg-overview-grid { grid-template-columns: 1fr; }
+  .mg-perf-grid { grid-template-columns: repeat(2, 1fr); }
+  .mg-demo-images { grid-template-columns: 1fr; }
+  .mg-result-comparison { grid-template-columns: 1fr; }
+  .mg-thumb-gallery { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+}
+@media (max-width: 600px) {
+  .mg-main { padding: 0 16px 3em; }
+  .mg-hero { padding: 2.5em 0 1.5em; }
+  .mg-hero-title { font-size: 1.8em; }
+  .mg-stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .mg-perf-grid { grid-template-columns: 1fr; }
+  .mg-ae-tabs { gap: 4px; padding: 12px 14px; }
+  .mg-ae-tab { font-size: 0.65em; padding: 5px 10px; }
+}
 </style>
 {% endblock %}
 
 {% block nav_items %}
   <span class="nav-sep">/</span>
-  <a href="{% url 'demo_medgemma' %}" class="nav-active">MedGemma Multimodal</a>
+  <a href="{% url 'demo_medgemma' %}" class="nav-active">MedGemma</a>
+  <span class="nav-sep">/</span>
+  <a href="#">Clinical AE Detection</a>
 {% endblock %}
 
 {% block content %}
-<div class="demo-bg"></div>
+<!-- SVG Noise Filter (hidden) -->
+<svg style="position:absolute;width:0;height:0;">
+  <filter id="mgGrain">
+    <feTurbulence type="fractalNoise" baseFrequency="0.65" numOctaves="3" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+  </filter>
+</svg>
 
-<div class="demo-wrap">
-  <!-- Header -->
-  <div class="demo-header fade-up">
-    <a href="/" class="demo-back">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-      Back to Home
-    </a>
-    <div class="demo-title-row">
-      <div class="demo-title">MedGemma Multimodal</div>
-      <span class="demo-version">Fine-tuned</span>
-    </div>
-    <div class="demo-subtitle">
-      Fine-tuned on CDISC-compliant clinical AE reports for multimodal adverse event assessment. Processes patient narratives, clinical photos, and structured EHR data through a unified pipeline.
-    </div>
+<!-- Aurora Mesh Gradient BG (Purple) -->
+<div class="mg-aurora-bg"></div>
+
+<!-- Dot Grid -->
+<div class="mg-dot-grid"></div>
+
+<!-- Noise Overlay -->
+<div class="mg-noise-overlay" style="filter:url(#mgGrain);"></div>
+
+<!-- Spotlight (cursor follow) -->
+<div class="mg-spotlight" id="mgSpotlight"></div>
+
+<!-- Lightbox Modal -->
+<div class="mg-lightbox" id="mgLightbox" onclick="closeLightbox()">
+  <div class="mg-lightbox-close" onclick="closeLightbox()">&times;</div>
+  <img id="mgLightboxImg" src="" alt="Enlarged view">
+</div>
+
+<div class="mg-main">
+
+<!-- ============================================================
+     HERO SECTION
+     ============================================================ -->
+<section class="mg-hero">
+  <div class="mg-hero-overline">
+    <span class="mg-pulse-pip"></span>
+    MedGemma 4B-IT &middot; LoRA Fine-tuned
   </div>
 
-  <!-- Model Info Bar -->
-  <div class="model-info-bar fade-up fade-up-1">
-    <div class="mi-item">
-      <span class="mi-dot purple"></span>
-      <strong>Base:</strong> Gemini 2.0 Flash
-    </div>
-    <div class="mi-item">
-      <span class="mi-dot cyan"></span>
-      <strong>Fine-tuning:</strong> Clinical trial AE reports (CDISC)
-    </div>
-    <div class="mi-item">
-      <span class="mi-dot orange"></span>
-      <strong>Modalities:</strong> Text + Image + Structured
-    </div>
-    <div class="mi-item">
-      <span class="mi-dot green"></span>
-      <strong>Method:</strong> LoRA, 2B params
-    </div>
+  <h1 class="mg-hero-title" id="mgHeroTitle">
+    <span class="mg-word mg-word-accent" style="animation-delay:0.1s">MedGemma</span>
+    <br>
+    <span class="mg-word mg-word-dim" style="animation-delay:0.22s">Clinical</span>
+    <span class="mg-word mg-word-dim" style="animation-delay:0.34s">AE</span>
+    <span class="mg-word mg-word-dim" style="animation-delay:0.46s">Diagnostic</span>
+    <br>
+    <span class="mg-word mg-word-dim" style="animation-delay:0.58s">Model</span>
+  </h1>
+
+  <p class="mg-hero-subtitle">
+    A CDISC-compliant multimodal finetuned model for <strong>automated adverse event detection</strong>
+    and grading in clinical trials. Compares baseline and current patient photographs to enable
+    standardized AE identification aligned with <strong>real-world clinical workflows</strong>.
+  </p>
+
+  <div class="mg-hero-badges">
+    <div class="mg-hero-badge"><span class="bv">90.5%</span> Accuracy</div>
+    <div class="mg-hero-badge"><span class="bv">21</span> CTCAE Classes</div>
+    <div class="mg-hero-badge"><span class="bv">7</span> AE Types + Normal</div>
+    <div class="mg-hero-badge"><span class="bv">LoRA</span> r=8, a=16</div>
   </div>
+</section>
 
-  <!-- Fine-tuning Performance -->
-  <div class="section-label fade-up fade-up-1">Fine-tuning Performance (vs Base Model)</div>
-  <div class="perf-grid fade-up fade-up-2" id="perfGrid">
-    <div class="perf-card">
-      <div class="perf-label">AE Detection</div>
-      <div class="perf-values">
-        <span class="perf-fine">94.2%</span>
-        <span class="perf-base">78.1%</span>
-        <span class="perf-delta">+16.1</span>
-      </div>
-      <div class="perf-bar">
-        <div class="perf-bar-base" style="width:78.1%"></div>
-        <div class="perf-bar-fine" data-width="94.2"></div>
-      </div>
-    </div>
-    <div class="perf-card">
-      <div class="perf-label">Grade Classification</div>
-      <div class="perf-values">
-        <span class="perf-fine">91.8%</span>
-        <span class="perf-base">72.4%</span>
-        <span class="perf-delta">+19.4</span>
-      </div>
-      <div class="perf-bar">
-        <div class="perf-bar-base" style="width:72.4%"></div>
-        <div class="perf-bar-fine" data-width="91.8"></div>
-      </div>
-    </div>
-    <div class="perf-card">
-      <div class="perf-label">Drug Attribution</div>
-      <div class="perf-values">
-        <span class="perf-fine">88.5%</span>
-        <span class="perf-base">65.2%</span>
-        <span class="perf-delta">+23.3</span>
-      </div>
-      <div class="perf-bar">
-        <div class="perf-bar-base" style="width:65.2%"></div>
-        <div class="perf-bar-fine" data-width="88.5"></div>
-      </div>
-    </div>
-    <div class="perf-card">
-      <div class="perf-label">BSA Estimation</div>
-      <div class="perf-values">
-        <span class="perf-fine">86.3%</span>
-        <span class="perf-base">61.0%</span>
-        <span class="perf-delta">+25.3</span>
-      </div>
-      <div class="perf-bar">
-        <div class="perf-bar-base" style="width:61%"></div>
-        <div class="perf-bar-fine" data-width="86.3"></div>
-      </div>
-    </div>
+<!-- ============================================================
+     QUICK STATS (4-col counter)
+     ============================================================ -->
+<div class="mg-stats-row mg-reveal">
+  <div class="mg-stat-block">
+    <div class="mg-stat-number" data-target="90.5" data-suffix="%" data-decimals="1">0</div>
+    <div class="mg-stat-unit">Accuracy</div>
   </div>
-
-  <!-- Multimodal Input Section -->
-  <div class="section-label fade-up fade-up-2">Multimodal Input</div>
-  <div class="multimodal-inputs fade-up fade-up-2">
-    <!-- Text Input -->
-    <div class="mm-input-card card-text" id="textInputCard">
-      <div class="mmi-header">
-        <div class="mmi-icon icon-blue">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-        </div>
-        <div class="mmi-title">Patient Narrative</div>
-        <span class="mmi-status pending" id="textStatus">Optional</span>
-      </div>
-      <textarea class="narrative-input" id="narrativeInput" placeholder="Enter patient narrative... e.g., 'Patient reports progressive skin rash on trunk and extremities since Cycle 2 Day 5. Mild pruritus, no pain.'" rows="3"></textarea>
-    </div>
-
-    <!-- Image Input -->
-    <div class="mm-input-card card-image" id="imageInputCard">
-      <div class="mmi-header">
-        <div class="mmi-icon icon-purple">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        </div>
-        <div class="mmi-title">Clinical Photo</div>
-        <span class="mmi-status pending" id="imageStatus">Awaiting</span>
-      </div>
-      <div style="font-size:0.75em; color:var(--text-muted); line-height:1.5;">
-        Upload or select a sample image below. Supports dermatologic AE assessment, nail changes, edema visualization.
-      </div>
-    </div>
-
-    <!-- Structured Data -->
-    <div class="mm-input-card card-struct">
-      <div class="mmi-header">
-        <div class="mmi-icon icon-orange">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
-        </div>
-        <div class="mmi-title">Structured EHR</div>
-        <span class="mmi-status ready">Auto-filled</span>
-      </div>
-      <div class="struct-preview" id="structPreview">
-        <div><span class="sp-key">"drug"</span>: <span class="sp-val">"Padcev+Pembro"</span>,</div>
-        <div><span class="sp-key">"cycle"</span>: <span class="sp-num">3</span>, <span class="sp-key">"day"</span>: <span class="sp-num">8</span>,</div>
-        <div><span class="sp-key">"ANC"</span>: <span class="sp-num">1.2</span>, <span class="sp-key">"PLT"</span>: <span class="sp-num">145</span>,</div>
-        <div><span class="sp-key">"prior_aes"</span>: [<span class="sp-val">"rash_G1"</span>]</div>
-      </div>
-    </div>
+  <div class="mg-stat-block">
+    <div class="mg-stat-number" data-target="85.7" data-suffix="%p" data-decimals="1">0</div>
+    <div class="mg-stat-unit">Improvement</div>
   </div>
+  <div class="mg-stat-block">
+    <div class="mg-stat-number" data-target="21" data-suffix="">0</div>
+    <div class="mg-stat-unit">CTCAE Classes</div>
+  </div>
+  <div class="mg-stat-block">
+    <div class="mg-stat-number" data-target="80" data-suffix="">0</div>
+    <div class="mg-stat-unit">Training Epochs</div>
+  </div>
+</div>
 
-  <!-- Main Analysis Layout -->
-  <div class="section-label fade-up fade-up-2">Image Analysis</div>
-  <div class="vision-layout fade-up fade-up-2">
-    <!-- Upload Panel -->
-    <div class="upload-panel">
-      <div class="upload-panel-header">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-        Clinical Image — Modality 2/3
-      </div>
-      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
-        <div class="drop-icon" id="dropIcon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-            <polyline points="17 8 12 3 7 8"/>
-            <line x1="12" y1="3" x2="12" y2="15"/>
-          </svg>
-        </div>
-        <div class="drop-text" id="dropText">Drop image here or click to upload</div>
-        <div class="drop-hint" id="dropHint">Supports JPEG, PNG, WebP</div>
-        <img class="preview-img" id="previewImg" alt="Preview">
-        <input type="file" id="fileInput" accept="image/*">
-      </div>
-      <div class="sample-row">
-        <button class="sample-btn" onclick="loadSample('rash')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
-          Skin Rash
-        </button>
-        <button class="sample-btn" onclick="loadSample('alopecia')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
-          Alopecia
-        </button>
-        <button class="sample-btn" onclick="loadSample('edema')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
-          Edema
-        </button>
-        <button class="sample-btn" onclick="loadSample('nail')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
-          Nail
-        </button>
+<!-- ============================================================
+     INTERACTIVE DEMO
+     ============================================================ -->
+<div class="mg-section-label-row mg-reveal">
+  <span class="mg-sl-marker"></span>
+  <span class="mg-sl-text">Interactive Demo</span>
+  <span class="mg-sl-line"></span>
+</div>
+
+<div class="mg-demo-container mg-card mg-reveal mg-reveal-d1">
+  <div class="mg-card-inner">
+    <!-- AE Type Pill Tabs -->
+    <div class="mg-ae-tabs" id="mgAeTabs"></div>
+
+    <!-- Thumbnail Gallery -->
+    <div class="mg-thumb-gallery" id="mgThumbGallery">
+      <div class="mg-demo-placeholder">
+        <span class="ph-icon">&#x1F50D;</span>
+        Select an AE type above to browse test samples.
       </div>
     </div>
 
-    <!-- Analysis Panel -->
-    <div class="analysis-panel">
-      <div class="analysis-header">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
-        Multimodal Assessment
-      </div>
-      <div class="analysis-body">
-        <!-- Placeholder -->
-        <div class="analysis-placeholder" id="analysisPlaceholder">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-          <div class="ph-title">Awaiting Input</div>
-          <div class="ph-desc">Upload or select a sample image to begin multimodal analysis</div>
-        </div>
-
-        <!-- Loading -->
-        <div class="analysis-loading" id="analysisLoading">
-          <div class="scan-animation">
-            <div class="scan-ring"></div>
-            <div class="scan-ring"></div>
-            <div class="scan-ring"></div>
-          </div>
-          <div class="scan-text" id="scanText">Initializing MedGemma Multimodal...</div>
-        </div>
-
-        <!-- Results -->
-        <div class="analysis-results" id="analysisResults">
-          <!-- Filled by JS -->
+    <!-- Demo Body -->
+    <div class="mg-demo-body" id="mgDemoBody">
+      <div class="mg-demo-placeholder" id="mgDemoPlaceholder">
+        <span class="ph-icon">&#x1F4F7;</span>
+        Select a sample from the gallery above to compare baseline vs current photographs.<br>
+        The model will detect and grade adverse events with clinical reasoning.
+        <div class="mg-nav-hint" style="margin-top:14px;">
+          <kbd>&larr;</kbd> <kbd>&rarr;</kbd> Arrow keys to navigate samples
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<script>
-/* =================================================================
-   MedGemma Multimodal Demo — Mock Analysis Engine
-   ================================================================= */
+<!-- ============================================================
+     PERFORMANCE DEEP DIVE
+     ============================================================ -->
+<div class="mg-section-label-row mg-reveal">
+  <span class="mg-sl-marker"></span>
+  <span class="mg-sl-text">Performance Deep Dive</span>
+  <span class="mg-sl-line"></span>
+</div>
 
-const SAMPLE_RESULTS = {
-  rash: {
-    condition: 'Maculopapular Rash',
-    meddra: 'MedDRA: 10025919',
-    confidence: 94,
-    grade: { value: 2, label: 'Grade 2 -- Moderate' },
-    bsa: '~18% BSA involvement',
-    regions: ['Trunk (anterior)', 'Upper extremities (bilateral)', 'Neck region'],
-    morphology: 'Erythematous, raised papules with scattered macular lesions. No vesiculation, ulceration, or desquamation observed. Borders are ill-defined with slight confluence in central trunk area.',
-    recommendation: 'Recommend topical corticosteroids (triamcinolone 0.1%) and oral antihistamine. Monitor for progression to Grade 3 (>30% BSA). Consider dose modification if symptoms worsen within 48 hours.',
-    drugRelation: 'Highly consistent with enfortumab vedotin-associated skin toxicity (reported in ~44% of patients in EV-302).',
-    narrative: 'Patient reports progressive skin rash on trunk and bilateral upper extremities since Cycle 2 Day 5. Describes mild pruritus, no pain. Reports applying OTC hydrocortisone with minimal relief.'
-  },
-  alopecia: {
-    condition: 'Alopecia',
-    meddra: 'MedDRA: 10001760',
-    confidence: 89,
-    grade: { value: 1, label: 'Grade 1 -- Mild' },
-    bsa: 'Diffuse thinning',
-    regions: ['Scalp (diffuse)', 'Temporal regions'],
-    morphology: 'Diffuse hair thinning with preserved hairline. No patchy loss or scarring observed. Hair shaft appears intact but density is reduced by approximately 30-40%. Consistent with anagen effluvium pattern.',
-    recommendation: 'No dose modification required for Grade 1 alopecia. Counsel patient on expected timeline (typically reversible 3-6 months post-treatment). Consider scalp cooling if available.',
-    drugRelation: 'Consistent with pembrolizumab-associated alopecia (reported in ~20% of patients). Also possible contribution from enfortumab vedotin.',
-    narrative: 'Patient noticed increased hair shedding starting Cycle 3. Reports hair on pillow and in shower. No patches, general thinning. Mildly distressed about appearance.'
-  },
-  edema: {
-    condition: 'Peripheral Edema',
-    meddra: 'MedDRA: 10034570',
-    confidence: 82,
-    grade: { value: 2, label: 'Grade 2 -- Moderate' },
-    bsa: 'Bilateral lower extremities',
-    regions: ['Ankles (bilateral)', 'Dorsum of feet', 'Lower tibial region'],
-    morphology: 'Bilateral, symmetric, pitting edema of the ankles and feet. 2+ pitting on dorsum. No skin changes, erythema, or warmth suggesting cellulitis or DVT. No weeping or skin breakdown.',
-    recommendation: 'Evaluate for underlying causes (cardiac, hepatic, renal). Order BNP, albumin, and renal function labs. Consider compression stockings and elevation. Monitor weight daily.',
-    drugRelation: 'May be multifactorial. Peripheral edema reported in ~15% of patients receiving pembrolizumab. Rule out immune-related nephritis (check creatinine trend).',
-    narrative: 'Patient reports swelling in both ankles and feet for 5 days. Worse at end of day. Shoes feel tight. Denies chest pain, shortness of breath. Weight up 2.3kg from baseline.'
-  },
-  nail: {
-    condition: 'Onycholysis (Nail Dystrophy)',
-    meddra: 'MedDRA: 10030992',
-    confidence: 91,
-    grade: { value: 1, label: 'Grade 1 -- Mild' },
-    bsa: 'Fingernails (3 digits)',
-    regions: ['Right index finger', 'Right middle finger', 'Left thumb'],
-    morphology: 'Partial separation of nail plate from nail bed at the distal edge. Yellowish discoloration of separated areas. No periungual erythema, swelling, or signs of secondary infection. Nail matrix appears intact.',
-    recommendation: 'No dose modification required. Keep nails short, avoid trauma and prolonged moisture exposure. Monitor for signs of secondary fungal infection. Apply protective nail lacquer if available.',
-    drugRelation: 'Highly consistent with enfortumab vedotin skin/nail toxicity profile. Nail changes reported in ~10-15% of patients, typically appearing after cycle 2-3.',
-    narrative: 'Patient noticed nail changes after Cycle 2. Three fingernails showing discoloration and partial lifting. No pain. Concerned about infection risk.'
+<div class="mg-perf-grid mg-reveal mg-reveal-d1" id="mgPerfGrid"></div>
+
+<div class="mg-chart-container mg-reveal mg-reveal-d2">
+  <div class="mg-chart-legend">
+    <span><span class="mg-legend-dot" style="background:rgba(134,142,150,0.5)"></span> Baseline (Zero-shot)</span>
+    <span><span class="mg-legend-dot" style="background:rgba(188,140,255,0.7)"></span> Finetuned (LoRA)</span>
+  </div>
+  <div id="mgBarChart"></div>
+</div>
+
+<!-- ============================================================
+     MODEL OVERVIEW
+     ============================================================ -->
+<div class="mg-section-label-row mg-reveal">
+  <span class="mg-sl-marker"></span>
+  <span class="mg-sl-text">Model Overview</span>
+  <span class="mg-sl-line"></span>
+</div>
+
+<div class="mg-overview-grid mg-reveal mg-reveal-d1">
+  <div class="mg-card mg-overview-card">
+    <div class="mg-oc-label">Base Model</div>
+    <div class="mg-oc-value">MedGemma 4B-IT</div>
+    <div class="mg-oc-desc">Google's medical vision-language model with 4B parameters, optimized for medical image understanding and clinical text generation.</div>
+  </div>
+  <div class="mg-card mg-overview-card">
+    <div class="mg-oc-label">Training Data</div>
+    <div class="mg-oc-value">Synthetic Patient Images</div>
+    <div class="mg-oc-desc">Generated via Gemini Pro API using real CTCAE-graded adverse event symptom descriptions across 7 AE types and 3 severity grades per type.</div>
+  </div>
+  <div class="mg-card mg-overview-card">
+    <div class="mg-oc-label">Finetuning Method</div>
+    <div class="mg-oc-value">LoRA (bf16)</div>
+    <div class="mg-oc-desc">Low-Rank Adaptation with r=8, alpha=16, targeting q_proj and v_proj layers. Paired comparison input: baseline + current photograph.</div>
+  </div>
+</div>
+
+</div>
+
+<script>
+/* ══════════════════════════════════════════════════════════════
+   MODEL DATA (zeroshot: metrics only, ctcae: full with samples)
+   ══════════════════════════════════════════════════════════════ */
+const IMG_BASE = '{% static "assets/medgemma/" %}';
+
+const BASELINE = {
+  metrics: {accuracy:0.0476, weighted_f1:0.0076, macro_f1:0.0076, macro_precision:0.0041, macro_recall:0.0476},
+  per_ae_type: {
+    alopecia:{support:4, detection_rate:0.0},
+    normal:{support:2, detection_rate:0.0},
+    periorbital_edema:{support:6, detection_rate:0.0},
+    pruritus:{support:6, detection_rate:0.0},
+    rash_acneiform:{support:6, detection_rate:0.8333},
+    rash_maculopapular:{support:6, detection_rate:0.1667},
+    sjs_prodrome:{support:6, detection_rate:0.0},
+    stomatitis:{support:6, detection_rate:0.0}
   }
 };
 
-const SCAN_MESSAGES = [
-  'Initializing MedGemma Multimodal...',
-  'Processing text modality...',
-  'Analyzing clinical image...',
-  'Integrating structured EHR data...',
-  'Running multimodal fusion...',
-  'Classifying AE morphology...',
-  'Computing confidence scores...',
-  'Generating clinical assessment...',
+const FINETUNED = {
+  epoch: 80,
+  metrics: {accuracy:0.9048, weighted_f1:0.9, macro_f1:0.9, macro_precision:0.9286, macro_recall:0.9048},
+  per_ae_type: {
+    alopecia:{support:4, detection_rate:1.0, exact_accuracy:1.0},
+    normal:{support:2, detection_rate:1.0, exact_accuracy:1.0},
+    periorbital_edema:{support:6, detection_rate:1.0, exact_accuracy:1.0},
+    pruritus:{support:6, detection_rate:0.8333, exact_accuracy:0.6667},
+    rash_acneiform:{support:6, detection_rate:1.0, exact_accuracy:1.0},
+    rash_maculopapular:{support:6, detection_rate:1.0, exact_accuracy:0.8333},
+    sjs_prodrome:{support:6, detection_rate:1.0, exact_accuracy:1.0},
+    stomatitis:{support:6, detection_rate:0.8333, exact_accuracy:0.8333}
+  },
+  samples: [
+    {file:"normal_8.png",baseline:"normal_8.png",gt:"normal",pred:"normal",correct:true,raw_output:"[]",latency_ms:527.8},
+    {file:"normal_9.png",baseline:"normal_9.png",gt:"normal",pred:"normal",correct:true,raw_output:"[]",latency_ms:530.6},
+    {file:"rash_maculopapular_g1_8.png",baseline:"normal_8.png",gt:"rash_maculopapular_g1",pred:"rash_maculopapular_g1",correct:true,raw_output:"[{\"ae_term\": \"rash_maculopapular\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Faint pink macules/papules scattered on cheeks (<10% BSA); mild erythema, no scaling.\"}]",latency_ms:5540.4},
+    {file:"rash_maculopapular_g1_9.png",baseline:"normal_9.png",gt:"rash_maculopapular_g1",pred:"rash_maculopapular_g1",correct:true,raw_output:"[{\"ae_term\": \"rash_maculopapular\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Faint pink macules/papules scattered on cheeks (<10% BSA); mild erythema, no scaling.\"}]",latency_ms:5641.7},
+    {file:"rash_maculopapular_g2_8.png",baseline:"normal_8.png",gt:"rash_maculopapular_g2",pred:"rash_maculopapular_g2",correct:true,raw_output:"[{\"ae_term\": \"rash_maculopapular\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Visible red macules/papules spreading across cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling.\"}]",latency_ms:5717.8},
+    {file:"rash_maculopapular_g3_8.png",baseline:"normal_8.png",gt:"rash_maculopapular_g3",pred:"rash_maculopapular_g3",correct:true,raw_output:"[{\"ae_term\": \"rash_maculopapular\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Severe confluent rash covering entire face including cheeks, forehead, chin (>30% BSA); deep erythema with scaling.\"}]",latency_ms:5816.7},
+    {file:"rash_maculopapular_g3_9.png",baseline:"normal_9.png",gt:"rash_maculopapular_g3",pred:"rash_maculopapular_g3",correct:true,raw_output:"[{\"ae_term\": \"rash_maculopapular\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Severe confluent rash covering entire face including cheeks, forehead, chin (>30% BSA); deep erythema with scaling.\"}]",latency_ms:5875.4},
+    {file:"rash_acneiform_g1_8.png",baseline:"normal_8.png",gt:"rash_acneiform_g1",pred:"rash_acneiform_g1",correct:true,raw_output:"[{\"ae_term\": \"rash_acneiform\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Few small papules on forehead (<10% BSA); non-inflamed or mildly inflamed, skin-colored to faintly pink.\"}]",latency_ms:5180.4},
+    {file:"rash_acneiform_g1_9.png",baseline:"normal_9.png",gt:"rash_acneiform_g1",pred:"rash_acneiform_g1",correct:true,raw_output:"[{\"ae_term\": \"rash_acneiform\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Few small papules on forehead (<10% BSA); non-inflamed or mildly inflamed, skin-colored to faintly pink.\"}]",latency_ms:5243.5},
+    {file:"rash_acneiform_g2_8.png",baseline:"normal_8.png",gt:"rash_acneiform_g2",pred:"rash_acneiform_g2",correct:true,raw_output:"[{\"ae_term\": \"rash_acneiform\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Multiple erythematous papules and pustules on cheeks and forehead (10\u201330% BSA); visible pus-filled lesions.\"}]",latency_ms:5483.6},
+    {file:"rash_acneiform_g2_9.png",baseline:"normal_9.png",gt:"rash_acneiform_g2",pred:"rash_acneiform_g2",correct:true,raw_output:"[{\"ae_term\": \"rash_acneiform\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Multiple erythematous papules and pustules on cheeks and forehead (10\u201330% BSA); visible pus-filled lesions.\"}]",latency_ms:5422.1},
+    {file:"rash_acneiform_g3_8.png",baseline:"normal_8.png",gt:"rash_acneiform_g3",pred:"rash_acneiform_g3",correct:true,raw_output:"[{\"ae_term\": \"rash_acneiform\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Dense pustules covering entire face \u2014 forehead, cheeks, nose, chin (>30% BSA); severe inflammation.\"}]",latency_ms:5466.4},
+    {file:"rash_acneiform_g3_9.png",baseline:"normal_9.png",gt:"rash_acneiform_g3",pred:"rash_acneiform_g3",correct:true,raw_output:"[{\"ae_term\": \"rash_acneiform\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Dense pustules covering entire face \u2014 forehead, cheeks, nose, chin (>30% BSA); severe inflammation.\"}]",latency_ms:5480.9},
+    {file:"periorbital_edema_g1_8.png",baseline:"normal_8.png",gt:"periorbital_edema_g1",pred:"periorbital_edema_g1",correct:true,raw_output:"[{\"ae_term\": \"periorbital_edema\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Slight puffiness of upper and lower eyelids, barely noticeable; periorbital skin appears mildly swollen.\"}]",latency_ms:5219.0},
+    {file:"periorbital_edema_g1_9.png",baseline:"normal_9.png",gt:"periorbital_edema_g1",pred:"periorbital_edema_g1",correct:true,raw_output:"[{\"ae_term\": \"periorbital_edema\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Slight puffiness of upper and lower eyelids, barely noticeable; periorbital skin appears mildly swollen.\"}]",latency_ms:5156.3},
+    {file:"periorbital_edema_g2_8.png",baseline:"normal_8.png",gt:"periorbital_edema_g2",pred:"periorbital_edema_g2",correct:true,raw_output:"[{\"ae_term\": \"periorbital_edema\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Obvious bilateral periorbital swelling; puffy, baggy eyelids with visible tissue distension.\"}]",latency_ms:5361.2},
+    {file:"periorbital_edema_g2_9.png",baseline:"normal_9.png",gt:"periorbital_edema_g2",pred:"periorbital_edema_g2",correct:true,raw_output:"[{\"ae_term\": \"periorbital_edema\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Obvious bilateral periorbital swelling; puffy, baggy eyelids with visible tissue distension.\"}]",latency_ms:5329.8},
+    {file:"periorbital_edema_g3_8.png",baseline:"normal_8.png",gt:"periorbital_edema_g3",pred:"periorbital_edema_g3",correct:true,raw_output:"[{\"ae_term\": \"periorbital_edema\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Severe periorbital edema causing near-closure of eyes; tense, shiny skin around orbits.\"}]",latency_ms:5488.0},
+    {file:"periorbital_edema_g3_9.png",baseline:"normal_9.png",gt:"periorbital_edema_g3",pred:"periorbital_edema_g3",correct:true,raw_output:"[{\"ae_term\": \"periorbital_edema\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Severe periorbital edema causing near-closure of eyes; tense, shiny skin around orbits.\"}]",latency_ms:5495.8},
+    {file:"sjs_prodrome_g1_8.png",baseline:"normal_8.png",gt:"sjs_prodrome_g1",pred:"sjs_prodrome_g1",correct:true,raw_output:"[{\"ae_term\": \"sjs_prodrome\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Lip redness and dryness; vermilion border appears erythematous, slight chapping visible.\"}]",latency_ms:4802.7},
+    {file:"sjs_prodrome_g1_9.png",baseline:"normal_9.png",gt:"sjs_prodrome_g1",pred:"sjs_prodrome_g1",correct:true,raw_output:"[{\"ae_term\": \"sjs_prodrome\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Lip redness and dryness; vermilion border appears erythematous, slight chapping visible.\"}]",latency_ms:4816.6},
+    {file:"sjs_prodrome_g2_8.png",baseline:"normal_8.png",gt:"sjs_prodrome_g2",pred:"sjs_prodrome_g2",correct:true,raw_output:"[{\"ae_term\": \"sjs_prodrome\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Lip and oral mucosal blistering; fluid-filled vesicles on lip surface and inner mouth.\"}]",latency_ms:5232.3},
+    {file:"sjs_prodrome_g2_9.png",baseline:"normal_9.png",gt:"sjs_prodrome_g2",pred:"sjs_prodrome_g2",correct:true,raw_output:"[{\"ae_term\": \"sjs_prodrome\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Lip and oral mucosal blistering; fluid-filled vesicles on lip surface and inner mouth.\"}]",latency_ms:5274.9},
+    {file:"sjs_prodrome_g3_8.png",baseline:"normal_8.png",gt:"sjs_prodrome_g3",pred:"sjs_prodrome_g3",correct:true,raw_output:"[{\"ae_term\": \"sjs_prodrome\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Beginning of epidermal detachment on lips and perioral skin; large erosions, bleeding.\"}]",latency_ms:5311.5},
+    {file:"sjs_prodrome_g3_9.png",baseline:"normal_9.png",gt:"sjs_prodrome_g3",pred:"sjs_prodrome_g3",correct:true,raw_output:"[{\"ae_term\": \"sjs_prodrome\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Beginning of epidermal detachment on lips and perioral skin; large erosions, bleeding.\"}]",latency_ms:5292.1},
+    {file:"stomatitis_g1_8.png",baseline:"normal_8.png",gt:"stomatitis_g1",pred:"stomatitis_g1",correct:true,raw_output:"[{\"ae_term\": \"stomatitis\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Mild redness or minor aphthous-like ulcer on lip mucosa; slight discomfort.\"}]",latency_ms:4928.5},
+    {file:"stomatitis_g1_9.png",baseline:"normal_9.png",gt:"stomatitis_g1",pred:"stomatitis_g1",correct:true,raw_output:"[{\"ae_term\": \"stomatitis\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Mild redness or minor aphthous-like ulcer on lip mucosa; slight discomfort.\"}]",latency_ms:4870.2},
+    {file:"stomatitis_g2_8.png",baseline:"normal_8.png",gt:"stomatitis_g2",pred:"stomatitis_g2",correct:true,raw_output:"[{\"ae_term\": \"stomatitis\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Visible cracking and erythema at lip corners with shallow erosions; perioral redness.\"}]",latency_ms:4928.7},
+    {file:"stomatitis_g2_9.png",baseline:"normal_9.png",gt:"stomatitis_g2",pred:"stomatitis_g2",correct:true,raw_output:"[{\"ae_term\": \"stomatitis\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Visible cracking and erythema at lip corners with shallow erosions; perioral redness.\"}]",latency_ms:4899.0},
+    {file:"stomatitis_g3_8.png",baseline:"normal_8.png",gt:"stomatitis_g3",pred:"stomatitis_g3",correct:true,raw_output:"[{\"ae_term\": \"stomatitis\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Severe lip swelling and deep erosions visible on external lip surface; crusting, bleeding.\"}]",latency_ms:4894.4},
+    {file:"pruritus_g1_8.png",baseline:"normal_8.png",gt:"pruritus_g1",pred:"pruritus_g1",correct:true,raw_output:"[{\"ae_term\": \"pruritus\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Mild localized skin excoriation marks on forehead or cheeks; faint scratch marks.\"}]",latency_ms:4672.4},
+    {file:"pruritus_g1_9.png",baseline:"normal_9.png",gt:"pruritus_g1",pred:"pruritus_g1",correct:true,raw_output:"[{\"ae_term\": \"pruritus\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Mild localized skin excoriation marks on forehead or cheeks; faint scratch marks.\"}]",latency_ms:4735.4},
+    {file:"pruritus_g2_9.png",baseline:"normal_9.png",gt:"pruritus_g2",pred:"pruritus_g2",correct:true,raw_output:"[{\"ae_term\": \"pruritus\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Moderate visible scratch marks and erythema across face; dry, irritated skin.\"}]",latency_ms:4560.8},
+    {file:"pruritus_g3_9.png",baseline:"normal_9.png",gt:"pruritus_g3",pred:"pruritus_g3",correct:true,raw_output:"[{\"ae_term\": \"pruritus\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Severe widespread excoriations with lichenification; intense erythema, bleeding scratches.\"}]",latency_ms:4858.4},
+    {file:"alopecia_g1_8.png",baseline:"normal_8.png",gt:"alopecia_g1",pred:"alopecia_g1",correct:true,raw_output:"[{\"ae_term\": \"alopecia\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Mild hair thinning visible at temples and frontal hairline; slightly widened part line.\"}]",latency_ms:4693.9},
+    {file:"alopecia_g1_9.png",baseline:"normal_9.png",gt:"alopecia_g1",pred:"alopecia_g1",correct:true,raw_output:"[{\"ae_term\": \"alopecia\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Mild hair thinning visible at temples and frontal hairline; slightly widened part line.\"}]",latency_ms:4616.9},
+    {file:"alopecia_g2_8.png",baseline:"normal_8.png",gt:"alopecia_g2",pred:"alopecia_g2",correct:true,raw_output:"[{\"ae_term\": \"alopecia\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Obvious diffuse hair thinning with clearly visible scalp through hair; temporal recession.\"}]",latency_ms:4603.1},
+    {file:"alopecia_g2_9.png",baseline:"normal_9.png",gt:"alopecia_g2",pred:"alopecia_g2",correct:true,raw_output:"[{\"ae_term\": \"alopecia\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Obvious diffuse hair thinning with clearly visible scalp through hair; temporal recession.\"}]",latency_ms:4597.3}
+  ]
+};
+
+/* Zero-shot sample lookup */
+const ZS_SAMPLES = {
+  "normal_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "normal_9.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "rash_maculopapular_g1_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is a visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "rash_maculopapular_g1_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, indicating a worsening of acneiform rash."},
+  "rash_maculopapular_g2_8.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"The patient now has multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
+  "rash_maculopapular_g3_8.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"The patient now has multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
+  "rash_maculopapular_g3_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
+  "rash_acneiform_g1_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There are visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "rash_acneiform_g1_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, indicating a worsening of acneiform rash."},
+  "rash_acneiform_g2_8.png":{pred:"rash_acneiform_g2",correct:true,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"The patient now has multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
+  "rash_acneiform_g2_9.png":{pred:"rash_acneiform_g2",correct:true,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"Multiple erythematous papules and pustules are visible on the cheeks and forehead in Image 2, which were not present in Image 1."},
+  "rash_acneiform_g3_8.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"The patient now has multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
+  "rash_acneiform_g3_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"The patient now has multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
+  "periorbital_edema_g1_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is a visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "periorbital_edema_g1_9.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "periorbital_edema_g2_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "periorbital_edema_g2_9.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "periorbital_edema_g3_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "periorbital_edema_g3_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, indicating a worsening of acneiform rash."},
+  "sjs_prodrome_g1_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is a visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "sjs_prodrome_g1_9.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "sjs_prodrome_g2_8.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, indicating a worsening of acneiform rash."},
+  "sjs_prodrome_g2_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are visible erythematous papules and pustules on the cheeks and forehead in Image 2, which were not present in Image 1."},
+  "sjs_prodrome_g3_8.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
+  "sjs_prodrome_g3_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
+  "stomatitis_g1_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is a visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "stomatitis_g1_9.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is a noticeable increase in the number and size of red macules and papules on the cheeks and forehead, with some fine scaling at the edges."},
+  "stomatitis_g2_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "stomatitis_g2_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are visible red papules and pustules on the cheeks and forehead in Image 2, which were not present in Image 1."},
+  "stomatitis_g3_8.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
+  "pruritus_g1_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There are visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "pruritus_g1_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, indicating a worsening of acneiform rash."},
+  "pruritus_g2_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
+  "pruritus_g3_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"The patient now has multiple erythematous papules and pustules on the cheeks and forehead, indicating a progression from the baseline of no visible lesions."},
+  "alopecia_g1_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is a visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "alopecia_g1_9.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is a noticeable increase in the number and size of red macules and papules on the cheeks and forehead, with some fine scaling at the edges."},
+  "alopecia_g2_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "alopecia_g2_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, indicating a worsening of acneiform rash."}
+};
+
+const AE_ORDER = ['normal','rash_maculopapular','rash_acneiform','periorbital_edema',
+  'sjs_prodrome','stomatitis','pruritus','alopecia'];
+const AE_DISPLAY = {
+  normal:'Normal', rash_maculopapular:'Rash Maculopapular', rash_acneiform:'Rash Acneiform',
+  periorbital_edema:'Periorbital Edema', sjs_prodrome:'SJS Prodrome',
+  stomatitis:'Stomatitis', pruritus:'Pruritus', alopecia:'Alopecia'
+};
+
+/* ══════════════════════════════════════════════════════════════
+   MEDICAL TERMS for reasoning highlight (P2 #9)
+   ══════════════════════════════════════════════════════════════ */
+const MEDICAL_TERMS = [
+  'BSA','erythema','papules','macules','pustules','scaling','edema',
+  'periorbital','vesicles','erosions','excoriation','lichenification',
+  'epidermal detachment','alopecia','aphthous','ulcer','crusting',
+  'bleeding','inflammation','maculopapular','acneiform','stomatitis',
+  'pruritus','neuropathy','vermilion','chapping','swelling','puffiness',
+  'blistering','redness','thinning','recession','detachment'
 ];
+const MEDICAL_REGEX = new RegExp('\\b(' + MEDICAL_TERMS.join('|') + ')\\b', 'gi');
 
-let currentResult = null;
-
-function showLoading() {
-  document.getElementById('analysisPlaceholder').style.display = 'none';
-  document.getElementById('analysisResults').classList.remove('active');
-  const loading = document.getElementById('analysisLoading');
-  loading.classList.add('active');
-
-  let i = 0;
-  const textEl = document.getElementById('scanText');
-  const interval = setInterval(() => {
-    if (i < SCAN_MESSAGES.length) {
-      textEl.textContent = SCAN_MESSAGES[i];
-      i++;
-    } else {
-      clearInterval(interval);
-    }
-  }, 300);
-  return interval;
+function highlightMedical(text) {
+  return text.replace(MEDICAL_REGEX, '<span class="mg-medical-term">$1</span>');
 }
 
-function showResults(key) {
-  const data = SAMPLE_RESULTS[key];
-  if (!data) return;
-  currentResult = data;
+function pct(v) { return (v*100).toFixed(1)+'%'; }
 
-  const loading = document.getElementById('analysisLoading');
-  loading.classList.remove('active');
+function classDisplay(cls) {
+  if (cls === 'normal') return 'Normal (No AE)';
+  var parts = cls.match(/^(.+)_g(\d+)$/);
+  if (parts) return (AE_DISPLAY[parts[1]]||parts[1]) + ' Grade ' + parts[2];
+  return cls;
+}
 
-  const container = document.getElementById('analysisResults');
-  const gradeColor = data.grade.value <= 1 ? 'green' : data.grade.value <= 2 ? 'orange' : 'red';
-  const confClass = data.confidence >= 85 ? 'cf-high' : data.confidence >= 60 ? 'cf-med' : 'cf-low';
+function getGradeFromGt(gt) {
+  var parts = gt.match(/_g(\d+)$/);
+  return parts ? parseInt(parts[1]) : 0;
+}
 
-  container.innerHTML = `
-    <!-- Detected Condition -->
-    <div class="result-row">
-      <div class="result-icon ri-purple">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-      </div>
-      <div class="result-content">
-        <div class="result-label">Detected Condition</div>
-        <div class="result-value">${data.condition} <small>${data.meddra}</small></div>
-      </div>
-    </div>
+function getAeTypeFromGt(gt) {
+  if (gt === 'normal') return 'normal';
+  var parts = gt.match(/^(.+?)_g\d+$/);
+  return parts ? parts[1] : gt;
+}
 
-    <!-- Confidence -->
-    <div class="result-row">
-      <div class="result-icon ri-cyan">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-      </div>
-      <div class="result-content">
-        <div class="result-label">Confidence Score</div>
-        <div class="result-value">${data.confidence}%</div>
-        <div class="confidence-bar"><div class="confidence-fill ${confClass}" id="confFill"></div></div>
-      </div>
-    </div>
+/* ══════════════════════════════════════════════════════════════
+   1. SPOTLIGHT — removed (workspace feel, not showroom)
+   ══════════════════════════════════════════════════════════════ */
 
-    <!-- Grade -->
-    <div class="result-row">
-      <div class="result-icon ri-${gradeColor}">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      </div>
-      <div class="result-content">
-        <div class="result-label">CTCAE Grade Assessment</div>
-        <div class="result-value">${data.grade.label}</div>
-        <div style="font-size:0.75em;color:var(--text-muted);margin-top:2px;">${data.bsa}</div>
-      </div>
-    </div>
-
-    <!-- Affected Regions -->
-    <div class="result-row">
-      <div class="result-icon ri-orange">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
-      </div>
-      <div class="result-content">
-        <div class="result-label">Detected Regions</div>
-        <div class="detection-tags">
-          ${data.regions.map(r => `<span class="det-tag">${r}</span>`).join('')}
-        </div>
-      </div>
-    </div>
-
-    <!-- Morphology -->
-    <div class="result-row">
-      <div class="result-icon ri-purple">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-      </div>
-      <div class="result-content">
-        <div class="result-label">Morphology Analysis</div>
-        <div class="result-value" style="font-weight:400;font-size:0.82em;line-height:1.6;">${data.morphology}</div>
-      </div>
-    </div>
-
-    <!-- Drug Relation -->
-    <div class="result-row">
-      <div class="result-icon ri-cyan">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-      </div>
-      <div class="result-content">
-        <div class="result-label">Drug Relationship</div>
-        <div class="result-value" style="font-weight:400;font-size:0.82em;line-height:1.6;">${data.drugRelation}</div>
-      </div>
-    </div>
-
-    <!-- Recommendation -->
-    <div class="rec-box">
-      <strong>Recommendation:</strong> ${data.recommendation}
-    </div>
-  `;
-
-  container.classList.add('active');
-
-  /* Animate confidence bar */
-  requestAnimationFrame(() => {
-    requestAnimationFrame(() => {
-      const fill = document.getElementById('confFill');
-      if (fill) fill.style.width = data.confidence + '%';
+/* ══════════════════════════════════════════════════════════════
+   2. CARD MOUSE GLOW — per-card mouse tracking
+   ══════════════════════════════════════════════════════════════ */
+function initCardGlow() {
+  var cards = document.querySelectorAll('.mg-card, .mg-stat-block, .mg-perf-card');
+  cards.forEach(function(card) {
+    card.addEventListener('mousemove', function(e) {
+      var rect = card.getBoundingClientRect();
+      card.style.setProperty('--card-mouse-x', (e.clientX - rect.left) + 'px');
+      card.style.setProperty('--card-mouse-y', (e.clientY - rect.top) + 'px');
     });
   });
 }
 
-function updateInputStates(type) {
-  /* Update text input card */
-  const data = SAMPLE_RESULTS[type];
-  if (data && data.narrative) {
-    document.getElementById('narrativeInput').value = data.narrative;
-    document.getElementById('textInputCard').classList.add('active');
-    const ts = document.getElementById('textStatus');
-    ts.textContent = 'Ready';
-    ts.className = 'mmi-status ready';
-  }
-
-  /* Update image status */
-  document.getElementById('imageInputCard').classList.add('active');
-  const is = document.getElementById('imageStatus');
-  is.textContent = 'Ready';
-  is.className = 'mmi-status ready';
-
-  /* Update structured data based on sample type */
-  const structMap = {
-    rash: `<div><span class="sp-key">"drug"</span>: <span class="sp-val">"Padcev+Pembro"</span>,</div><div><span class="sp-key">"cycle"</span>: <span class="sp-num">2</span>, <span class="sp-key">"day"</span>: <span class="sp-num">12</span>,</div><div><span class="sp-key">"ANC"</span>: <span class="sp-num">2.8</span>, <span class="sp-key">"PLT"</span>: <span class="sp-num">189</span>,</div><div><span class="sp-key">"prior_aes"</span>: [<span class="sp-val">"pruritus_G1"</span>]</div>`,
-    alopecia: `<div><span class="sp-key">"drug"</span>: <span class="sp-val">"Padcev+Pembro"</span>,</div><div><span class="sp-key">"cycle"</span>: <span class="sp-num">3</span>, <span class="sp-key">"day"</span>: <span class="sp-num">5</span>,</div><div><span class="sp-key">"ANC"</span>: <span class="sp-num">3.1</span>, <span class="sp-key">"PLT"</span>: <span class="sp-num">210</span>,</div><div><span class="sp-key">"prior_aes"</span>: [<span class="sp-val">"fatigue_G1"</span>]</div>`,
-    edema: `<div><span class="sp-key">"drug"</span>: <span class="sp-val">"Padcev+Pembro"</span>,</div><div><span class="sp-key">"cycle"</span>: <span class="sp-num">4</span>, <span class="sp-key">"day"</span>: <span class="sp-num">3</span>,</div><div><span class="sp-key">"Cr"</span>: <span class="sp-num">1.4</span>, <span class="sp-key">"albumin"</span>: <span class="sp-num">3.1</span>,</div><div><span class="sp-key">"wt_delta"</span>: <span class="sp-num">+2.3</span> <span class="sp-val">kg</span></div>`,
-    nail: `<div><span class="sp-key">"drug"</span>: <span class="sp-val">"Padcev+Pembro"</span>,</div><div><span class="sp-key">"cycle"</span>: <span class="sp-num">3</span>, <span class="sp-key">"day"</span>: <span class="sp-num">1</span>,</div><div><span class="sp-key">"ANC"</span>: <span class="sp-num">2.5</span>, <span class="sp-key">"PLT"</span>: <span class="sp-num">175</span>,</div><div><span class="sp-key">"prior_aes"</span>: [<span class="sp-val">"rash_G1"</span>]</div>`
-  };
-  if (structMap[type]) {
-    document.getElementById('structPreview').innerHTML = structMap[type];
+/* ══════════════════════════════════════════════════════════════
+   3. SCROLL REVEAL — IntersectionObserver
+   ══════════════════════════════════════════════════════════════ */
+function initScrollReveal() {
+  var revealEls = document.querySelectorAll('.mg-reveal');
+  if ('IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          io.unobserve(entry.target);
+          /* Trigger bar chart animation when chart becomes visible */
+          if (entry.target.querySelector('#mgBarChart')) {
+            animateBarChart();
+          }
+        }
+      });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    revealEls.forEach(function(el) { io.observe(el); });
+  } else {
+    revealEls.forEach(function(el) { el.classList.add('visible'); });
   }
 }
 
-function handleImage(source) {
-  const dropZone = document.getElementById('dropZone');
-  const preview = document.getElementById('previewImg');
-  const dropIcon = document.getElementById('dropIcon');
-  const dropText = document.getElementById('dropText');
-  const dropHint = document.getElementById('dropHint');
+/* ══════════════════════════════════════════════════════════════
+   4. COUNTER ANIMATION (count-up on scroll)
+   ══════════════════════════════════════════════════════════════ */
+function initCounters() {
+  var counters = document.querySelectorAll('.mg-stat-number[data-target]');
+  var counterDone = new Set();
 
-  dropZone.classList.add('has-image');
-  dropIcon.style.display = 'none';
-  dropText.style.display = 'none';
-  dropHint.style.display = 'none';
+  function animateCounter(el) {
+    var target = parseFloat(el.dataset.target);
+    var suffix = el.dataset.suffix || '';
+    var decimals = parseInt(el.dataset.decimals || '0', 10);
+    var duration = 1800;
+    var startTime = null;
 
-  /* Generate a gradient preview */
-  const canvas = document.createElement('canvas');
-  canvas.width = 400; canvas.height = 300;
-  const ctx = canvas.getContext('2d');
-
-  const gradients = {
-    rash: ['#8b3a3a', '#cc6666', '#aa4444'],
-    alopecia: ['#5a4a3a', '#8b7355', '#6b5b4a'],
-    edema: ['#3a5a6b', '#6b8a9b', '#4a6a7b'],
-    nail: ['#5a5a3a', '#8b8b55', '#6b6b4a'],
-  };
-  const colors = gradients[source] || gradients.rash;
-  const grad = ctx.createRadialGradient(200, 150, 20, 200, 150, 200);
-  grad.addColorStop(0, colors[1]);
-  grad.addColorStop(0.5, colors[0]);
-  grad.addColorStop(1, colors[2]);
-  ctx.fillStyle = grad;
-  ctx.fillRect(0, 0, 400, 300);
-
-  for (let i = 0; i < 3000; i++) {
-    ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.05})`;
-    ctx.fillRect(Math.random() * 400, Math.random() * 300, 1, 1);
+    function step(timestamp) {
+      if (!startTime) startTime = timestamp;
+      var progress = Math.min((timestamp - startTime) / duration, 1);
+      /* Ease-out cubic */
+      var eased = 1 - Math.pow(1 - progress, 3);
+      var current = target * eased;
+      el.textContent = (decimals > 0 ? current.toFixed(decimals) : Math.round(current)) + suffix;
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
   }
 
-  ctx.fillStyle = 'rgba(255,255,255,0.12)';
-  ctx.font = '13px Inter, sans-serif';
-  ctx.textAlign = 'center';
-  ctx.fillText('Sample Medical Image', 200, 150);
-  ctx.fillText(source.charAt(0).toUpperCase() + source.slice(1), 200, 168);
-
-  preview.src = canvas.toDataURL();
-  preview.style.display = 'block';
-}
-
-function loadSample(type) {
-  handleImage(type);
-  updateInputStates(type);
-
-  const interval = showLoading();
-  setTimeout(() => {
-    clearInterval(interval);
-    showResults(type);
-  }, 2400);
-}
-
-/* Drag & Drop */
-const dropZone = document.getElementById('dropZone');
-const fileInput = document.getElementById('fileInput');
-
-dropZone.addEventListener('dragover', (e) => {
-  e.preventDefault();
-  dropZone.classList.add('dragover');
-});
-dropZone.addEventListener('dragleave', () => {
-  dropZone.classList.remove('dragover');
-});
-dropZone.addEventListener('drop', (e) => {
-  e.preventDefault();
-  dropZone.classList.remove('dragover');
-  if (e.dataTransfer.files.length > 0) processUpload(e.dataTransfer.files[0]);
-});
-fileInput.addEventListener('change', () => {
-  if (fileInput.files.length > 0) processUpload(fileInput.files[0]);
-});
-
-function processUpload(file) {
-  if (!file.type.startsWith('image/')) return;
-  const reader = new FileReader();
-  reader.onload = (e) => {
-    const preview = document.getElementById('previewImg');
-    const dropIcon = document.getElementById('dropIcon');
-    const dropText = document.getElementById('dropText');
-    const dropHint = document.getElementById('dropHint');
-
-    dropZone.classList.add('has-image');
-    dropIcon.style.display = 'none';
-    dropText.style.display = 'none';
-    dropHint.style.display = 'none';
-    preview.src = e.target.result;
-    preview.style.display = 'block';
-
-    /* Update image status */
-    document.getElementById('imageInputCard').classList.add('active');
-    const is = document.getElementById('imageStatus');
-    is.textContent = 'Ready';
-    is.className = 'mmi-status ready';
-
-    const keys = Object.keys(SAMPLE_RESULTS);
-    const randomKey = keys[Math.floor(Math.random() * keys.length)];
-    updateInputStates(randomKey);
-    const interval = showLoading();
-    setTimeout(() => {
-      clearInterval(interval);
-      showResults(randomKey);
-    }, 2400);
-  };
-  reader.readAsDataURL(file);
-}
-
-/* Animate performance bars on load */
-document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => {
-    document.querySelectorAll('.perf-bar-fine').forEach(bar => {
-      const w = bar.getAttribute('data-width');
-      if (w) bar.style.width = w + '%';
+  if ('IntersectionObserver' in window) {
+    var counterIO = new IntersectionObserver(function(entries) {
+      entries.forEach(function(entry) {
+        if (entry.isIntersecting && !counterDone.has(entry.target)) {
+          counterDone.add(entry.target);
+          animateCounter(entry.target);
+          counterIO.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.5 });
+    counters.forEach(function(el) { counterIO.observe(el); });
+  } else {
+    counters.forEach(function(el) {
+      var suffix = el.dataset.suffix || '';
+      var decimals = parseInt(el.dataset.decimals || '0', 10);
+      var target = parseFloat(el.dataset.target);
+      el.textContent = (decimals > 0 ? target.toFixed(decimals) : target) + suffix;
     });
-  }, 300);
+  }
+}
+
+/* ══════════════════════════════════════════════════════════════
+   5. PERFORMANCE METRICS
+   ══════════════════════════════════════════════════════════════ */
+function renderPerformance() {
+  var grid = document.getElementById('mgPerfGrid');
+  var metrics = [
+    {key:'accuracy', label:'Accuracy'},
+    {key:'weighted_f1', label:'Weighted F1'},
+    {key:'macro_precision', label:'Macro Precision'},
+    {key:'macro_recall', label:'Macro Recall'},
+  ];
+  metrics.forEach(function(m) {
+    var ft = FINETUNED.metrics[m.key];
+    var bl = BASELINE.metrics[m.key];
+    var delta = ft - bl;
+    grid.innerHTML += '<div class="mg-perf-card">' +
+      '<div class="mg-perf-label">' + m.label + '</div>' +
+      '<div class="mg-perf-value" data-count-target="' + (ft*100).toFixed(1) + '">' + pct(ft) + '</div>' +
+      '<div class="mg-perf-delta">&uarr; +' + (delta*100).toFixed(1) + '%p</div>' +
+      '<div class="mg-perf-baseline">baseline ' + pct(bl) + '</div>' +
+      '</div>';
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   6. BAR CHART (animated on scroll)
+   ══════════════════════════════════════════════════════════════ */
+var barChartAnimated = false;
+
+function renderBarChart() {
+  var container = document.getElementById('mgBarChart');
+  AE_ORDER.forEach(function(ae) {
+    var blRate = BASELINE.per_ae_type[ae] ? BASELINE.per_ae_type[ae].detection_rate : 0;
+    var ftRate = FINETUNED.per_ae_type[ae] ? FINETUNED.per_ae_type[ae].detection_rate : 0;
+    container.innerHTML += '<div class="mg-bar-row">' +
+      '<div class="mg-bar-label">' + AE_DISPLAY[ae] + '</div>' +
+      '<div class="mg-bar-track"><div class="mg-bar-pair">' +
+      '<div class="mg-bar-fill baseline" data-width="' + Math.max(blRate*100,0.5) + '">' + (blRate>0.05?pct(blRate):'') + '</div>' +
+      '<div class="mg-bar-fill finetuned" data-width="' + Math.max(ftRate*100,0.5) + '">' + (ftRate>0.05?pct(ftRate):'') + '</div>' +
+      '</div></div></div>';
+  });
+}
+
+function animateBarChart() {
+  if (barChartAnimated) return;
+  barChartAnimated = true;
+  var bars = document.querySelectorAll('.mg-bar-fill[data-width]');
+  bars.forEach(function(bar, i) {
+    setTimeout(function() {
+      bar.style.width = bar.dataset.width + '%';
+    }, i * 60);
+  });
+}
+
+/* ══════════════════════════════════════════════════════════════
+   7. AE TYPE TABS + THUMBNAIL GALLERY (P2 #7)
+   ══════════════════════════════════════════════════════════════ */
+var correctSamples = FINETUNED.samples.filter(function(s) { return s.correct; });
+var currentSampleIdx = -1;
+var currentAeTab = null;
+var autoInterval = null;
+
+/* Group samples by AE type */
+var samplesByType = {};
+correctSamples.forEach(function(s, i) {
+  var aeType = getAeTypeFromGt(s.gt);
+  if (!samplesByType[aeType]) samplesByType[aeType] = [];
+  samplesByType[aeType].push({ sample: s, index: i });
 });
+
+function buildAeTabs() {
+  var container = document.getElementById('mgAeTabs');
+  AE_ORDER.forEach(function(ae) {
+    var count = samplesByType[ae] ? samplesByType[ae].length : 0;
+    if (count === 0) return;
+    var tab = document.createElement('button');
+    tab.className = 'mg-ae-tab';
+    tab.dataset.ae = ae;
+    tab.innerHTML = AE_DISPLAY[ae] + '<span class="tab-count">' + count + '</span>';
+    tab.onclick = function() { selectAeTab(ae); };
+    container.appendChild(tab);
+  });
+}
+
+function selectAeTab(ae) {
+  /* Update tab state */
+  var tabs = document.querySelectorAll('.mg-ae-tab');
+  tabs.forEach(function(t) {
+    t.classList.toggle('active', t.dataset.ae === ae);
+  });
+  currentAeTab = ae;
+
+  /* Build thumbnail gallery */
+  var gallery = document.getElementById('mgThumbGallery');
+  var items = samplesByType[ae] || [];
+  gallery.innerHTML = '';
+
+  items.forEach(function(item) {
+    var s = item.sample;
+    var grade = getGradeFromGt(s.gt);
+    var gradeClass = 'g' + grade;
+
+    var thumb = document.createElement('div');
+    thumb.className = 'mg-thumb-item';
+    thumb.dataset.idx = item.index;
+    thumb.innerHTML = '<img src="' + IMG_BASE + s.file + '" alt="' + s.gt + '" loading="lazy">' +
+      '<div class="mg-thumb-label">' +
+      (grade > 0 ? '<span class="mg-thumb-grade ' + gradeClass + '">G' + grade + '</span>' : '<span class="mg-thumb-grade g0">OK</span>') +
+      '</div>';
+    thumb.onclick = function() { selectSample(item.index); };
+    gallery.appendChild(thumb);
+  });
+}
+
+function selectSample(idx) {
+  currentSampleIdx = idx;
+  var s = correctSamples[idx];
+
+  /* Update thumbnail selection */
+  var thumbs = document.querySelectorAll('.mg-thumb-item');
+  thumbs.forEach(function(t) {
+    t.classList.toggle('active', parseInt(t.dataset.idx) === idx);
+  });
+
+  /* Hide placeholder */
+  var placeholder = document.getElementById('mgDemoPlaceholder');
+  if (placeholder) placeholder.style.display = 'none';
+
+  var body = document.getElementById('mgDemoBody');
+  body.innerHTML =
+    '<div class="mg-demo-images">' +
+      '<div class="mg-demo-img-wrap" onclick="openLightbox(\'' + IMG_BASE + s.baseline + '\')">' +
+        '<img src="' + IMG_BASE + s.baseline + '" alt="baseline" loading="lazy">' +
+        '<div class="mg-demo-img-label">Image 1 &mdash; Baseline</div>' +
+      '</div>' +
+      '<div class="mg-demo-img-wrap" onclick="openLightbox(\'' + IMG_BASE + s.file + '\')">' +
+        '<img src="' + IMG_BASE + s.file + '" alt="current" loading="lazy">' +
+        '<div class="mg-demo-img-label">Image 2 &mdash; Current</div>' +
+      '</div>' +
+    '</div>' +
+    '<div class="mg-demo-gt-bar">' +
+      '<div>' +
+        '<div class="mg-demo-gt-label">Ground Truth</div>' +
+        '<div class="mg-demo-gt-value">' + classDisplay(s.gt) + '</div>' +
+      '</div>' +
+      '<div class="mg-nav-hint">' +
+        '<kbd>&larr;</kbd> <kbd>&rarr;</kbd> Navigate' +
+      '</div>' +
+    '</div>' +
+    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
+      '<button class="mg-btn-analyze" id="mgBtnAnalyze" onclick="analyzeImage()">' +
+        '<span class="spinner"></span>' +
+        '<span class="btn-text">Run Analysis</span>' +
+      '</button>' +
+      '<button class="mg-btn-auto" id="mgBtnAuto" onclick="toggleAutoDemo()">' +
+        '<span class="auto-dot"></span>' +
+        '<span class="auto-text">Auto Demo</span>' +
+      '</button>' +
+    '</div>' +
+    '<div class="mg-result-panel" id="mgResultPanel"></div>';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   8. ANALYSIS — Sequential Reveal (P2 #8)
+   ══════════════════════════════════════════════════════════════ */
+function parseOutput(rawOutput) {
+  try {
+    var arr = JSON.parse(rawOutput);
+    if (arr.length === 0) return {ae_term:'None',grade:'N/A',confidence:'N/A',reasoning:'No adverse events detected between baseline and current photographs.',raw:JSON.stringify(arr,null,2)};
+    var a = arr[0];
+    return {ae_term:a.ae_term,grade:a.grade,confidence:(a.confidence*100).toFixed(0)+'%',reasoning:a.reasoning,raw:JSON.stringify(arr,null,2)};
+  } catch(e) { return null; }
+}
+
+function buildResultCard(label, pred, correct, fields, rawOutput, latency, slideClass) {
+  var badgeCls = correct ? 'pass' : 'fail';
+  var badgeText = correct ? 'Correct' : 'Wrong';
+  var cardCls = correct ? 'correct' : 'wrong';
+  var predColor = correct ? 'var(--accent-green)' : 'var(--accent-red)';
+  var latencyHtml = latency ? '<span class="mg-latency-badge">' + latency.toFixed(0) + 'ms</span>' : '';
+
+  return '<div class="mg-result-card ' + cardCls + ' ' + slideClass + '">' +
+    '<div class="mg-result-header">' +
+      '<div>' +
+        '<div class="mg-result-pred-label">' + label + '</div>' +
+        '<div class="mg-result-pred" style="color:' + predColor + '">' + classDisplay(pred) + '</div>' +
+      '</div>' +
+      '<div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">' +
+        '<span class="mg-result-badge ' + badgeCls + '">' + badgeText + '</span>' +
+        latencyHtml +
+      '</div>' +
+    '</div>' +
+    '<div class="mg-result-fields">' +
+      '<div class="mg-rf-row"><span class="mg-rf-label">AE Term</span><span class="mg-rf-value">' + fields.ae_term + '</span></div>' +
+      '<div class="mg-rf-row"><span class="mg-rf-label">Grade</span><span class="mg-rf-value">' + fields.grade + '</span></div>' +
+    '</div>' +
+    '<div class="mg-result-section-label">Reasoning</div>' +
+    '<div class="mg-result-reasoning">' + highlightMedical(fields.reasoning) + '</div>' +
+    '<div class="mg-result-toggle" onclick="this.classList.toggle(\'open\');this.nextElementSibling.classList.toggle(\'open\')">' +
+      '<span class="toggle-arrow">&#9654;</span> Raw Output' +
+    '</div>' +
+    '<div class="mg-result-output">' + rawOutput.replace(/</g,'&lt;').replace(/>/g,'&gt;') + '</div>' +
+  '</div>';
+}
+
+/* Live inference mode: true = call vLLM API, false = use pre-computed results */
+var LIVE_MODE = true;
+
+function analyzeImage() {
+  if (currentSampleIdx < 0) return;
+  var btn = document.getElementById('mgBtnAnalyze');
+  var panel = document.getElementById('mgResultPanel');
+  var s = correctSamples[currentSampleIdx];
+
+  btn.classList.add('loading');
+  btn.disabled = true;
+  btn.querySelector('.btn-text').textContent = 'Analyzing...';
+  panel.classList.remove('visible');
+
+  /* Phase 1: Show zero-shot (pre-computed) immediately */
+  var zs = ZS_SAMPLES[s.file];
+  var zsFields = zs ? {
+    ae_term: zs.ae_term || '\u2014',
+    grade: zs.grade != null ? zs.grade : '\u2014',
+    confidence: zs.confidence ? (zs.confidence*100).toFixed(0)+'%' : '\u2014',
+    reasoning: zs.reasoning || '\u2014'
+  } : {ae_term:'\u2014',grade:'\u2014',confidence:'\u2014',reasoning:'No data available'};
+  var zsRaw = zs ? JSON.stringify([{ae_term:zs.ae_term,grade:zs.grade,confidence:zs.confidence,reasoning:zs.reasoning}],null,2) : '\u2014';
+
+  panel.innerHTML = '<div class="mg-result-comparison">' +
+    '<div id="mgResultSlotZS">' +
+      buildResultCard('Baseline (Zero-shot)', zs ? zs.pred : '\u2014', zs ? zs.correct : false, zsFields, zsRaw, null, 'slide-in-left') +
+    '</div>' +
+    '<div id="mgResultSlotFT"><div class="mg-result-card" style="display:flex;align-items:center;justify-content:center;min-height:200px;opacity:0.5;">' +
+      '<div style="text-align:center;"><div class="mg-spinner-lg"></div><div style="margin-top:12px;color:var(--text-muted);font-size:0.85em;">Running finetuned model inference...</div></div>' +
+    '</div></div>' +
+  '</div>';
+  panel.classList.add('visible');
+
+  if (!LIVE_MODE) {
+    /* Fallback: use pre-computed results */
+    setTimeout(function() { showFinetunedResult(s, btn); }, 800);
+    return;
+  }
+
+  /* Phase 2: Call vLLM API for live inference */
+  fetch('/api/medgemma/analyze/', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({baseline: s.baseline, current: s.file}),
+  })
+  .then(function(resp) {
+    if (!resp.ok) return resp.json().then(function(e) { throw new Error(e.error || 'API error'); });
+    return resp.json();
+  })
+  .then(function(data) {
+    var ftSlot = document.getElementById('mgResultSlotFT');
+    var detected = data.detected_aes || [];
+    var rawOutput = data.raw_output || '[]';
+    var latency = data.latency_ms || 0;
+
+    /* Determine prediction class */
+    var pred;
+    if (detected.length === 0) {
+      pred = 'normal';
+    } else {
+      var best = detected[0];
+      pred = (best.ae_term || 'unknown') + '_g' + (best.grade || 1);
+    }
+    var correct = pred === s.gt;
+
+    var fields;
+    if (detected.length === 0) {
+      fields = {ae_term:'None', grade:'N/A', confidence:'N/A', reasoning:'No adverse events detected between baseline and current photographs.'};
+    } else {
+      var a = detected[0];
+      fields = {
+        ae_term: a.ae_term || '\u2014',
+        grade: a.grade != null ? a.grade : '\u2014',
+        confidence: a.confidence ? (a.confidence*100).toFixed(0)+'%' : '\u2014',
+        reasoning: a.reasoning || '\u2014',
+      };
+    }
+    var ftRaw = JSON.stringify(detected, null, 2);
+
+    ftSlot.innerHTML = buildResultCard(
+      '<span style="color:var(--accent-green);">LIVE</span> Finetuned (LoRA)',
+      pred, correct, fields, ftRaw, latency, 'slide-in-right'
+    );
+
+    btn.classList.remove('loading');
+    btn.querySelector('.btn-text').textContent = 'Analysis Complete';
+  })
+  .catch(function(err) {
+    console.warn('Live inference failed, falling back to pre-computed:', err.message);
+    LIVE_MODE = false;
+    showFinetunedResult(s, btn);
+  });
+}
+
+function showFinetunedResult(s, btn) {
+  var ftParsed = parseOutput(s.raw_output);
+  var ftFields = ftParsed || {ae_term:'\u2014',grade:'\u2014',confidence:'\u2014',reasoning:'\u2014'};
+  var ftRaw = ftParsed ? ftParsed.raw : s.raw_output;
+
+  var ftSlot = document.getElementById('mgResultSlotFT');
+  ftSlot.innerHTML = buildResultCard('Finetuned (LoRA)', s.pred, s.correct, ftFields, ftRaw, s.latency_ms, 'slide-in-right');
+
+  btn.classList.remove('loading');
+  btn.querySelector('.btn-text').textContent = 'Analysis Complete';
+}
+
+/* ══════════════════════════════════════════════════════════════
+   9. AUTO DEMO MODE (Bonus #12)
+   ══════════════════════════════════════════════════════════════ */
+/* Auto demo cycles: normal -> g1 -> g3 for current AE type */
+function toggleAutoDemo() {
+  var btn = document.getElementById('mgBtnAuto');
+  if (autoInterval) {
+    clearInterval(autoInterval);
+    autoInterval = null;
+    btn.classList.remove('active');
+    btn.querySelector('.auto-text').textContent = 'Auto Demo';
+    return;
+  }
+
+  btn.classList.add('active');
+  btn.querySelector('.auto-text').textContent = 'Stop';
+
+  var aeType = currentAeTab || 'normal';
+  var items = samplesByType[aeType] || [];
+  if (items.length === 0) return;
+
+  var autoIdx = 0;
+
+  function nextAutoSample() {
+    if (autoIdx >= items.length) autoIdx = 0;
+    selectSample(items[autoIdx].index);
+    /* Auto-analyze after a short delay */
+    setTimeout(function() {
+      if (autoInterval) analyzeImage();
+    }, 500);
+    autoIdx++;
+  }
+
+  nextAutoSample();
+  autoInterval = setInterval(nextAutoSample, 4000);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   10. LIGHTBOX (Bonus #13)
+   ══════════════════════════════════════════════════════════════ */
+function openLightbox(src) {
+  var lb = document.getElementById('mgLightbox');
+  var img = document.getElementById('mgLightboxImg');
+  img.src = src;
+  lb.classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+  var lb = document.getElementById('mgLightbox');
+  lb.classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+/* Close on Escape */
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') closeLightbox();
+});
+
+/* ══════════════════════════════════════════════════════════════
+   11. KEYBOARD NAVIGATION (P2 #11)
+   ══════════════════════════════════════════════════════════════ */
+document.addEventListener('keydown', function(e) {
+  if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+    /* Navigate within current AE type tab if set */
+    var items = currentAeTab ? (samplesByType[currentAeTab] || []) : [];
+    if (items.length === 0) {
+      /* Fallback: navigate all samples */
+      if (currentSampleIdx < 0) return;
+      var dir = e.key === 'ArrowLeft' ? -1 : 1;
+      var next = currentSampleIdx + dir;
+      if (next < 0) next = correctSamples.length - 1;
+      if (next >= correctSamples.length) next = 0;
+      selectSample(next);
+      return;
+    }
+
+    /* Find current position in type items */
+    var currentPos = -1;
+    items.forEach(function(item, i) {
+      if (item.index === currentSampleIdx) currentPos = i;
+    });
+
+    var dir = e.key === 'ArrowLeft' ? -1 : 1;
+    var nextPos = currentPos + dir;
+    if (nextPos < 0) nextPos = items.length - 1;
+    if (nextPos >= items.length) nextPos = 0;
+    selectSample(items[nextPos].index);
+  }
+});
+
+/* ══════════════════════════════════════════════════════════════
+   INIT
+   ══════════════════════════════════════════════════════════════ */
+renderPerformance();
+renderBarChart();
+buildAeTabs();
+initCardGlow();
+initScrollReveal();
+initCounters();
+
+/* Auto-select first tab (normal) */
+if (AE_ORDER.length > 0) {
+  selectAeTab(AE_ORDER[0]);
+}
 </script>
 {% endblock %}
