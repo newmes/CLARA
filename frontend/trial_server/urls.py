@@ -107,6 +107,12 @@ urlpatterns = [
     path('doc/<str:run_id>/<str:patient_id>/<str:ae_slug>/',
          views.sae_report_editor, name='sae_report_editor'),
 
+    # AntiHallu API
+    path('api/antihallu/examples/',
+         views.api_antihallu_examples, name='api_antihallu_examples'),
+    path('api/antihallu/generate/',
+         views.api_antihallu_generate, name='api_antihallu_generate'),
+
     # MedGemma API
     path('api/medgemma/analyze/',
          views.api_medgemma_analyze, name='api_medgemma_analyze'),
