@@ -1,0 +1,653 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Simulations — CLARA{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* =================================================================
+     Simulation List Page
+     ================================================================= */
+
+  /* -- Subtle Grid Background -- */
+  .sim-list-bg {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    z-index: -1; pointer-events: none; overflow: hidden;
+  }
+  .sim-list-bg::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(57,210,192,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(57,210,192,0.02) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 80% 50% at 50% 20%, black 20%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 80% 50% at 50% 20%, black 20%, transparent 75%);
+  }
+
+  /* -- Layout -- */
+  .sim-list-wrap {
+    max-width: 960px; margin: 0 auto; padding: 0 24px 4em;
+  }
+
+  /* -- Page Header -- */
+  .sim-list-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 2em 0 1.4em; gap: 16px; flex-wrap: wrap;
+  }
+  .slh-left {
+    display: flex; align-items: center; gap: 14px;
+  }
+  .slh-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--text-muted); font-size: 0.8em; font-weight: 600;
+    text-decoration: none; transition: color 0.2s;
+    padding: 4px 0;
+  }
+  .slh-back:hover { color: var(--accent-cyan); text-decoration: none; }
+  .slh-back svg { width: 14px; height: 14px; transition: transform 0.2s; }
+  .slh-back:hover svg { transform: translateX(-3px); }
+  .slh-sep {
+    color: var(--border); font-size: 1.2em; user-select: none;
+  }
+  .slh-title {
+    font-size: 1.2em; font-weight: 700; color: var(--text-primary);
+    letter-spacing: 0.5px;
+  }
+
+  .btn-new-sim {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 10px 22px; border-radius: 8px; font-weight: 700;
+    font-size: 0.82em; font-family: 'JetBrains Mono', monospace;
+    cursor: pointer; transition: all 0.2s ease;
+    text-decoration: none; border: 1px solid rgba(57,210,192,0.35);
+    background: rgba(57,210,192,0.08); color: var(--accent-cyan);
+  }
+  .btn-new-sim:hover {
+    background: rgba(57,210,192,0.16);
+    border-color: rgba(57,210,192,0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 16px rgba(57,210,192,0.15);
+    text-decoration: none; color: var(--accent-cyan);
+  }
+  .btn-new-sim svg { width: 15px; height: 15px; transition: transform 0.2s; }
+  .btn-new-sim:hover svg { transform: rotate(90deg); }
+
+  /* -- Divider -- */
+  .sl-divider {
+    border: none; height: 1px; margin: 0 0 1.6em;
+    background: linear-gradient(90deg, transparent, rgba(48,54,61,0.8), transparent);
+  }
+
+  /* -- Stats Row -- */
+  .stats-row {
+    display: flex; gap: 20px; margin-bottom: 1.8em;
+    flex-wrap: wrap;
+  }
+  .stat-item {
+    display: flex; align-items: baseline; gap: 8px;
+    padding: 10px 18px;
+    background: var(--bg-glass);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+  }
+  .stat-num {
+    font: 700 1.3em 'JetBrains Mono', monospace;
+    color: var(--text-primary); line-height: 1;
+  }
+  .stat-label {
+    font-size: 0.7em; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--text-muted);
+  }
+
+  /* -- Section Label -- */
+  .section-label {
+    color: var(--text-muted); font-size: 0.7em; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1.2em;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::before {
+    content: ''; width: 3px; height: 14px; border-radius: 2px;
+    background: linear-gradient(135deg, var(--accent-cyan), #2ec4b6);
+    flex-shrink: 0;
+  }
+  .section-label::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* ================================================================
+     Run Cards Grid
+     ================================================================ */
+  .runs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+    gap: 14px;
+  }
+
+  /* -- Run Card -- */
+  .run-card {
+    background: var(--bg-glass);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: 18px 20px;
+    cursor: pointer; transition: all 0.25s ease;
+    text-decoration: none; color: var(--text-primary);
+    position: relative; overflow: hidden;
+  }
+  .run-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent-cyan), rgba(57,210,192,0.3));
+    opacity: 0; transition: opacity 0.25s;
+  }
+  .run-card:hover {
+    border-color: rgba(57,210,192,0.25);
+    background: rgba(22,27,34,0.9);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    text-decoration: none; color: var(--text-primary);
+    transform: translateY(-2px);
+  }
+  .run-card:hover::before { opacity: 1; }
+
+  .run-card-header {
+    display: flex; align-items: flex-start; justify-content: space-between;
+    gap: 12px; margin-bottom: 10px;
+  }
+  .run-card-title {
+    font: 700 1.05em 'JetBrains Mono', monospace;
+    color: var(--text-primary); margin: 0;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .run-card-title .drug-icon {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 8px;
+    background: linear-gradient(135deg, rgba(57,210,192,0.08), rgba(88,166,255,0.04));
+    border: 1px solid rgba(57,210,192,0.12); flex-shrink: 0;
+    color: var(--accent-cyan);
+  }
+  .run-card-title .drug-icon svg { width: 16px; height: 16px; }
+  .run-card .arrow {
+    color: var(--text-muted); transition: all 0.2s;
+    flex-shrink: 0; margin-top: 2px;
+  }
+  .run-card:hover .arrow { color: var(--accent-cyan); transform: translateX(3px); }
+
+  .run-card-meta {
+    display: flex; align-items: center; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 12px;
+  }
+  .meta-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 3px 10px; border-radius: 10px;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    font-size: 0.72em; color: var(--text-muted); font-weight: 500;
+  }
+  .meta-chip svg { width: 11px; height: 11px; opacity: 0.6; }
+  .meta-chip.indication {
+    color: var(--text-secondary); max-width: 260px;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  }
+
+  /* -- Run Actions -- */
+  .run-actions {
+    display: flex; gap: 4px; padding-top: 12px;
+    border-top: 1px solid rgba(48,54,61,0.6);
+  }
+  .run-actions a, .run-actions button {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 5px 12px; border-radius: 16px; font-size: 0.72em; font-weight: 600;
+    text-decoration: none; transition: all 0.15s; white-space: nowrap;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    color: var(--text-muted); cursor: pointer; font-family: inherit;
+  }
+  .run-actions a:hover, .run-actions button:hover {
+    text-decoration: none; transform: translateY(-1px);
+  }
+  .run-actions a svg, .run-actions button svg { flex-shrink: 0; }
+  .act-cyan { color: var(--accent-cyan) !important; border-color: rgba(57,210,192,0.25) !important; }
+  .act-cyan:hover { background: rgba(57,210,192,0.1) !important; box-shadow: 0 2px 8px rgba(57,210,192,0.12); }
+  .act-purple { color: var(--accent-purple) !important; border-color: rgba(188,140,255,0.25) !important; }
+  .act-purple:hover { background: rgba(188,140,255,0.1) !important; box-shadow: 0 2px 8px rgba(188,140,255,0.12); }
+  .act-blue { color: var(--accent-blue) !important; border-color: rgba(88,166,255,0.25) !important; }
+  .act-blue:hover { background: rgba(88,166,255,0.1) !important; box-shadow: 0 2px 8px rgba(88,166,255,0.12); }
+  .act-green { color: var(--accent-green) !important; border-color: rgba(63,185,80,0.25) !important; }
+  .act-green:hover { background: rgba(63,185,80,0.1) !important; box-shadow: 0 2px 8px rgba(63,185,80,0.12); }
+  .act-red { color: var(--accent-red) !important; border-color: rgba(248,81,73,0.25) !important; }
+  .act-red:hover { background: rgba(248,81,73,0.1) !important; box-shadow: 0 2px 8px rgba(248,81,73,0.12); }
+
+  /* Running card */
+  @keyframes pulseLeft {
+    0%, 100% { border-left-color: var(--accent-cyan); }
+    50% { border-left-color: rgba(57,210,192,0.3); }
+  }
+  .run-card.running-card {
+    border-left: 3px solid var(--accent-cyan);
+    animation: pulseLeft 2s infinite;
+  }
+
+  /* -- Mode Badges -- */
+  .mode-badges {
+    display: flex; gap: 4px; margin-left: auto;
+  }
+  .mode-badge {
+    font-size: 0.62em; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.8px; padding: 2px 7px; border-radius: 6px;
+  }
+  .mode-badge.natural { background: rgba(110,118,129,0.15); color: var(--text-muted); }
+  .mode-badge.care-ai { background: rgba(57,210,192,0.12); color: var(--accent-cyan); }
+
+  /* -- Empty State -- */
+  .empty-state {
+    text-align: center; padding: 3.5em 2em;
+    background: var(--bg-glass);
+    backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border); border-radius: var(--radius-xl);
+    position: relative; overflow: hidden;
+  }
+  .empty-state::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--accent-cyan), transparent);
+    opacity: 0.4;
+  }
+  .empty-state .empty-icon {
+    margin-bottom: 16px;
+  }
+  .empty-state .empty-icon svg {
+    width: 48px; height: 48px; stroke: var(--accent-cyan); opacity: 0.4;
+  }
+  .empty-state strong {
+    display: block; font-size: 1.05em; margin-bottom: 8px;
+    color: var(--text-secondary);
+  }
+  .empty-state p {
+    color: var(--text-muted); font-size: 0.85em; margin: 0;
+  }
+  .empty-state code {
+    display: inline-block; margin-top: 12px;
+    background: var(--bg-elevated); color: var(--accent-orange);
+    padding: 6px 14px; border-radius: 6px; font-size: 0.82em;
+    border: 1px solid var(--border);
+  }
+
+  /* ================================================================
+     Modal overlay
+     ================================================================ */
+  .sim-modal-overlay {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.7); backdrop-filter: blur(8px);
+    display: none; align-items: center; justify-content: center;
+    z-index: 1000;
+  }
+  .sim-modal-overlay.visible { display: flex; }
+
+  .sim-modal {
+    background: rgba(22,27,34,0.95); backdrop-filter: blur(12px);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl); padding: 28px; width: 440px; max-width: 90vw;
+    box-shadow: var(--shadow-modal);
+    position: relative; overflow: hidden;
+  }
+  .sim-modal::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent-cyan), rgba(57,210,192,0.3));
+  }
+  .sim-modal h3 {
+    font-size: 1.1em; font-weight: 700; margin: 0 0 20px;
+    color: var(--text-primary);
+  }
+  .sim-form-group { margin-bottom: 14px; }
+  .sim-form-group label {
+    display: block; font-size: 0.72em; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 5px; font-weight: 600;
+  }
+  .sim-form-group input, .sim-form-group select {
+    width: 100%; padding: 10px 14px; background: var(--bg-elevated);
+    border: 1px solid var(--border); border-radius: 8px;
+    color: var(--text-primary); font: 0.88em 'JetBrains Mono', monospace;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .sim-form-group input:focus, .sim-form-group select:focus {
+    outline: none; border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px rgba(57,210,192,0.1);
+  }
+  .sim-form-actions { display: flex; gap: 10px; margin-top: 20px; }
+  .sim-form-actions button {
+    padding: 10px 20px; border-radius: var(--radius-lg); border: 1px solid var(--border);
+    cursor: pointer; font: 600 0.88em 'JetBrains Mono', monospace;
+    transition: all 0.2s;
+  }
+  .sim-btn-start {
+    background: rgba(57,210,192,0.1);
+    color: var(--accent-cyan); border-color: rgba(57,210,192,0.35);
+  }
+  .sim-btn-start:hover {
+    background: rgba(57,210,192,0.2);
+    border-color: rgba(57,210,192,0.5);
+    transform: translateY(-1px);
+  }
+  .sim-btn-cancel { background: var(--bg-elevated); color: var(--text-secondary); }
+  .sim-btn-cancel:hover { background: var(--bg-card-hover); }
+
+  /* ================================================================
+     Responsive
+     ================================================================ */
+  @media (max-width: 900px) {
+    .runs-grid { grid-template-columns: 1fr; }
+    .sim-list-header { flex-direction: column; align-items: flex-start; }
+  }
+  @media (max-width: 500px) {
+    .stats-row { flex-direction: column; gap: 8px; }
+  }
+</style>
+{% endblock %}
+
+{% block nav_items %}
+<span class="nav-sep">/</span>
+<span class="nav-crumb">Simulations</span>
+{% endblock %}
+
+{% block content %}
+<!-- Subtle Grid BG -->
+<div class="sim-list-bg"></div>
+
+<div class="sim-list-wrap">
+  <!-- Page Header -->
+  <div class="sim-list-header fade-up">
+    <div class="slh-left">
+      <a href="{% url 'landing' %}" class="slh-back">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Home
+      </a>
+      <span class="slh-sep">/</span>
+      <span class="slh-title">Simulations</span>
+    </div>
+    <button class="btn-new-sim" onclick="showSimModal()">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+      New Simulation
+    </button>
+  </div>
+
+  <hr class="sl-divider">
+
+  <!-- Stats Row -->
+  <div class="stats-row fade-up fade-up-1">
+    <div class="stat-item">
+      <span class="stat-num" id="stat-runs">{{ runs|length }}</span>
+      <span class="stat-label">Runs</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num" id="stat-patients">--</span>
+      <span class="stat-label">Patients</span>
+    </div>
+    <div class="stat-item">
+      <span class="stat-num" id="stat-days">--</span>
+      <span class="stat-label">Sim Days</span>
+    </div>
+  </div>
+
+  <!-- Runs Section -->
+  {% if runs %}
+  <div class="section-label fade-up fade-up-2">Simulation Runs</div>
+  <div class="runs-grid">
+    {% for run in runs %}
+    <div id="run-{{ run.id }}" class="fade-up">
+      {% if run.status == 'completed' %}
+      <div class="run-card" onclick="window.location='{% url 'trial_viewer' run.id %}'">
+        <div class="run-card-header">
+          <div class="run-card-title">
+            <span class="drug-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            </span>
+            {% if run.drug_name %}{{ run.drug_name }}{% else %}{{ run.id|truncatechars:28 }}{% endif %}
+          </div>
+          <span class="arrow">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </span>
+        </div>
+        <div class="run-card-meta">
+          <span class="status-badge completed">Completed</span>
+          {% if run.indication %}<span class="meta-chip indication" title="{{ run.indication }}">{{ run.indication|truncatechars:35 }}</span>{% endif %}
+          {% if run.n_patients %}
+          <span class="meta-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+            {{ run.n_patients }} patients
+          </span>
+          {% endif %}
+          {% if run.total_days %}
+          <span class="meta-chip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            {{ run.total_days }} days
+          </span>
+          {% endif %}
+        </div>
+        <div class="run-actions" onclick="event.stopPropagation();">
+          <a href="{% url 'trial_viewer' run.id %}" class="act-cyan" title="Day-by-day trial dashboard">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><polygon points="10 8 16 11 10 14" fill="currentColor" stroke="none"/></svg>
+            Simulation
+          </a>
+          <a href="{% url 'game_landing' run.id %}" class="act-purple" title="Clinical training for nurses">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.66 2.69 3 6 3s6-1.34 6-3v-5"/></svg>
+            Training
+          </a>
+          <a href="{% url 'doc_hub' run.id %}" class="act-blue" title="SAE regulatory documents">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Documents
+          </a>
+          <a href="{% url 'compare_dashboard' run.id %}" class="act-green" title="Natural vs Care AI comparison">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            A/B Test
+          </a>
+        </div>
+      </div>
+
+      {% else %}
+      <!-- Running / In-progress card -->
+      <div class="run-card running-card" onclick="window.location='{% url 'trial_viewer' run.id %}?live=1'">
+        <div class="run-card-header">
+          <div class="run-card-title">
+            <span class="drug-icon" style="border-color:rgba(57,210,192,0.3);">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+            </span>
+            {% if run.drug_name %}{{ run.drug_name }}{% else %}{{ run.id|truncatechars:28 }}{% endif %}
+          </div>
+        </div>
+        <div class="run-card-meta">
+          <span class="status-badge {{ run.status }}">{{ run.status }}</span>
+          {% if run.n_patients %}<span class="meta-chip">{{ run.n_patients }} patients</span>{% endif %}
+        </div>
+        <div class="run-actions" onclick="event.stopPropagation();">
+          <a href="{% url 'trial_viewer' run.id %}?live=1" class="act-cyan" title="Live trial dashboard">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16" fill="currentColor" stroke="none"/></svg>
+            Live View
+          </a>
+          <button onclick="stopSim('{{ run.id }}')" class="act-red" title="Stop simulation" style="cursor:pointer;">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+            Stop
+          </button>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  {% else %}
+  <!-- Empty state -->
+  <div class="section-label fade-up fade-up-2">Simulation Runs</div>
+  <div class="empty-state fade-up fade-up-2">
+    <div class="empty-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+      </svg>
+    </div>
+    <strong>No simulation runs yet</strong>
+    <p>Click <strong>+ New Simulation</strong> above to start one, or run from CLI:</p>
+    <code>python src/run_simulation_v2.py --patients 10 --days 84</code>
+  </div>
+  {% endif %}
+</div>
+
+<!-- New Simulation Modal -->
+<div class="sim-modal-overlay" id="sim-modal">
+  <div class="sim-modal">
+    <h3>New Simulation</h3>
+    <div class="sim-form-group">
+      <label>Drug</label>
+      <input type="text" id="sim-drug" value="Padcev + Pembrolizumab">
+    </div>
+    <div class="sim-form-group">
+      <label>Indication</label>
+      <input type="text" id="sim-indication" value="metastatic urothelial carcinoma">
+    </div>
+    <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
+      <div class="sim-form-group">
+        <label>Patients</label>
+        <input type="number" id="sim-patients" value="10" min="1" max="100">
+      </div>
+      <div class="sim-form-group">
+        <label>Days</label>
+        <input type="number" id="sim-days" value="126" min="7" max="365">
+      </div>
+    </div>
+    <div class="sim-form-group">
+      <label>Mode</label>
+      <select id="sim-mode">
+        <option value="both">Both (Natural + Care AI)</option>
+        <option value="natural">Natural only</option>
+        <option value="care_ai">Care AI only</option>
+      </select>
+    </div>
+    <div class="sim-form-group">
+      <label>Seed (optional)</label>
+      <input type="number" id="sim-seed" placeholder="Random">
+    </div>
+    <div class="sim-form-actions">
+      <button class="sim-btn-start" id="sim-start-btn" onclick="startSimulation()">Start Simulation</button>
+      <button class="sim-btn-cancel" onclick="hideSimModal()">Cancel</button>
+    </div>
+    <div id="sim-status-msg" style="margin-top:12px; font-size:0.85em; display:none;"></div>
+  </div>
+</div>
+
+<script>
+/* -- Compute stats from template data -- */
+(function() {
+  var runs = [
+    {% for run in runs %}
+    { patients: {{ run.n_patients|default:"0" }}, days: {{ run.total_days|default:"0" }} },
+    {% endfor %}
+  ];
+  var totalP = 0, totalD = 0;
+  runs.forEach(function(r) { totalP += r.patients; totalD += r.days; });
+  var pEl = document.getElementById('stat-patients');
+  var dEl = document.getElementById('stat-days');
+  if (pEl) pEl.textContent = totalP || '--';
+  if (dEl) dEl.textContent = totalD || '--';
+})();
+
+/* -- Modal -- */
+function showSimModal() {
+  document.getElementById('sim-modal').classList.add('visible');
+}
+function hideSimModal() {
+  document.getElementById('sim-modal').classList.remove('visible');
+}
+document.getElementById('sim-modal').addEventListener('click', function(e) {
+  if (e.target === this) hideSimModal();
+});
+
+/* -- Stop Sim -- */
+async function stopSim(runId) {
+  var action = confirm('Stop this simulation?\n\nOK to stop (keep data), Cancel to abort.');
+  if (!action) return;
+  var del = confirm('Also delete the partial run data?');
+  try {
+    var resp = await fetch('/api/sim/stop/' + runId + '/', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({delete: del}),
+    });
+    var data = await resp.json();
+    if (!resp.ok) {
+      alert(data.error || 'Failed to stop simulation');
+      return;
+    }
+    alert('Simulation ' + data.status);
+    location.reload();
+  } catch(e) {
+    alert('Failed to stop: ' + e.message);
+  }
+}
+
+/* -- Start Sim -- */
+async function startSimulation() {
+  var btn = document.getElementById('sim-start-btn');
+  var msg = document.getElementById('sim-status-msg');
+  btn.disabled = true;
+  btn.textContent = 'Starting...';
+  msg.style.display = 'block';
+  msg.style.color = 'var(--accent-cyan)';
+  msg.textContent = 'Initializing simulation...';
+
+  var body = {
+    drug: document.getElementById('sim-drug').value,
+    indication: document.getElementById('sim-indication').value,
+    patients: parseInt(document.getElementById('sim-patients').value),
+    days: parseInt(document.getElementById('sim-days').value),
+    mode: document.getElementById('sim-mode').value,
+  };
+  var seedVal = document.getElementById('sim-seed').value;
+  if (seedVal) body.seed = parseInt(seedVal);
+
+  try {
+    var resp = await fetch('/api/sim/start', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body),
+    });
+    var data = await resp.json();
+    if (resp.ok) {
+      msg.style.color = 'var(--accent-green)';
+      msg.innerHTML = 'Started! Run ID: <code style="background:var(--bg-elevated);padding:2px 8px;border-radius:4px;color:var(--accent-orange)">' + data.run_id + '</code><br>Redirecting to live view...';
+      setTimeout(function() {
+        window.location.href = data.url + '?live=1';
+      }, 1500);
+    } else {
+      msg.style.color = 'var(--accent-red)';
+      msg.textContent = data.error || 'Failed to start';
+      btn.disabled = false;
+      btn.textContent = 'Start Simulation';
+    }
+  } catch(e) {
+    msg.style.color = 'var(--accent-red)';
+    msg.textContent = 'Network error: ' + e.message;
+    btn.disabled = false;
+    btn.textContent = 'Start Simulation';
+  }
+}
+
+/* -- Poll running simulations -- */
+document.addEventListener('DOMContentLoaded', function() {
+  var runningEls = document.querySelectorAll('.status-badge.running, .status-badge.generating_patients');
+  if (runningEls.length === 0) return;
+
+  setInterval(async function() {
+    try {
+      var resp = await fetch('/api/sim/list');
+      var data = await resp.json();
+      data.runs.forEach(function(run) {
+        var el = document.getElementById('run-' + run.id);
+        if (!el) return;
+        var badge = el.querySelector('.status-badge');
+        if (badge && run.status !== badge.textContent.trim().toLowerCase()) {
+          badge.className = 'status-badge ' + run.status;
+          badge.textContent = run.status === 'completed' ? 'Completed' : run.status;
+          if (run.status === 'completed') location.reload();
+        }
+      });
+    } catch(e) {}
+  }, 5000);
+});
+</script>
+{% endblock %}

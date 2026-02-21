@@ -3,22 +3,21 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: vital-django
+    container_name: ${VITAL_CONTAINER:-vital_dev}
     restart: unless-stopped
     ports:
-      - "19001:9001"
+      - "${VITAL_PORT:-19001}:9001"
     volumes:
       - ./data:/app/data
       - ./frontend:/app/frontend
       - ./src:/app/src
     environment:
-      CTE_VLLM_BASE_URL: "http://vllm:8000/v1"
+      CTE_VLLM_BASE_URL: "http://vital-vllm:8000/v1"
       CTE_VLLM_MODEL_ID: "google/medgemma-27b-it"
       CTE_VLLM_API_KEY: "EMPTY"
       PYTHONPATH: "/app"
-    depends_on:
-      vllm:
-        condition: service_healthy
+    networks:
+      - vital-net
 
   vllm:
     image: vllm/vllm-openai:latest
@@ -26,6 +25,8 @@ services:
     restart: unless-stopped
     ports:
       - "38000:8000"
+    profiles:
+      - vllm
     environment:
       HF_HUB_OFFLINE: "1"
       TRANSFORMERS_OFFLINE: "1"
@@ -61,3 +62,9 @@ services:
       timeout: 10s
       retries: 10
       start_period: 120s
+    networks:
+      - vital-net
+
+networks:
+  vital-net:
+    external: true

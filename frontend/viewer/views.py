@@ -648,10 +648,32 @@ def _patient_summary(profile: dict, day_data: dict | None,
 # ─── Page views ───────────────────────────────────────────────
 
 def landing(request):
-    """Landing page: list available simulation runs."""
+    """Landing page: pure technology showcase (no runs context)."""
+    return render(request, "landing/landing.html")
+
+
+def simulation_list(request):
+    """Simulation list page: all runs, stats, and new-sim modal."""
     runs = _get_runs()
     context = {"runs": runs}
-    return render(request, "landing/landing.html", context)
+    return render(request, "simulation/simulation_list.html", context)
+
+
+# ─── Demo Pages ─────────────────────────────────────────────
+
+def demo_anti_hallucination(request):
+    """Anti-Hallucination technology demo page."""
+    return render(request, "demo/anti_hallucination.html")
+
+
+def demo_medgemma(request):
+    """MedGemma Vision technology demo page."""
+    return render(request, "demo/medgemma.html")
+
+
+def demo_hazard(request):
+    """Hazard Engine technology demo page."""
+    return render(request, "demo/hazard.html")
 
 
 def trial_viewer(request, run_id: str, day: int = 1):

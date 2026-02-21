@@ -3,8 +3,19 @@ from django.urls import path
 from viewer import views
 
 urlpatterns = [
-    # Landing
+    # Landing (tech showcase)
     path('', views.landing, name='landing'),
+
+    # Simulation list
+    path('simulations/', views.simulation_list, name='simulation_list'),
+
+    # Demo pages
+    path('demo/anti-hallucination/',
+         views.demo_anti_hallucination, name='demo_anti_hallucination'),
+    path('demo/medgemma/',
+         views.demo_medgemma, name='demo_medgemma'),
+    path('demo/hazard/',
+         views.demo_hazard, name='demo_hazard'),
 
     # Trial viewer
     path('trial/<str:run_id>/', views.trial_viewer, name='trial_viewer'),
