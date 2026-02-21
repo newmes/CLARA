@@ -106,21 +106,17 @@
 .ah-hero-icon {
   display: flex;
   justify-content: center;
+  margin-top: 0.5em;
   margin-bottom: 0.8em;
   opacity: 0;
   animation: ahIconReveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.05s;
 }
 .ah-hero-icon-inner {
-  width: 72px; height: 72px;
   display: flex; align-items: center; justify-content: center;
-  border-radius: 20px;
-  background: linear-gradient(135deg, rgba(248,81,73,0.08), rgba(63,185,80,0.08));
-  border: 1px solid rgba(248,81,73,0.15);
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .ah-hero-icon-inner:hover {
   transform: scale(1.08) rotate(2deg);
-  box-shadow: 0 0 32px rgba(248,81,73,0.15), 0 0 48px rgba(63,185,80,0.1);
 }
 .ah-hero-icon-inner svg {
   filter: drop-shadow(0 0 16px rgba(248,81,73,0.3));
@@ -898,7 +894,7 @@
 
   <div class="ah-hero-icon">
     <div class="ah-hero-icon-inner">
-      <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="url(#ahShieldGrad)" stroke-width="1.8">
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="url(#ahShieldGrad)" stroke-width="1.8">
         <defs>
           <linearGradient id="ahShieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stop-color="#f85149"/>
