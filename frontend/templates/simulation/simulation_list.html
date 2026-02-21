@@ -127,6 +127,7 @@
 
   /* -- Run Card -- */
   .run-card {
+    display: block;
     background: var(--bg-glass);
     backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
     border: 1px solid var(--border);
@@ -393,7 +394,7 @@
     {% for run in runs %}
     <div id="run-{{ run.id }}" class="fade-up">
       {% if run.status == 'completed' %}
-      <div class="run-card" onclick="window.location='{% url 'trial_viewer' run.id %}'">
+      <a class="run-card" href="{% url 'trial_viewer' run.id %}">
         <div class="run-card-header">
           <div class="run-card-title">
             <span class="drug-icon">
@@ -439,11 +440,11 @@
             A/B Test
           </a>
         </div>
-      </div>
+      </a>
 
       {% else %}
       <!-- Running / In-progress card -->
-      <div class="run-card running-card" onclick="window.location='{% url 'trial_viewer' run.id %}?live=1'">
+      <a class="run-card running-card" href="{% url 'trial_viewer' run.id %}?live=1">
         <div class="run-card-header">
           <div class="run-card-title">
             <span class="drug-icon" style="border-color:rgba(57,210,192,0.3);">
@@ -466,7 +467,7 @@
             Stop
           </button>
         </div>
-      </div>
+      </a>
       {% endif %}
     </div>
     {% endfor %}
