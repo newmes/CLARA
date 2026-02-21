@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: ${VITAL_CONTAINER:-vital_dev}
+    container_name: ${VITAL_CONTAINER:-clara_dev}
     restart: unless-stopped
     ports:
       - "${VITAL_PORT:-19001}:9001"
@@ -12,56 +12,12 @@ services:
       - ./frontend:/app/frontend
       - ./src:/app/src
     environment:
-      CTE_VLLM_BASE_URL: "http://vital-vllm:8000/v1"
+      CTE_VLLM_BASE_URL: "http://clara-medgemma27b:8000/v1"
       CTE_VLLM_MODEL_ID: "google/medgemma-27b-it"
       CTE_VLLM_API_KEY: "EMPTY"
+      MEDGEMMA4B_VLLM_BASE_URL: "http://clara-medgemma4b-ft:8000/v1"
+      MEDGEMMA4B_MODEL_ID: "medgemma-4b-finetuned"
       PYTHONPATH: "/app"
-    networks:
-      - vital-net
-
-  vllm:
-    image: vllm/vllm-openai:latest
-    container_name: vital-vllm
-    restart: unless-stopped
-    ports:
-      - "38000:8000"
-    profiles:
-      - vllm
-    environment:
-      HF_HUB_OFFLINE: "1"
-      TRANSFORMERS_OFFLINE: "1"
-    volumes:
-      - /data2/huggingface/hub:/root/.cache/huggingface/hub:ro
-    shm_size: "4g"
-    command:
-      - "--model"
-      - "google/medgemma-27b-it"
-      - "--served-model-name"
-      - "google/medgemma-27b-it"
-      - "--quantization"
-      - "bitsandbytes"
-      - "--load-format"
-      - "bitsandbytes"
-      - "--max-model-len"
-      - "4096"
-      - "--port"
-      - "8000"
-      - "--gpu-memory-utilization"
-      - "0.85"
-      - "--trust-remote-code"
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              device_ids: ["3"]
-              capabilities: [gpu]
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/v1/models || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 120s
     networks:
       - vital-net
 

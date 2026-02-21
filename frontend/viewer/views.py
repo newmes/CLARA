@@ -671,6 +671,141 @@ def demo_medgemma(request):
     return render(request, "demo/medgemma.html")
 
 
+@csrf_exempt
+@require_POST
+def api_medgemma_analyze(request):
+    """Run live MedGemma 4B inference via vLLM.
+
+    Expects JSON: {"baseline": "normal_8.png", "current": "rash_maculopapular_g2_8.png"}
+    Returns: {"detected_aes": [...], "raw_output": "...", "latency_ms": ...}
+    """
+    import base64
+    import urllib.request
+    import urllib.error
+
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    baseline_name = body.get("baseline")
+    current_name = body.get("current")
+    if not baseline_name or not current_name:
+        return JsonResponse({"error": "baseline and current are required"}, status=400)
+
+    # Read images from static assets
+    img_dir = Path(settings.BASE_DIR) / "static_dirs" / "assets" / "medgemma"
+    baseline_path = img_dir / baseline_name
+    current_path = img_dir / current_name
+
+    if not baseline_path.exists() or not current_path.exists():
+        return JsonResponse({"error": "Image not found"}, status=404)
+
+    b64_baseline = base64.b64encode(baseline_path.read_bytes()).decode("utf-8")
+    b64_current = base64.b64encode(current_path.read_bytes()).decode("utf-8")
+
+    # CTCAE prompt (same as inference.py)
+    prompt = (
+        "You are a clinical dermatology expert. You are given two images of the same patient:\n"
+        "- Image 1: Baseline photograph (before treatment)\n"
+        "- Image 2: Current photograph\n\n"
+        "Compare the two images and identify any NEW adverse events (AEs) visible in Image 2 "
+        "that were NOT present in Image 1. Use the CTCAE categories and grading criteria below "
+        "to classify and grade each finding. If the patient's appearance is unchanged between "
+        "the two images, return an empty list.\n\n"
+        "## AE Categories & Grading\n\n"
+        "### rash_maculopapular\n"
+        "- Grade 1: Faint pink macules/papules scattered on cheeks (<10% BSA); mild erythema, no scaling, subtle and localized\n"
+        "- Grade 2: Visible red macules/papules spreading across cheeks and forehead (10-30% BSA); moderate erythema with fine scaling at lesion edges\n"
+        "- Grade 3: Severe confluent rash covering entire face including cheeks, forehead, chin, and nose (>30% BSA); intense erythema, coarse scaling, and facial edema\n\n"
+        "### rash_acneiform\n"
+        "- Grade 1: Few small papules on forehead (<10% BSA); non-inflamed or mildly inflamed, skin-colored to pink\n"
+        "- Grade 2: Multiple erythematous papules and pustules on cheeks and forehead (10-30% BSA); visible pus-filled lesions, surrounding redness\n"
+        "- Grade 3: Dense pustules covering entire face - forehead, cheeks, nose, chin (>30% BSA); confluent inflammation, crusting, signs of secondary infection\n\n"
+        "### periorbital_edema\n"
+        "- Grade 1: Slight puffiness of upper and lower eyelids, barely noticeable; periorbital skin appears mildly swollen\n"
+        "- Grade 2: Obvious bilateral periorbital swelling; puffy, baggy eyelids with visible tissue distension; eyes appear partially narrowed\n"
+        "- Grade 3: Severe periorbital edema causing near-closure of eyes; tense, shiny skin around orbital rims, eye-opening significantly impaired\n\n"
+        "### sjs_prodrome\n"
+        "- Grade 1: Lip redness and dryness; vermilion border appears erythematous, slight chapping without blistering\n"
+        "- Grade 2: Lip and oral mucosal blistering; fluid-filled vesicles on lip surface and inner mouth; erosions with crusting at lip margins\n"
+        "- Grade 3: Beginning of epidermal detachment on lips and perioral skin; large erosions, bleeding mucosa, severe crusting extending beyond lip borders\n\n"
+        "### stomatitis\n"
+        "- Grade 1: Mild redness or minor aphthous-like ulcer on lip mucosa; slight discomfort, no visible swelling from outside\n"
+        "- Grade 2: Visible cracking and erythema at lip corners with shallow erosions; perioral redness, mild swelling of the lips\n"
+        "- Grade 3: Severe lip swelling and deep erosions visible on external lip surface; crusting, bleeding, perioral inflammation\n\n"
+        "### pruritus\n"
+        "- Grade 1: Mild localized skin excoriation marks on forehead or cheeks; faint scratch marks, minimal erythema\n"
+        "- Grade 2: Moderate visible scratch marks and erythema across face; dry, irritated skin with diffuse redness\n"
+        "- Grade 3: Severe widespread excoriations with lichenification; intense erythema, bleeding scratch marks, facial edema from chronic scratching\n\n"
+        "### alopecia\n"
+        "- Grade 1: Mild hair thinning visible at temples and frontal hairline; slightly widened part line, subtle compared to baseline\n"
+        "- Grade 2: Obvious diffuse hair thinning with clearly visible scalp through hair; temporal recession, noticeably sparse hair\n\n"
+        "## Output Format\n"
+        "Return a JSON array of detected AEs. Each element:\n"
+        '{"ae_term": "<category>", "grade": <1|2|3>, "confidence": <0.0-1.0>, '
+        '"reasoning": "<clinical description of what changed from Image 1 to Image 2>"}\n\n'
+        "If no change from baseline is detected, return: []"
+    )
+
+    # Build vLLM request
+    vllm_url = os.environ.get("MEDGEMMA4B_VLLM_BASE_URL", "http://vital-vllm-4b:8000/v1")
+    model_id = os.environ.get("MEDGEMMA4B_MODEL_ID", "medgemma-4b-finetuned")
+
+    payload = json.dumps({
+        "model": model_id,
+        "messages": [{
+            "role": "user",
+            "content": [
+                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64_baseline}"}},
+                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64_current}"}},
+                {"type": "text", "text": prompt},
+            ],
+        }],
+        "max_completion_tokens": 1024,
+        "temperature": 0,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        f"{vllm_url}/chat/completions",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+    )
+
+    t0 = time.time()
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as e:
+        return JsonResponse({"error": f"vLLM request failed: {e}"}, status=502)
+    latency_ms = (time.time() - t0) * 1000
+
+    raw_text = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+
+    # Parse AE JSON from model output
+    import re
+    detected = []
+    try:
+        data = json.loads(raw_text)
+        if isinstance(data, list):
+            detected = data
+    except (json.JSONDecodeError, TypeError):
+        match = re.search(r'\[.*\]', raw_text, re.DOTALL)
+        if match:
+            try:
+                data = json.loads(match.group())
+                if isinstance(data, list):
+                    detected = data
+            except (json.JSONDecodeError, TypeError):
+                pass
+
+    return JsonResponse({
+        "detected_aes": detected,
+        "raw_output": raw_text,
+        "latency_ms": round(latency_ms, 1),
+    })
+
+
 def demo_hazard(request):
     """Hazard Engine technology demo page."""
     return render(request, "demo/hazard.html")
