@@ -1,0 +1,1025 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}CLARA — MedGemma Multimodal Demo{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* =================================================================
+     MedGemma Multimodal Demo — Research Dashboard Style
+     ================================================================= */
+
+  .demo-bg {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    z-index: -1; pointer-events: none; overflow: hidden;
+  }
+  .demo-bg::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(188,140,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(188,140,255,0.02) 1px, transparent 1px);
+    background-size: 48px 48px;
+    mask-image: radial-gradient(ellipse 70% 50% at 50% 25%, black 20%, transparent 75%);
+    -webkit-mask-image: radial-gradient(ellipse 70% 50% at 50% 25%, black 20%, transparent 75%);
+  }
+
+  .demo-wrap {
+    max-width: 1060px; margin: 0 auto; padding: 1.5em 24px 4em;
+  }
+
+  /* -- Header -- */
+  .demo-header {
+    margin-bottom: 1.5em;
+  }
+  .demo-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--text-muted); font-size: 0.82em; font-weight: 600;
+    text-decoration: none; margin-bottom: 1em; transition: all 0.2s;
+  }
+  .demo-back:hover { color: var(--accent-cyan); text-decoration: none; }
+  .demo-back svg { width: 14px; height: 14px; transition: transform 0.2s; }
+  .demo-back:hover svg { transform: translateX(-3px); }
+
+  .demo-title-row {
+    display: flex; align-items: baseline; gap: 12px; margin-bottom: 4px;
+    flex-wrap: wrap;
+  }
+  .demo-title {
+    font-size: 1.8em; font-weight: 800; letter-spacing: 0.5px;
+    background: linear-gradient(135deg, var(--accent-purple) 0%, var(--accent-cyan) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+  }
+  .demo-version {
+    font: 600 0.65em 'JetBrains Mono', monospace;
+    color: var(--accent-purple); padding: 2px 8px;
+    border: 1px solid rgba(188,140,255,0.25); border-radius: 6px;
+    background: rgba(188,140,255,0.06); white-space: nowrap;
+  }
+  .demo-subtitle {
+    color: var(--text-muted); font-size: 0.88em; max-width: 640px; line-height: 1.6;
+  }
+
+  /* -- Model Info Bar -- */
+  .model-info-bar {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    margin-bottom: 1.5em; padding: 12px 16px;
+    background: var(--bg-glass); backdrop-filter: blur(10px);
+    border: 1px solid var(--border); border-radius: var(--radius-xl);
+    position: relative; overflow: hidden;
+  }
+  .model-info-bar::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, var(--accent-purple), rgba(188,140,255,0.2), transparent);
+    opacity: 0.6;
+  }
+  .mi-item {
+    display: flex; align-items: center; gap: 6px;
+    padding: 4px 12px; border-radius: 6px;
+    background: var(--bg-elevated); border: 1px solid rgba(48,54,61,0.6);
+    font-size: 0.75em; color: var(--text-muted);
+  }
+  .mi-item strong {
+    color: var(--text-secondary); font-weight: 600;
+  }
+  .mi-item .mi-dot {
+    width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0;
+  }
+  .mi-dot.purple { background: var(--accent-purple); }
+  .mi-dot.cyan { background: var(--accent-cyan); }
+  .mi-dot.orange { background: var(--accent-orange); }
+  .mi-dot.green { background: var(--accent-green); }
+
+  /* -- Section Labels -- */
+  .section-label {
+    color: var(--text-muted); font-size: 0.7em; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 2px; margin-bottom: 1em;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .section-label::before {
+    content: ''; width: 3px; height: 14px; border-radius: 2px;
+    background: linear-gradient(135deg, var(--accent-purple), var(--accent-cyan));
+    flex-shrink: 0;
+  }
+  .section-label::after {
+    content: ''; flex: 1; height: 1px; background: var(--border);
+  }
+
+  /* -- Multimodal Input Section -- */
+  .multimodal-inputs {
+    display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px;
+    margin-bottom: 1.5em;
+  }
+  .mm-input-card {
+    background: var(--bg-glass); backdrop-filter: blur(10px);
+    border: 1px solid var(--border); border-radius: var(--radius-xl);
+    padding: 16px; position: relative; overflow: hidden;
+    transition: border-color 0.2s;
+  }
+  .mm-input-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    opacity: 0.5;
+  }
+  .mm-input-card.active { border-color: rgba(188,140,255,0.3); }
+  .mm-input-card.card-text::before {
+    background: linear-gradient(90deg, var(--accent-blue), rgba(88,166,255,0.2));
+  }
+  .mm-input-card.card-image::before {
+    background: linear-gradient(90deg, var(--accent-purple), rgba(188,140,255,0.2));
+  }
+  .mm-input-card.card-struct::before {
+    background: linear-gradient(90deg, var(--accent-orange), rgba(210,153,34,0.2));
+  }
+  .mmi-header {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 10px;
+  }
+  .mmi-icon {
+    width: 28px; height: 28px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .mmi-icon svg { width: 14px; height: 14px; }
+  .mmi-icon.icon-blue {
+    background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.15);
+    color: var(--accent-blue);
+  }
+  .mmi-icon.icon-purple {
+    background: rgba(188,140,255,0.08); border: 1px solid rgba(188,140,255,0.15);
+    color: var(--accent-purple);
+  }
+  .mmi-icon.icon-orange {
+    background: rgba(210,153,34,0.08); border: 1px solid rgba(210,153,34,0.15);
+    color: var(--accent-orange);
+  }
+  .mmi-title {
+    font-size: 0.82em; font-weight: 700; color: var(--text-primary);
+  }
+  .mmi-status {
+    font: 600 0.6em 'JetBrains Mono', monospace;
+    padding: 1px 6px; border-radius: 4px; margin-left: auto;
+    white-space: nowrap;
+  }
+  .mmi-status.ready {
+    background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.2);
+    color: var(--accent-green);
+  }
+  .mmi-status.pending {
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    color: var(--text-muted);
+  }
+
+  /* Narrative text input */
+  .narrative-input {
+    width: 100%; min-height: 80px; padding: 10px 12px;
+    background: rgba(0,0,0,0.2); border: 1px solid rgba(48,54,61,0.6);
+    border-radius: 8px; color: var(--text-secondary);
+    font: 0.78em/1.6 'Inter', sans-serif; resize: vertical;
+    transition: border-color 0.2s;
+  }
+  .narrative-input:focus {
+    outline: none; border-color: rgba(88,166,255,0.4);
+  }
+  .narrative-input::placeholder { color: var(--text-muted); opacity: 0.6; }
+
+  /* Structured data preview */
+  .struct-preview {
+    background: rgba(0,0,0,0.2); border: 1px solid rgba(48,54,61,0.6);
+    border-radius: 8px; padding: 8px 10px;
+    font: 0.68em/1.6 'JetBrains Mono', monospace;
+    color: var(--text-muted); overflow: hidden;
+    max-height: 100px;
+  }
+  .struct-preview .sp-key { color: var(--accent-orange); }
+  .struct-preview .sp-val { color: var(--text-secondary); }
+  .struct-preview .sp-num { color: var(--accent-cyan); }
+
+  /* -- Main Layout: Upload + Analysis -- */
+  .vision-layout {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    margin-bottom: 1.5em;
+  }
+
+  /* -- Upload Zone -- */
+  .upload-panel {
+    background: var(--bg-glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border); border-radius: var(--radius-xl);
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .upload-panel::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent-purple), rgba(188,140,255,0.2));
+  }
+  .upload-panel-header {
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    font-size: 0.78em; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--accent-purple);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .upload-panel-header svg { width: 14px; height: 14px; }
+
+  .drop-zone {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 30px 20px; cursor: pointer;
+    border: 2px dashed rgba(188,140,255,0.15);
+    border-radius: 0 0 11px 11px;
+    margin: 8px; transition: all 0.3s;
+    min-height: 240px;
+  }
+  .drop-zone:hover, .drop-zone.dragover {
+    border-color: rgba(188,140,255,0.4);
+    background: rgba(188,140,255,0.03);
+  }
+  .drop-zone.has-image {
+    border-style: solid; border-color: rgba(188,140,255,0.15); padding: 8px;
+  }
+  .drop-icon { margin-bottom: 12px; opacity: 0.4; }
+  .drop-icon svg { width: 40px; height: 40px; stroke: var(--accent-purple); }
+  .drop-text {
+    font-size: 0.88em; font-weight: 600; color: var(--text-secondary); margin-bottom: 4px;
+  }
+  .drop-hint {
+    font-size: 0.75em; color: var(--text-muted);
+  }
+  .drop-zone input[type="file"] { display: none; }
+
+  .preview-img {
+    width: 100%; height: 100%; object-fit: contain;
+    border-radius: 8px; display: none;
+    max-height: 280px;
+  }
+
+  /* -- Sample Buttons -- */
+  .sample-row {
+    display: flex; gap: 5px; flex-wrap: wrap; justify-content: center;
+    padding: 0 16px 12px;
+  }
+  .sample-btn {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 6px; font-size: 0.7em; font-weight: 600;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    color: var(--text-muted); cursor: pointer; transition: all 0.2s;
+    font-family: inherit;
+  }
+  .sample-btn:hover {
+    border-color: rgba(188,140,255,0.25); color: var(--accent-purple);
+    background: rgba(188,140,255,0.06);
+  }
+  .sample-btn svg { width: 10px; height: 10px; }
+
+  /* -- Analysis Panel -- */
+  .analysis-panel {
+    background: var(--bg-glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border); border-radius: var(--radius-xl);
+    position: relative; overflow: hidden;
+    display: flex; flex-direction: column;
+  }
+  .analysis-panel::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent-cyan), rgba(57,210,192,0.2));
+  }
+  .analysis-header {
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    font-size: 0.78em; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--accent-cyan);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .analysis-header svg { width: 14px; height: 14px; }
+  .analysis-body {
+    flex: 1; padding: 16px; display: flex; flex-direction: column;
+  }
+
+  /* -- Placeholder State -- */
+  .analysis-placeholder {
+    flex: 1; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; text-align: center;
+    color: var(--text-muted); padding: 30px 16px;
+  }
+  .analysis-placeholder svg { width: 36px; height: 36px; opacity: 0.25; margin-bottom: 10px; stroke: var(--text-muted); }
+  .analysis-placeholder .ph-title { font-weight: 600; font-size: 0.88em; margin-bottom: 3px; }
+  .analysis-placeholder .ph-desc { font-size: 0.75em; opacity: 0.6; }
+
+  /* -- Loading State -- */
+  .analysis-loading {
+    flex: 1; display: none; flex-direction: column;
+    align-items: center; justify-content: center; gap: 14px;
+  }
+  .analysis-loading.active { display: flex; }
+  .scan-animation {
+    width: 64px; height: 64px; position: relative;
+  }
+  .scan-ring {
+    position: absolute; inset: 0; border: 2px solid rgba(188,140,255,0.15);
+    border-top-color: var(--accent-purple); border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+  .scan-ring:nth-child(2) {
+    inset: 7px; border-top-color: var(--accent-cyan);
+    animation-direction: reverse; animation-duration: 1.5s;
+  }
+  .scan-ring:nth-child(3) {
+    inset: 14px; border-top-color: var(--accent-blue);
+    animation-duration: 2s;
+  }
+  .scan-text { font-size: 0.8em; color: var(--text-muted); font-weight: 600; }
+
+  /* -- Results -- */
+  .analysis-results {
+    display: none; flex-direction: column; gap: 10px;
+  }
+  .analysis-results.active { display: flex; }
+
+  .result-row {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px 12px; border-radius: var(--radius-lg);
+    background: rgba(0,0,0,0.12); border: 1px solid rgba(48,54,61,0.5);
+  }
+  .result-icon {
+    width: 28px; height: 28px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .result-icon svg { width: 14px; height: 14px; }
+  .ri-purple { background: rgba(188,140,255,0.1); color: var(--accent-purple); }
+  .ri-cyan { background: rgba(57,210,192,0.1); color: var(--accent-cyan); }
+  .ri-orange { background: rgba(210,153,34,0.1); color: var(--accent-orange); }
+  .ri-green { background: rgba(63,185,80,0.1); color: var(--accent-green); }
+  .ri-red { background: rgba(248,81,73,0.1); color: var(--accent-red); }
+  .result-content { flex: 1; }
+  .result-label {
+    font-size: 0.64em; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1.2px; color: var(--text-muted); margin-bottom: 2px;
+  }
+  .result-value {
+    font-size: 0.88em; font-weight: 600; color: var(--text-primary); line-height: 1.4;
+  }
+  .result-value small { font-weight: 400; color: var(--text-muted); font-size: 0.85em; }
+
+  /* -- Confidence Bar -- */
+  .confidence-bar {
+    height: 5px; border-radius: 3px; background: var(--bg-elevated);
+    overflow: hidden; margin-top: 5px;
+  }
+  .confidence-fill {
+    height: 100%; border-radius: 3px;
+    transition: width 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    width: 0;
+  }
+  .cf-high { background: linear-gradient(90deg, var(--accent-green), #2ec4b6); }
+  .cf-med { background: linear-gradient(90deg, var(--accent-orange), #e3873e); }
+  .cf-low { background: linear-gradient(90deg, var(--accent-red), #da3633); }
+
+  /* -- Detection Tags -- */
+  .detection-tags {
+    display: flex; flex-wrap: wrap; gap: 5px; margin-top: 4px;
+  }
+  .det-tag {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 2px 8px; border-radius: 8px;
+    font-size: 0.7em; font-weight: 600;
+    background: rgba(188,140,255,0.08); border: 1px solid rgba(188,140,255,0.15);
+    color: var(--accent-purple);
+  }
+  .det-tag::before {
+    content: ''; width: 4px; height: 4px; border-radius: 50%;
+    background: var(--accent-purple); opacity: 0.5;
+  }
+
+  /* -- Recommendation Box -- */
+  .rec-box {
+    padding: 10px 12px; border-radius: var(--radius-lg);
+    background: rgba(57,210,192,0.03); border: 1px solid rgba(57,210,192,0.12);
+    border-left: 3px solid rgba(57,210,192,0.4); font-size: 0.8em;
+    color: var(--text-secondary); line-height: 1.5;
+  }
+  .rec-box strong { color: var(--accent-cyan); }
+
+  /* ================================================================
+     Fine-tuning Performance Section
+     ================================================================ */
+  .perf-grid {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
+    margin-bottom: 1.5em;
+  }
+  .perf-card {
+    background: var(--bg-glass); backdrop-filter: blur(10px);
+    border: 1px solid var(--border); border-radius: var(--radius-xl);
+    padding: 16px; position: relative; overflow: hidden;
+  }
+  .perf-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
+    background: linear-gradient(90deg, rgba(188,140,255,0.3), transparent);
+    opacity: 0.6;
+  }
+  .perf-label {
+    font-size: 0.65em; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--text-muted); margin-bottom: 8px;
+  }
+  .perf-values {
+    display: flex; align-items: baseline; gap: 8px; margin-bottom: 8px;
+  }
+  .perf-fine {
+    font: 700 1.3em 'JetBrains Mono', monospace;
+    color: var(--accent-green);
+  }
+  .perf-base {
+    font: 500 0.78em 'JetBrains Mono', monospace;
+    color: var(--text-muted); text-decoration: line-through;
+  }
+  .perf-delta {
+    font: 700 0.72em 'JetBrains Mono', monospace;
+    color: var(--accent-green); margin-left: auto;
+  }
+  .perf-bar {
+    height: 6px; border-radius: 3px; background: var(--bg-elevated);
+    overflow: hidden; position: relative;
+  }
+  .perf-bar-base {
+    position: absolute; top: 0; left: 0; height: 100%;
+    background: rgba(110,118,129,0.2); border-radius: 3px;
+  }
+  .perf-bar-fine {
+    position: absolute; top: 0; left: 0; height: 100%;
+    background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan));
+    border-radius: 3px; transition: width 1s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    width: 0;
+  }
+
+  /* ================================================================
+     Responsive
+     ================================================================ */
+  @media (max-width: 900px) {
+    .vision-layout { grid-template-columns: 1fr; }
+    .multimodal-inputs { grid-template-columns: 1fr; }
+    .perf-grid { grid-template-columns: 1fr 1fr; }
+    .demo-title { font-size: 1.4em; }
+  }
+  @media (max-width: 500px) {
+    .perf-grid { grid-template-columns: 1fr; }
+    .model-info-bar { flex-direction: column; }
+  }
+</style>
+{% endblock %}
+
+{% block nav_items %}
+  <span class="nav-sep">/</span>
+  <a href="{% url 'demo_medgemma' %}" class="nav-active">MedGemma Multimodal</a>
+{% endblock %}
+
+{% block content %}
+<div class="demo-bg"></div>
+
+<div class="demo-wrap">
+  <!-- Header -->
+  <div class="demo-header fade-up">
+    <a href="/" class="demo-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to Home
+    </a>
+    <div class="demo-title-row">
+      <div class="demo-title">MedGemma Multimodal</div>
+      <span class="demo-version">Fine-tuned</span>
+    </div>
+    <div class="demo-subtitle">
+      Fine-tuned on CDISC-compliant clinical AE reports for multimodal adverse event assessment. Processes patient narratives, clinical photos, and structured EHR data through a unified pipeline.
+    </div>
+  </div>
+
+  <!-- Model Info Bar -->
+  <div class="model-info-bar fade-up fade-up-1">
+    <div class="mi-item">
+      <span class="mi-dot purple"></span>
+      <strong>Base:</strong> Gemini 2.0 Flash
+    </div>
+    <div class="mi-item">
+      <span class="mi-dot cyan"></span>
+      <strong>Fine-tuning:</strong> Clinical trial AE reports (CDISC)
+    </div>
+    <div class="mi-item">
+      <span class="mi-dot orange"></span>
+      <strong>Modalities:</strong> Text + Image + Structured
+    </div>
+    <div class="mi-item">
+      <span class="mi-dot green"></span>
+      <strong>Method:</strong> LoRA, 2B params
+    </div>
+  </div>
+
+  <!-- Fine-tuning Performance -->
+  <div class="section-label fade-up fade-up-1">Fine-tuning Performance (vs Base Model)</div>
+  <div class="perf-grid fade-up fade-up-2" id="perfGrid">
+    <div class="perf-card">
+      <div class="perf-label">AE Detection</div>
+      <div class="perf-values">
+        <span class="perf-fine">94.2%</span>
+        <span class="perf-base">78.1%</span>
+        <span class="perf-delta">+16.1</span>
+      </div>
+      <div class="perf-bar">
+        <div class="perf-bar-base" style="width:78.1%"></div>
+        <div class="perf-bar-fine" data-width="94.2"></div>
+      </div>
+    </div>
+    <div class="perf-card">
+      <div class="perf-label">Grade Classification</div>
+      <div class="perf-values">
+        <span class="perf-fine">91.8%</span>
+        <span class="perf-base">72.4%</span>
+        <span class="perf-delta">+19.4</span>
+      </div>
+      <div class="perf-bar">
+        <div class="perf-bar-base" style="width:72.4%"></div>
+        <div class="perf-bar-fine" data-width="91.8"></div>
+      </div>
+    </div>
+    <div class="perf-card">
+      <div class="perf-label">Drug Attribution</div>
+      <div class="perf-values">
+        <span class="perf-fine">88.5%</span>
+        <span class="perf-base">65.2%</span>
+        <span class="perf-delta">+23.3</span>
+      </div>
+      <div class="perf-bar">
+        <div class="perf-bar-base" style="width:65.2%"></div>
+        <div class="perf-bar-fine" data-width="88.5"></div>
+      </div>
+    </div>
+    <div class="perf-card">
+      <div class="perf-label">BSA Estimation</div>
+      <div class="perf-values">
+        <span class="perf-fine">86.3%</span>
+        <span class="perf-base">61.0%</span>
+        <span class="perf-delta">+25.3</span>
+      </div>
+      <div class="perf-bar">
+        <div class="perf-bar-base" style="width:61%"></div>
+        <div class="perf-bar-fine" data-width="86.3"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Multimodal Input Section -->
+  <div class="section-label fade-up fade-up-2">Multimodal Input</div>
+  <div class="multimodal-inputs fade-up fade-up-2">
+    <!-- Text Input -->
+    <div class="mm-input-card card-text" id="textInputCard">
+      <div class="mmi-header">
+        <div class="mmi-icon icon-blue">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        </div>
+        <div class="mmi-title">Patient Narrative</div>
+        <span class="mmi-status pending" id="textStatus">Optional</span>
+      </div>
+      <textarea class="narrative-input" id="narrativeInput" placeholder="Enter patient narrative... e.g., 'Patient reports progressive skin rash on trunk and extremities since Cycle 2 Day 5. Mild pruritus, no pain.'" rows="3"></textarea>
+    </div>
+
+    <!-- Image Input -->
+    <div class="mm-input-card card-image" id="imageInputCard">
+      <div class="mmi-header">
+        <div class="mmi-icon icon-purple">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        </div>
+        <div class="mmi-title">Clinical Photo</div>
+        <span class="mmi-status pending" id="imageStatus">Awaiting</span>
+      </div>
+      <div style="font-size:0.75em; color:var(--text-muted); line-height:1.5;">
+        Upload or select a sample image below. Supports dermatologic AE assessment, nail changes, edema visualization.
+      </div>
+    </div>
+
+    <!-- Structured Data -->
+    <div class="mm-input-card card-struct">
+      <div class="mmi-header">
+        <div class="mmi-icon icon-orange">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+        </div>
+        <div class="mmi-title">Structured EHR</div>
+        <span class="mmi-status ready">Auto-filled</span>
+      </div>
+      <div class="struct-preview" id="structPreview">
+        <div><span class="sp-key">"drug"</span>: <span class="sp-val">"Padcev+Pembro"</span>,</div>
+        <div><span class="sp-key">"cycle"</span>: <span class="sp-num">3</span>, <span class="sp-key">"day"</span>: <span class="sp-num">8</span>,</div>
+        <div><span class="sp-key">"ANC"</span>: <span class="sp-num">1.2</span>, <span class="sp-key">"PLT"</span>: <span class="sp-num">145</span>,</div>
+        <div><span class="sp-key">"prior_aes"</span>: [<span class="sp-val">"rash_G1"</span>]</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Analysis Layout -->
+  <div class="section-label fade-up fade-up-2">Image Analysis</div>
+  <div class="vision-layout fade-up fade-up-2">
+    <!-- Upload Panel -->
+    <div class="upload-panel">
+      <div class="upload-panel-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+        Clinical Image — Modality 2/3
+      </div>
+      <div class="drop-zone" id="dropZone" onclick="document.getElementById('fileInput').click()">
+        <div class="drop-icon" id="dropIcon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+            <polyline points="17 8 12 3 7 8"/>
+            <line x1="12" y1="3" x2="12" y2="15"/>
+          </svg>
+        </div>
+        <div class="drop-text" id="dropText">Drop image here or click to upload</div>
+        <div class="drop-hint" id="dropHint">Supports JPEG, PNG, WebP</div>
+        <img class="preview-img" id="previewImg" alt="Preview">
+        <input type="file" id="fileInput" accept="image/*">
+      </div>
+      <div class="sample-row">
+        <button class="sample-btn" onclick="loadSample('rash')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+          Skin Rash
+        </button>
+        <button class="sample-btn" onclick="loadSample('alopecia')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+          Alopecia
+        </button>
+        <button class="sample-btn" onclick="loadSample('edema')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+          Edema
+        </button>
+        <button class="sample-btn" onclick="loadSample('nail')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+          Nail
+        </button>
+      </div>
+    </div>
+
+    <!-- Analysis Panel -->
+    <div class="analysis-panel">
+      <div class="analysis-header">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+        Multimodal Assessment
+      </div>
+      <div class="analysis-body">
+        <!-- Placeholder -->
+        <div class="analysis-placeholder" id="analysisPlaceholder">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+          <div class="ph-title">Awaiting Input</div>
+          <div class="ph-desc">Upload or select a sample image to begin multimodal analysis</div>
+        </div>
+
+        <!-- Loading -->
+        <div class="analysis-loading" id="analysisLoading">
+          <div class="scan-animation">
+            <div class="scan-ring"></div>
+            <div class="scan-ring"></div>
+            <div class="scan-ring"></div>
+          </div>
+          <div class="scan-text" id="scanText">Initializing MedGemma Multimodal...</div>
+        </div>
+
+        <!-- Results -->
+        <div class="analysis-results" id="analysisResults">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =================================================================
+   MedGemma Multimodal Demo — Mock Analysis Engine
+   ================================================================= */
+
+const SAMPLE_RESULTS = {
+  rash: {
+    condition: 'Maculopapular Rash',
+    meddra: 'MedDRA: 10025919',
+    confidence: 94,
+    grade: { value: 2, label: 'Grade 2 -- Moderate' },
+    bsa: '~18% BSA involvement',
+    regions: ['Trunk (anterior)', 'Upper extremities (bilateral)', 'Neck region'],
+    morphology: 'Erythematous, raised papules with scattered macular lesions. No vesiculation, ulceration, or desquamation observed. Borders are ill-defined with slight confluence in central trunk area.',
+    recommendation: 'Recommend topical corticosteroids (triamcinolone 0.1%) and oral antihistamine. Monitor for progression to Grade 3 (>30% BSA). Consider dose modification if symptoms worsen within 48 hours.',
+    drugRelation: 'Highly consistent with enfortumab vedotin-associated skin toxicity (reported in ~44% of patients in EV-302).',
+    narrative: 'Patient reports progressive skin rash on trunk and bilateral upper extremities since Cycle 2 Day 5. Describes mild pruritus, no pain. Reports applying OTC hydrocortisone with minimal relief.'
+  },
+  alopecia: {
+    condition: 'Alopecia',
+    meddra: 'MedDRA: 10001760',
+    confidence: 89,
+    grade: { value: 1, label: 'Grade 1 -- Mild' },
+    bsa: 'Diffuse thinning',
+    regions: ['Scalp (diffuse)', 'Temporal regions'],
+    morphology: 'Diffuse hair thinning with preserved hairline. No patchy loss or scarring observed. Hair shaft appears intact but density is reduced by approximately 30-40%. Consistent with anagen effluvium pattern.',
+    recommendation: 'No dose modification required for Grade 1 alopecia. Counsel patient on expected timeline (typically reversible 3-6 months post-treatment). Consider scalp cooling if available.',
+    drugRelation: 'Consistent with pembrolizumab-associated alopecia (reported in ~20% of patients). Also possible contribution from enfortumab vedotin.',
+    narrative: 'Patient noticed increased hair shedding starting Cycle 3. Reports hair on pillow and in shower. No patches, general thinning. Mildly distressed about appearance.'
+  },
+  edema: {
+    condition: 'Peripheral Edema',
+    meddra: 'MedDRA: 10034570',
+    confidence: 82,
+    grade: { value: 2, label: 'Grade 2 -- Moderate' },
+    bsa: 'Bilateral lower extremities',
+    regions: ['Ankles (bilateral)', 'Dorsum of feet', 'Lower tibial region'],
+    morphology: 'Bilateral, symmetric, pitting edema of the ankles and feet. 2+ pitting on dorsum. No skin changes, erythema, or warmth suggesting cellulitis or DVT. No weeping or skin breakdown.',
+    recommendation: 'Evaluate for underlying causes (cardiac, hepatic, renal). Order BNP, albumin, and renal function labs. Consider compression stockings and elevation. Monitor weight daily.',
+    drugRelation: 'May be multifactorial. Peripheral edema reported in ~15% of patients receiving pembrolizumab. Rule out immune-related nephritis (check creatinine trend).',
+    narrative: 'Patient reports swelling in both ankles and feet for 5 days. Worse at end of day. Shoes feel tight. Denies chest pain, shortness of breath. Weight up 2.3kg from baseline.'
+  },
+  nail: {
+    condition: 'Onycholysis (Nail Dystrophy)',
+    meddra: 'MedDRA: 10030992',
+    confidence: 91,
+    grade: { value: 1, label: 'Grade 1 -- Mild' },
+    bsa: 'Fingernails (3 digits)',
+    regions: ['Right index finger', 'Right middle finger', 'Left thumb'],
+    morphology: 'Partial separation of nail plate from nail bed at the distal edge. Yellowish discoloration of separated areas. No periungual erythema, swelling, or signs of secondary infection. Nail matrix appears intact.',
+    recommendation: 'No dose modification required. Keep nails short, avoid trauma and prolonged moisture exposure. Monitor for signs of secondary fungal infection. Apply protective nail lacquer if available.',
+    drugRelation: 'Highly consistent with enfortumab vedotin skin/nail toxicity profile. Nail changes reported in ~10-15% of patients, typically appearing after cycle 2-3.',
+    narrative: 'Patient noticed nail changes after Cycle 2. Three fingernails showing discoloration and partial lifting. No pain. Concerned about infection risk.'
+  }
+};
+
+const SCAN_MESSAGES = [
+  'Initializing MedGemma Multimodal...',
+  'Processing text modality...',
+  'Analyzing clinical image...',
+  'Integrating structured EHR data...',
+  'Running multimodal fusion...',
+  'Classifying AE morphology...',
+  'Computing confidence scores...',
+  'Generating clinical assessment...',
+];
+
+let currentResult = null;
+
+function showLoading() {
+  document.getElementById('analysisPlaceholder').style.display = 'none';
+  document.getElementById('analysisResults').classList.remove('active');
+  const loading = document.getElementById('analysisLoading');
+  loading.classList.add('active');
+
+  let i = 0;
+  const textEl = document.getElementById('scanText');
+  const interval = setInterval(() => {
+    if (i < SCAN_MESSAGES.length) {
+      textEl.textContent = SCAN_MESSAGES[i];
+      i++;
+    } else {
+      clearInterval(interval);
+    }
+  }, 300);
+  return interval;
+}
+
+function showResults(key) {
+  const data = SAMPLE_RESULTS[key];
+  if (!data) return;
+  currentResult = data;
+
+  const loading = document.getElementById('analysisLoading');
+  loading.classList.remove('active');
+
+  const container = document.getElementById('analysisResults');
+  const gradeColor = data.grade.value <= 1 ? 'green' : data.grade.value <= 2 ? 'orange' : 'red';
+  const confClass = data.confidence >= 85 ? 'cf-high' : data.confidence >= 60 ? 'cf-med' : 'cf-low';
+
+  container.innerHTML = `
+    <!-- Detected Condition -->
+    <div class="result-row">
+      <div class="result-icon ri-purple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <div class="result-content">
+        <div class="result-label">Detected Condition</div>
+        <div class="result-value">${data.condition} <small>${data.meddra}</small></div>
+      </div>
+    </div>
+
+    <!-- Confidence -->
+    <div class="result-row">
+      <div class="result-icon ri-cyan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+      </div>
+      <div class="result-content">
+        <div class="result-label">Confidence Score</div>
+        <div class="result-value">${data.confidence}%</div>
+        <div class="confidence-bar"><div class="confidence-fill ${confClass}" id="confFill"></div></div>
+      </div>
+    </div>
+
+    <!-- Grade -->
+    <div class="result-row">
+      <div class="result-icon ri-${gradeColor}">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </div>
+      <div class="result-content">
+        <div class="result-label">CTCAE Grade Assessment</div>
+        <div class="result-value">${data.grade.label}</div>
+        <div style="font-size:0.75em;color:var(--text-muted);margin-top:2px;">${data.bsa}</div>
+      </div>
+    </div>
+
+    <!-- Affected Regions -->
+    <div class="result-row">
+      <div class="result-icon ri-orange">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      </div>
+      <div class="result-content">
+        <div class="result-label">Detected Regions</div>
+        <div class="detection-tags">
+          ${data.regions.map(r => `<span class="det-tag">${r}</span>`).join('')}
+        </div>
+      </div>
+    </div>
+
+    <!-- Morphology -->
+    <div class="result-row">
+      <div class="result-icon ri-purple">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+      </div>
+      <div class="result-content">
+        <div class="result-label">Morphology Analysis</div>
+        <div class="result-value" style="font-weight:400;font-size:0.82em;line-height:1.6;">${data.morphology}</div>
+      </div>
+    </div>
+
+    <!-- Drug Relation -->
+    <div class="result-row">
+      <div class="result-icon ri-cyan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      </div>
+      <div class="result-content">
+        <div class="result-label">Drug Relationship</div>
+        <div class="result-value" style="font-weight:400;font-size:0.82em;line-height:1.6;">${data.drugRelation}</div>
+      </div>
+    </div>
+
+    <!-- Recommendation -->
+    <div class="rec-box">
+      <strong>Recommendation:</strong> ${data.recommendation}
+    </div>
+  `;
+
+  container.classList.add('active');
+
+  /* Animate confidence bar */
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      const fill = document.getElementById('confFill');
+      if (fill) fill.style.width = data.confidence + '%';
+    });
+  });
+}
+
+function updateInputStates(type) {
+  /* Update text input card */
+  const data = SAMPLE_RESULTS[type];
+  if (data && data.narrative) {
+    document.getElementById('narrativeInput').value = data.narrative;
+    document.getElementById('textInputCard').classList.add('active');
+    const ts = document.getElementById('textStatus');
+    ts.textContent = 'Ready';
+    ts.className = 'mmi-status ready';
+  }
+
+  /* Update image status */
+  document.getElementById('imageInputCard').classList.add('active');
+  const is = document.getElementById('imageStatus');
+  is.textContent = 'Ready';
+  is.className = 'mmi-status ready';
+
+  /* Update structured data based on sample type */
+  const structMap = {
+    rash: `<div><span class="sp-key">"drug"</span>: <span class="sp-val">"Padcev+Pembro"</span>,</div><div><span class="sp-key">"cycle"</span>: <span class="sp-num">2</span>, <span class="sp-key">"day"</span>: <span class="sp-num">12</span>,</div><div><span class="sp-key">"ANC"</span>: <span class="sp-num">2.8</span>, <span class="sp-key">"PLT"</span>: <span class="sp-num">189</span>,</div><div><span class="sp-key">"prior_aes"</span>: [<span class="sp-val">"pruritus_G1"</span>]</div>`,
+    alopecia: `<div><span class="sp-key">"drug"</span>: <span class="sp-val">"Padcev+Pembro"</span>,</div><div><span class="sp-key">"cycle"</span>: <span class="sp-num">3</span>, <span class="sp-key">"day"</span>: <span class="sp-num">5</span>,</div><div><span class="sp-key">"ANC"</span>: <span class="sp-num">3.1</span>, <span class="sp-key">"PLT"</span>: <span class="sp-num">210</span>,</div><div><span class="sp-key">"prior_aes"</span>: [<span class="sp-val">"fatigue_G1"</span>]</div>`,
+    edema: `<div><span class="sp-key">"drug"</span>: <span class="sp-val">"Padcev+Pembro"</span>,</div><div><span class="sp-key">"cycle"</span>: <span class="sp-num">4</span>, <span class="sp-key">"day"</span>: <span class="sp-num">3</span>,</div><div><span class="sp-key">"Cr"</span>: <span class="sp-num">1.4</span>, <span class="sp-key">"albumin"</span>: <span class="sp-num">3.1</span>,</div><div><span class="sp-key">"wt_delta"</span>: <span class="sp-num">+2.3</span> <span class="sp-val">kg</span></div>`,
+    nail: `<div><span class="sp-key">"drug"</span>: <span class="sp-val">"Padcev+Pembro"</span>,</div><div><span class="sp-key">"cycle"</span>: <span class="sp-num">3</span>, <span class="sp-key">"day"</span>: <span class="sp-num">1</span>,</div><div><span class="sp-key">"ANC"</span>: <span class="sp-num">2.5</span>, <span class="sp-key">"PLT"</span>: <span class="sp-num">175</span>,</div><div><span class="sp-key">"prior_aes"</span>: [<span class="sp-val">"rash_G1"</span>]</div>`
+  };
+  if (structMap[type]) {
+    document.getElementById('structPreview').innerHTML = structMap[type];
+  }
+}
+
+function handleImage(source) {
+  const dropZone = document.getElementById('dropZone');
+  const preview = document.getElementById('previewImg');
+  const dropIcon = document.getElementById('dropIcon');
+  const dropText = document.getElementById('dropText');
+  const dropHint = document.getElementById('dropHint');
+
+  dropZone.classList.add('has-image');
+  dropIcon.style.display = 'none';
+  dropText.style.display = 'none';
+  dropHint.style.display = 'none';
+
+  /* Generate a gradient preview */
+  const canvas = document.createElement('canvas');
+  canvas.width = 400; canvas.height = 300;
+  const ctx = canvas.getContext('2d');
+
+  const gradients = {
+    rash: ['#8b3a3a', '#cc6666', '#aa4444'],
+    alopecia: ['#5a4a3a', '#8b7355', '#6b5b4a'],
+    edema: ['#3a5a6b', '#6b8a9b', '#4a6a7b'],
+    nail: ['#5a5a3a', '#8b8b55', '#6b6b4a'],
+  };
+  const colors = gradients[source] || gradients.rash;
+  const grad = ctx.createRadialGradient(200, 150, 20, 200, 150, 200);
+  grad.addColorStop(0, colors[1]);
+  grad.addColorStop(0.5, colors[0]);
+  grad.addColorStop(1, colors[2]);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0, 0, 400, 300);
+
+  for (let i = 0; i < 3000; i++) {
+    ctx.fillStyle = `rgba(255,255,255,${Math.random() * 0.05})`;
+    ctx.fillRect(Math.random() * 400, Math.random() * 300, 1, 1);
+  }
+
+  ctx.fillStyle = 'rgba(255,255,255,0.12)';
+  ctx.font = '13px Inter, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('Sample Medical Image', 200, 150);
+  ctx.fillText(source.charAt(0).toUpperCase() + source.slice(1), 200, 168);
+
+  preview.src = canvas.toDataURL();
+  preview.style.display = 'block';
+}
+
+function loadSample(type) {
+  handleImage(type);
+  updateInputStates(type);
+
+  const interval = showLoading();
+  setTimeout(() => {
+    clearInterval(interval);
+    showResults(type);
+  }, 2400);
+}
+
+/* Drag & Drop */
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('dragover', (e) => {
+  e.preventDefault();
+  dropZone.classList.add('dragover');
+});
+dropZone.addEventListener('dragleave', () => {
+  dropZone.classList.remove('dragover');
+});
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  if (e.dataTransfer.files.length > 0) processUpload(e.dataTransfer.files[0]);
+});
+fileInput.addEventListener('change', () => {
+  if (fileInput.files.length > 0) processUpload(fileInput.files[0]);
+});
+
+function processUpload(file) {
+  if (!file.type.startsWith('image/')) return;
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    const preview = document.getElementById('previewImg');
+    const dropIcon = document.getElementById('dropIcon');
+    const dropText = document.getElementById('dropText');
+    const dropHint = document.getElementById('dropHint');
+
+    dropZone.classList.add('has-image');
+    dropIcon.style.display = 'none';
+    dropText.style.display = 'none';
+    dropHint.style.display = 'none';
+    preview.src = e.target.result;
+    preview.style.display = 'block';
+
+    /* Update image status */
+    document.getElementById('imageInputCard').classList.add('active');
+    const is = document.getElementById('imageStatus');
+    is.textContent = 'Ready';
+    is.className = 'mmi-status ready';
+
+    const keys = Object.keys(SAMPLE_RESULTS);
+    const randomKey = keys[Math.floor(Math.random() * keys.length)];
+    updateInputStates(randomKey);
+    const interval = showLoading();
+    setTimeout(() => {
+      clearInterval(interval);
+      showResults(randomKey);
+    }, 2400);
+  };
+  reader.readAsDataURL(file);
+}
+
+/* Animate performance bars on load */
+document.addEventListener('DOMContentLoaded', () => {
+  setTimeout(() => {
+    document.querySelectorAll('.perf-bar-fine').forEach(bar => {
+      const w = bar.getAttribute('data-width');
+      if (w) bar.style.width = w + '%';
+    });
+  }, 300);
+});
+</script>
+{% endblock %}

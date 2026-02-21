@@ -1,0 +1,745 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}CLARA — Hazard Engine Demo{% endblock %}
+
+{% block extra_head %}
+<style>
+  /* ═══════════════════════════════════════════════════════════════
+     Hazard Engine Demo Page
+     ═══════════════════════════════════════════════════════════════ */
+
+  .demo-bg {
+    position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+    z-index: -1; pointer-events: none; overflow: hidden;
+  }
+  .demo-bg::before {
+    content: '';
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(57,210,192,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(57,210,192,0.02) 1px, transparent 1px);
+    background-size: 60px 60px;
+    mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, black 20%, transparent 80%);
+    -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, black 20%, transparent 80%);
+  }
+  .demo-bg .orb {
+    position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.05;
+  }
+  .demo-bg .orb-1 { width: 400px; height: 400px; top: 5%; left: 5%; background: var(--accent-cyan); }
+  .demo-bg .orb-2 { width: 350px; height: 350px; bottom: 10%; right: 10%; background: var(--accent-blue); }
+
+  .demo-wrap {
+    max-width: 1200px; margin: 0 auto; padding: 2em 24px 4em;
+  }
+
+  /* ── Header ── */
+  .demo-header {
+    text-align: center; margin-bottom: 2em;
+  }
+  .demo-back {
+    display: inline-flex; align-items: center; gap: 6px;
+    color: var(--text-muted); font-size: 0.82em; font-weight: 600;
+    text-decoration: none; margin-bottom: 1.5em; transition: all 0.2s;
+  }
+  .demo-back:hover { color: var(--accent-cyan); text-decoration: none; }
+  .demo-back svg { width: 14px; height: 14px; transition: transform 0.2s; }
+  .demo-back:hover svg { transform: translateX(-3px); }
+  .demo-title {
+    font-size: 2em; font-weight: 800; letter-spacing: 1px; margin-bottom: 0.3em;
+    background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-blue) 100%);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+    filter: drop-shadow(0 0 16px rgba(57,210,192,0.2));
+  }
+  .demo-subtitle {
+    color: var(--text-muted); font-size: 0.9em; max-width: 640px; margin: 0 auto; line-height: 1.6;
+  }
+
+  /* ── Main Layout ── */
+  .hazard-layout {
+    display: grid; grid-template-columns: 1fr 300px; gap: 20px;
+  }
+
+  /* ── Chart Panel ── */
+  .chart-panel {
+    background: var(--bg-glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border); border-radius: var(--radius-xl);
+    position: relative; overflow: hidden;
+  }
+  .chart-panel::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+  }
+  .chart-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px 18px; border-bottom: 1px solid var(--border);
+  }
+  .chart-title {
+    font-size: 0.82em; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--accent-cyan);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .chart-title svg { width: 14px; height: 14px; }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex; gap: 6px; flex-wrap: wrap;
+  }
+  .legend-item {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 12px; cursor: pointer;
+    font-size: 0.72em; font-weight: 600;
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    color: var(--text-muted); transition: all 0.2s; user-select: none;
+  }
+  .legend-item:hover { border-color: var(--border-glow); }
+  .legend-item.active { color: var(--text-primary); }
+  .legend-item.inactive { opacity: 0.35; }
+  .legend-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+  }
+
+  /* ── Canvas Container ── */
+  .chart-body {
+    padding: 16px 10px 10px;
+    position: relative;
+  }
+  #hazardCanvas {
+    width: 100%; border-radius: 8px; cursor: crosshair;
+    display: block;
+  }
+
+  /* ── Day Slider ── */
+  .day-slider-wrap {
+    padding: 10px 18px 16px; display: flex; align-items: center; gap: 12px;
+    border-top: 1px solid var(--border);
+  }
+  .day-slider-label {
+    font: 700 0.78em 'JetBrains Mono', monospace; color: var(--text-muted);
+    white-space: nowrap;
+  }
+  .day-slider-val {
+    font: 700 0.92em 'JetBrains Mono', monospace; color: var(--accent-cyan);
+    min-width: 58px; text-align: right;
+  }
+  .day-slider-wrap input[type="range"] { flex: 1; }
+
+  /* ── Side Panel ── */
+  .side-panel {
+    display: flex; flex-direction: column; gap: 14px;
+  }
+
+  .info-card {
+    background: var(--bg-glass); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--border); border-radius: var(--radius-xl);
+    position: relative; overflow: hidden;
+  }
+  .info-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent-cyan), rgba(57,210,192,0.3));
+  }
+  .info-card-header {
+    padding: 12px 16px; border-bottom: 1px solid var(--border);
+    font-size: 0.72em; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--accent-cyan);
+    display: flex; align-items: center; gap: 6px;
+  }
+  .info-card-header svg { width: 12px; height: 12px; }
+  .info-card-body {
+    padding: 14px 16px;
+  }
+
+  /* ── Probability Rows ── */
+  .prob-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 6px 0; border-bottom: 1px solid rgba(48,54,61,0.3);
+  }
+  .prob-row:last-child { border-bottom: none; }
+  .prob-name {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 0.82em; color: var(--text-secondary);
+  }
+  .prob-dot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+  .prob-val {
+    font: 700 0.82em 'JetBrains Mono', monospace;
+  }
+
+  /* ── Math Box ── */
+  .math-box {
+    background: rgba(0,0,0,0.2); border-radius: var(--radius-lg);
+    padding: 12px 14px; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75em; line-height: 1.8; color: var(--text-secondary);
+  }
+  .math-box .math-label {
+    font-size: 0.85em; font-weight: 700; color: var(--text-muted);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;
+  }
+  .math-highlight { color: var(--accent-cyan); font-weight: 600; }
+
+  /* ── Stats Row ── */
+  .side-stats {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+  }
+  .side-stat {
+    background: rgba(0,0,0,0.15); border-radius: var(--radius-lg);
+    padding: 10px; text-align: center;
+  }
+  .side-stat .ss-val {
+    font: 700 1.1em 'JetBrains Mono', monospace; color: var(--accent-cyan);
+  }
+  .side-stat .ss-label {
+    font-size: 0.62em; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 1px; color: var(--text-muted); margin-top: 2px;
+  }
+
+  /* ── Mode Toggle ── */
+  .mode-toggle {
+    display: flex; gap: 4px; background: var(--bg-elevated);
+    border-radius: 8px; padding: 3px;
+  }
+  .mode-btn {
+    flex: 1; padding: 5px 10px; border-radius: 6px;
+    font-size: 0.72em; font-weight: 600; cursor: pointer; text-align: center;
+    background: transparent; border: none; color: var(--text-muted);
+    transition: all 0.2s; font-family: inherit;
+  }
+  .mode-btn.active {
+    background: rgba(57,210,192,0.12); color: var(--accent-cyan);
+    box-shadow: 0 0 8px rgba(57,210,192,0.1);
+  }
+  .mode-btn:hover:not(.active) { color: var(--text-secondary); }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .hazard-layout { grid-template-columns: 1fr; }
+    .demo-title { font-size: 1.5em; }
+  }
+</style>
+{% endblock %}
+
+{% block nav_items %}
+  <span class="nav-sep">/</span>
+  <a href="{% url 'demo_hazard' %}" class="nav-active">Hazard Engine</a>
+{% endblock %}
+
+{% block content %}
+<div class="demo-bg">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+</div>
+
+<div class="demo-wrap">
+  <!-- Header -->
+  <div class="demo-header fade-up">
+    <a href="/" class="demo-back">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+      Back to Home
+    </a>
+    <div class="demo-title">Hazard Engine</div>
+    <div class="demo-subtitle">
+      Real-time AE onset probability curves powered by mixture-model hazard functions.
+      No fate tables &mdash; every day's risk is computed dynamically from onset distributions.
+    </div>
+  </div>
+
+  <!-- Main Layout -->
+  <div class="hazard-layout fade-up fade-up-1">
+    <!-- Chart Panel -->
+    <div class="chart-panel">
+      <div class="chart-header">
+        <div class="chart-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          AE Onset Probability Curves
+        </div>
+        <div class="mode-toggle">
+          <button class="mode-btn active" id="modeHazard" onclick="setMode('hazard')">Hazard</button>
+          <button class="mode-btn" id="modeCumul" onclick="setMode('cumulative')">Cumulative</button>
+        </div>
+      </div>
+      <div class="chart-body">
+        <canvas id="hazardCanvas" height="380"></canvas>
+        <!-- Legend -->
+        <div class="legend" id="legend" style="margin-top:10px; justify-content:center;"></div>
+      </div>
+      <div class="day-slider-wrap">
+        <span class="day-slider-label">DAY</span>
+        <input type="range" id="daySlider" min="1" max="84" value="1">
+        <span class="day-slider-val" id="dayVal">Day 1</span>
+      </div>
+    </div>
+
+    <!-- Side Panel -->
+    <div class="side-panel">
+      <!-- Day Probabilities -->
+      <div class="info-card">
+        <div class="info-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          Daily Hazard Rates
+        </div>
+        <div class="info-card-body" id="probList">
+          <!-- Filled by JS -->
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="info-card">
+        <div class="info-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+          Day Summary
+        </div>
+        <div class="info-card-body">
+          <div class="side-stats" id="sideStats">
+            <!-- Filled by JS -->
+          </div>
+        </div>
+      </div>
+
+      <!-- Formula -->
+      <div class="info-card">
+        <div class="info-card-header">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          Hazard Formula
+        </div>
+        <div class="info-card-body">
+          <div class="math-box">
+            <div class="math-label">Daily Onset Hazard</div>
+            <span class="math-highlight">h(t)</span> = I &middot; f(t) / (1 - I &middot; F(t-1))<br><br>
+            <span style="color:var(--text-muted);font-size:0.9em;">
+              I = incidence rate<br>
+              f(t) = onset PDF at day t<br>
+              F(t) = onset CDF at day t
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   Hazard Engine Demo — Canvas Chart + Interactive Controls
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── AE Configuration ── */
+const AE_CONFIG = [
+  {
+    name: 'Maculopapular Rash',
+    short: 'Rash',
+    color: '#f85149',
+    colorRgba: 'rgba(248,81,73,',
+    incidence: 0.44,
+    onset: { type: 'normal', mean: 21, std: 10 },
+    active: true
+  },
+  {
+    name: 'Neutropenia',
+    short: 'Neutropenia',
+    color: '#58a6ff',
+    colorRgba: 'rgba(88,166,255,',
+    incidence: 0.20,
+    onset: { type: 'normal', mean: 14, std: 7 },
+    active: true
+  },
+  {
+    name: 'Fatigue',
+    short: 'Fatigue',
+    color: '#d29922',
+    colorRgba: 'rgba(210,153,34,',
+    incidence: 0.55,
+    onset: { type: 'lognormal', mean: 10, std: 12 },
+    active: true
+  },
+  {
+    name: 'Nausea',
+    short: 'Nausea',
+    color: '#3fb950',
+    colorRgba: 'rgba(63,185,80,',
+    incidence: 0.35,
+    onset: { type: 'normal', mean: 7, std: 5 },
+    active: true
+  },
+  {
+    name: 'Peripheral Neuropathy',
+    short: 'Neuropathy',
+    color: '#bc8cff',
+    colorRgba: 'rgba(188,140,255,',
+    incidence: 0.15,
+    onset: { type: 'lognormal', mean: 42, std: 18 },
+    active: true
+  },
+];
+
+const MAX_DAY = 84;
+let currentDay = 1;
+let chartMode = 'hazard';
+let isDragging = false;
+
+/* ── Math helpers ── */
+function normalPDF(x, mean, std) {
+  const z = (x - mean) / std;
+  return Math.exp(-0.5 * z * z) / (std * Math.sqrt(2 * Math.PI));
+}
+
+function normalCDF(x, mean, std) {
+  /* Approximation using error function */
+  const z = (x - mean) / (std * Math.SQRT2);
+  const t = 1 / (1 + 0.3275911 * Math.abs(z));
+  const a = [0.254829592, -0.284496736, 1.421413741, -1.453152027, 1.061405429];
+  const poly = t * (a[0] + t * (a[1] + t * (a[2] + t * (a[3] + t * a[4]))));
+  const erf = 1 - poly * Math.exp(-z * z);
+  return 0.5 * (1 + (z >= 0 ? erf : -erf));
+}
+
+function lognormalPDF(x, muLog, sigmaLog) {
+  if (x <= 0) return 0;
+  const z = (Math.log(x) - muLog) / sigmaLog;
+  return Math.exp(-0.5 * z * z) / (x * sigmaLog * Math.sqrt(2 * Math.PI));
+}
+
+function lognormalCDF(x, muLog, sigmaLog) {
+  if (x <= 0) return 0;
+  return normalCDF(Math.log(x), muLog, sigmaLog);
+}
+
+/* Convert mean/std to lognormal params */
+function toLognormalParams(mean, std) {
+  const variance = std * std;
+  const muLog = Math.log(mean * mean / Math.sqrt(variance + mean * mean));
+  const sigmaLog = Math.sqrt(Math.log(1 + variance / (mean * mean)));
+  return { muLog, sigmaLog };
+}
+
+/* Compute all hazard/cumulative data */
+function computeData() {
+  const data = [];
+  for (const ae of AE_CONFIG) {
+    const hazard = [];
+    const cumulative = [];
+    let cumProb = 0;
+
+    for (let d = 1; d <= MAX_DAY; d++) {
+      let pdf, cdf, prevCdf;
+      if (ae.onset.type === 'normal') {
+        pdf = normalPDF(d, ae.onset.mean, ae.onset.std);
+        cdf = normalCDF(d, ae.onset.mean, ae.onset.std);
+        prevCdf = normalCDF(d - 1, ae.onset.mean, ae.onset.std);
+      } else {
+        const { muLog, sigmaLog } = toLognormalParams(ae.onset.mean, ae.onset.std);
+        pdf = lognormalPDF(d, muLog, sigmaLog);
+        cdf = lognormalCDF(d, muLog, sigmaLog);
+        prevCdf = lognormalCDF(d - 1, muLog, sigmaLog);
+      }
+
+      /* Discrete hazard: h(t) = I * f(t) / (1 - I * F(t-1)) */
+      const ft = cdf - prevCdf;
+      const denom = 1 - ae.incidence * prevCdf;
+      const h = denom > 0.001 ? (ae.incidence * ft) / denom : 0;
+
+      hazard.push(Math.min(h, 1));
+      cumProb += h * (1 - cumProb);
+      cumulative.push(Math.min(cumProb, 1));
+    }
+
+    data.push({ ...ae, hazard, cumulative });
+  }
+  return data;
+}
+
+const aeData = computeData();
+
+/* ── Canvas Drawing ── */
+const canvas = document.getElementById('hazardCanvas');
+const ctx = canvas.getContext('2d');
+
+function resizeCanvas() {
+  const rect = canvas.parentElement.getBoundingClientRect();
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width = rect.width * dpr;
+  canvas.height = 380 * dpr;
+  canvas.style.height = '380px';
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+
+function drawChart() {
+  resizeCanvas();
+  const W = canvas.width / (window.devicePixelRatio || 1);
+  const H = 380;
+  const pad = { top: 20, right: 20, bottom: 40, left: 60 };
+  const cw = W - pad.left - pad.right;
+  const ch = H - pad.top - pad.bottom;
+
+  ctx.clearRect(0, 0, W, H);
+
+  /* Find max value for Y axis */
+  let maxVal = 0.01;
+  for (const ae of aeData) {
+    if (!ae.active) continue;
+    const vals = chartMode === 'hazard' ? ae.hazard : ae.cumulative;
+    maxVal = Math.max(maxVal, ...vals);
+  }
+  maxVal = chartMode === 'cumulative' ? 1 : Math.ceil(maxVal * 100) / 100 + 0.005;
+
+  /* Grid lines */
+  ctx.strokeStyle = 'rgba(48,54,61,0.5)';
+  ctx.lineWidth = 0.5;
+  const yTicks = chartMode === 'cumulative' ? [0, 0.25, 0.5, 0.75, 1.0] :
+    Array.from({ length: 5 }, (_, i) => (maxVal / 4) * i);
+
+  for (const v of yTicks) {
+    const y = pad.top + ch - (v / maxVal) * ch;
+    ctx.beginPath();
+    ctx.moveTo(pad.left, y);
+    ctx.lineTo(W - pad.right, y);
+    ctx.stroke();
+  }
+
+  /* X axis ticks */
+  ctx.fillStyle = 'rgba(156,163,175,0.5)';
+  ctx.font = '11px JetBrains Mono, monospace';
+  ctx.textAlign = 'center';
+  for (let d = 0; d <= MAX_DAY; d += 14) {
+    const x = pad.left + (d / MAX_DAY) * cw;
+    ctx.beginPath();
+    ctx.moveTo(x, pad.top);
+    ctx.lineTo(x, H - pad.bottom);
+    ctx.strokeStyle = 'rgba(48,54,61,0.3)';
+    ctx.stroke();
+    ctx.fillText(`D${d || 1}`, x, H - pad.bottom + 16);
+  }
+
+  /* Y axis labels */
+  ctx.textAlign = 'right';
+  for (const v of yTicks) {
+    const y = pad.top + ch - (v / maxVal) * ch;
+    ctx.fillStyle = 'rgba(156,163,175,0.5)';
+    const label = chartMode === 'cumulative' ? (v * 100).toFixed(0) + '%' : (v * 100).toFixed(1) + '%';
+    ctx.fillText(label, pad.left - 8, y + 4);
+  }
+
+  /* Y axis title */
+  ctx.save();
+  ctx.translate(14, pad.top + ch / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = 'center';
+  ctx.fillStyle = 'rgba(156,163,175,0.4)';
+  ctx.font = '10px Inter, sans-serif';
+  ctx.fillText(chartMode === 'hazard' ? 'Daily Hazard Rate' : 'Cumulative Probability', 0, 0);
+  ctx.restore();
+
+  /* Draw curves */
+  for (const ae of aeData) {
+    if (!ae.active) continue;
+    const vals = chartMode === 'hazard' ? ae.hazard : ae.cumulative;
+
+    /* Area fill */
+    ctx.beginPath();
+    ctx.moveTo(pad.left, pad.top + ch);
+    for (let d = 0; d < MAX_DAY; d++) {
+      const x = pad.left + (d / (MAX_DAY - 1)) * cw;
+      const y = pad.top + ch - (vals[d] / maxVal) * ch;
+      if (d === 0) ctx.lineTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.lineTo(pad.left + cw, pad.top + ch);
+    ctx.closePath();
+    ctx.fillStyle = ae.colorRgba + '0.04)';
+    ctx.fill();
+
+    /* Line */
+    ctx.beginPath();
+    for (let d = 0; d < MAX_DAY; d++) {
+      const x = pad.left + (d / (MAX_DAY - 1)) * cw;
+      const y = pad.top + ch - (vals[d] / maxVal) * ch;
+      if (d === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.strokeStyle = ae.color;
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  /* Current day indicator */
+  const dayX = pad.left + ((currentDay - 1) / (MAX_DAY - 1)) * cw;
+
+  /* Vertical line */
+  ctx.beginPath();
+  ctx.moveTo(dayX, pad.top);
+  ctx.lineTo(dayX, H - pad.bottom);
+  ctx.strokeStyle = 'rgba(57,210,192,0.6)';
+  ctx.lineWidth = 1.5;
+  ctx.setLineDash([4, 3]);
+  ctx.stroke();
+  ctx.setLineDash([]);
+
+  /* Day label */
+  ctx.fillStyle = 'rgba(57,210,192,0.9)';
+  ctx.font = 'bold 11px JetBrains Mono, monospace';
+  ctx.textAlign = 'center';
+  ctx.fillText('Day ' + currentDay, dayX, pad.top - 6);
+
+  /* Dots on curves at current day */
+  for (const ae of aeData) {
+    if (!ae.active) continue;
+    const vals = chartMode === 'hazard' ? ae.hazard : ae.cumulative;
+    const y = pad.top + ch - (vals[currentDay - 1] / maxVal) * ch;
+
+    ctx.beginPath();
+    ctx.arc(dayX, y, 4, 0, Math.PI * 2);
+    ctx.fillStyle = ae.color;
+    ctx.fill();
+    ctx.strokeStyle = 'rgba(13,17,23,0.8)';
+    ctx.lineWidth = 2;
+    ctx.stroke();
+  }
+
+  /* Cycle indicators at bottom */
+  ctx.fillStyle = 'rgba(57,210,192,0.15)';
+  ctx.font = '9px Inter, sans-serif';
+  ctx.textAlign = 'center';
+  const cycleStarts = [1, 22, 43, 64];
+  cycleStarts.forEach((start, i) => {
+    const x = pad.left + ((start - 1) / (MAX_DAY - 1)) * cw;
+    const endDay = Math.min(start + 20, MAX_DAY);
+    const xEnd = pad.left + ((endDay - 1) / (MAX_DAY - 1)) * cw;
+    ctx.fillStyle = i % 2 === 0 ? 'rgba(57,210,192,0.03)' : 'rgba(88,166,255,0.03)';
+    ctx.fillRect(x, pad.top, xEnd - x, ch);
+    ctx.fillStyle = 'rgba(156,163,175,0.3)';
+    ctx.fillText(`C${i + 1}`, (x + xEnd) / 2, H - pad.bottom + 30);
+  });
+}
+
+/* ── Legend ── */
+function buildLegend() {
+  const container = document.getElementById('legend');
+  container.innerHTML = '';
+  aeData.forEach((ae, i) => {
+    const item = document.createElement('span');
+    item.className = 'legend-item' + (ae.active ? ' active' : ' inactive');
+    item.innerHTML = `<span class="legend-dot" style="background:${ae.color}"></span>${ae.short}`;
+    item.onclick = () => {
+      ae.active = !ae.active;
+      item.className = 'legend-item' + (ae.active ? ' active' : ' inactive');
+      drawChart();
+      updateSidePanel();
+    };
+    container.appendChild(item);
+  });
+}
+
+/* ── Side Panel ── */
+function updateSidePanel() {
+  const probList = document.getElementById('probList');
+  let html = '';
+  let totalHazard = 0;
+  let totalCumul = 0;
+  let activeCount = 0;
+
+  for (const ae of aeData) {
+    if (!ae.active) continue;
+    activeCount++;
+    const h = ae.hazard[currentDay - 1];
+    const c = ae.cumulative[currentDay - 1];
+    totalHazard += h;
+    totalCumul += c;
+
+    const pct = (h * 100).toFixed(2);
+    const valColor = h > 0.05 ? 'var(--accent-red)' : h > 0.02 ? 'var(--accent-orange)' : 'var(--accent-green)';
+
+    html += `
+      <div class="prob-row">
+        <span class="prob-name"><span class="prob-dot" style="background:${ae.color}"></span>${ae.short}</span>
+        <span class="prob-val" style="color:${valColor}">${pct}%</span>
+      </div>
+    `;
+  }
+  probList.innerHTML = html || '<div style="color:var(--text-muted);font-size:0.85em;text-align:center;padding:12px;">No active AEs</div>';
+
+  /* Stats */
+  const avgHazard = activeCount > 0 ? totalHazard / activeCount : 0;
+  const maxHazard = Math.max(...aeData.filter(a => a.active).map(a => a.hazard[currentDay - 1]), 0);
+  const avgCumul = activeCount > 0 ? totalCumul / activeCount : 0;
+
+  /* Determine cycle */
+  const cycle = Math.floor((currentDay - 1) / 21) + 1;
+  const cycleDay = ((currentDay - 1) % 21) + 1;
+
+  document.getElementById('sideStats').innerHTML = `
+    <div class="side-stat">
+      <div class="ss-val">${(avgHazard * 100).toFixed(2)}%</div>
+      <div class="ss-label">Avg Hazard</div>
+    </div>
+    <div class="side-stat">
+      <div class="ss-val">${(maxHazard * 100).toFixed(2)}%</div>
+      <div class="ss-label">Peak Hazard</div>
+    </div>
+    <div class="side-stat">
+      <div class="ss-val">C${cycle}D${cycleDay}</div>
+      <div class="ss-label">Cycle/Day</div>
+    </div>
+    <div class="side-stat">
+      <div class="ss-val">${(avgCumul * 100).toFixed(1)}%</div>
+      <div class="ss-label">Avg Cumul.</div>
+    </div>
+  `;
+}
+
+/* ── Day Slider ── */
+const slider = document.getElementById('daySlider');
+const dayVal = document.getElementById('dayVal');
+
+slider.addEventListener('input', () => {
+  currentDay = parseInt(slider.value);
+  dayVal.textContent = 'Day ' + currentDay;
+  drawChart();
+  updateSidePanel();
+});
+
+/* ── Canvas Mouse Interaction ── */
+canvas.addEventListener('mousedown', (e) => { isDragging = true; updateDayFromMouse(e); });
+canvas.addEventListener('mousemove', (e) => { if (isDragging) updateDayFromMouse(e); });
+canvas.addEventListener('mouseup', () => { isDragging = false; });
+canvas.addEventListener('mouseleave', () => { isDragging = false; });
+
+function updateDayFromMouse(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const W = rect.width;
+  const pad = { left: 60, right: 20 };
+  const cw = W - pad.left - pad.right;
+  const relX = (x - pad.left) / cw;
+  const day = Math.max(1, Math.min(MAX_DAY, Math.round(relX * (MAX_DAY - 1)) + 1));
+  currentDay = day;
+  slider.value = day;
+  dayVal.textContent = 'Day ' + day;
+  drawChart();
+  updateSidePanel();
+}
+
+/* ── Mode Toggle ── */
+function setMode(mode) {
+  chartMode = mode;
+  document.getElementById('modeHazard').classList.toggle('active', mode === 'hazard');
+  document.getElementById('modeCumul').classList.toggle('active', mode === 'cumulative');
+  drawChart();
+}
+
+/* ── Init ── */
+window.addEventListener('resize', () => { drawChart(); });
+buildLegend();
+drawChart();
+updateSidePanel();
+
+/* Auto-play animation on load */
+let autoDay = 1;
+const autoInterval = setInterval(() => {
+  autoDay++;
+  if (autoDay > MAX_DAY) { clearInterval(autoInterval); return; }
+  currentDay = autoDay;
+  slider.value = autoDay;
+  dayVal.textContent = 'Day ' + autoDay;
+  drawChart();
+  updateSidePanel();
+}, 50);
+</script>
+{% endblock %}
