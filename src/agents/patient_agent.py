@@ -424,7 +424,6 @@ def map_patient_record(patient: dict) -> dict:
         'SEX': demo.get('sex'),
         'RACE': _normalize_race(demo.get('race', '')),
         'ETHNIC': 'NOT REPORTED',
-        'BRTHDAT': None,
     }
 
     mh_records = []

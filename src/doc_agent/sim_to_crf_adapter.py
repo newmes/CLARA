@@ -115,7 +115,6 @@ def _build_dm(profile: dict) -> DMDomain:
         SEX=_normalize_sex(dm.get("SEX") or emr_demo.get("sex", "")),
         RACE=dm.get("RACE", ""),
         ETHNIC=dm.get("ETHNIC", "NOT REPORTED"),
-        BRTHDAT=None,
     )
 
 
