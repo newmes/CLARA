@@ -219,7 +219,11 @@
 
 {% block nav_items %}
   <span class="nav-sep">/</span>
-  <a href="{% url 'demo_hazard' %}" class="nav-active">Hazard Engine</a>
+  <a href="{% url 'demo_anti_hallucination' %}">Anti-Hallucination</a>
+  <span class="nav-sep">|</span>
+  <a href="{% url 'demo_medgemma' %}">MedGemma</a>
+  <span class="nav-sep">|</span>
+  <a href="{% url 'demo_hazard' %}" class="nav-active">Hazard</a>
 {% endblock %}
 
 {% block content %}
