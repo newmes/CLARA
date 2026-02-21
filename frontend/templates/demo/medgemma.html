@@ -284,20 +284,6 @@
   background: linear-gradient(90deg, var(--accent-purple), rgba(188,140,255,0.2));
   opacity: 0.5;
 }
-/* Card mouse glow */
-.mg-stat-block::after {
-  content: '';
-  position: absolute; inset: 0;
-  border-radius: 14px;
-  background: radial-gradient(
-    300px circle at var(--card-mouse-x, 50%) var(--card-mouse-y, 0%),
-    rgba(188,140,255,0.06),
-    transparent 40%
-  );
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.35s;
-}
 .mg-stat-block:hover {
   border-color: rgba(188,140,255,0.15);
   background: rgba(22,27,34,0.8);
@@ -343,27 +329,12 @@
   opacity: 0.5;
   transition: opacity 0.35s;
 }
-/* Mouse-tracking radial gradient glow */
-.mg-card::after {
-  content: '';
-  position: absolute; inset: 0;
-  border-radius: 18px;
-  background: radial-gradient(
-    400px circle at var(--card-mouse-x, 50%) var(--card-mouse-y, 0%),
-    rgba(188,140,255,0.06),
-    transparent 40%
-  );
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.35s;
-}
 .mg-card:hover {
   border-color: rgba(188,140,255,0.15);
   transform: translateY(-3px);
   box-shadow: 0 16px 48px rgba(0,0,0,0.3), 0 0 40px rgba(188,140,255,0.05);
 }
 .mg-card:hover::before { opacity: 1; }
-.mg-card:hover::after { opacity: 1; }
 
 /* =================================================================
    INTERACTIVE DEMO SECTION
@@ -776,25 +747,11 @@
   background: linear-gradient(90deg, var(--accent-purple), rgba(188,140,255,0.2));
   opacity: 0.4;
 }
-.mg-perf-card::after {
-  content: '';
-  position: absolute; inset: 0;
-  border-radius: 16px;
-  background: radial-gradient(
-    300px circle at var(--card-mouse-x, 50%) var(--card-mouse-y, 0%),
-    rgba(188,140,255,0.06),
-    transparent 40%
-  );
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.35s;
-}
 .mg-perf-card:hover {
   border-color: rgba(188,140,255,0.15);
   transform: translateY(-3px);
   box-shadow: 0 12px 40px rgba(0,0,0,0.3);
 }
-.mg-perf-card:hover::after { opacity: 1; }
 .mg-perf-label {
   font-size: 0.6em; font-weight: 700; text-transform: uppercase;
   letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 10px;
@@ -1297,19 +1254,6 @@ function getAeTypeFromGt(gt) {
    1. SPOTLIGHT — removed (workspace feel, not showroom)
    ══════════════════════════════════════════════════════════════ */
 
-/* ══════════════════════════════════════════════════════════════
-   2. CARD MOUSE GLOW — per-card mouse tracking
-   ══════════════════════════════════════════════════════════════ */
-function initCardGlow() {
-  var cards = document.querySelectorAll('.mg-card, .mg-stat-block, .mg-perf-card');
-  cards.forEach(function(card) {
-    card.addEventListener('mousemove', function(e) {
-      var rect = card.getBoundingClientRect();
-      card.style.setProperty('--card-mouse-x', (e.clientX - rect.left) + 'px');
-      card.style.setProperty('--card-mouse-y', (e.clientY - rect.top) + 'px');
-    });
-  });
-}
 
 /* ══════════════════════════════════════════════════════════════
    3. SCROLL REVEAL — IntersectionObserver
@@ -1911,7 +1855,6 @@ document.addEventListener('keydown', function(e) {
 renderPerformance();
 renderBarChart();
 buildAeTabs();
-initCardGlow();
 initScrollReveal();
 initCounters();
 
