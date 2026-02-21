@@ -17,6 +17,8 @@ services:
       CTE_VLLM_API_KEY: "EMPTY"
       MEDGEMMA4B_VLLM_BASE_URL: "http://clara-medgemma4b-ft:8000/v1"
       MEDGEMMA4B_MODEL_ID: "medgemma-4b-finetuned"
+      MEDGEMMA4B_BASE_VLLM_BASE_URL: "http://clara-medgemma4b:8000/v1"
+      MEDGEMMA4B_BASE_MODEL_ID: "google/medgemma-4b-it"
       PYTHONPATH: "/app"
     networks:
       - vital-net
