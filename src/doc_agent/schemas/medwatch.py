@@ -18,13 +18,11 @@ class SectionA(BaseModel):
     """Section A — Patient Information (5 fields)."""
     patient_id: str = Field(default="", description="A1: Patient identifier")
     age: Optional[int] = Field(default=None, description="A2: Age at event")
-    dob: Optional[date] = Field(default=None, description="A2: Date of birth")
     sex: str = Field(default="", description="A3: Sex")
     weight: Optional[float] = Field(default=None, description="A4: Weight (kg)")
     ethnicity: str = Field(default="", description="A5a: Ethnicity (Hispanic/Not Hispanic)")
     race: str = Field(default="", description="A5b: Race (Asian, Black, White, etc.)")
 
-    _fix_dates = field_validator("dob", mode="before")(_empty_str_to_none)
     _fix_nums = field_validator("age", "weight", mode="before")(_empty_str_to_none)
 
 

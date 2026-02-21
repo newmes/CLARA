@@ -101,6 +101,15 @@
   }
   .crf-table tr:hover td { background: rgba(57,210,192,0.03); }
   .crf-table .col-patient { font-weight: 700; }
+  /* ── Sticky columns ── */
+  .crf-table th.col-sticky,
+  .crf-table td.col-sticky {
+    position: sticky; z-index: 2;
+  }
+  .crf-table th.col-sticky { z-index: 3; background: var(--bg-secondary); }
+  .crf-table td.col-sticky { background: var(--bg-card); }
+  .crf-table tr:hover td.col-sticky { background: rgba(57,210,192,0.03); }
+  .crf-table .col-sticky-last { box-shadow: 2px 0 6px rgba(0,0,0,0.08); }
   /* ── Pagination ── */
   .crf-pagination {
     display: flex; align-items: center; justify-content: center;
@@ -589,6 +598,12 @@
   // Grade/severity fields for badge rendering
   const GRADE_KEYS = new Set(["_grade", "grade", "AETOXGR"]);
 
+  // Number of leading columns to freeze per domain
+  const STICKY_COUNT = {
+    AE: 2, AE_HR: 2,  // Subject + Adverse Event
+    CM: 2,             // Subject + Medication
+  };  // default: 1 (Subject only)
+
   function resetSort() { sortKey = null; sortDir = 'asc'; lastData = null; }
 
   window.switchDomain = function(domain) {
@@ -712,23 +727,37 @@
       return;
     }
 
+    const domainKey = currentDomain.replace('+', '_');
+    const stickyN = STICKY_COUNT[currentSource === 'hr' ? domainKey + '_HR' : domainKey]
+                 || STICKY_COUNT[domainKey] || 1;
+
     const cols = data.columns;
     let html = '<table class="crf-table"><thead><tr>';
-    for (const col of cols) {
+    for (let ci = 0; ci < cols.length; ci++) {
+      const col = cols[ci];
       const isActive = sortKey === col.key;
       const arrow = isActive ? (sortDir === 'asc' ? '&#9650;' : '&#9660;') : '&#9650;';
-      const cls = isActive ? ' class="sort-active"' : '';
+      const classes = [];
+      if (isActive) classes.push('sort-active');
+      if (ci < stickyN) classes.push('col-sticky');
+      if (ci === stickyN - 1) classes.push('col-sticky-last');
+      const cls = classes.length ? ` class="${classes.join(' ')}"` : '';
       html += `<th${cls} onclick="sortBy('${col.key}')">${col.label}<span class="sort-arrow">${arrow}</span></th>`;
     }
     html += '</tr></thead><tbody>';
 
     for (const row of data.rows) {
       html += '<tr>';
-      for (const col of cols) {
+      for (let ci = 0; ci < cols.length; ci++) {
+        const col = cols[ci];
         let val = row[col.key];
         const isGrade = GRADE_KEYS.has(col.key);
         const isPatient = col.key === 'patient_id';
-        let cls = isPatient ? ' class="col-patient"' : '';
+        const classes = [];
+        if (isPatient) classes.push('col-patient');
+        if (ci < stickyN) classes.push('col-sticky');
+        if (ci === stickyN - 1) classes.push('col-sticky-last');
+        const cls = classes.length ? ` class="${classes.join(' ')}"` : '';
 
         if (val === null || val === undefined) {
           val = '<span style="color:var(--text-muted);">—</span>';
@@ -743,6 +772,23 @@
     }
     html += '</tbody></table>';
     area.innerHTML = html;
+    applyStickyOffsets();
+  }
+
+  function applyStickyOffsets() {
+    const table = document.querySelector('.crf-table');
+    if (!table) return;
+    const ths = table.querySelectorAll('thead th.col-sticky');
+    if (!ths.length) return;
+    let left = 0;
+    for (let i = 0; i < ths.length; i++) {
+      ths[i].style.left = left + 'px';
+      const colIdx = i + 1; // nth-child is 1-based
+      table.querySelectorAll(`tbody td:nth-child(${colIdx})`).forEach(td => {
+        td.style.left = left + 'px';
+      });
+      left += ths[i].offsetWidth;
+    }
   }
 
   function renderPagination(data) {

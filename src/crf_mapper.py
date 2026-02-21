@@ -84,7 +84,6 @@ def map_patient_record(patient: dict) -> dict:
         "RACE": normalized_race,
         "RACEOTH": demo.get("race", "") if normalized_race == "OTHER" else "",
         "ETHNIC": "NOT REPORTED",  # 시뮬레이션에서 별도 생성 안 함
-        "BRTHDAT": None,  # 생년월일은 privacy로 미생성
     }
 
     # ── MH (Medical History) ──

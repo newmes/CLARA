@@ -168,11 +168,6 @@ def convert_to_e2b_xml(
         _sub(patient, "patientonsetage", str(crf.dm.AGE))
         _sub(patient, "patientonsetageunit", "801")  # 801 = Year
 
-    # D.3: Birth date
-    if crf.dm.BRTHDAT:
-        _sub(patient, "patientbirthdateformat", "102")
-        _sub(patient, "patientbirthdate", _iso_date(crf.dm.BRTHDAT))
-
     # D.4: Weight and Height
     if crf.vs.WEIGHT:
         _sub(patient, "patientweight", str(crf.vs.WEIGHT))

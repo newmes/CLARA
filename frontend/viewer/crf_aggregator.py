@@ -58,7 +58,6 @@ def _cm_to_in(val):
 
 DM_COLUMNS = [
     {"key": "patient_id", "label": "Subject"},
-    {"key": "BRTHDAT", "label": "Date of Birth"},
     {"key": "AGE", "label": "Age"},
     {"key": "AGEU", "label": "Age Unit"},
     {"key": "SEX", "label": "Sex"},
@@ -79,55 +78,56 @@ MH_COLUMNS = [
 
 AE_COLUMNS = [
     {"key": "patient_id", "label": "Subject"},
-    {"key": "AEYN", "label": "Reported"},
     {"key": "AETERM", "label": "Adverse Event"},
+    {"key": "AEYN", "label": "Reported"},
     {"key": "AESTDAT", "label": "Start Day"},
     {"key": "AEONGO", "label": "Ongoing"},
     {"key": "AEENDAT", "label": "End Day"},
     {"key": "AESEV", "label": "Severity"},
     {"key": "_grade", "label": "Grade"},
     {"key": "AESER", "label": "Serious"},
-    {"key": "AESDTH", "label": "Results in Death"},
-    {"key": "AESLIFE", "label": "Life-Threatening"},
-    {"key": "AESHOSP", "label": "Hospitalization"},
-    {"key": "AESDISAB", "label": "Disability"},
-    {"key": "AESCONG", "label": "Congenital Anomaly"},
-    {"key": "AESMIE", "label": "Other Medically Important"},
     {"key": "AEREL", "label": "Related"},
     {"key": "AEACN", "label": "Action Taken"},
     {"key": "AEACNOTH", "label": "Other Action"},
     {"key": "AEOUT", "label": "Outcome"},
     {"key": "_status", "label": "Status"},
     {"key": "_days_active", "label": "Days Active"},
-    {"key": "_visual", "label": "Visual Details"},
+    # ── Seriousness sub-fields (far right) ──
+    {"key": "AESDTH", "label": "Results in Death"},
+    {"key": "AESLIFE", "label": "Life-Threatening"},
+    {"key": "AESHOSP", "label": "Hospitalization"},
+    {"key": "AESDISAB", "label": "Disability"},
+    {"key": "AESCONG", "label": "Congenital Anomaly"},
+    {"key": "AESMIE", "label": "Other Medically Important"},
 ]
 
 AE_HR_COLUMNS = [
     {"key": "patient_id", "label": "Subject"},
-    {"key": "AEYN", "label": "Reported"},
     {"key": "AETERM", "label": "Adverse Event"},
+    {"key": "AEYN", "label": "Reported"},
     {"key": "AESTDAT", "label": "Start Day"},
     {"key": "AEONGO", "label": "Ongoing"},
     {"key": "AEENDAT", "label": "End Day"},
     {"key": "AESEV", "label": "Severity"},
     {"key": "_grade", "label": "Grade"},
     {"key": "AESER", "label": "Serious"},
-    {"key": "AESDTH", "label": "Results in Death"},
-    {"key": "AESLIFE", "label": "Life-Threatening"},
-    {"key": "AESHOSP", "label": "Hospitalization"},
-    {"key": "AESDISAB", "label": "Disability"},
-    {"key": "AESCONG", "label": "Congenital Anomaly"},
-    {"key": "AESMIE", "label": "Other Medically Important"},
     {"key": "AEREL", "label": "Related"},
     {"key": "AEACN", "label": "Action Taken"},
     {"key": "AEACNOTH", "label": "Other Action"},
     {"key": "AEOUT", "label": "Outcome"},
     {"key": "_status", "label": "Status"},
     {"key": "_days_active", "label": "Days Active"},
-    {"key": "_visual", "label": "Visual Details"},
+    # ── Detection tracking ──
     {"key": "detected_day", "label": "Detected Day"},
     {"key": "detection_delay", "label": "Detection Delay"},
     {"key": "channel", "label": "Detection Channel"},
+    # ── Seriousness sub-fields (far right) ──
+    {"key": "AESDTH", "label": "Results in Death"},
+    {"key": "AESLIFE", "label": "Life-Threatening"},
+    {"key": "AESHOSP", "label": "Hospitalization"},
+    {"key": "AESDISAB", "label": "Disability"},
+    {"key": "AESCONG", "label": "Congenital Anomaly"},
+    {"key": "AESMIE", "label": "Other Medically Important"},
 ]
 
 EC_COLUMNS = [
@@ -154,22 +154,23 @@ EC_COLUMNS = [
 
 CM_COLUMNS = [
     {"key": "patient_id", "label": "Subject"},
-    {"key": "CMYN", "label": "Reported"},
     {"key": "CMTRT", "label": "Medication"},
     {"key": "CMINDC", "label": "Indication"},
-    {"key": "CMDSTXT", "label": "Dose"},
-    {"key": "CMDOSU", "label": "Dose Unit"},
-    {"key": "DOSUO", "label": "Dose Unit Other"},
-    {"key": "CMDOSFRM", "label": "Form"},
-    {"key": "DOSFRMO", "label": "Form Other"},
-    {"key": "CMDOSFRQ", "label": "Frequency"},
-    {"key": "DOSFRQO", "label": "Frequency Other"},
-    {"key": "CMROUTE", "label": "Route"},
-    {"key": "ROUTEO", "label": "Route Other"},
     {"key": "CMSTDAT", "label": "Start Day"},
     {"key": "CMONGO", "label": "Ongoing"},
     {"key": "CMENDAT", "label": "End Day"},
+    {"key": "CMDSTXT", "label": "Dose"},
+    {"key": "CMDOSU", "label": "Dose Unit"},
+    {"key": "CMDOSFRQ", "label": "Frequency"},
+    {"key": "CMROUTE", "label": "Route"},
+    {"key": "CMDOSFRM", "label": "Form"},
     {"key": "_baseline", "label": "Baseline"},
+    # ── Less critical fields ──
+    {"key": "CMYN", "label": "Reported"},
+    {"key": "DOSUO", "label": "Dose Unit Other"},
+    {"key": "DOSFRMO", "label": "Form Other"},
+    {"key": "DOSFRQO", "label": "Frequency Other"},
+    {"key": "ROUTEO", "label": "Route Other"},
 ]
 
 VS_COLUMNS = [
@@ -271,7 +272,6 @@ TU_COLUMNS = [
     {"key": "TUYN", "label": "Assessed"},
     {"key": "day", "label": "Day"},
     {"key": "_cycle", "label": "Cycle"},
-    {"key": "TULNKID", "label": "Lesion Link ID"},
     {"key": "TULOC", "label": "Location"},
     {"key": "TULAT", "label": "Laterality"},
     {"key": "TUDIR", "label": "Direction"},
@@ -285,8 +285,6 @@ TU_COLUMNS = [
     {"key": "_baseline_mm", "label": "Baseline (mm)"},
     {"key": "_change_pct", "label": "Change (%)"},
     {"key": "TRSTAT", "label": "Status"},
-    {"key": "TRREASND", "label": "Reason Not Done"},
-    {"key": "TURESULT", "label": "Result"},
 ]
 
 RS_COLUMNS = [
@@ -295,8 +293,6 @@ RS_COLUMNS = [
     {"key": "_cycle", "label": "Cycle"},
     {"key": "RSPERF", "label": "Performed"},
     {"key": "RSCAT", "label": "Assessment Category"},
-    {"key": "RSEVAL", "label": "Evaluator"},
-    {"key": "RSEVALID", "label": "Evaluator ID"},
     {"key": "TRGRESP_RSORRES", "label": "Target Response"},
     {"key": "NTRGRESP_RSORRES", "label": "Non-Target Response"},
     {"key": "OVRLRESP_RSORRES", "label": "Overall Response"},
@@ -305,8 +301,6 @@ RS_COLUMNS = [
     {"key": "_nadir_pct", "label": "Nadir (%)"},
     {"key": "_description", "label": "Description"},
     {"key": "RSRESULT", "label": "Response"},
-    {"key": "RSTESTCD", "label": "Test Code"},
-    {"key": "RSREASND", "label": "Reason Not Done"},
 ]
 
 PE_COLUMNS = [
@@ -470,7 +464,6 @@ def aggregate_dm(
         dm = profile.get("DM", {})
         rows.append({
             "patient_id": pid,
-            "BRTHDAT": dm.get("BRTHDAT"),
             "AGE": dm.get("AGE"),
             "AGEU": dm.get("AGEU", "YEARS"),
             "SEX": dm.get("SEX"),
