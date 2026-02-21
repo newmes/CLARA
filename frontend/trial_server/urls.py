@@ -107,6 +107,10 @@ urlpatterns = [
     path('doc/<str:run_id>/<str:patient_id>/<str:ae_slug>/',
          views.sae_report_editor, name='sae_report_editor'),
 
+    # MedGemma API
+    path('api/medgemma/analyze/',
+         views.api_medgemma_analyze, name='api_medgemma_analyze'),
+
     # CRF Tables
     path('doc/<str:run_id>/crf/',
          views.crf_tables, name='crf_tables'),

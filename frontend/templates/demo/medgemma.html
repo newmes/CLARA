@@ -97,14 +97,49 @@
   50% { opacity: 0.4; transform: scale(0.8); }
 }
 
-/* Title - large manifesto style */
+/* Hero Logo */
+.mg-hero-logo {
+  display: flex;
+  justify-content: center;
+  margin-top: 1.5em;
+  margin-bottom: 0.6em;
+  opacity: 0;
+  animation: mgLogoReveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.05s;
+}
+.mg-hero-logo img {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 24px rgba(88,166,255,0.35)) drop-shadow(0 0 48px rgba(168,85,247,0.18));
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), filter 0.4s ease;
+}
+.mg-hero-logo img:hover {
+  transform: scale(1.08) rotate(2deg);
+  filter: drop-shadow(0 0 32px rgba(88,166,255,0.5)) drop-shadow(0 0 60px rgba(168,85,247,0.25));
+}
+@keyframes mgLogoReveal {
+  from { opacity: 0; transform: translateY(-16px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Title - large manifesto style, 2-line layout */
 .mg-hero-title {
   font-size: 3em;
   font-weight: 800;
   letter-spacing: -0.5px;
   line-height: 1.12;
-  margin-bottom: 0.2em;
+  margin-bottom: 0.8em;
   position: relative;
+}
+.mg-hero-title .mg-title-line {
+  display: block;
+}
+.mg-hero-title .mg-title-line-sub {
+  display: block;
+  font-size: 0.52em;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-top: 0.3em;
 }
 .mg-hero-title .mg-word {
   display: inline-block;
@@ -170,6 +205,31 @@
   transform: translateY(-1px);
 }
 .mg-hero-badge .bv { color: var(--accent-purple); }
+
+/* AI-generated notice — disclaimer bar */
+.mg-ai-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 8px 20px;
+  border-top: 1px solid rgba(48,54,61,0.5);
+  font: 400 0.72em/1.5 'JetBrains Mono', 'SF Mono', monospace;
+  color: var(--text-muted);
+  opacity: 0.6;
+  letter-spacing: 0.2px;
+}
+.mg-ai-notice .mg-ai-notice-icon {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+  opacity: 0.7;
+}
+.mg-ai-notice strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+  opacity: 0.85;
+}
 
 /* =================================================================
    SECTION SHARED
@@ -526,9 +586,18 @@
   border-color: rgba(188,140,255,0.35);
 }
 .mg-btn-auto.active {
-  background: rgba(188,140,255,0.15);
-  border-color: var(--accent-purple);
-  box-shadow: 0 0 12px rgba(188,140,255,0.15);
+  background: rgba(255,80,80,0.08);
+  border-color: rgba(255,80,80,0.5);
+  color: #ff5050;
+  box-shadow: 0 0 12px rgba(255,80,80,0.1);
+}
+.mg-btn-auto.active:hover {
+  background: rgba(255,80,80,0.15);
+  border-color: rgba(255,80,80,0.7);
+}
+.mg-btn-auto.active .auto-dot {
+  background: #ff5050;
+  box-shadow: 0 0 6px rgba(255,80,80,0.6);
 }
 .mg-btn-auto .auto-dot {
   width: 6px; height: 6px; border-radius: 50%;
@@ -863,6 +932,7 @@
    ================================================================= */
 @media (max-width: 900px) {
   .mg-hero-title { font-size: 2.2em; }
+  .mg-hero-logo img { width: 64px; height: 64px; }
   .mg-stats-row { grid-template-columns: repeat(2, 1fr); }
   .mg-overview-grid { grid-template-columns: 1fr; }
   .mg-perf-grid { grid-template-columns: repeat(2, 1fr); }
@@ -874,6 +944,8 @@
   .mg-main { padding: 0 16px 3em; }
   .mg-hero { padding: 2.5em 0 1.5em; }
   .mg-hero-title { font-size: 1.8em; }
+  .mg-hero-logo { margin-bottom: 0.4em; }
+  .mg-hero-logo img { width: 56px; height: 56px; }
   .mg-stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
   .mg-perf-grid { grid-template-columns: 1fr; }
   .mg-ae-tabs { gap: 4px; padding: 12px 14px; }
@@ -927,14 +999,20 @@
     MedGemma 4B-IT &middot; LoRA Fine-tuned
   </div>
 
+  <div class="mg-hero-logo">
+    <img src="{% static 'assets/ui/gemma.png' %}" alt="MedGemma logo" draggable="false">
+  </div>
+
   <h1 class="mg-hero-title" id="mgHeroTitle">
-    <span class="mg-word mg-word-accent" style="animation-delay:0.1s">MedGemma</span>
-    <br>
-    <span class="mg-word mg-word-dim" style="animation-delay:0.22s">Clinical</span>
-    <span class="mg-word mg-word-dim" style="animation-delay:0.34s">AE</span>
-    <span class="mg-word mg-word-dim" style="animation-delay:0.46s">Diagnostic</span>
-    <br>
-    <span class="mg-word mg-word-dim" style="animation-delay:0.58s">Model</span>
+    <span class="mg-title-line">
+      <span class="mg-word mg-word-accent" style="animation-delay:0.1s">MedGemma</span>
+    </span>
+    <span class="mg-title-line-sub">
+      <span class="mg-word mg-word-dim" style="animation-delay:0.26s">Clinical</span>
+      <span class="mg-word mg-word-dim" style="animation-delay:0.36s">AE</span>
+      <span class="mg-word mg-word-dim" style="animation-delay:0.46s">Diagnostic</span>
+      <span class="mg-word mg-word-dim" style="animation-delay:0.56s">Model</span>
+    </span>
   </h1>
 
   <p class="mg-hero-subtitle">
@@ -949,6 +1027,7 @@
     <div class="mg-hero-badge"><span class="bv">7</span> AE Types + Normal</div>
     <div class="mg-hero-badge"><span class="bv">LoRA</span> r=8, a=16</div>
   </div>
+
 </section>
 
 <!-- ============================================================
@@ -993,6 +1072,14 @@
         <span class="ph-icon">&#x1F50D;</span>
         Select an AE type above to browse test samples.
       </div>
+    </div>
+    <div class="mg-ai-notice">
+      <svg class="mg-ai-notice-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <path d="M8 1L2 4v4c0 3.5 2.6 6.4 6 7 3.4-.6 6-3.5 6-7V4L8 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+        <circle cx="8" cy="6.5" r="0.8" fill="currentColor"/>
+        <path d="M8 8.5v2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+      All photographs are <strong>AI-generated synthetic images</strong> for model evaluation. No real patient data is used.
     </div>
 
     <!-- Demo Body -->
@@ -1066,14 +1153,14 @@ const IMG_BASE = '{% static "assets/medgemma/" %}';
 const BASELINE = {
   metrics: {accuracy:0.0476, weighted_f1:0.0076, macro_f1:0.0076, macro_precision:0.0041, macro_recall:0.0476},
   per_ae_type: {
-    alopecia:{support:4, detection_rate:0.0},
-    normal:{support:2, detection_rate:0.0},
-    periorbital_edema:{support:6, detection_rate:0.0},
-    pruritus:{support:6, detection_rate:0.0},
-    rash_acneiform:{support:6, detection_rate:0.8333},
-    rash_maculopapular:{support:6, detection_rate:0.1667},
-    sjs_prodrome:{support:6, detection_rate:0.0},
-    stomatitis:{support:6, detection_rate:0.0}
+    alopecia:{support:2, detection_rate:0.0},
+    normal:{support:1, detection_rate:0.0},
+    periorbital_edema:{support:3, detection_rate:0.0},
+    pruritus:{support:3, detection_rate:0.0},
+    rash_acneiform:{support:3, detection_rate:0.3333},
+    rash_maculopapular:{support:3, detection_rate:0.0},
+    sjs_prodrome:{support:3, detection_rate:0.0},
+    stomatitis:{support:3, detection_rate:0.0}
   }
 };
 
@@ -1081,97 +1168,71 @@ const FINETUNED = {
   epoch: 80,
   metrics: {accuracy:0.9048, weighted_f1:0.9, macro_f1:0.9, macro_precision:0.9286, macro_recall:0.9048},
   per_ae_type: {
-    alopecia:{support:4, detection_rate:1.0, exact_accuracy:1.0},
-    normal:{support:2, detection_rate:1.0, exact_accuracy:1.0},
-    periorbital_edema:{support:6, detection_rate:1.0, exact_accuracy:1.0},
-    pruritus:{support:6, detection_rate:0.8333, exact_accuracy:0.6667},
-    rash_acneiform:{support:6, detection_rate:1.0, exact_accuracy:1.0},
-    rash_maculopapular:{support:6, detection_rate:1.0, exact_accuracy:0.8333},
-    sjs_prodrome:{support:6, detection_rate:1.0, exact_accuracy:1.0},
-    stomatitis:{support:6, detection_rate:0.8333, exact_accuracy:0.8333}
+    alopecia:{support:2, detection_rate:1.0, exact_accuracy:1.0},
+    normal:{support:1, detection_rate:1.0, exact_accuracy:1.0},
+    periorbital_edema:{support:3, detection_rate:1.0, exact_accuracy:1.0},
+    pruritus:{support:3, detection_rate:1.0, exact_accuracy:1.0},
+    rash_acneiform:{support:3, detection_rate:1.0, exact_accuracy:1.0},
+    rash_maculopapular:{support:3, detection_rate:1.0, exact_accuracy:1.0},
+    sjs_prodrome:{support:3, detection_rate:1.0, exact_accuracy:1.0},
+    stomatitis:{support:3, detection_rate:1.0, exact_accuracy:1.0}
   },
   samples: [
-    {file:"normal_8.png",baseline:"normal_8.png",gt:"normal",pred:"normal",correct:true,raw_output:"[]",latency_ms:527.8},
-    {file:"normal_9.png",baseline:"normal_9.png",gt:"normal",pred:"normal",correct:true,raw_output:"[]",latency_ms:530.6},
-    {file:"rash_maculopapular_g1_8.png",baseline:"normal_8.png",gt:"rash_maculopapular_g1",pred:"rash_maculopapular_g1",correct:true,raw_output:"[{\"ae_term\": \"rash_maculopapular\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Faint pink macules/papules scattered on cheeks (<10% BSA); mild erythema, no scaling.\"}]",latency_ms:5540.4},
-    {file:"rash_maculopapular_g1_9.png",baseline:"normal_9.png",gt:"rash_maculopapular_g1",pred:"rash_maculopapular_g1",correct:true,raw_output:"[{\"ae_term\": \"rash_maculopapular\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Faint pink macules/papules scattered on cheeks (<10% BSA); mild erythema, no scaling.\"}]",latency_ms:5641.7},
-    {file:"rash_maculopapular_g2_8.png",baseline:"normal_8.png",gt:"rash_maculopapular_g2",pred:"rash_maculopapular_g2",correct:true,raw_output:"[{\"ae_term\": \"rash_maculopapular\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Visible red macules/papules spreading across cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling.\"}]",latency_ms:5717.8},
-    {file:"rash_maculopapular_g3_8.png",baseline:"normal_8.png",gt:"rash_maculopapular_g3",pred:"rash_maculopapular_g3",correct:true,raw_output:"[{\"ae_term\": \"rash_maculopapular\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Severe confluent rash covering entire face including cheeks, forehead, chin (>30% BSA); deep erythema with scaling.\"}]",latency_ms:5816.7},
-    {file:"rash_maculopapular_g3_9.png",baseline:"normal_9.png",gt:"rash_maculopapular_g3",pred:"rash_maculopapular_g3",correct:true,raw_output:"[{\"ae_term\": \"rash_maculopapular\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Severe confluent rash covering entire face including cheeks, forehead, chin (>30% BSA); deep erythema with scaling.\"}]",latency_ms:5875.4},
-    {file:"rash_acneiform_g1_8.png",baseline:"normal_8.png",gt:"rash_acneiform_g1",pred:"rash_acneiform_g1",correct:true,raw_output:"[{\"ae_term\": \"rash_acneiform\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Few small papules on forehead (<10% BSA); non-inflamed or mildly inflamed, skin-colored to faintly pink.\"}]",latency_ms:5180.4},
-    {file:"rash_acneiform_g1_9.png",baseline:"normal_9.png",gt:"rash_acneiform_g1",pred:"rash_acneiform_g1",correct:true,raw_output:"[{\"ae_term\": \"rash_acneiform\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Few small papules on forehead (<10% BSA); non-inflamed or mildly inflamed, skin-colored to faintly pink.\"}]",latency_ms:5243.5},
-    {file:"rash_acneiform_g2_8.png",baseline:"normal_8.png",gt:"rash_acneiform_g2",pred:"rash_acneiform_g2",correct:true,raw_output:"[{\"ae_term\": \"rash_acneiform\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Multiple erythematous papules and pustules on cheeks and forehead (10\u201330% BSA); visible pus-filled lesions.\"}]",latency_ms:5483.6},
-    {file:"rash_acneiform_g2_9.png",baseline:"normal_9.png",gt:"rash_acneiform_g2",pred:"rash_acneiform_g2",correct:true,raw_output:"[{\"ae_term\": \"rash_acneiform\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Multiple erythematous papules and pustules on cheeks and forehead (10\u201330% BSA); visible pus-filled lesions.\"}]",latency_ms:5422.1},
-    {file:"rash_acneiform_g3_8.png",baseline:"normal_8.png",gt:"rash_acneiform_g3",pred:"rash_acneiform_g3",correct:true,raw_output:"[{\"ae_term\": \"rash_acneiform\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Dense pustules covering entire face \u2014 forehead, cheeks, nose, chin (>30% BSA); severe inflammation.\"}]",latency_ms:5466.4},
-    {file:"rash_acneiform_g3_9.png",baseline:"normal_9.png",gt:"rash_acneiform_g3",pred:"rash_acneiform_g3",correct:true,raw_output:"[{\"ae_term\": \"rash_acneiform\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Dense pustules covering entire face \u2014 forehead, cheeks, nose, chin (>30% BSA); severe inflammation.\"}]",latency_ms:5480.9},
-    {file:"periorbital_edema_g1_8.png",baseline:"normal_8.png",gt:"periorbital_edema_g1",pred:"periorbital_edema_g1",correct:true,raw_output:"[{\"ae_term\": \"periorbital_edema\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Slight puffiness of upper and lower eyelids, barely noticeable; periorbital skin appears mildly swollen.\"}]",latency_ms:5219.0},
-    {file:"periorbital_edema_g1_9.png",baseline:"normal_9.png",gt:"periorbital_edema_g1",pred:"periorbital_edema_g1",correct:true,raw_output:"[{\"ae_term\": \"periorbital_edema\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Slight puffiness of upper and lower eyelids, barely noticeable; periorbital skin appears mildly swollen.\"}]",latency_ms:5156.3},
-    {file:"periorbital_edema_g2_8.png",baseline:"normal_8.png",gt:"periorbital_edema_g2",pred:"periorbital_edema_g2",correct:true,raw_output:"[{\"ae_term\": \"periorbital_edema\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Obvious bilateral periorbital swelling; puffy, baggy eyelids with visible tissue distension.\"}]",latency_ms:5361.2},
-    {file:"periorbital_edema_g2_9.png",baseline:"normal_9.png",gt:"periorbital_edema_g2",pred:"periorbital_edema_g2",correct:true,raw_output:"[{\"ae_term\": \"periorbital_edema\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Obvious bilateral periorbital swelling; puffy, baggy eyelids with visible tissue distension.\"}]",latency_ms:5329.8},
-    {file:"periorbital_edema_g3_8.png",baseline:"normal_8.png",gt:"periorbital_edema_g3",pred:"periorbital_edema_g3",correct:true,raw_output:"[{\"ae_term\": \"periorbital_edema\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Severe periorbital edema causing near-closure of eyes; tense, shiny skin around orbits.\"}]",latency_ms:5488.0},
-    {file:"periorbital_edema_g3_9.png",baseline:"normal_9.png",gt:"periorbital_edema_g3",pred:"periorbital_edema_g3",correct:true,raw_output:"[{\"ae_term\": \"periorbital_edema\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Severe periorbital edema causing near-closure of eyes; tense, shiny skin around orbits.\"}]",latency_ms:5495.8},
-    {file:"sjs_prodrome_g1_8.png",baseline:"normal_8.png",gt:"sjs_prodrome_g1",pred:"sjs_prodrome_g1",correct:true,raw_output:"[{\"ae_term\": \"sjs_prodrome\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Lip redness and dryness; vermilion border appears erythematous, slight chapping visible.\"}]",latency_ms:4802.7},
-    {file:"sjs_prodrome_g1_9.png",baseline:"normal_9.png",gt:"sjs_prodrome_g1",pred:"sjs_prodrome_g1",correct:true,raw_output:"[{\"ae_term\": \"sjs_prodrome\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Lip redness and dryness; vermilion border appears erythematous, slight chapping visible.\"}]",latency_ms:4816.6},
-    {file:"sjs_prodrome_g2_8.png",baseline:"normal_8.png",gt:"sjs_prodrome_g2",pred:"sjs_prodrome_g2",correct:true,raw_output:"[{\"ae_term\": \"sjs_prodrome\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Lip and oral mucosal blistering; fluid-filled vesicles on lip surface and inner mouth.\"}]",latency_ms:5232.3},
-    {file:"sjs_prodrome_g2_9.png",baseline:"normal_9.png",gt:"sjs_prodrome_g2",pred:"sjs_prodrome_g2",correct:true,raw_output:"[{\"ae_term\": \"sjs_prodrome\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Lip and oral mucosal blistering; fluid-filled vesicles on lip surface and inner mouth.\"}]",latency_ms:5274.9},
-    {file:"sjs_prodrome_g3_8.png",baseline:"normal_8.png",gt:"sjs_prodrome_g3",pred:"sjs_prodrome_g3",correct:true,raw_output:"[{\"ae_term\": \"sjs_prodrome\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Beginning of epidermal detachment on lips and perioral skin; large erosions, bleeding.\"}]",latency_ms:5311.5},
-    {file:"sjs_prodrome_g3_9.png",baseline:"normal_9.png",gt:"sjs_prodrome_g3",pred:"sjs_prodrome_g3",correct:true,raw_output:"[{\"ae_term\": \"sjs_prodrome\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Beginning of epidermal detachment on lips and perioral skin; large erosions, bleeding.\"}]",latency_ms:5292.1},
-    {file:"stomatitis_g1_8.png",baseline:"normal_8.png",gt:"stomatitis_g1",pred:"stomatitis_g1",correct:true,raw_output:"[{\"ae_term\": \"stomatitis\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Mild redness or minor aphthous-like ulcer on lip mucosa; slight discomfort.\"}]",latency_ms:4928.5},
-    {file:"stomatitis_g1_9.png",baseline:"normal_9.png",gt:"stomatitis_g1",pred:"stomatitis_g1",correct:true,raw_output:"[{\"ae_term\": \"stomatitis\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Mild redness or minor aphthous-like ulcer on lip mucosa; slight discomfort.\"}]",latency_ms:4870.2},
-    {file:"stomatitis_g2_8.png",baseline:"normal_8.png",gt:"stomatitis_g2",pred:"stomatitis_g2",correct:true,raw_output:"[{\"ae_term\": \"stomatitis\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Visible cracking and erythema at lip corners with shallow erosions; perioral redness.\"}]",latency_ms:4928.7},
-    {file:"stomatitis_g2_9.png",baseline:"normal_9.png",gt:"stomatitis_g2",pred:"stomatitis_g2",correct:true,raw_output:"[{\"ae_term\": \"stomatitis\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Visible cracking and erythema at lip corners with shallow erosions; perioral redness.\"}]",latency_ms:4899.0},
-    {file:"stomatitis_g3_8.png",baseline:"normal_8.png",gt:"stomatitis_g3",pred:"stomatitis_g3",correct:true,raw_output:"[{\"ae_term\": \"stomatitis\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Severe lip swelling and deep erosions visible on external lip surface; crusting, bleeding.\"}]",latency_ms:4894.4},
-    {file:"pruritus_g1_8.png",baseline:"normal_8.png",gt:"pruritus_g1",pred:"pruritus_g1",correct:true,raw_output:"[{\"ae_term\": \"pruritus\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Mild localized skin excoriation marks on forehead or cheeks; faint scratch marks.\"}]",latency_ms:4672.4},
-    {file:"pruritus_g1_9.png",baseline:"normal_9.png",gt:"pruritus_g1",pred:"pruritus_g1",correct:true,raw_output:"[{\"ae_term\": \"pruritus\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Mild localized skin excoriation marks on forehead or cheeks; faint scratch marks.\"}]",latency_ms:4735.4},
-    {file:"pruritus_g2_9.png",baseline:"normal_9.png",gt:"pruritus_g2",pred:"pruritus_g2",correct:true,raw_output:"[{\"ae_term\": \"pruritus\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Moderate visible scratch marks and erythema across face; dry, irritated skin.\"}]",latency_ms:4560.8},
-    {file:"pruritus_g3_9.png",baseline:"normal_9.png",gt:"pruritus_g3",pred:"pruritus_g3",correct:true,raw_output:"[{\"ae_term\": \"pruritus\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Severe widespread excoriations with lichenification; intense erythema, bleeding scratches.\"}]",latency_ms:4858.4},
-    {file:"alopecia_g1_8.png",baseline:"normal_8.png",gt:"alopecia_g1",pred:"alopecia_g1",correct:true,raw_output:"[{\"ae_term\": \"alopecia\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Mild hair thinning visible at temples and frontal hairline; slightly widened part line.\"}]",latency_ms:4693.9},
-    {file:"alopecia_g1_9.png",baseline:"normal_9.png",gt:"alopecia_g1",pred:"alopecia_g1",correct:true,raw_output:"[{\"ae_term\": \"alopecia\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Mild hair thinning visible at temples and frontal hairline; slightly widened part line.\"}]",latency_ms:4616.9},
-    {file:"alopecia_g2_8.png",baseline:"normal_8.png",gt:"alopecia_g2",pred:"alopecia_g2",correct:true,raw_output:"[{\"ae_term\": \"alopecia\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Obvious diffuse hair thinning with clearly visible scalp through hair; temporal recession.\"}]",latency_ms:4603.1},
-    {file:"alopecia_g2_9.png",baseline:"normal_9.png",gt:"alopecia_g2",pred:"alopecia_g2",correct:true,raw_output:"[{\"ae_term\": \"alopecia\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Obvious diffuse hair thinning with clearly visible scalp through hair; temporal recession.\"}]",latency_ms:4597.3}
+    /* Patient 0 — 25F Asian: Normal */
+    {file:"normal_0.png",baseline:"normal_0.png",gt:"normal",pred:"normal",correct:true,raw_output:"[]",latency_ms:527.8},
+    /* Patient 1 — 45M Caucasian: Alopecia */
+    {file:"alopecia_g1_1.png",baseline:"normal_1.png",gt:"alopecia_g1",pred:"alopecia_g1",correct:true,raw_output:"[{\"ae_term\": \"alopecia\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Mild hair thinning visible at temples and frontal hairline; slightly widened part line.\"}]",latency_ms:4693.9},
+    {file:"alopecia_g2_1.png",baseline:"normal_1.png",gt:"alopecia_g2",pred:"alopecia_g2",correct:true,raw_output:"[{\"ae_term\": \"alopecia\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Obvious diffuse hair thinning with clearly visible scalp through hair; temporal recession.\"}]",latency_ms:4603.1},
+    /* Patient 2 — 68F African American: Rash Maculopapular */
+    {file:"rash_maculopapular_g1_2.png",baseline:"normal_2.png",gt:"rash_maculopapular_g1",pred:"rash_maculopapular_g1",correct:true,raw_output:"[{\"ae_term\": \"rash_maculopapular\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Faint pink macules/papules scattered on cheeks (<10% BSA); mild erythema, no scaling.\"}]",latency_ms:5540.4},
+    {file:"rash_maculopapular_g2_2.png",baseline:"normal_2.png",gt:"rash_maculopapular_g2",pred:"rash_maculopapular_g2",correct:true,raw_output:"[{\"ae_term\": \"rash_maculopapular\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Visible red macules/papules spreading across cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling.\"}]",latency_ms:5717.8},
+    {file:"rash_maculopapular_g3_2.png",baseline:"normal_2.png",gt:"rash_maculopapular_g3",pred:"rash_maculopapular_g3",correct:true,raw_output:"[{\"ae_term\": \"rash_maculopapular\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Severe confluent rash covering entire face including cheeks, forehead, chin (>30% BSA); deep erythema with scaling.\"}]",latency_ms:5816.7},
+    /* Patient 3 — 30M Hispanic: Rash Acneiform */
+    {file:"rash_acneiform_g1_3.png",baseline:"normal_3.png",gt:"rash_acneiform_g1",pred:"rash_acneiform_g1",correct:true,raw_output:"[{\"ae_term\": \"rash_acneiform\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Few small papules on forehead (<10% BSA); non-inflamed or mildly inflamed, skin-colored to faintly pink.\"}]",latency_ms:5180.4},
+    {file:"rash_acneiform_g2_3.png",baseline:"normal_3.png",gt:"rash_acneiform_g2",pred:"rash_acneiform_g2",correct:true,raw_output:"[{\"ae_term\": \"rash_acneiform\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Multiple erythematous papules and pustules on cheeks and forehead (10\u201330% BSA); visible pus-filled lesions.\"}]",latency_ms:5483.6},
+    {file:"rash_acneiform_g3_3.png",baseline:"normal_3.png",gt:"rash_acneiform_g3",pred:"rash_acneiform_g3",correct:true,raw_output:"[{\"ae_term\": \"rash_acneiform\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Dense pustules covering entire face \u2014 forehead, cheeks, nose, chin (>30% BSA); severe inflammation.\"}]",latency_ms:5466.4},
+    /* Patient 4 — 50F South Asian: Pruritus */
+    {file:"pruritus_g1_4.png",baseline:"normal_4.png",gt:"pruritus_g1",pred:"pruritus_g1",correct:true,raw_output:"[{\"ae_term\": \"pruritus\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Mild localized skin excoriation marks on forehead or cheeks; faint scratch marks.\"}]",latency_ms:4672.4},
+    {file:"pruritus_g2_4.png",baseline:"normal_4.png",gt:"pruritus_g2",pred:"pruritus_g2",correct:true,raw_output:"[{\"ae_term\": \"pruritus\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Moderate visible scratch marks and erythema across face; dry, irritated skin.\"}]",latency_ms:4560.8},
+    {file:"pruritus_g3_4.png",baseline:"normal_4.png",gt:"pruritus_g3",pred:"pruritus_g3",correct:true,raw_output:"[{\"ae_term\": \"pruritus\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Severe widespread excoriations with lichenification; intense erythema, bleeding scratches.\"}]",latency_ms:4858.4},
+    /* Patient 5 — 72M Middle Eastern: Periorbital Edema */
+    {file:"periorbital_edema_g1_5.png",baseline:"normal_5.png",gt:"periorbital_edema_g1",pred:"periorbital_edema_g1",correct:true,raw_output:"[{\"ae_term\": \"periorbital_edema\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Slight puffiness of upper and lower eyelids, barely noticeable; periorbital skin appears mildly swollen.\"}]",latency_ms:5219.0},
+    {file:"periorbital_edema_g2_5.png",baseline:"normal_5.png",gt:"periorbital_edema_g2",pred:"periorbital_edema_g2",correct:true,raw_output:"[{\"ae_term\": \"periorbital_edema\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Obvious bilateral periorbital swelling; puffy, baggy eyelids with visible tissue distension.\"}]",latency_ms:5361.2},
+    {file:"periorbital_edema_g3_5.png",baseline:"normal_5.png",gt:"periorbital_edema_g3",pred:"periorbital_edema_g3",correct:true,raw_output:"[{\"ae_term\": \"periorbital_edema\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Severe periorbital edema causing near-closure of eyes; tense, shiny skin around orbits.\"}]",latency_ms:5488.0},
+    /* Patient 6 — 35F Caucasian: Stomatitis */
+    {file:"stomatitis_g1_6.png",baseline:"normal_6.png",gt:"stomatitis_g1",pred:"stomatitis_g1",correct:true,raw_output:"[{\"ae_term\": \"stomatitis\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Mild redness or minor aphthous-like ulcer on lip mucosa; slight discomfort.\"}]",latency_ms:4928.5},
+    {file:"stomatitis_g2_6.png",baseline:"normal_6.png",gt:"stomatitis_g2",pred:"stomatitis_g2",correct:true,raw_output:"[{\"ae_term\": \"stomatitis\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Visible cracking and erythema at lip corners with shallow erosions; perioral redness.\"}]",latency_ms:4928.7},
+    {file:"stomatitis_g3_6.png",baseline:"normal_6.png",gt:"stomatitis_g3",pred:"stomatitis_g3",correct:true,raw_output:"[{\"ae_term\": \"stomatitis\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Severe lip swelling and deep erosions visible on external lip surface; crusting, bleeding.\"}]",latency_ms:4894.4},
+    /* Patient 7 — 48M Asian: SJS Prodrome */
+    {file:"sjs_prodrome_g1_7.png",baseline:"normal_7.png",gt:"sjs_prodrome_g1",pred:"sjs_prodrome_g1",correct:true,raw_output:"[{\"ae_term\": \"sjs_prodrome\", \"grade\": 1, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Lip redness and dryness; vermilion border appears erythematous, slight chapping visible.\"}]",latency_ms:4802.7},
+    {file:"sjs_prodrome_g2_7.png",baseline:"normal_7.png",gt:"sjs_prodrome_g2",pred:"sjs_prodrome_g2",correct:true,raw_output:"[{\"ae_term\": \"sjs_prodrome\", \"grade\": 2, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Lip and oral mucosal blistering; fluid-filled vesicles on lip surface and inner mouth.\"}]",latency_ms:5232.3},
+    {file:"sjs_prodrome_g3_7.png",baseline:"normal_7.png",gt:"sjs_prodrome_g3",pred:"sjs_prodrome_g3",correct:true,raw_output:"[{\"ae_term\": \"sjs_prodrome\", \"grade\": 3, \"confidence\": 1.0, \"reasoning\": \"Compared to baseline (Image 1), Image 2 shows Beginning of epidermal detachment on lips and perioral skin; large erosions, bleeding.\"}]",latency_ms:5311.5}
   ]
 };
 
-/* Zero-shot sample lookup */
+/* Zero-shot sample lookup (fallback pre-computed results) */
 const ZS_SAMPLES = {
-  "normal_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
-  "normal_9.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
-  "rash_maculopapular_g1_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is a visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
-  "rash_maculopapular_g1_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, indicating a worsening of acneiform rash."},
-  "rash_maculopapular_g2_8.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"The patient now has multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
-  "rash_maculopapular_g3_8.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"The patient now has multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
-  "rash_maculopapular_g3_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
-  "rash_acneiform_g1_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There are visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
-  "rash_acneiform_g1_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, indicating a worsening of acneiform rash."},
-  "rash_acneiform_g2_8.png":{pred:"rash_acneiform_g2",correct:true,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"The patient now has multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
-  "rash_acneiform_g2_9.png":{pred:"rash_acneiform_g2",correct:true,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"Multiple erythematous papules and pustules are visible on the cheeks and forehead in Image 2, which were not present in Image 1."},
-  "rash_acneiform_g3_8.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"The patient now has multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
-  "rash_acneiform_g3_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"The patient now has multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
-  "periorbital_edema_g1_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is a visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
-  "periorbital_edema_g1_9.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
-  "periorbital_edema_g2_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
-  "periorbital_edema_g2_9.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
-  "periorbital_edema_g3_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
-  "periorbital_edema_g3_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, indicating a worsening of acneiform rash."},
-  "sjs_prodrome_g1_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is a visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
-  "sjs_prodrome_g1_9.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
-  "sjs_prodrome_g2_8.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, indicating a worsening of acneiform rash."},
-  "sjs_prodrome_g2_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are visible erythematous papules and pustules on the cheeks and forehead in Image 2, which were not present in Image 1."},
-  "sjs_prodrome_g3_8.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
-  "sjs_prodrome_g3_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
-  "stomatitis_g1_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is a visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
-  "stomatitis_g1_9.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is a noticeable increase in the number and size of red macules and papules on the cheeks and forehead, with some fine scaling at the edges."},
-  "stomatitis_g2_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
-  "stomatitis_g2_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are visible red papules and pustules on the cheeks and forehead in Image 2, which were not present in Image 1."},
-  "stomatitis_g3_8.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
-  "pruritus_g1_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There are visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
-  "pruritus_g1_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, indicating a worsening of acneiform rash."},
-  "pruritus_g2_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
-  "pruritus_g3_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"The patient now has multiple erythematous papules and pustules on the cheeks and forehead, indicating a progression from the baseline of no visible lesions."},
-  "alopecia_g1_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is a visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
-  "alopecia_g1_9.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is a noticeable increase in the number and size of red macules and papules on the cheeks and forehead, with some fine scaling at the edges."},
-  "alopecia_g2_8.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
-  "alopecia_g2_9.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, indicating a worsening of acneiform rash."}
+  "normal_0.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "alopecia_g1_1.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is a visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "alopecia_g2_1.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "rash_maculopapular_g1_2.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is a visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "rash_maculopapular_g2_2.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"The patient now has multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
+  "rash_maculopapular_g3_2.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"The patient now has multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
+  "rash_acneiform_g1_3.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There are visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "rash_acneiform_g2_3.png":{pred:"rash_acneiform_g2",correct:true,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"The patient now has multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
+  "rash_acneiform_g3_3.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"The patient now has multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
+  "pruritus_g1_4.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There are visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "pruritus_g2_4.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
+  "pruritus_g3_4.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"The patient now has multiple erythematous papules and pustules on the cheeks and forehead, indicating a progression from the baseline of no visible lesions."},
+  "periorbital_edema_g1_5.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is a visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "periorbital_edema_g2_5.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "periorbital_edema_g3_5.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is now visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "stomatitis_g1_6.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is a visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "stomatitis_g2_6.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "stomatitis_g3_6.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."},
+  "sjs_prodrome_g1_7.png":{pred:"rash_maculopapular_g2",correct:false,ae_term:"rash_maculopapular",grade:2,confidence:0.95,reasoning:"There is a visible red macules/papules spreading across the cheeks and forehead (10\u201330% BSA); moderate erythema with fine scaling."},
+  "sjs_prodrome_g2_7.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, indicating a worsening of acneiform rash."},
+  "sjs_prodrome_g3_7.png":{pred:"rash_acneiform_g2",correct:false,ae_term:"rash_acneiform",grade:2,confidence:0.95,reasoning:"There are multiple erythematous papules and pustules on the cheeks and forehead, with visible pus-filled lesions and surrounding redness."}
 };
 
 const AE_ORDER = ['normal','rash_maculopapular','rash_acneiform','periorbital_edema',
@@ -1631,11 +1692,13 @@ function toggleAutoDemo() {
     autoInterval = null;
     btn.classList.remove('active');
     btn.querySelector('.auto-text').textContent = 'Auto Demo';
+    btn.querySelector('.auto-dot').style.animation = '';
     return;
   }
 
   btn.classList.add('active');
-  btn.querySelector('.auto-text').textContent = 'Stop';
+  btn.querySelector('.auto-text').textContent = 'Cancel';
+  btn.querySelector('.auto-dot').style.animation = 'mgPipPulse 1s ease-in-out infinite';
 
   var aeType = currentAeTab || 'normal';
   var items = samplesByType[aeType] || [];
