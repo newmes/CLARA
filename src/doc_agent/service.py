@@ -28,15 +28,99 @@ logger = logging.getLogger(__name__)
 DOCS_OUTPUT_DIR = Path(__file__).resolve().parents[2] / "data" / "documents"
 
 
+def _clean_narrative(narrative: str, _re) -> str:
+    """Clean up 4B model B5 narrative output artifacts.
+
+    Handles: CRF raw data echo, duplicate paragraphs/sentences,
+    repetition loops, and markdown remnants.
+    """
+    # 0) Truncate at CRF raw data echo (model copies input data after narrative)
+    crf_echo_patterns = [
+        r"^Term:\s", r"^Onset:\s", r"^Severity:\s", r"^CTCAE Grade:\s",
+        r"^Serious:\s", r"^Causality:\s", r"^Action taken:\s",
+        r"^Outcome:\s", r"^SAE criteria:\s",
+        r"^Anc:\s", r"^Hemoglobin:\s", r"^Platelets:\s",
+    ]
+    lines = narrative.split("\n")
+    cut_idx = len(lines)
+    for i, line in enumerate(lines):
+        stripped = line.strip()
+        for pat in crf_echo_patterns:
+            if _re.match(pat, stripped, flags=_re.IGNORECASE):
+                cut_idx = i
+                break
+        if cut_idx < len(lines):
+            break
+    narrative = "\n".join(lines[:cut_idx]).strip()
+
+    # 1) Deduplicate paragraphs (catches block-level repetition)
+    paragraphs = _re.split(r"\n\n+", narrative)
+    seen_paras: set[str] = set()
+    unique_paras: list[str] = []
+    for p in paragraphs:
+        norm = p.strip()
+        if not norm:
+            continue
+        if norm in seen_paras:
+            continue
+        seen_paras.add(norm)
+        unique_paras.append(p)
+    narrative = "\n\n".join(unique_paras)
+
+    # 2) Deduplicate lines (catches line-level repetition)
+    lines = narrative.split("\n")
+    seen_lines: set[str] = set()
+    unique_lines: list[str] = []
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            unique_lines.append(line)
+            continue
+        if stripped.startswith("Note:") or stripped in seen_lines:
+            if stripped in seen_lines:
+                continue
+        seen_lines.add(stripped)
+        unique_lines.append(line)
+    narrative = "\n".join(unique_lines).strip()
+
+    # 3) Detect repeated opening sentence and truncate
+    opening = narrative.split(".")[0] if "." in narrative else ""
+    if opening and len(opening) > 20:
+        second_occurrence = narrative.find(opening, len(opening) + 1)
+        if second_occurrence > 0:
+            narrative = narrative[:second_occurrence].strip()
+
+    return narrative
+
+
 def _parse_c7c8(raw: str) -> str:
-    """Extract answer + rationale text from C7/C8 JSON response."""
+    """Extract answer + rationale text from C7/C8 JSON response.
+
+    Handles thinking tokens (<unused*>), verbose analysis, and markdown
+    code fences that MedGemma models may emit before the actual JSON.
+    """
     import json as _json, re as _re
     text = raw.strip()
-    # Strip markdown code fences
-    if text.startswith("```"):
-        text = _re.sub(r"^```[a-z]*\n?", "", text)
-        text = _re.sub(r"\n?```$", "", text)
-        text = text.strip()
+    # Strip thinking tokens (e.g. <unused94>thought...</unused94>)
+    text = _re.sub(r"<unused\d+>.*?</unused\d+>", "", text, flags=_re.DOTALL)
+    text = text.strip()
+    # Try to find JSON object anywhere in the text
+    json_match = _re.search(r"\{[^{}]*(?:\"c[78]_answer\"|\"c[78]_rationale\")[^{}]*\}", text, flags=_re.DOTALL)
+    if json_match:
+        try:
+            obj = _json.loads(json_match.group())
+            answer = obj.get("c7_answer") or obj.get("c8_answer") or ""
+            rationale = obj.get("c7_rationale") or obj.get("c8_rationale") or ""
+            if answer and rationale:
+                return f"{answer}. {rationale}"
+            return answer or rationale or raw
+        except (_json.JSONDecodeError, AttributeError):
+            pass
+    # Fallback: strip markdown fences and try full parse
+    if "```" in text:
+        fenced = _re.search(r"```(?:json)?\s*\n?(.*?)\n?\s*```", text, flags=_re.DOTALL)
+        if fenced:
+            text = fenced.group(1).strip()
     try:
         obj = _json.loads(text)
         answer = obj.get("c7_answer") or obj.get("c8_answer") or ""
@@ -62,22 +146,53 @@ def _try_ai_generation(crf: CRFData, settings: Settings) -> dict[str, str]:
             id=settings.VLLM_MODEL_ID,
             base_url=settings.VLLM_BASE_URL,
             api_key=settings.VLLM_API_KEY,
+            max_tokens=settings.MAX_TOKENS_NARRATIVE,
+            temperature=settings.TEMPERATURE_NARRATIVE,
         )
+
+        import re as _re
 
         b5_prompt = format_b5_prompt(crf, settings)
         agent = Agent(name="b5_narrative", model=model, markdown=False)
         result = agent.run(b5_prompt)
         narrative = str(result.content).strip()
+        # Strip markdown formatting that 4B models may emit
+        narrative = _re.sub(r"^#{1,6}\s+.*\n?", "", narrative, flags=_re.MULTILINE)
+        narrative = _re.sub(r"\*{1,3}([^*]+)\*{1,3}", r"\1", narrative)
+        narrative = _re.sub(r"^[-*]\s+", "", narrative, flags=_re.MULTILINE)
+        narrative = _re.sub(r"\n{3,}", "\n\n", narrative).strip()
+        # Post-process 4B model output artifacts
+        narrative = _clean_narrative(narrative, _re)
+
+        structured_model = OpenAILike(
+            id=settings.VLLM_MODEL_ID,
+            base_url=settings.VLLM_BASE_URL,
+            api_key=settings.VLLM_API_KEY,
+            max_tokens=settings.MAX_TOKENS_STRUCTURED,
+            temperature=settings.TEMPERATURE_STRUCTURED,
+        )
 
         c7_prompt = format_c7_prompt(crf)
-        c7_agent = Agent(name="c7", model=model, markdown=False)
+        c7_agent = Agent(name="c7", model=structured_model, markdown=False)
         c7_result = c7_agent.run(c7_prompt)
         dechallenge = _parse_c7c8(str(c7_result.content))
 
         c8_prompt = format_c8_prompt(crf)
-        rechallenge = "Does not apply — single exposure period"
+        # Rechallenge requires a sequential restart pattern (stop → restart)
+        # Concurrent drugs (same start date) in a regimen are NOT rechallenge
+        has_rechallenge_pattern = False
         if len(crf.ec) >= 2:
-            c8_agent = Agent(name="c8", model=model, markdown=False)
+            for ec in crf.ec:
+                if ec.ECENDAT:
+                    for other in crf.ec:
+                        if other is not ec and other.ECSTDAT and other.ECSTDAT > ec.ECENDAT:
+                            has_rechallenge_pattern = True
+                            break
+                if has_rechallenge_pattern:
+                    break
+        rechallenge = "Does not apply — drug was not re-administered"
+        if has_rechallenge_pattern:
+            c8_agent = Agent(name="c8", model=structured_model, markdown=False)
             c8_result = c8_agent.run(c8_prompt)
             rechallenge = _parse_c7c8(str(c8_result.content))
 
@@ -110,7 +225,7 @@ def _deterministic_fallback(crf: CRFData, settings: Settings) -> dict[str, str]:
 
     # Dechallenge
     if ae.AEACN in ("DRUG WITHDRAWN", "DRUG INTERRUPTED", "DOSE REDUCED"):
-        if "RECOVERED" in ae.AEOUT or "RESOLVING" in ae.AEOUT:
+        if ae.AEOUT in ("RECOVERED/RESOLVED", "RECOVERING/RESOLVING", "RECOVERED/RESOLVED WITH SEQUELAE"):
             dc = f"Yes — reaction abated after {ae.AEACN.lower().replace('_', ' ')}"
         elif ae.AEOUT == "FATAL":
             dc = "No — patient died"

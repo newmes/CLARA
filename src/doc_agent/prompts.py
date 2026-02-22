@@ -74,7 +74,12 @@ Write a concise clinical narrative in chronological order based on the following
      (e.g., "pneumonitis (interstitial lung disease)").
      Do NOT alternate between different terms for the same condition.
 
-3. DO NOT:
+3. DRUG NAME:
+   - Use the exact drug name(s) from the "Suspect drug" field in Study Drug Exposure
+   - Do NOT invent, guess, or substitute generic names — use ONLY what is provided
+   - Example: if "Suspect drug: Enfortumab vedotin (Padcev)", write exactly "Enfortumab vedotin (Padcev)"
+
+4. DO NOT:
    - Make causality judgments (this is for the investigator)
    - Add information not present in the input data
    - Use abbreviations without first defining them
@@ -134,19 +139,23 @@ Determine C7 (Dechallenge) using this logic:
 
 ## Output Format
 
-Return JSON:
+Return ONLY a JSON object — no explanation, no analysis, no markdown fences, no thinking:
 {{
   "c7_answer": "Yes" | "No" | "Does not apply" | "Unknown",
   "c7_rationale": "<one sentence explanation with dates>"
 }}
 
-## Rationale Style Rules
+## CRITICAL INSTRUCTIONS
 
-In the rationale text, use clinical language only:
-- Write "the study drug was permanently discontinued" (not "AEACN=DRUG WITHDRAWN")
-- Write "the adverse event resolved" (not "AEOUT=RECOVERED/RESOLVED")
-- Write "the dose was reduced" (not "AEACN=DOSE REDUCED")
-- Do NOT expose any CRF field codes or values in the rationale"""
+- Return ONLY the JSON object above. Nothing else.
+- In the rationale, use clinical language only:
+  - Write "the study drug was permanently discontinued" (not "AEACN=DRUG WITHDRAWN")
+  - Write "the adverse event resolved" (not "AEOUT=RECOVERED/RESOLVED")
+  - Write "the reaction did not resolve" (not "NOT RECOVERED/NOT RESOLVED")
+  - Write "the dose was reduced" (not "AEACN=DOSE REDUCED")
+- Do NOT quote CRF field values like 'NOT RECOVERED/NOT RESOLVED' or 'DRUG INTERRUPTED'. Instead describe in clinical prose.
+- Do NOT expose any CRF field codes or values in the rationale.
+- Do NOT use the word "patient". Use "the subject" (ICH convention)."""
 
 
 C8_RECHALLENGE_PROMPT = """You are a pharmacovigilance specialist assessing rechallenge for MedWatch FDA Form 3500A, Section C8.
@@ -187,21 +196,27 @@ Determine C8 (Rechallenge) using this logic:
 
 ## Output Format
 
-Return JSON:
+Return ONLY a JSON object — no explanation, no analysis, no markdown fences, no thinking:
 {{
   "c8_answer": "Yes, recurred" | "Yes, did not recur" | "Does not apply",
   "c8_rationale": "<one sentence explanation with dates>",
   "e2b_code": 1 | 2 | 4
 }}
 
-Where E2B CL16 codes:
-- 1 = Yes, reaction recurred
-- 2 = Yes, reaction did not recur
-- 4 = No, drug was not re-administered
+## e2b_code Mapping (MUST match c8_answer exactly)
 
-## Rationale Style Rules
+- 1 = reaction RECURRED after rechallenge (c8_answer = "Yes, recurred")
+- 2 = reaction did NOT recur after rechallenge (c8_answer = "Yes, did not recur")
+- 4 = drug was NOT re-administered, no rechallenge happened (c8_answer = "Does not apply")
 
-In the rationale text, use clinical language only:
-- Write "the study drug was reintroduced" (not CRF codes)
-- Write "the adverse event recurred" (not "same AETERM after reintroduction")
-- Do NOT expose any CRF field codes or values in the rationale"""
+## CRITICAL INSTRUCTIONS
+
+- Return ONLY the JSON object above. Nothing else.
+- A rechallenge exists ONLY if there are at least 2 SEPARATE exposure periods for the SAME suspect drug (start → stop → restart). Different drugs do NOT count.
+- If the drug was stopped/interrupted and never restarted: c8_answer = "Does not apply", e2b_code = 4.
+- In the rationale, use clinical language only:
+  - Write "the study drug was reintroduced" (not CRF codes)
+  - Write "the adverse event recurred" (not "same AETERM after reintroduction")
+- Do NOT quote CRF field values in the rationale.
+- Do NOT expose any CRF field codes or values in the rationale.
+- Do NOT use the word "patient". Use "the subject" (ICH convention)."""
