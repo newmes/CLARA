@@ -97,6 +97,42 @@
   animation: ahPipPulse 2s ease-in-out infinite;
   box-shadow: 0 0 8px rgba(248,81,73,0.6);
 }
+/* -- LIVE / CACHED inference badge -- */
+.ah-live-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font: 600 0.65em 'JetBrains Mono', monospace;
+  padding: 3px 12px; border-radius: 20px;
+  letter-spacing: 0.6px; text-transform: uppercase;
+  transition: all 0.4s ease;
+}
+.ah-live-badge[data-mode="live"] {
+  color: #3fb950; border: 1px solid rgba(63,185,80,0.3);
+  background: rgba(63,185,80,0.08);
+}
+.ah-live-badge[data-mode="cached"] {
+  color: #8b949e; border: 1px solid rgba(139,148,158,0.2);
+  background: rgba(139,148,158,0.06);
+}
+.ah-live-badge[data-mode="offline"] {
+  color: #f85149; border: 1px solid rgba(248,81,73,0.2);
+  background: rgba(248,81,73,0.06);
+}
+.ah-live-badge .ah-live-pip {
+  width: 6px; height: 6px; border-radius: 50%;
+  transition: all 0.4s ease;
+}
+.ah-live-badge[data-mode="live"] .ah-live-pip {
+  background: #3fb950;
+  box-shadow: 0 0 8px rgba(63,185,80,0.6);
+  animation: ahPipPulse 2s ease-in-out infinite;
+}
+.ah-live-badge[data-mode="cached"] .ah-live-pip {
+  background: #8b949e; box-shadow: none; animation: none;
+}
+.ah-live-badge[data-mode="offline"] .ah-live-pip {
+  background: #f85149; box-shadow: none; animation: none;
+}
+
 @keyframes ahPipPulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(0.8); }
@@ -353,151 +389,134 @@
 }
 
 /* =================================================================
-   EXAMPLE PILLS (Categories with glass cards)
+   EXAMPLE PILLS — Tab-based category selector (MedGemma pattern)
    ================================================================= */
 .ah-examples-container {
   background: rgba(22,27,34,0.75);
   backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(48,54,61,0.6);
   border-radius: 18px;
-  padding: 20px 24px;
   margin-bottom: 16px;
   position: relative;
   overflow: hidden;
-  transition: all 0.45s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .ah-examples-container::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, rgba(248,81,73,0.4), rgba(210,153,34,0.3), rgba(63,185,80,0.4));
-  opacity: 0.4;
-}
-/* Collapsed state: compact with hidden pill groups */
-.ah-examples-container.collapsed {
-  padding: 12px 24px;
-  margin-bottom: 12px;
-}
-.ah-examples-container.collapsed .ah-examples-body {
-  max-height: 0;
-  opacity: 0;
-  margin-top: 0;
-  overflow: hidden;
-}
-.ah-examples-body {
-  max-height: 600px;
-  opacity: 1;
-  margin-top: 0;
-  transition: max-height 0.45s cubic-bezier(0.16, 1, 0.3, 1),
-              opacity 0.35s ease,
-              margin-top 0.35s ease;
-  overflow: hidden;
-}
-.ah-examples-header {
-  display: flex; align-items: center; gap: 8px;
-  padding-bottom: 12px;
-  border-bottom: 1px solid rgba(48,54,61,0.4);
-  cursor: pointer;
-  user-select: none;
-  transition: padding-bottom 0.3s ease, border-color 0.3s ease;
-}
-.ah-examples-container.collapsed .ah-examples-header {
-  padding-bottom: 0;
-  border-bottom-color: transparent;
-  margin-bottom: 0;
-}
-.ah-examples-header-icon {
-  width: 28px; height: 28px;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 8px;
-  background: rgba(248,81,73,0.08);
-  color: var(--accent-red);
-}
-.ah-examples-title {
-  font-size: 0.68em; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 1.5px;
-  color: var(--text-secondary);
-}
-/* Active pill preview shown in collapsed header */
-.ah-examples-active-preview {
-  margin-left: 8px;
-  font-size: 0.68em;
-  color: var(--accent-red);
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 320px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-.ah-examples-container.collapsed .ah-examples-active-preview {
-  opacity: 1;
-}
-.ah-examples-count {
-  margin-left: auto;
-  font-size: 0.62em; font-weight: 600;
-  font-family: 'JetBrains Mono', monospace;
-  color: var(--text-muted);
-  padding: 2px 8px; border-radius: 10px;
-  background: rgba(248,81,73,0.06);
-  border: 1px solid rgba(248,81,73,0.1);
-}
-.ah-examples-toggle {
-  width: 24px; height: 24px;
-  display: flex; align-items: center; justify-content: center;
-  border-radius: 6px;
-  background: rgba(48,54,61,0.3);
-  color: var(--text-muted);
-  transition: all 0.3s ease;
-  flex-shrink: 0;
-}
-.ah-examples-toggle svg {
-  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.ah-examples-container.collapsed .ah-examples-toggle svg {
-  transform: rotate(-90deg);
-}
-.ah-examples-toggle:hover {
-  background: rgba(248,81,73,0.08);
-  color: var(--text-secondary);
+  background: linear-gradient(90deg, rgba(248,81,73,0.4), rgba(210,153,34,0.3), rgba(88,166,255,0.3), rgba(63,185,80,0.4));
+  opacity: 0.5;
 }
 
-.ah-cat-group {
-  margin-bottom: 14px;
+/* Category Tabs — structural/navigation feel (distinct from pills) */
+.ah-cat-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 12px 20px 0;
+  border-bottom: none;
+  position: relative;
 }
-.ah-cat-group:last-child { margin-bottom: 0; }
-.ah-cat-label {
-  font-size: 0.58em; font-weight: 700;
-  text-transform: uppercase; letter-spacing: 2px;
-  margin-bottom: 8px; display: flex; align-items: center; gap: 8px;
+.ah-cat-tabs::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 20px; right: 20px;
+  height: 1px;
+  background: rgba(48,54,61,0.4);
 }
-.ah-cat-label::after {
-  content: ''; flex: 1; height: 1px;
-  background: linear-gradient(90deg, rgba(48,54,61,0.4), transparent);
+.ah-cat-tab {
+  padding: 8px 16px 10px;
+  border-radius: 8px 8px 0 0;
+  border: 1px solid transparent;
+  border-bottom: none;
+  background: transparent;
+  color: var(--text-muted);
+  font: 700 0.7em 'JetBrains Mono', monospace;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  margin-bottom: -1px;
+}
+.ah-cat-tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: transparent;
+  border-radius: 2px 2px 0 0;
+  transition: background 0.25s ease;
+}
+.ah-cat-tab:hover {
+  color: var(--text-secondary);
+  background: rgba(48,54,61,0.15);
+}
+.ah-cat-tab .ah-tab-count {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  min-width: 18px; height: 18px;
+  border-radius: 4px;
+  font-size: 0.85em;
+  margin-left: 6px;
+  padding: 0 5px;
+  background: rgba(48,54,61,0.3);
+  color: var(--text-muted);
+  transition: all 0.25s ease;
+}
+/* Active tab — color is set dynamically via inline style;
+   ::after underline + raised background give "selected tab" feel */
+.ah-cat-tab.active {
+  background: rgba(48,54,61,0.2);
+  border-color: rgba(48,54,61,0.4) rgba(48,54,61,0.4) transparent;
+}
+.ah-cat-tab.active::after {
+  background: currentColor;
+}
+
+/* Pills area — question examples (soft, rounded, lightweight) */
+.ah-pills-area {
+  padding: 16px 20px 18px;
 }
 .ah-pills-row {
-  display: flex; flex-wrap: wrap; gap: 6px;
+  display: flex; flex-wrap: wrap; gap: 8px;
 }
 .ah-pill {
   padding: 6px 14px;
   border-radius: 20px;
-  border: 1px solid rgba(48,54,61,0.6);
+  border: 1px dashed rgba(48,54,61,0.5);
   background: transparent;
-  color: var(--text-muted); font-family: inherit; font-size: 0.72em;
-  cursor: pointer; transition: all 0.25s; white-space: nowrap;
-  font-weight: 500;
+  color: var(--text-muted); font-family: inherit; font-size: 0.75em;
+  cursor: pointer; transition: all 0.25s;
+  font-weight: 400;
+  font-style: italic;
+  max-width: 380px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  position: relative;
+}
+.ah-pill::before {
+  content: '\201C';
+  margin-right: 2px;
+  opacity: 0.4;
+  font-style: normal;
 }
 .ah-pill:hover {
+  border-style: solid;
   border-color: rgba(248,81,73,0.3);
   color: var(--text-secondary);
   background: rgba(248,81,73,0.04);
   transform: translateY(-1px);
+  font-style: normal;
 }
 .ah-pill.active {
+  border-style: solid;
   border-color: rgba(248,81,73,0.5);
   color: var(--accent-red);
   background: rgba(248,81,73,0.08);
   box-shadow: 0 0 12px rgba(248,81,73,0.08);
+  font-style: normal;
 }
 
 /* =================================================================
@@ -859,6 +878,9 @@
   .ah-stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
   .ah-hero-badges { gap: 6px; }
   .ah-hero-badge { font-size: 0.65em; padding: 5px 10px; }
+  .ah-cat-tabs { gap: 2px; padding: 10px 14px 0; }
+  .ah-cat-tab { font-size: 0.63em; padding: 6px 10px 8px; }
+  .ah-pill { max-width: 280px; }
 }
 </style>
 {% endblock %}
@@ -938,29 +960,21 @@
 <div class="ah-section-label-row ah-reveal">
   <span class="ah-sl-marker ah-sl-marker-red"></span>
   <span class="ah-sl-text">Interactive Comparison</span>
+  <span class="ah-live-badge" id="ahLiveBadge" data-mode="cached" style="margin-left:10px;">
+    <span class="ah-live-pip"></span>
+    <span id="ahLiveBadgeText">CACHED</span>
+  </span>
   <span class="ah-sl-line"></span>
 </div>
 
-<!-- Example Pills (above input for browse-first flow) -->
+<!-- Example Prompts — Tab-based category selector -->
 <div class="ah-examples-container ah-reveal ah-reveal-d1" id="ahExamplesContainer">
-  <div class="ah-examples-header" onclick="toggleExamplesPanel()">
-    <div class="ah-examples-header-icon">
-      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5">
-        <path d="M8 1l2 5h5l-4 3 1.5 5L8 11l-4.5 3L5 9 1 6h5z" stroke-linejoin="round"/>
-      </svg>
-    </div>
-    <span class="ah-examples-title">Curated Trap Prompts</span>
-    <span class="ah-examples-active-preview" id="ahActivePreview"></span>
-    <span class="ah-examples-count" id="ahExamplesCount">--</span>
-    <div class="ah-examples-toggle">
-      <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <path d="M4 6l4 4 4-4"/>
-      </svg>
-    </div>
+  <div class="ah-cat-tabs" id="ahCatTabs">
+    <!-- Populated by JS -->
   </div>
-  <div class="ah-examples-body" id="ahExamplesBody">
-    <div id="ahExamples" style="padding-top: 12px;">
-      <!-- Populated by JS -->
+  <div class="ah-pills-area">
+    <div class="ah-pills-row" id="ahPillsRow">
+      <!-- Populated by JS on tab select -->
     </div>
   </div>
 </div>
@@ -1091,6 +1105,8 @@ var ahStats = { queries: 0, baselineHalluc: 0, defenseHalluc: 0 };
 var autoInterval = null;
 var autoQueue = [];
 var autoIdx = 0;
+var ahCategories = [];  /* loaded from API */
+var ahActiveTab = 0;    /* currently selected tab index */
 
 /* ── Init ── */
 document.addEventListener('DOMContentLoaded', function() {
@@ -1103,26 +1119,6 @@ document.addEventListener('DOMContentLoaded', function() {
     if (e.key === 'Enter') { e.preventDefault(); handleSubmit(); }
   });
 });
-
-/* ── Toggle examples panel (collapse/expand) ── */
-function toggleExamplesPanel() {
-  var container = document.getElementById('ahExamplesContainer');
-  container.classList.toggle('collapsed');
-}
-
-function collapseExamples() {
-  var container = document.getElementById('ahExamplesContainer');
-  if (!container.classList.contains('collapsed')) {
-    container.classList.add('collapsed');
-  }
-}
-
-function updateActivePreview(text) {
-  var preview = document.getElementById('ahActivePreview');
-  if (preview) {
-    preview.textContent = text ? ('\u201C' + text.substring(0, 50) + (text.length > 50 ? '\u2026' : '') + '\u201D') : '';
-  }
-}
 
 /* ── Scroll reveal (IntersectionObserver) ── */
 function initScrollReveal() {
@@ -1151,51 +1147,94 @@ function loadExamples() {
 }
 
 function renderExamples(categories) {
-  var container = document.getElementById('ahExamples');
-  container.textContent = '';
-  var totalCount = 0;
+  ahCategories = categories;
+  var tabsContainer = document.getElementById('ahCatTabs');
+  tabsContainer.textContent = '';
 
   for (var c = 0; c < categories.length; c++) {
-    var cat = categories[c];
-    var group = document.createElement('div');
-    group.className = 'ah-cat-group';
+    (function(idx) {
+      var cat = categories[idx];
+      var tab = document.createElement('button');
+      tab.className = 'ah-cat-tab' + (idx === 0 ? ' active' : '');
+      tab.dataset.idx = idx;
+      tab.innerHTML = cat.name + '<span class="ah-tab-count">' + cat.questions.length + '</span>';
 
-    var label = document.createElement('span');
-    label.className = 'ah-cat-label';
-    label.style.color = cat.color;
-    label.textContent = cat.name;
-    group.appendChild(label);
-
-    var row = document.createElement('div');
-    row.className = 'ah-pills-row';
-
-    for (var q = 0; q < cat.questions.length; q++) {
-      totalCount++;
-      (function(question) {
-        var pill = document.createElement('button');
-        pill.className = 'ah-pill';
-        pill.textContent = question;
-        pill.addEventListener('click', function() {
-          document.getElementById('ahInput').value = question;
-          /* Highlight active pill */
-          document.querySelectorAll('.ah-pill').forEach(function(p) { p.classList.remove('active'); });
-          pill.classList.add('active');
-          /* Collapse examples panel and show preview */
-          updateActivePreview(question);
-          collapseExamples();
-          handleSubmit();
-        });
-        row.appendChild(pill);
-      })(cat.questions[q]);
-    }
-
-    group.appendChild(row);
-    container.appendChild(group);
+      /* Apply category color */
+      var col = cat.color;
+      if (idx === 0) applyTabColor(tab, col);
+      tab.addEventListener('mouseenter', function() {
+        if (!tab.classList.contains('active')) {
+          tab.style.color = col;
+          tab.style.background = col + '0a';
+        }
+      });
+      tab.addEventListener('mouseleave', function() {
+        if (!tab.classList.contains('active')) {
+          tab.style.color = '';
+          tab.style.background = '';
+        }
+      });
+      tab.addEventListener('click', function() { selectCatTab(idx); });
+      tabsContainer.appendChild(tab);
+    })(c);
   }
 
-  /* Update count badge */
-  var countEl = document.getElementById('ahExamplesCount');
-  if (countEl) countEl.textContent = totalCount + ' prompts';
+  /* Show first tab's pills */
+  renderPillsForTab(0);
+}
+
+function applyTabColor(tab, col) {
+  /* Only set color (used by ::after underline via currentColor) and count badge.
+     Border structure (3-sided tab shape) is handled by CSS .ah-cat-tab.active. */
+  tab.style.color = col;
+  tab.style.background = col + '0d';
+  var countEl = tab.querySelector('.ah-tab-count');
+  if (countEl) { countEl.style.background = col + '26'; countEl.style.color = col; }
+}
+
+function selectCatTab(idx) {
+  ahActiveTab = idx;
+  var tabs = document.querySelectorAll('.ah-cat-tab');
+  tabs.forEach(function(t, i) {
+    var isActive = (i === idx);
+    t.classList.toggle('active', isActive);
+    if (isActive) {
+      applyTabColor(t, ahCategories[i].color);
+    } else {
+      t.style.color = '';
+      t.style.background = '';
+      var countEl = t.querySelector('.ah-tab-count');
+      if (countEl) { countEl.style.background = ''; countEl.style.color = ''; }
+    }
+  });
+  renderPillsForTab(idx);
+}
+
+function renderPillsForTab(idx) {
+  var row = document.getElementById('ahPillsRow');
+  row.textContent = '';
+  var cat = ahCategories[idx];
+  if (!cat) return;
+
+  for (var q = 0; q < cat.questions.length; q++) {
+    (function(question) {
+      var pill = document.createElement('button');
+      pill.className = 'ah-pill';
+      pill.textContent = question;
+      pill.title = question; /* full text on hover */
+      /* Keep active state if this pill matches current input */
+      if (document.getElementById('ahInput').value.trim() === question) {
+        pill.classList.add('active');
+      }
+      pill.addEventListener('click', function() {
+        document.getElementById('ahInput').value = question;
+        document.querySelectorAll('.ah-pill').forEach(function(p) { p.classList.remove('active'); });
+        pill.classList.add('active');
+        handleSubmit();
+      });
+      row.appendChild(pill);
+    })(cat.questions[q]);
+  }
 }
 
 /* ── Submit ── */
@@ -1255,6 +1294,17 @@ function setLoading(loading) {
 function renderResults(data) {
   typeResponse('Original', data.original);
   typeResponse('Defended', data.defended);
+
+  /* Update LIVE / CACHED badge */
+  var badge = document.getElementById('ahLiveBadge');
+  var badgeText = document.getElementById('ahLiveBadgeText');
+  if (data.live) {
+    badge.setAttribute('data-mode', 'live');
+    badgeText.textContent = 'LIVE';
+  } else {
+    badge.setAttribute('data-mode', 'cached');
+    badgeText.textContent = 'CACHED';
+  }
 
   ahStats.queries++;
   if (data.original.hallucination_prob >= 0.5) ahStats.baselineHalluc++;
@@ -1331,6 +1381,11 @@ function renderError(message) {
     el.className = 'ah-response empty';
     el.textContent = 'Error: ' + message;
   });
+  /* Mark badge offline on error */
+  var badge = document.getElementById('ahLiveBadge');
+  var badgeText = document.getElementById('ahLiveBadgeText');
+  badge.setAttribute('data-mode', 'offline');
+  badgeText.textContent = 'OFFLINE';
 }
 
 /* =================================================================
@@ -1344,11 +1399,13 @@ function toggleAutoDemo() {
     return;
   }
 
-  /* Build queue from loaded pills */
+  /* Build queue from all categories (not just visible pills) */
   autoQueue = [];
-  document.querySelectorAll('.ah-pill').forEach(function(pill) {
-    autoQueue.push(pill.textContent);
-  });
+  for (var ci = 0; ci < ahCategories.length; ci++) {
+    for (var qi = 0; qi < ahCategories[ci].questions.length; qi++) {
+      autoQueue.push(ahCategories[ci].questions[qi]);
+    }
+  }
   if (autoQueue.length === 0) return;
 
   btn.classList.add('active');
@@ -1363,14 +1420,14 @@ function toggleAutoDemo() {
     var question = autoQueue[autoIdx];
     document.getElementById('ahInput').value = question;
 
-    /* Highlight the matching pill */
+    /* Switch to the correct tab and highlight the matching pill */
+    var catIdx = Math.floor((autoIdx) / 5);  /* 5 questions per category */
+    if (catIdx !== ahActiveTab && catIdx < ahCategories.length) {
+      selectCatTab(catIdx);
+    }
     document.querySelectorAll('.ah-pill').forEach(function(p) {
       p.classList.toggle('active', p.textContent === question);
     });
-
-    /* Collapse examples and show preview during auto demo */
-    updateActivePreview(question);
-    collapseExamples();
 
     autoIdx++;
     handleSubmit();

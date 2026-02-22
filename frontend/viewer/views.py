@@ -6,9 +6,12 @@ Concordia 스타일의 SSE 실시간 업데이트 +
 Interactive Game Mode (Care Agent 대신 사람이 참여).
 """
 import json
+import logging
 import os
 import time
 from pathlib import Path
+from urllib.error import URLError
+from urllib.request import Request, urlopen
 
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
@@ -840,6 +843,8 @@ def demo_hazard(request):
 # ─── AntiHallu API ───────────────────────────────────────────
 
 ANTIHALLU_ASSETS = Path(settings.BASE_DIR) / "static_dirs" / "assets" / "antihallu"
+ANTIHALLU_SERVER_URL = os.environ.get("ANTIHALLU_SERVER_URL", "").rstrip("/")
+_antihallu_log = logging.getLogger("antihallu")
 
 
 @require_GET
@@ -852,10 +857,46 @@ def api_antihallu_examples(request):
     return JsonResponse(data)
 
 
+def _proxy_to_antihallu_server(question: str, system_prompt: str = None):
+    """Forward a generate request to the antihallu FastAPI server.
+
+    Returns the parsed JSON dict on success, or None on any failure.
+    """
+    if not ANTIHALLU_SERVER_URL:
+        return None
+    payload = {"question": question}
+    if system_prompt:
+        payload["system_prompt"] = system_prompt
+    body_bytes = json.dumps(payload).encode("utf-8")
+    req = Request(
+        f"{ANTIHALLU_SERVER_URL}/api/generate",
+        data=body_bytes,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urlopen(req, timeout=120) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except (URLError, OSError, json.JSONDecodeError, TimeoutError) as exc:
+        _antihallu_log.warning("antihallu-server proxy failed: %s", exc)
+        return None
+
+
+def _cache_lookup(question: str):
+    """Look up a question in the local AntiHallu cache. Returns dict or None."""
+    try:
+        cache = json.loads(
+            (ANTIHALLU_ASSETS / "cache.json").read_text(encoding="utf-8")
+        )
+    except FileNotFoundError:
+        return None
+    return cache.get(question.lower())
+
+
 @csrf_exempt
 @require_POST
 def api_antihallu_generate(request):
-    """Lookup cached AntiHallu response for a question."""
+    """Generate AntiHallu comparison: live proxy with cache fallback."""
     try:
         body = json.loads(request.body)
     except (json.JSONDecodeError, ValueError):
@@ -865,25 +906,27 @@ def api_antihallu_generate(request):
     if not question:
         return JsonResponse({"error": "question is required"}, status=400)
 
-    try:
-        cache = json.loads((ANTIHALLU_ASSETS / "cache.json").read_text(encoding="utf-8"))
-    except FileNotFoundError:
-        return JsonResponse({"error": "cache.json not found"}, status=500)
+    # 1) Try live inference via antihallu-server
+    live_result = _proxy_to_antihallu_server(question)
+    if live_result is not None:
+        live_result["live"] = True
+        return JsonResponse(live_result)
 
-    key = question.lower()
-    if key not in cache:
-        return JsonResponse(
-            {"error": "LIVE mode required — this question is not in the cache"},
-            status=404,
-        )
+    # 2) Fallback to local cache
+    entry = _cache_lookup(question)
+    if entry is not None:
+        return JsonResponse({
+            "question": entry["question"],
+            "original": entry["original"],
+            "defended": entry["defended"],
+            "cached": True,
+            "live": False,
+        })
 
-    entry = cache[key]
-    return JsonResponse({
-        "question": entry["question"],
-        "original": entry["original"],
-        "defended": entry["defended"],
-        "cached": True,
-    })
+    return JsonResponse(
+        {"error": "AntiHallu server unavailable and question not in cache"},
+        status=503,
+    )
 
 
 def trial_viewer(request, run_id: str, day: int = 1):
