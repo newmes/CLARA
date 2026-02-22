@@ -994,7 +994,7 @@
   </p>
 
   <div class="mg-hero-badges">
-    <div class="mg-hero-badge"><span class="bv">90.5%</span> Accuracy</div>
+    <div class="mg-hero-badge"><span class="bv">90.5%</span> Weighted F1</div>
     <div class="mg-hero-badge"><span class="bv">21</span> CTCAE Classes</div>
     <div class="mg-hero-badge"><span class="bv">7</span> AE Types + Normal</div>
     <div class="mg-hero-badge"><span class="bv">LoRA</span> r=8, a=16</div>
@@ -1007,11 +1007,11 @@
      ============================================================ -->
 <div class="mg-stats-row mg-reveal">
   <div class="mg-stat-block">
-    <div class="mg-stat-number" data-target="90.5" data-suffix="%" data-decimals="1">0</div>
-    <div class="mg-stat-unit">Accuracy</div>
+    <div class="mg-stat-number" data-target="90.0" data-suffix="%" data-decimals="1">0</div>
+    <div class="mg-stat-unit">Weighted F1</div>
   </div>
   <div class="mg-stat-block">
-    <div class="mg-stat-number" data-target="85.7" data-suffix="%p" data-decimals="1">0</div>
+    <div class="mg-stat-number" data-target="73.1" data-suffix="%p" data-decimals="1">0</div>
     <div class="mg-stat-unit">Improvement</div>
   </div>
   <div class="mg-stat-block">
@@ -1019,7 +1019,7 @@
     <div class="mg-stat-unit">CTCAE Classes</div>
   </div>
   <div class="mg-stat-block">
-    <div class="mg-stat-number" data-target="80" data-suffix="">0</div>
+    <div class="mg-stat-number" data-target="50" data-suffix="">0</div>
     <div class="mg-stat-unit">Training Epochs</div>
   </div>
 </div>
@@ -1081,7 +1081,7 @@
 
 <div class="mg-chart-container mg-reveal mg-reveal-d2">
   <div class="mg-chart-legend">
-    <span><span class="mg-legend-dot" style="background:rgba(134,142,150,0.5)"></span> Baseline (Zero-shot)</span>
+    <span><span class="mg-legend-dot" style="background:rgba(134,142,150,0.5)"></span> Anti-Hallucination</span>
     <span><span class="mg-legend-dot" style="background:rgba(188,140,255,0.7)"></span> Finetuned (LoRA)</span>
   </div>
   <div id="mgBarChart"></div>
@@ -1123,31 +1123,31 @@
 const IMG_BASE = '{% static "assets/medgemma/" %}';
 
 const BASELINE = {
-  metrics: {accuracy:0.0476, weighted_f1:0.0076, macro_f1:0.0076, macro_precision:0.0041, macro_recall:0.0476},
+  metrics: {accuracy:0.2381, macro_f1:0.1695, macro_precision:0.1595, macro_recall:0.2381},
   per_ae_type: {
-    alopecia:{support:2, detection_rate:0.0},
-    normal:{support:1, detection_rate:0.0},
+    alopecia:{support:2, detection_rate:0.5},
+    normal:{support:1, detection_rate:0.5},
     periorbital_edema:{support:3, detection_rate:0.0},
     pruritus:{support:3, detection_rate:0.0},
-    rash_acneiform:{support:3, detection_rate:0.3333},
-    rash_maculopapular:{support:3, detection_rate:0.0},
-    sjs_prodrome:{support:3, detection_rate:0.0},
+    rash_acneiform:{support:3, detection_rate:0.6667},
+    rash_maculopapular:{support:3, detection_rate:0.5},
+    sjs_prodrome:{support:3, detection_rate:0.5},
     stomatitis:{support:3, detection_rate:0.0}
   }
 };
 
 const FINETUNED = {
-  epoch: 80,
-  metrics: {accuracy:0.9048, weighted_f1:0.9, macro_f1:0.9, macro_precision:0.9286, macro_recall:0.9048},
+  epoch: 50,
+  metrics: {accuracy:0.9048, macro_f1:0.9, macro_precision:0.9286, macro_recall:0.9048},
   per_ae_type: {
     alopecia:{support:2, detection_rate:1.0, exact_accuracy:1.0},
     normal:{support:1, detection_rate:1.0, exact_accuracy:1.0},
-    periorbital_edema:{support:3, detection_rate:1.0, exact_accuracy:1.0},
-    pruritus:{support:3, detection_rate:1.0, exact_accuracy:1.0},
+    periorbital_edema:{support:3, detection_rate:0.8333, exact_accuracy:0.8333},
+    pruritus:{support:3, detection_rate:0.8333, exact_accuracy:0.6667},
     rash_acneiform:{support:3, detection_rate:1.0, exact_accuracy:1.0},
     rash_maculopapular:{support:3, detection_rate:1.0, exact_accuracy:1.0},
     sjs_prodrome:{support:3, detection_rate:1.0, exact_accuracy:1.0},
-    stomatitis:{support:3, detection_rate:1.0, exact_accuracy:1.0}
+    stomatitis:{support:3, detection_rate:0.8333, exact_accuracy:0.8333}
   },
   samples: [
     /* Patient 0 — 25F Asian: Normal */
@@ -1335,7 +1335,7 @@ function renderPerformance() {
   var grid = document.getElementById('mgPerfGrid');
   var metrics = [
     {key:'accuracy', label:'Accuracy'},
-    {key:'weighted_f1', label:'Weighted F1'},
+    {key:'macro_f1', label:'Macro F1'},
     {key:'macro_precision', label:'Macro Precision'},
     {key:'macro_recall', label:'Macro Recall'},
   ];
@@ -1603,7 +1603,7 @@ function analyzeImage() {
       var r = parseLiveResponse(data, s);
       var zsSlot = document.getElementById('mgResultSlotZS');
       if (zsSlot) zsSlot.innerHTML = buildResultCard(
-        '<span style="color:var(--accent-green);">LIVE</span> Baseline (Zero-shot)',
+        '<span style="color:var(--accent-green);">LIVE</span> Anti-Hallucination',
         r.pred, r.correct, r.fields, r.raw, r.latency, 'slide-in-left');
       checkDone();
     })
@@ -1654,7 +1654,7 @@ function showZeroShotFallback(s) {
   } : {ae_term:'\u2014',grade:'\u2014',confidence:'\u2014',reasoning:'No data available'};
   var zsRaw = zs ? JSON.stringify([{ae_term:zs.ae_term,grade:zs.grade,confidence:zs.confidence,reasoning:zs.reasoning}],null,2) : '\u2014';
   var zsSlot = document.getElementById('mgResultSlotZS');
-  if (zsSlot) zsSlot.innerHTML = buildResultCard('Baseline (Zero-shot)', zs ? zs.pred : '\u2014', zs ? zs.correct : false, zsFields, zsRaw, null, 'slide-in-left');
+  if (zsSlot) zsSlot.innerHTML = buildResultCard('Anti-Hallucination', zs ? zs.pred : '\u2014', zs ? zs.correct : false, zsFields, zsRaw, null, 'slide-in-left');
 }
 
 function showFinetunedFallback(s) {
@@ -1770,7 +1770,7 @@ function autoAnalyzeImage(onDone) {
       var r = parseLiveResponse(data, s);
       var zsSlot = document.getElementById('mgResultSlotZS');
       if (zsSlot) zsSlot.innerHTML = buildResultCard(
-        '<span style="color:var(--accent-green);">LIVE</span> Baseline (Zero-shot)',
+        '<span style="color:var(--accent-green);">LIVE</span> Anti-Hallucination',
         r.pred, r.correct, r.fields, r.raw, r.latency, 'slide-in-left');
       checkDone();
     })
