@@ -908,7 +908,7 @@
 <section class="ah-hero">
   <div class="ah-hero-overline">
     <span class="ah-pulse-pip"></span>
-    DAPO-Trained Defense Engine
+    RLHF-Trained Defense Engine
   </div>
 
   <div class="ah-hero-icon">
@@ -931,23 +931,23 @@
       <span class="ah-word ah-word-accent" style="animation-delay:0.1s">Anti-Hallucination</span>
     </span>
     <span class="ah-title-line-sub">
-      <span class="ah-word ah-word-dim" style="animation-delay:0.26s">Baseline</span>
+      <span class="ah-word ah-word-dim" style="animation-delay:0.26s">MedGemma 1.5-4B</span>
       <span class="ah-word ah-word-dim" style="animation-delay:0.36s">vs</span>
-      <span class="ah-word ah-word-dim" style="animation-delay:0.46s">DAPO-Defended</span>
+      <span class="ah-word ah-word-dim" style="animation-delay:0.46s">RLHF-Defended</span>
       <span class="ah-word ah-word-dim" style="animation-delay:0.56s">Medical Q&A</span>
     </span>
   </h1>
 
   <p class="ah-hero-subtitle">
-    Compare <strong>MedGemma-4B baseline</strong> responses against the <strong>DAPO-trained defended model</strong>.
+    Compare <strong>MedGemma 1.5-4B</strong> responses against the <strong>RLHF-trained defended model</strong>.
     The baseline confidently fabricates medical facts. The defended model refuses to hallucinate.
   </p>
 
   <div class="ah-hero-badges">
     <div class="ah-hero-badge"><span class="bv">4</span> Trap Categories</div>
     <div class="ah-hero-badge"><span class="bv">20</span> Test Prompts</div>
-    <div class="ah-hero-badge green"><span class="bv">DAPO</span> Reinforcement Learning</div>
-    <div class="ah-hero-badge green"><span class="bv">MedGemma</span> 4B Base</div>
+    <div class="ah-hero-badge green"><span class="bv">RLHF</span> Reinforcement Learning</div>
+    <div class="ah-hero-badge green"><span class="bv">MedGemma</span> 1.5-4B</div>
   </div>
 </section>
 
@@ -1005,19 +1005,15 @@
       <div class="ah-card-header">
         <div class="ah-card-label">
           <span class="ah-card-dot baseline"></span>
-          <span class="ah-card-name">Baseline</span>
+          <span class="ah-card-name">MedGemma 1.5-4B</span>
           <span class="ah-card-tag">Undefended</span>
         </div>
-        <span class="ah-card-model">MedGemma-4B</span>
+        <span class="ah-card-model">Baseline</span>
       </div>
       <div class="ah-card-body">
         <div class="ah-response empty" id="ahResponseOriginal">Select a trap prompt or type a question above</div>
       </div>
       <div class="ah-card-metrics" id="ahMetricsOriginal">
-        <div class="ah-metric-row">
-          <span class="ah-metric-label">Risk Level</span>
-          <span class="ah-risk" id="ahRiskOriginal"></span>
-        </div>
         <div class="ah-metric-row">
           <span class="ah-metric-label">Latency</span>
           <span class="ah-latency" id="ahLatencyOriginal"></span>
@@ -1031,7 +1027,7 @@
         <div class="ah-card-label">
           <span class="ah-card-dot defended"></span>
           <span class="ah-card-name">AntiHallu</span>
-          <span class="ah-card-tag">DAPO-Trained</span>
+          <span class="ah-card-tag">RLHF-Trained</span>
         </div>
         <span class="ah-card-model">Defended Model</span>
       </div>
@@ -1039,10 +1035,6 @@
         <div class="ah-response empty" id="ahResponseDefended">Select a trap prompt or type a question above</div>
       </div>
       <div class="ah-card-metrics" id="ahMetricsDefended">
-        <div class="ah-metric-row">
-          <span class="ah-metric-label">Risk Level</span>
-          <span class="ah-risk" id="ahRiskDefended"></span>
-        </div>
         <div class="ah-metric-row">
           <span class="ah-metric-label">Latency</span>
           <span class="ah-latency" id="ahLatencyDefended"></span>
@@ -1052,33 +1044,6 @@
   </div>
 </div>
 
-<!-- ============================================================
-     LIVE STATS DASHBOARD
-     ============================================================ -->
-<div class="ah-section-label-row ah-reveal ah-reveal-d3" id="ahStatsSection" style="display:none;">
-  <span class="ah-sl-marker ah-sl-marker-green"></span>
-  <span class="ah-sl-text">Session Statistics</span>
-  <span class="ah-sl-line"></span>
-</div>
-
-<div class="ah-stats-row ah-reveal ah-reveal-d4" id="ahStatsBar" style="display:none;">
-  <div class="ah-stat-block">
-    <div class="ah-stat-value cyan" id="ahStatQueries">0</div>
-    <div class="ah-stat-label">Queries</div>
-  </div>
-  <div class="ah-stat-block">
-    <div class="ah-stat-value red" id="ahStatBaselineRate">0%</div>
-    <div class="ah-stat-label">Baseline Halluc.</div>
-  </div>
-  <div class="ah-stat-block">
-    <div class="ah-stat-value green" id="ahStatDefenseRate">0%</div>
-    <div class="ah-stat-label">AntiHallu Halluc.</div>
-  </div>
-  <div class="ah-stat-block">
-    <div class="ah-stat-value amber" id="ahStatImprovement">+0%p</div>
-    <div class="ah-stat-label">Improvement</div>
-  </div>
-</div>
 
 <!-- AI Disclaimer -->
 <div class="ah-ai-notice ah-reveal ah-reveal-d4">
@@ -1342,11 +1307,6 @@ function typeResponse(side, result) {
 function showMetrics(side, result) {
   var metricsEl = document.getElementById('ahMetrics' + side);
   metricsEl.style.display = 'block';
-
-  var riskEl = document.getElementById('ahRisk' + side);
-  var risk = result.risk_level || 'UNKNOWN';
-  riskEl.textContent = risk;
-  riskEl.className = 'ah-risk ' + risk.toLowerCase();
 
   var latency = result.latency_ms || 0;
   document.getElementById('ahLatency' + side).textContent =
