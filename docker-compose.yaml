@@ -12,67 +12,21 @@ services:
       - ./frontend:/app/frontend
       - ./src:/app/src
     environment:
-      CTE_VLLM_BASE_URL: "http://clara-medgemma4b:8000/v1"
-      CTE_VLLM_MODEL_ID: "medgemma-1.5-4b-it"
+      CTE_VLLM_BASE_URL: "http://clara-medgemma4b-antihallu:8000/v1"
+      CTE_VLLM_MODEL_ID: "medgemma-4b-antihallu"
       CTE_VLLM_API_KEY: "EMPTY"
-      MEDGEMMA4B_VLLM_BASE_URL: "http://clara-medgemma4b-ft:8000/v1"
+      MEDGEMMA4B_VLLM_BASE_URL: "http://clara-medgemma4b-ctcae:8000/v1"
       MEDGEMMA4B_MODEL_ID: "medgemma-4b-finetuned"
-      MEDGEMMA4B_BASE_VLLM_BASE_URL: "http://clara-medgemma4b:8000/v1"
+      MEDGEMMA4B_BASE_VLLM_BASE_URL: "http://clara-medgemma4b-base:8000/v1"
       MEDGEMMA4B_BASE_MODEL_ID: "medgemma-1.5-4b-it"
       ANTIHALLU_SERVER_URL: "http://clara-antihallu:8000"
       PYTHONPATH: "/app"
     networks:
       - vital-net
 
-  medgemma27b:
+  medgemma4b-ctcae-ft:
     image: vllm/vllm-openai:latest
-    container_name: clara-medgemma27b
-    restart: unless-stopped
-    ports:
-      - "38000:8000"
-    profiles:
-      - medgemma27b
-    environment:
-      HF_HUB_OFFLINE: "1"
-      TRANSFORMERS_OFFLINE: "1"
-    volumes:
-      - /data2/huggingface/hub:/root/.cache/huggingface/hub:ro
-    shm_size: "4g"
-    command:
-      - "--model"
-      - "google/medgemma-27b-it"
-      - "--served-model-name"
-      - "google/medgemma-27b-it"
-      - "--quantization"
-      - "bitsandbytes"
-      - "--load-format"
-      - "bitsandbytes"
-      - "--max-model-len"
-      - "4096"
-      - "--port"
-      - "8000"
-      - "--gpu-memory-utilization"
-      - "0.85"
-      - "--trust-remote-code"
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: nvidia
-              device_ids: ["${GPU_MEDGEMMA27B:-3}"]
-              capabilities: [gpu]
-    healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:8000/v1/models || exit 1"]
-      interval: 30s
-      timeout: 10s
-      retries: 10
-      start_period: 120s
-    networks:
-      - vital-net
-
-  medgemma4b-ft:
-    image: vllm/vllm-openai:latest
-    container_name: clara-medgemma4b-ft
+    container_name: clara-medgemma4b-ctcae
     restart: unless-stopped
     ports:
       - "38001:8000"
@@ -116,28 +70,14 @@ services:
     networks:
       - vital-net
 
-  # medgemma4b (antihallu iter_004) — 테스트 후 전환 예정
-  # medgemma4b-antihallu:
-  #   image: vllm/vllm-openai:latest
-  #   container_name: clara-medgemma4b
-  #   volumes:
-  #     - /data2/workspace/samuel-huggingface/huggingface/hub/iter_004:/model
-  #     - /data2/huggingface/hub/models--google--medgemma-4b-it/blobs/1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c:/model/tokenizer.model:ro
-  #     - /data2/huggingface/hub/models--google--medgemma-4b-it/blobs/7d4046bf0505a327dd5a0abbb427ecd4fc82f99c2ceaa170bc61ecde12809b0c:/model/tokenizer.json:ro
-  #     - /data2/huggingface/hub/models--google--medgemma-4b-it/blobs/72c9f6bc082907666631052305438b5e7db2a8e2:/model/tokenizer_config.json:ro
-  #     - /data2/huggingface/hub/models--google--medgemma-4b-it/blobs/1a6193244714d3d78be48666cb02cdbfac62ad86:/model/special_tokens_map.json:ro
-  #     - /data2/huggingface/hub/models--google--medgemma-4b-it/blobs/e17bde03d42feda32d1abfca6d3b598b9a020df7:/model/added_tokens.json:ro
-  #     - /data2/huggingface/hub/models--google--medgemma-4b-it/blobs/b1e00fc184f61b698181821169c6374cd5813e5c:/model/preprocessor_config.json:ro
-  #   command: ["--model", "/model", "--served-model-name", "medgemma-4b-antihallu", ...]
-
-  medgemma4b:
+  medgemma4b-base:
     image: vllm/vllm-openai:latest
-    container_name: clara-medgemma4b
+    container_name: clara-medgemma4b-base
     restart: unless-stopped
     ports:
-      - "38002:8000"
+      - "38004:8000"
     profiles:
-      - medgemma4b
+      - medgemma4b-base
     environment:
       HF_HUB_OFFLINE: "1"
       TRANSFORMERS_OFFLINE: "1"
@@ -165,7 +105,59 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              device_ids: ["${GPU_MEDGEMMA4B:-3}"]
+              device_ids: ["2"]
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8000/v1/models || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 10
+      start_period: 120s
+    networks:
+      - vital-net
+
+  medgemma4b-antihallu-ft:
+    image: vllm/vllm-openai:latest
+    container_name: clara-medgemma4b-antihallu
+    restart: unless-stopped
+    ports:
+      - "38002:8000"
+    profiles:
+      - medgemma4b-antihallu
+    environment:
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+    volumes:
+      - ./models/medgemma-4b-ft-antihallu:/model
+      - /data2/huggingface/hub/models--google--medgemma-1.5-4b-it/blobs/1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c:/model/tokenizer.model:ro
+      - /data2/huggingface/hub/models--google--medgemma-1.5-4b-it/blobs/7d4046bf0505a327dd5a0abbb427ecd4fc82f99c2ceaa170bc61ecde12809b0c:/model/tokenizer.json:ro
+      - /data2/huggingface/hub/models--google--medgemma-4b-it/blobs/72c9f6bc082907666631052305438b5e7db2a8e2:/model/tokenizer_config.json:ro
+      - /data2/huggingface/hub/models--google--medgemma-1.5-4b-it/blobs/1a6193244714d3d78be48666cb02cdbfac62ad86:/model/special_tokens_map.json:ro
+      - /data2/huggingface/hub/models--google--medgemma-1.5-4b-it/blobs/e17bde03d42feda32d1abfca6d3b598b9a020df7:/model/added_tokens.json:ro
+      - /data2/huggingface/hub/models--google--medgemma-1.5-4b-it/blobs/cbd4f0cd77e39566f11921f9995bb3a4d008a83e:/model/preprocessor_config.json:ro
+    shm_size: "4g"
+    command:
+      - "--model"
+      - "/model"
+      - "--served-model-name"
+      - "medgemma-4b-antihallu"
+      - "--dtype"
+      - "bfloat16"
+      - "--max-model-len"
+      - "4096"
+      - "--limit-mm-per-prompt"
+      - '{"image": 2}'
+      - "--port"
+      - "8000"
+      - "--gpu-memory-utilization"
+      - "0.4"
+      - "--trust-remote-code"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["${GPU_MEDGEMMA4B:-2}"]
               capabilities: [gpu]
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://localhost:8000/v1/models || exit 1"]
