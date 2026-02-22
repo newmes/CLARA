@@ -168,8 +168,15 @@ class DailySimulator:
         self.death_cause: str | None = None
         self.ds_record: dict | None = None
 
-        # ── Baseline labs/vitals ──
+        # ── Baseline labs/vitals (pre-treatment, from EMR) ──
         self.baseline_labs: dict[str, float] = {}
+        for _lab_name, _lab_data in emr.get("baseline_labs", {}).items():
+            if isinstance(_lab_data, dict):
+                _v = _lab_data.get("value")
+            else:
+                _v = _lab_data
+            if isinstance(_v, (int, float)):
+                self.baseline_labs[_lab_name] = float(_v)
         self.baseline_vitals: dict[str, float] = DailySimulator._normalize_bt(
             dict(emr.get("baseline_vitals", {}))
         )
@@ -1942,10 +1949,12 @@ class DailySimulator:
         result["ec_records"] = ec_records
 
     def _capture_baseline(self, result: dict):
-        """Day 1에서 baseline labs/vitals를 캡처한다."""
+        """Day 1: EMR baseline을 보충 (EMR에 없던 lab만 추가)."""
         obj = result.get("objective", {})
         labs = obj.get("labs", result.get("labs", {}))
         for lab_name, data in labs.items():
+            if lab_name in self.baseline_labs:
+                continue
             if isinstance(data, dict):
                 val = data.get("value")
             else:
@@ -1955,6 +1964,8 @@ class DailySimulator:
 
         vitals = obj.get("vitals", result.get("vitals", {}))
         for v_name, val in vitals.items():
+            if v_name in self.baseline_vitals:
+                continue
             if isinstance(val, (int, float)):
                 self.baseline_vitals[v_name] = float(val)
 

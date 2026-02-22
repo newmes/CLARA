@@ -510,12 +510,17 @@ def _map_lb(labs: dict, day: int) -> dict:
         else:
             continue
 
-        rec["results"][lab_name] = {
+        entry = {
             "LBORRES": val,
             "LBORRESU": unit,
             "LBCAT": _LAB_CATEGORY.get(lab_name, "OTHER"),
             "_trend": trend,
         }
+        if isinstance(lab_data, dict) and lab_data.get("LBBLFL") == "Y":
+            entry["LBBLFL"] = "Y"
+        elif day == 0:
+            entry["LBBLFL"] = "Y"
+        rec["results"][lab_name] = entry
 
     return rec
 
@@ -591,24 +596,31 @@ def _map_tu(recist_scan: dict | None, patient: dict | None, day: int) -> list[di
     if not recist_scan:
         return None
 
-    # 환자 baseline_tumor에서 병변 정보 가져오기
     lesions = []
     if patient:
-        tumor_data = patient.get("emr", {}).get("baseline_tumor", {})
-        target_lesions = tumor_data.get("target_lesions", [])
-        if target_lesions:
-            lesions = target_lesions
+        emr = patient.get("emr", {})
+        for key_path in [
+            emr.get("diagnosis", {}),
+            emr.get("baseline_tumor", {}),
+        ]:
+            tl = key_path.get("target_lesions", [])
+            if tl:
+                lesions = tl
+                break
 
     if not lesions:
-        # baseline 병변 정보 없으면 단일 병변으로 추정
         lesions = [{"site": "UNKNOWN", "size_mm": 20.0}]
 
     pct = recist_scan.get("tumor_change_pct", 0)
     records = []
     for i, lesion in enumerate(lesions, 1):
-        baseline_mm = lesion.get("size_mm", lesion.get("baseline_mm", 20.0))
+        baseline_mm = lesion.get("diameter_mm",
+                      lesion.get("size_mm",
+                      lesion.get("baseline_mm", 20.0)))
         current_mm = round(baseline_mm * (1 + pct / 100), 1)
-        site = lesion.get("site", lesion.get("location", "UNKNOWN"))
+        site = lesion.get("tumor_site",
+               lesion.get("site",
+               lesion.get("location", "UNKNOWN")))
 
         rec = {
             "TULNKID": f"T{i:02d}",
@@ -636,22 +648,52 @@ def _map_tu(recist_scan: dict | None, patient: dict | None, day: int) -> list[di
 
 # ── DD Domain (Death Details) ──────────────────────
 
+_DEATH_CAUSE_MAP = {
+    "disease_progression": "DISEASE UNDER STUDY",
+    "treatment_toxicity": "ADVERSE EVENT",
+    "clinical_deterioration": "CLINICAL DETERIORATION",
+    "infection": "INFECTION",
+    "cardiac": "CARDIAC DISORDER",
+    "other": "OTHER",
+}
+
+
 def _map_dd(ds_record: dict | None, day: int) -> dict | None:
     """사망 시 DD (Death Details) 레코드."""
     if not ds_record or ds_record.get("DSDECOD") != "DEATH":
         return None
 
     dsterm = ds_record.get("DSTERM", "")
-    # "Death (primary cause: xxx)" 파싱
-    cause = "UNKNOWN"
+
+    cause = None
     if "primary cause:" in dsterm:
         cause = dsterm.split("primary cause:")[-1].strip().rstrip(")")
+
+    if not cause or cause == "UNKNOWN":
+        cause = _DEATH_CAUSE_MAP.get(dsterm)
+
+    if not cause:
+        channels = ds_record.get("mortality_channels") or {}
+        scored = {k: v for k, v in channels.items() if not k.startswith("_")}
+        if scored:
+            top_channel = max(scored, key=scored.get)
+            cause = _DEATH_CAUSE_MAP.get(top_channel, top_channel.upper().replace("_", " "))
+
+    if not cause:
+        cause = "UNKNOWN"
+
+    relatedness = "NOT RELATED"
+    if dsterm == "treatment_toxicity":
+        relatedness = "RELATED"
+    elif dsterm == "clinical_deterioration":
+        relatedness = "POSSIBLY RELATED"
 
     return {
         "DDYN": True,
         "DDDAT": day,
         "DTHDAT": day,
         "PRCDTH_DDORRES": cause,
+        "DTHRELD_DDORRES": relatedness,
         "AUTOPIND_DDORRES": False,
     }
 
@@ -674,7 +716,7 @@ def _map_pe(record: dict, day: int) -> dict | None:
 def _map_eg(day: int) -> dict | None:
     """Day 1 (스크리닝)과 이후 cycle Day 1에만 ECG 수행.
     간단한 규칙: Day 1 또는 21의 배수 + 1일."""
-    if day == 1:
+    if day in (0, 1):
         return {
             "EGPERF": True,
             "EGREFID": "",
