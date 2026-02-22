@@ -50,6 +50,67 @@ def _get_cycle_info(day, cycle_length):
     return (cycle, cycle_day)
 
 
+def _build_day0_record(patient: dict, simulator) -> dict:
+    """Day 0 (screening/pre-treatment baseline) record from EMR data."""
+    emr = patient.get("emr", {})
+    pid = patient.get("patient_id", "")
+
+    labs = {}
+    for lab_name, lab_data in emr.get("baseline_labs", {}).items():
+        if isinstance(lab_data, dict):
+            labs[lab_name] = {
+                "value": lab_data.get("value"),
+                "unit": lab_data.get("unit", ""),
+                "trend": "baseline",
+                "LBBLFL": "Y",
+            }
+        elif isinstance(lab_data, (int, float)):
+            labs[lab_name] = {
+                "value": lab_data,
+                "unit": "",
+                "trend": "baseline",
+                "LBBLFL": "Y",
+            }
+
+    vitals = dict(emr.get("baseline_vitals", {}))
+
+    baseline_ecog = emr.get("baseline_ecog", 1)
+
+    baseline_cm = []
+    for mh in emr.get("medical_history", []):
+        med = mh.get("medication")
+        if med and mh.get("ongoing", False):
+            baseline_cm.append({
+                "CMTRT": med,
+                "CMINDC": mh.get("condition", ""),
+                "CMSTDAT": 0,
+                "_baseline": True,
+            })
+
+    return {
+        "patient_id": pid,
+        "day": 0,
+        "cycle": 0,
+        "cycle_day": 0,
+        "is_baseline": True,
+        "objective": {
+            "location": "OUTPATIENT",
+            "treatment_status": "screening",
+            "labs": labs,
+            "vitals": vitals,
+            "active_aes": [],
+            "ecog": baseline_ecog,
+        },
+        "subjective": {
+            "overall_awareness": "UNAWARE",
+            "symptoms_patient_perceives": [],
+        },
+        "cm_records": baseline_cm,
+        "ec_records": [],
+        "care_record": [],
+    }
+
+
 def _find_last_hospital_record(day_results: list[dict]) -> dict | None:
     """day_results에서 가장 최근 병원 방문일의 hospital_record를 역순 검색."""
     for dr in reversed(day_results):
@@ -259,6 +320,13 @@ class SimulationRunnerV2:
         llm_calls = 0
         quiet_days = 0
 
+        # Day 0: pre-treatment baseline from EMR
+        day0 = _build_day0_record(patient, simulator)
+        day_results.append(day0)
+        if save:
+            with open(sim_path, 'a', encoding='utf-8') as f:
+                f.write(json.dumps(day0, ensure_ascii=False) + '\n')
+
         for day in range(1, total_days + 1):
             if self._cancelled:
                 self.log(f"⛔ {pid} — Cancelled at Day {day}")
@@ -430,6 +498,13 @@ class SimulationRunnerV2:
         force_hospital_tomorrow = False
         last_forced_hospital_day = -999
         HOSPITAL_COOLDOWN_DAYS = 3
+
+        # Day 0: pre-treatment baseline from EMR
+        day0 = _build_day0_record(patient, simulator)
+        day_results.append(day0)
+        if save:
+            with open(sim_path, 'a', encoding='utf-8') as f:
+                f.write(json.dumps(day0, ensure_ascii=False) + '\n')
 
         for day in range(1, total_days + 1):
             cycle, cycle_day = _get_cycle_info(day, cycle_length)
@@ -680,6 +755,13 @@ class SimulationRunnerV2:
         force_hospital_tomorrow = False
         last_forced_hospital_day = -999
         HOSPITAL_COOLDOWN_DAYS = 3
+
+        # Day 0: pre-treatment baseline from EMR
+        day0 = _build_day0_record(patient, simulator)
+        day_results.append(day0)
+        if save:
+            with open(sim_path, 'a', encoding='utf-8') as f:
+                f.write(json.dumps(day0, ensure_ascii=False) + '\n')
 
         for day in range(1, total_days + 1):
             if self._cancelled:
