@@ -1271,7 +1271,6 @@ function renderResults(data) {
   ahStats.queries++;
   if (data.original.hallucination_prob >= 0.5) ahStats.baselineHalluc++;
   if (data.defended.hallucination_prob >= 0.5) ahStats.defenseHalluc++;
-  updateStats();
 }
 
 /* ── Strip markdown bold ── */
@@ -1311,24 +1310,6 @@ function showMetrics(side, result) {
   var latency = result.latency_ms || 0;
   document.getElementById('ahLatency' + side).textContent =
     latency >= 1000 ? (latency / 1000).toFixed(1) + 's' : latency + 'ms';
-}
-
-/* ── Update stats bar ── */
-function updateStats() {
-  document.getElementById('ahStatsBar').style.display = 'grid';
-  document.getElementById('ahStatsSection').style.display = 'flex';
-  document.getElementById('ahStatQueries').textContent = ahStats.queries;
-
-  if (ahStats.queries > 0) {
-    var baseRate = Math.round(ahStats.baselineHalluc / ahStats.queries * 100);
-    var defRate = Math.round(ahStats.defenseHalluc / ahStats.queries * 100);
-    document.getElementById('ahStatBaselineRate').textContent = baseRate + '%';
-    document.getElementById('ahStatDefenseRate').textContent = defRate + '%';
-
-    var improvement = baseRate - defRate;
-    var impEl = document.getElementById('ahStatImprovement');
-    impEl.textContent = (improvement >= 0 ? '+' : '') + improvement + '%p';
-  }
 }
 
 /* ── Error display ── */
