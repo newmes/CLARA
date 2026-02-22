@@ -48,6 +48,9 @@ output/
 # Legacy / unused code
 old/
 
+# Model weights (large binary)
+models/
+
 # Reference materials (large)
 reference/
 cdisc/

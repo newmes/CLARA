@@ -2,7 +2,7 @@ services:
   django:
     build:
       context: .
-      dockerfile: Dockerfile.dev
+      dockerfile: Dockerfile.django
     container_name: ${VITAL_CONTAINER:-clara_dev}
     restart: unless-stopped
     ports:
@@ -12,13 +12,14 @@ services:
       - ./frontend:/app/frontend
       - ./src:/app/src
     environment:
-      CTE_VLLM_BASE_URL: "http://clara-medgemma27b:8000/v1"
-      CTE_VLLM_MODEL_ID: "google/medgemma-27b-it"
+      CTE_VLLM_BASE_URL: "http://clara-medgemma4b:8000/v1"
+      CTE_VLLM_MODEL_ID: "medgemma-1.5-4b-it"
       CTE_VLLM_API_KEY: "EMPTY"
       MEDGEMMA4B_VLLM_BASE_URL: "http://clara-medgemma4b-ft:8000/v1"
       MEDGEMMA4B_MODEL_ID: "medgemma-4b-finetuned"
       MEDGEMMA4B_BASE_VLLM_BASE_URL: "http://clara-medgemma4b:8000/v1"
-      MEDGEMMA4B_BASE_MODEL_ID: "google/medgemma-4b-it"
+      MEDGEMMA4B_BASE_MODEL_ID: "medgemma-1.5-4b-it"
+      ANTIHALLU_SERVER_URL: "http://clara-antihallu:8000"
       PYTHONPATH: "/app"
     networks:
       - vital-net
@@ -81,7 +82,7 @@ services:
       HF_HUB_OFFLINE: "1"
       TRANSFORMERS_OFFLINE: "1"
     volumes:
-      - /data2/workspace/AlphaRaven/old/MedGemma/multimodality_generation/output/v3_merged_bf16_ctcae:/model:ro
+      - ./models/medgemma-4b-ft-ctcae:/model:ro
     shm_size: "4g"
     command:
       - "--model"
@@ -115,6 +116,20 @@ services:
     networks:
       - vital-net
 
+  # medgemma4b (antihallu iter_004) — 테스트 후 전환 예정
+  # medgemma4b-antihallu:
+  #   image: vllm/vllm-openai:latest
+  #   container_name: clara-medgemma4b
+  #   volumes:
+  #     - /data2/workspace/samuel-huggingface/huggingface/hub/iter_004:/model
+  #     - /data2/huggingface/hub/models--google--medgemma-4b-it/blobs/1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c:/model/tokenizer.model:ro
+  #     - /data2/huggingface/hub/models--google--medgemma-4b-it/blobs/7d4046bf0505a327dd5a0abbb427ecd4fc82f99c2ceaa170bc61ecde12809b0c:/model/tokenizer.json:ro
+  #     - /data2/huggingface/hub/models--google--medgemma-4b-it/blobs/72c9f6bc082907666631052305438b5e7db2a8e2:/model/tokenizer_config.json:ro
+  #     - /data2/huggingface/hub/models--google--medgemma-4b-it/blobs/1a6193244714d3d78be48666cb02cdbfac62ad86:/model/special_tokens_map.json:ro
+  #     - /data2/huggingface/hub/models--google--medgemma-4b-it/blobs/e17bde03d42feda32d1abfca6d3b598b9a020df7:/model/added_tokens.json:ro
+  #     - /data2/huggingface/hub/models--google--medgemma-4b-it/blobs/b1e00fc184f61b698181821169c6374cd5813e5c:/model/preprocessor_config.json:ro
+  #   command: ["--model", "/model", "--served-model-name", "medgemma-4b-antihallu", ...]
+
   medgemma4b:
     image: vllm/vllm-openai:latest
     container_name: clara-medgemma4b
@@ -124,15 +139,16 @@ services:
     profiles:
       - medgemma4b
     environment:
-      HF_TOKEN: "${HF_TOKEN:-}"
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
     volumes:
-      - /data2/huggingface/hub:/root/.cache/huggingface/hub:ro
+      - /data2/huggingface/hub/models--google--medgemma-1.5-4b-it:/model_repo:ro
     shm_size: "4g"
     command:
       - "--model"
-      - "google/medgemma-4b-it"
+      - "/model_repo/snapshots/e9792da5fb8ee651083d345ec4bce07c3c9f1641"
       - "--served-model-name"
-      - "google/medgemma-4b-it"
+      - "medgemma-1.5-4b-it"
       - "--dtype"
       - "bfloat16"
       - "--max-model-len"
@@ -157,6 +173,41 @@ services:
       timeout: 10s
       retries: 10
       start_period: 120s
+    networks:
+      - vital-net
+
+  antihallu-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.antihallu
+    container_name: clara-antihallu
+    restart: unless-stopped
+    ports:
+      - "38003:8000"
+    profiles:
+      - antihallu
+    environment:
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+      GRPO_MODEL_PATH: "/model_dapo"
+      DAPO_SYSTEM_PROMPT: "You are a helpful medical AI assistant. If you are not sure about something, say so. Do not make up information. Always recommend consulting a healthcare professional."
+    volumes:
+      - /data2/huggingface:/hf_cache:ro
+      - ./models/medgemma-4b-ft-antihallu:/model_dapo:ro
+    shm_size: "4g"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["${GPU_ANTIHALLU:-2}"]
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 180s
     networks:
       - vital-net
 
