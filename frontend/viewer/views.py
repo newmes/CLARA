@@ -843,8 +843,17 @@ def demo_hazard(request):
 # ─── AntiHallu API ───────────────────────────────────────────
 
 ANTIHALLU_ASSETS = Path(settings.BASE_DIR) / "static_dirs" / "assets" / "antihallu"
-ANTIHALLU_SERVER_URL = os.environ.get("ANTIHALLU_SERVER_URL", "").rstrip("/")
 _antihallu_log = logging.getLogger("antihallu")
+
+# vLLM endpoints for antihallu demo (base + defended)
+_AH_BASE_URL = os.environ.get("MEDGEMMA4B_BASE_VLLM_BASE_URL", "").rstrip("/")
+_AH_BASE_MODEL = os.environ.get("MEDGEMMA4B_BASE_MODEL_ID", "medgemma-1.5-4b-it")
+_AH_DEF_URL = os.environ.get("CTE_VLLM_BASE_URL", "").rstrip("/")
+_AH_DEF_MODEL = os.environ.get("CTE_VLLM_MODEL_ID", "medgemma-4b-antihallu")
+_AH_SYSTEM_PROMPT = (
+    "You are a helpful medical AI assistant. If you are not sure about something, "
+    "say so. Do not make up information. Always recommend consulting a healthcare professional."
+)
 
 
 @require_GET
@@ -857,29 +866,57 @@ def api_antihallu_examples(request):
     return JsonResponse(data)
 
 
-def _proxy_to_antihallu_server(question: str, system_prompt: str = None):
-    """Forward a generate request to the antihallu FastAPI server.
-
-    Returns the parsed JSON dict on success, or None on any failure.
-    """
-    if not ANTIHALLU_SERVER_URL:
+def _vllm_chat(base_url: str, model_id: str, question: str, system_prompt: str = None):
+    """Call vLLM OpenAI-compatible chat completions. Returns dict or None."""
+    if not base_url:
         return None
-    payload = {"question": question}
+    messages = []
     if system_prompt:
-        payload["system_prompt"] = system_prompt
+        messages.append({"role": "system", "content": system_prompt})
+    messages.append({"role": "user", "content": question})
+    payload = {
+        "model": model_id,
+        "messages": messages,
+        "max_tokens": 256,
+        "temperature": 0,
+    }
     body_bytes = json.dumps(payload).encode("utf-8")
     req = Request(
-        f"{ANTIHALLU_SERVER_URL}/api/generate",
+        f"{base_url}/chat/completions",
         data=body_bytes,
-        headers={"Content-Type": "application/json"},
+        headers={"Content-Type": "application/json", "Authorization": "Bearer EMPTY"},
         method="POST",
     )
     try:
+        t0 = time.time()
         with urlopen(req, timeout=120) as resp:
-            return json.loads(resp.read().decode("utf-8"))
-    except (URLError, OSError, json.JSONDecodeError, TimeoutError) as exc:
-        _antihallu_log.warning("antihallu-server proxy failed: %s", exc)
+            data = json.loads(resp.read().decode("utf-8"))
+        latency_ms = round((time.time() - t0) * 1000)
+        return {
+            "response": data["choices"][0]["message"]["content"],
+            "latency_ms": latency_ms,
+        }
+    except (URLError, OSError, json.JSONDecodeError, TimeoutError, KeyError) as exc:
+        _antihallu_log.warning("vLLM antihallu call failed (%s): %s", base_url, exc)
         return None
+
+
+def _vllm_antihallu_generate(question: str):
+    """Generate responses from both base and defended vLLM models in parallel."""
+    from concurrent.futures import ThreadPoolExecutor
+    with ThreadPoolExecutor(max_workers=2) as pool:
+        fut_orig = pool.submit(_vllm_chat, _AH_BASE_URL, _AH_BASE_MODEL, question)
+        fut_def = pool.submit(_vllm_chat, _AH_DEF_URL, _AH_DEF_MODEL, question, _AH_SYSTEM_PROMPT)
+        original = fut_orig.result()
+        defended = fut_def.result()
+    if original is None or defended is None:
+        return None
+    return {
+        "question": question,
+        "original": original,
+        "defended": defended,
+        "cached": False,
+    }
 
 
 def _cache_lookup(question: str):
@@ -896,7 +933,7 @@ def _cache_lookup(question: str):
 @csrf_exempt
 @require_POST
 def api_antihallu_generate(request):
-    """Generate AntiHallu comparison: live proxy with cache fallback."""
+    """Generate AntiHallu comparison: vLLM live inference with cache fallback."""
     try:
         body = json.loads(request.body)
     except (json.JSONDecodeError, ValueError):
@@ -906,8 +943,8 @@ def api_antihallu_generate(request):
     if not question:
         return JsonResponse({"error": "question is required"}, status=400)
 
-    # 1) Try live inference via antihallu-server
-    live_result = _proxy_to_antihallu_server(question)
+    # 1) Try live inference via vLLM (base + defended in parallel)
+    live_result = _vllm_antihallu_generate(question)
     if live_result is not None:
         live_result["live"] = True
         return JsonResponse(live_result)
@@ -924,7 +961,7 @@ def api_antihallu_generate(request):
         })
 
     return JsonResponse(
-        {"error": "AntiHallu server unavailable and question not in cache"},
+        {"error": "vLLM models unavailable and question not in cache"},
         status=503,
     )
 
