@@ -94,6 +94,8 @@ def main():
                         help="Only run Phase 0-1 (Rules + Patients, no daily sim)")
     parser.add_argument("--skip-rules", action="store_true",
                         help="Skip Rule Agent (reuse existing data/rule_set.json)")
+    parser.add_argument("--rule-set", default=None,
+                        help="Path to a specific rule_set JSON (implies --skip-rules)")
     parser.add_argument("--data-dir", default="data",
                         help="Base data directory")
     parser.add_argument("--seed", type=int, default=None,
@@ -134,7 +136,12 @@ def main():
         print("Architecture: 3-Phase (no fate table)")
         print("=" * 60)
 
-        if args.skip_rules:
+        if args.rule_set:
+            import shutil
+            rs_path = Path(args.rule_set)
+            runner.load_rules(str(rs_path))
+            shutil.copy2(rs_path, run_dir / "rule_set.json")
+        elif args.skip_rules:
             base_rule_path = Path(args.data_dir) / "rule_set.json"
             runner.load_rules(str(base_rule_path))
             import shutil

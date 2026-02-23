@@ -54,3 +54,4 @@ models/
 # Reference materials (large)
 reference/
 cdisc/
+nohup.out

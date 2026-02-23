@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "oral_monotherapy.json",
+  "title": "Rule Set — Oral Monotherapy",
+  "description": "경구 단일요법 (e.g., Osimertinib, Capecitabine, Lenvatinib). infusion_duration_minutes 불필요, daily_dosing_schedule 추가.",
+  "_examples": [
+    "Osimertinib 80mg QD (폐암 EGFR+)",
+    "Capecitabine 1250mg/m² BID D1-14/Q3W (대장암)",
+    "Lenvatinib 20mg QD (간암, 갑상선암)",
+    "Olaparib 300mg BID (난소암 BRCA+)",
+    "Sunitinib 50mg QD 4wk on/2wk off (신세포암)"
+  ],
+  "_differs_from_base": [
+    "administration_schedule[].route = 'ORAL'",
+    "infusion_duration_minutes 불필요 (제거)",
+    "daily_dosing_schedule 추가: 하루 복용 패턴 (QD, BID, TID 등)",
+    "dose_per_administration 에 체표면적(BSA) 기반 가능"
+  ],
+
+  "allOf": [
+    { "$ref": "base.json" },
+    {
+      "properties": {
+        "administration_schedule": {
+          "minItems": 1,
+          "maxItems": 1,
+          "items": {
+            "required": ["daily_dosing_schedule"],
+            "properties": {
+              "route": { "const": "ORAL" },
+              "daily_dosing_schedule": {
+                "type": "string",
+                "enum": ["QD", "BID", "TID"],
+                "description": "일일 복용 빈도. QD=1회, BID=2회, TID=3회."
+              },
+              "continuous_days_per_cycle": {
+                "type": ["integer", "null"],
+                "description": "사이클 내 연속 복용 일수. null이면 매일 복용 (continuous). e.g., Capecitabine은 14 (21일 사이클 중 14일 복용)."
+              }
+            },
+            "not": {
+              "required": ["infusion_duration_minutes"]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

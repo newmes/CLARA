@@ -1,0 +1,81 @@
+{
+  "domain": "Tobacco",
+  "domain_name": "Tobacco Implementation Guide",
+  "core_fields": [
+    {
+      "field": "DVSPID",
+      "label": "프로토콜 이탈 ID",
+      "type": "date",
+      "required": false
+    },
+    {
+      "field": "DVDECOD",
+      "label": "프로토콜 이탈 분류",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "Prohibited Medications",
+          "label": "Prohibited Medications",
+          "label_ko": "Prohibited Medications"
+        },
+        {
+          "value": "Informed Consent Issues",
+          "label": "Informed Consent Issues",
+          "label_ko": "Informed Consent Issues"
+        },
+        {
+          "value": "Inclusion Exclusion Criteria Violations",
+          "label": "Inclusion Exclusion Criteria Violations",
+          "label_ko": "Inclusion Exclusion Criteria Violations"
+        },
+        {
+          "value": "Adverse Event Not Reported in Timeline",
+          "label": "Adverse Event Not Reported in Timeline",
+          "label_ko": "Adverse Event Not Reported in Timeline"
+        },
+        {
+          "value": "Procedure not performed per protocol",
+          "label": "Procedure not performed per protocol",
+          "label_ko": "Procedure not performed per protocol"
+        },
+        {
+          "value": "Visit out of window",
+          "label": "Visit out of window",
+          "label_ko": "Visit out of window"
+        },
+        {
+          "value": "Other",
+          "label": "Other",
+          "label_ko": "Other"
+        }
+      ]
+    },
+    {
+      "field": "DVTERM",
+      "label": "프로토콜 이탈 내용",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "DVSTDAT",
+      "label": "발생일",
+      "type": "date",
+      "required": false
+    },
+    {
+      "field": "DVENDAT",
+      "label": "종료일",
+      "type": "date",
+      "required": false
+    }
+  ],
+  "metadata_fields": [
+    {
+      "field": "DVYN",
+      "label": "프로토콜 이탈 발생 여부",
+      "type": "boolean",
+      "required": true
+    }
+  ]
+}

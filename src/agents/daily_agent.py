@@ -818,7 +818,10 @@ class DailySimulator:
                 if total_p > 0:
                     grade_dist_clean = {k: v / total_p for k, v in grade_dist_clean.items()}
 
-                initial_grade = int(self.sampler.categorical(grade_dist_clean))
+                try:
+                    initial_grade = int(self.sampler.categorical(grade_dist_clean))
+                except (ValueError, TypeError):
+                    initial_grade = 1
 
                 # 점진적 AE는 G1에서 시작 (급성 제외)
                 normalized_term = term.lower().replace(" ", "_").replace("-", "_")

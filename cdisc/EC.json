@@ -1,0 +1,244 @@
+{
+  "domain": "EC",
+  "domain_name": "Exposure as Collected CRF",
+  "core_fields": [
+    {
+      "field": "ECREFID",
+      "label": "시험약 식별번호",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "ECSTDAT",
+      "label": "투약 시작일",
+      "type": "date",
+      "required": true
+    },
+    {
+      "field": "ECENDAT",
+      "label": "투약 종료일",
+      "type": "date",
+      "required": false
+    },
+    {
+      "field": "ECDSTXT",
+      "label": "용량",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "ECDOSU",
+      "label": "용량 단위",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "CAPSULE",
+          "label": "Capsule",
+          "label_ko": "Capsule"
+        },
+        {
+          "value": "g",
+          "label": "Gram",
+          "label_ko": "Gram"
+        },
+        {
+          "value": "IU",
+          "label": "International Unit",
+          "label_ko": "International Unit"
+        },
+        {
+          "value": "ug",
+          "label": "Microgram",
+          "label_ko": "Microgram"
+        },
+        {
+          "value": "mg",
+          "label": "Milligram",
+          "label_ko": "Milligram"
+        },
+        {
+          "value": "mL",
+          "label": "Mililiter",
+          "label_ko": "Mililiter"
+        },
+        {
+          "value": "PUFF",
+          "label": "Puff",
+          "label_ko": "Puff"
+        },
+        {
+          "value": "TABLET",
+          "label": "Tablet",
+          "label_ko": "Tablet"
+        }
+      ]
+    },
+    {
+      "field": "ECDOSFRQ",
+      "label": "투약 빈도",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "PRN",
+          "label": "As Needed",
+          "label_ko": "As Needed"
+        },
+        {
+          "value": "QID",
+          "label": "4 Times per Day",
+          "label_ko": "4 Times per Day"
+        },
+        {
+          "value": "TID",
+          "label": "Three Times Daily",
+          "label_ko": "Three Times Daily"
+        },
+        {
+          "value": "BID",
+          "label": "Twice Daily",
+          "label_ko": "Twice Daily"
+        },
+        {
+          "value": "QD",
+          "label": "Daily",
+          "label_ko": "Daily"
+        },
+        {
+          "value": "QOD",
+          "label": "Every Other Day",
+          "label_ko": "Every Other Day"
+        },
+        {
+          "value": "QM",
+          "label": "Every Month",
+          "label_ko": "Every Month"
+        }
+      ]
+    },
+    {
+      "field": "ECROUTE",
+      "label": "투여 경로",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "INTRALESIONAL",
+          "label": "Intralesional",
+          "label_ko": "Intralesional"
+        },
+        {
+          "value": "INTRAMUSCULAR",
+          "label": "Intramuscular",
+          "label_ko": "Intramuscular"
+        },
+        {
+          "value": "INTRAOCULAR",
+          "label": "Intraocular",
+          "label_ko": "Intraocular"
+        },
+        {
+          "value": "INTRAPERITONEAL",
+          "label": "Intraperitoneal",
+          "label_ko": "Intraperitoneal"
+        },
+        {
+          "value": "NASAL",
+          "label": "Nasal",
+          "label_ko": "Nasal"
+        },
+        {
+          "value": "ORAL",
+          "label": "Oral",
+          "label_ko": "Oral"
+        },
+        {
+          "value": "RECTAL",
+          "label": "Rectal",
+          "label_ko": "Rectal"
+        },
+        {
+          "value": "RESPIRATORY (INHALATION)",
+          "label": "Respiratory (Inhalation)",
+          "label_ko": "Respiratory (Inhalation)"
+        },
+        {
+          "value": "SUBCUTANEOUS",
+          "label": "Subcutaneous",
+          "label_ko": "Subcutaneous"
+        },
+        {
+          "value": "TOPICAL",
+          "label": "Topical",
+          "label_ko": "Topical"
+        },
+        {
+          "value": "TRANSDERMAL",
+          "label": "Transdermal",
+          "label_ko": "Transdermal"
+        },
+        {
+          "value": "VAGINAL",
+          "label": "Vaginal",
+          "label_ko": "Vaginal"
+        }
+      ]
+    },
+    {
+      "field": "ECDOSADJ",
+      "label": "용량 조정 여부",
+      "type": "boolean",
+      "required": false
+    },
+    {
+      "field": "ECADJ",
+      "label": "용량 조정 사유",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "ECCINTD",
+      "label": "중단 기간",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "ECCINTDU",
+      "label": "중단 기간 단위",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "MINUTES",
+          "label": "Minutes",
+          "label_ko": "Minutes"
+        },
+        {
+          "value": "HOURS",
+          "label": "Hours",
+          "label_ko": "Hours"
+        },
+        {
+          "value": "DAYS",
+          "label": "Days",
+          "label_ko": "Days"
+        }
+      ]
+    },
+    {
+      "field": "ECTRTCMP",
+      "label": "투약 완료 여부",
+      "type": "boolean",
+      "required": false
+    }
+  ],
+  "metadata_fields": [
+    {
+      "field": "ECITRPYN",
+      "label": "투약 중단 여부",
+      "type": "boolean",
+      "required": false
+    }
+  ]
+}

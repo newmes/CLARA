@@ -214,6 +214,38 @@
     .hazard-layout { grid-template-columns: 1fr; }
     .demo-title { font-size: 1.5em; }
   }
+
+  /* ── Clinical Trial Simulation Tab Bar ── */
+  .cts-tab-bar {
+    display: flex; gap: 4px; justify-content: center;
+    margin-bottom: 2.5em; padding: 4px;
+    background: rgba(22,27,34,0.6);
+    border: 1px solid rgba(48,54,61,0.5);
+    border-radius: 12px;
+    width: fit-content; margin-left: auto; margin-right: auto;
+  }
+  .cts-tab-link {
+    padding: 8px 20px; border-radius: 8px;
+    font: 600 0.78em 'JetBrains Mono', monospace;
+    color: var(--text-muted); text-decoration: none;
+    transition: all 0.25s; white-space: nowrap;
+    display: flex; align-items: center; gap: 6px;
+  }
+  .cts-tab-link:hover {
+    color: var(--text-secondary);
+    background: rgba(57,210,192,0.06);
+    text-decoration: none;
+  }
+  .cts-tab-link.active {
+    color: var(--accent-cyan);
+    background: rgba(57,210,192,0.1);
+    border: 1px solid rgba(57,210,192,0.2);
+  }
+  .cts-tab-link .cts-tab-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: currentColor; opacity: 0.5;
+  }
+  .cts-tab-link.active .cts-tab-dot { opacity: 1; }
 </style>
 {% endblock %}
 
@@ -221,7 +253,7 @@
   <span class="nav-sep">/</span>
   <a href="{% url 'demo_anti_hallucination' %}">Anti-Hallucination</a>
   <span class="nav-sep">|</span>
-  <a href="{% url 'demo_medgemma' %}">MedGemma</a>
+  <a href="{% url 'demo_care_agent' %}">Care Agent</a>
   <span class="nav-sep">|</span>
   <a href="{% url 'demo_hazard' %}" class="nav-active">Hazard</a>
   <span class="nav-sep">|</span>
@@ -246,6 +278,18 @@
       Real-time AE onset probability curves powered by mixture-model hazard functions.
       No fate tables &mdash; every day's risk is computed dynamically from onset distributions.
     </div>
+  </div>
+
+  <!-- Clinical Trial Simulation Tab Bar -->
+  <div class="cts-tab-bar fade-up">
+    <a href="{% url 'demo_hazard' %}" class="cts-tab-link active">
+      <span class="cts-tab-dot"></span>
+      Hazard Engine
+    </a>
+    <a href="{% url 'demo_ruleset_generation' %}" class="cts-tab-link">
+      <span class="cts-tab-dot"></span>
+      Rule Set Generation
+    </a>
   </div>
 
   <!-- Main Layout -->

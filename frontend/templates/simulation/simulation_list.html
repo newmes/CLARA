@@ -427,9 +427,9 @@
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><polygon points="10 8 16 11 10 14" fill="currentColor" stroke="none"/></svg>
             Simulation
           </a>
-          <a href="{% url 'game_landing' run.id %}" class="act-purple" title="Clinical training for nurses">
+          <a href="{% url 'demo_care_agent' %}" class="act-purple" title="Care Agent demo">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.66 2.69 3 6 3s6-1.34 6-3v-5"/></svg>
-            Training
+            Care Agent
           </a>
           <a href="{% url 'doc_hub' run.id %}" class="act-blue" title="SAE regulatory documents">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
@@ -495,9 +495,23 @@
     <h3>New Simulation</h3>
     <div class="sim-form-group">
       <label>Drug</label>
+      <select id="sim-drug-select" onchange="onDrugSelectChange()">
+        <option value="custom">-- Custom (type below) --</option>
+        <option value="rule_set_calibrated_ev302" data-drug="Padcev + Pembrolizumab" data-indication="metastatic urothelial carcinoma" selected>Padcev + Pembrolizumab</option>
+        <option value="gt_1_Darbepoetin_alfa" data-drug="Darbepoetin alfa" data-indication="Small Cell Lung Cancer (SCLC), Extensive Stage">Darbepoetin alfa</option>
+        <option value="gt_2_Etoposide_Cisplatin" data-drug="Etoposide + Cisplatin" data-indication="extensive-stage small cell lung cancer (ES-SCLC)">Etoposide + Cisplatin</option>
+        <option value="gt_3_CALGB9732" data-drug="Paclitaxel + Cisplatin + Etoposide" data-indication="extensive-stage small cell lung cancer (ES-SCLC)">Paclitaxel + Cisplatin + Etoposide</option>
+        <option value="gt_4_Carboplatin_Etoposide" data-drug="Carboplatin + Etoposide" data-indication="extensive-stage small cell lung cancer (ES-SCLC)">Carboplatin + Etoposide</option>
+        <option value="gt_6_Paclitaxel_Carboplatin_Bevacizumab" data-drug="Paclitaxel + Carboplatin + Bevacizumab" data-indication="non-small cell lung cancer (NSCLC)">Paclitaxel + Carboplatin + Bevacizumab</option>
+        <option value="gt_7_Paclitaxel_Carboplatin" data-drug="Paclitaxel + Carboplatin" data-indication="non-small cell lung cancer (NSCLC)">Paclitaxel + Carboplatin</option>
+        <option value="gt_8_Gemcitabine_Cisplatin" data-drug="Gemcitabine + Cisplatin" data-indication="non-small cell lung cancer (NSCLC)">Gemcitabine + Cisplatin</option>
+      </select>
+    </div>
+    <div class="sim-form-group" id="sim-custom-drug-group">
+      <label>Drug Name</label>
       <input type="text" id="sim-drug" value="Padcev + Pembrolizumab">
     </div>
-    <div class="sim-form-group">
+    <div class="sim-form-group" id="sim-custom-indication-group">
       <label>Indication</label>
       <input type="text" id="sim-indication" value="metastatic urothelial carcinoma">
     </div>
@@ -558,6 +572,34 @@ document.getElementById('sim-modal').addEventListener('click', function(e) {
   if (e.target === this) hideSimModal();
 });
 
+/* -- Drug select change -- */
+function onDrugSelectChange() {
+  var sel = document.getElementById('sim-drug-select');
+  var opt = sel.options[sel.selectedIndex];
+  var isCustom = sel.value === 'custom';
+  var drugInput = document.getElementById('sim-drug');
+  var indicationInput = document.getElementById('sim-indication');
+  var drugGroup = document.getElementById('sim-custom-drug-group');
+  var indGroup = document.getElementById('sim-custom-indication-group');
+
+  if (isCustom) {
+    drugInput.value = '';
+    indicationInput.value = '';
+    drugInput.readOnly = false;
+    indicationInput.readOnly = false;
+    drugInput.style.opacity = '1';
+    indicationInput.style.opacity = '1';
+  } else {
+    drugInput.value = opt.dataset.drug || '';
+    indicationInput.value = opt.dataset.indication || '';
+    drugInput.readOnly = true;
+    indicationInput.readOnly = true;
+    drugInput.style.opacity = '0.7';
+    indicationInput.style.opacity = '0.7';
+  }
+}
+onDrugSelectChange();
+
 /* -- Stop Sim -- */
 async function stopSim(runId) {
   var action = confirm('Stop this simulation?\n\nOK to stop (keep data), Cancel to abort.');
@@ -591,6 +633,8 @@ async function startSimulation() {
   msg.style.color = 'var(--accent-cyan)';
   msg.textContent = 'Initializing simulation...';
 
+  var drugSelect = document.getElementById('sim-drug-select');
+  var isCustom = drugSelect.value === 'custom';
   var body = {
     drug: document.getElementById('sim-drug').value,
     indication: document.getElementById('sim-indication').value,
@@ -598,6 +642,9 @@ async function startSimulation() {
     days: parseInt(document.getElementById('sim-days').value),
     mode: document.getElementById('sim-mode').value,
   };
+  if (!isCustom) {
+    body.rule_set_preset = drugSelect.value;
+  }
   var seedVal = document.getElementById('sim-seed').value;
   if (seedVal) body.seed = parseInt(seedVal);
 

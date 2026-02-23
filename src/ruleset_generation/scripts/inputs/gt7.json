@@ -1,0 +1,30 @@
+[
+  {
+    "drugs": ["Darbepoetin alfa"],
+    "indication": "Small Cell Lung Cancer"
+  },
+  {
+    "drugs": ["Cisplatin", "Etoposide"],
+    "indication": "Small Cell Lung Cancer"
+  },
+  {
+    "drugs": ["Paclitaxel", "Cisplatin", "Etoposide"],
+    "indication": "Small Cell Lung Cancer"
+  },
+  {
+    "drugs": ["Etoposide", "Carboplatin"],
+    "indication": "Small Cell Lung Cancer"
+  },
+  {
+    "drugs": ["Paclitaxel", "Carboplatin", "Bevacizumab"],
+    "indication": "Non-small cell lung cancer"
+  },
+  {
+    "drugs": ["Paclitaxel", "Carboplatin"],
+    "indication": "Non-small cell lung cancer"
+  },
+  {
+    "drugs": ["Gemcitabine", "Cisplatin"],
+    "indication": "squamous non-small cell lung cancer"
+  }
+]
