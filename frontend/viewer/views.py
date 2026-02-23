@@ -6,9 +6,12 @@ Concordia 스타일의 SSE 실시간 업데이트 +
 Interactive Game Mode (Care Agent 대신 사람이 참여).
 """
 import json
+import logging
 import os
 import time
 from pathlib import Path
+from urllib.error import URLError
+from urllib.request import Request, urlopen
 
 from django.conf import settings
 from django.http import HttpResponse, JsonResponse, StreamingHttpResponse
@@ -641,6 +644,27 @@ def _patient_summary(profile: dict, day_data: dict | None,
             }
         else:
             summary["care_record"] = None
+    else:
+        # No simulation data yet — use profile defaults for map rendering
+        emr = profile.get("emr", {})
+        init = profile.get("initial_state", {})
+        summary["location"] = init.get("location", "HOME")
+        summary["treatment_status"] = init.get("treatment_status", "screening")
+        summary["ecog"] = emr.get("baseline_ecog", "?")
+        summary["active_aes"] = []
+        summary["labs"] = {}
+        summary["vitals"] = {}
+        summary["awareness"] = "UNAWARE"
+        summary["symptoms_perceived"] = []
+        summary["tumor_change_pct"] = 0
+        summary["is_visit_day"] = False
+        summary["observation_types"] = []
+        summary["labs_stale_days"] = 0
+        summary["vitals_stale_days"] = 0
+        summary["generation_mode"] = "pending"
+        summary["mortality_risk"] = 0
+        summary["mood"] = {}
+        summary["care_record"] = None
 
     return summary
 
@@ -648,10 +672,282 @@ def _patient_summary(profile: dict, day_data: dict | None,
 # ─── Page views ───────────────────────────────────────────────
 
 def landing(request):
-    """Landing page: list available simulation runs."""
+    """Landing page: pure technology showcase (no runs context)."""
+    return render(request, "landing/landing.html")
+
+
+def simulation_list(request):
+    """Simulation list page: all runs, stats, and new-sim modal."""
     runs = _get_runs()
     context = {"runs": runs}
-    return render(request, "landing/landing.html", context)
+    return render(request, "simulation/simulation_list.html", context)
+
+
+# ─── Demo Pages ─────────────────────────────────────────────
+
+def demo_anti_hallucination(request):
+    """Anti-Hallucination technology demo page."""
+    return render(request, "demo/anti_hallucination.html")
+
+
+def demo_medgemma(request):
+    """MedGemma Vision technology demo page."""
+    return render(request, "demo/medgemma.html")
+
+
+_MEDGEMMA_PROMPT = (
+    "You are a clinical dermatology expert. You are given two images of the same patient:\n"
+    "- Image 1: Baseline photograph (before treatment)\n"
+    "- Image 2: Current photograph\n\n"
+    "Compare the two images and identify any NEW adverse events (AEs) visible in Image 2 "
+    "that were NOT present in Image 1. Use the CTCAE categories and grading criteria below "
+    "to classify and grade each finding. If the patient's appearance is unchanged between "
+    "the two images, return an empty list.\n\n"
+    "## AE Categories & Grading\n\n"
+    "### rash_maculopapular\n"
+    "- Grade 1: Faint pink macules/papules scattered on cheeks (<10% BSA); mild erythema, no scaling, subtle and localized\n"
+    "- Grade 2: Visible red macules/papules spreading across cheeks and forehead (10-30% BSA); moderate erythema with fine scaling at lesion edges\n"
+    "- Grade 3: Severe confluent rash covering entire face including cheeks, forehead, chin, and nose (>30% BSA); intense erythema, coarse scaling, and facial edema\n\n"
+    "### rash_acneiform\n"
+    "- Grade 1: Few small papules on forehead (<10% BSA); non-inflamed or mildly inflamed, skin-colored to pink\n"
+    "- Grade 2: Multiple erythematous papules and pustules on cheeks and forehead (10-30% BSA); visible pus-filled lesions, surrounding redness\n"
+    "- Grade 3: Dense pustules covering entire face - forehead, cheeks, nose, chin (>30% BSA); confluent inflammation, crusting, signs of secondary infection\n\n"
+    "### periorbital_edema\n"
+    "- Grade 1: Slight puffiness of upper and lower eyelids, barely noticeable; periorbital skin appears mildly swollen\n"
+    "- Grade 2: Obvious bilateral periorbital swelling; puffy, baggy eyelids with visible tissue distension; eyes appear partially narrowed\n"
+    "- Grade 3: Severe periorbital edema causing near-closure of eyes; tense, shiny skin around orbital rims, eye-opening significantly impaired\n\n"
+    "### sjs_prodrome\n"
+    "- Grade 1: Lip redness and dryness; vermilion border appears erythematous, slight chapping without blistering\n"
+    "- Grade 2: Lip and oral mucosal blistering; fluid-filled vesicles on lip surface and inner mouth; erosions with crusting at lip margins\n"
+    "- Grade 3: Beginning of epidermal detachment on lips and perioral skin; large erosions, bleeding mucosa, severe crusting extending beyond lip borders\n\n"
+    "### stomatitis\n"
+    "- Grade 1: Mild redness or minor aphthous-like ulcer on lip mucosa; slight discomfort, no visible swelling from outside\n"
+    "- Grade 2: Visible cracking and erythema at lip corners with shallow erosions; perioral redness, mild swelling of the lips\n"
+    "- Grade 3: Severe lip swelling and deep erosions visible on external lip surface; crusting, bleeding, perioral inflammation\n\n"
+    "### pruritus\n"
+    "- Grade 1: Mild localized skin excoriation marks on forehead or cheeks; faint scratch marks, minimal erythema\n"
+    "- Grade 2: Moderate visible scratch marks and erythema across face; dry, irritated skin with diffuse redness\n"
+    "- Grade 3: Severe widespread excoriations with lichenification; intense erythema, bleeding scratch marks, facial edema from chronic scratching\n\n"
+    "### alopecia\n"
+    "- Grade 1: Mild hair thinning visible at temples and frontal hairline; slightly widened part line, subtle compared to baseline\n"
+    "- Grade 2: Obvious diffuse hair thinning with clearly visible scalp through hair; temporal recession, noticeably sparse hair\n\n"
+    "## Output Format\n"
+    "Return a JSON array of detected AEs. Each element:\n"
+    '{"ae_term": "<category>", "grade": <1|2|3>, "confidence": <0.0-1.0>, '
+    '"reasoning": "<clinical description of what changed from Image 1 to Image 2>"}\n\n'
+    "If no change from baseline is detected, return: []"
+)
+
+
+def _medgemma_infer(baseline_name, current_name, vllm_url, model_id):
+    """Shared inference logic for MedGemma vLLM calls."""
+    import base64
+    import re
+    import urllib.request
+    import urllib.error
+
+    img_dir = Path(settings.BASE_DIR) / "static_dirs" / "assets" / "medgemma"
+    baseline_path = img_dir / baseline_name
+    current_path = img_dir / current_name
+
+    if not baseline_path.exists() or not current_path.exists():
+        return None, "Image not found"
+
+    b64_baseline = base64.b64encode(baseline_path.read_bytes()).decode("utf-8")
+    b64_current = base64.b64encode(current_path.read_bytes()).decode("utf-8")
+
+    payload = json.dumps({
+        "model": model_id,
+        "messages": [{
+            "role": "user",
+            "content": [
+                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64_baseline}"}},
+                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64_current}"}},
+                {"type": "text", "text": _MEDGEMMA_PROMPT},
+            ],
+        }],
+        "max_completion_tokens": 1024,
+        "temperature": 0,
+    }).encode("utf-8")
+
+    req = urllib.request.Request(
+        f"{vllm_url}/chat/completions",
+        data=payload,
+        headers={"Content-Type": "application/json"},
+    )
+
+    t0 = time.time()
+    try:
+        with urllib.request.urlopen(req, timeout=120) as resp:
+            result = json.loads(resp.read().decode("utf-8"))
+    except (urllib.error.URLError, urllib.error.HTTPError, TimeoutError) as e:
+        return None, f"vLLM request failed: {e}"
+    latency_ms = (time.time() - t0) * 1000
+
+    raw_text = result.get("choices", [{}])[0].get("message", {}).get("content", "")
+
+    detected = []
+    try:
+        data = json.loads(raw_text)
+        if isinstance(data, list):
+            detected = data
+    except (json.JSONDecodeError, TypeError):
+        match = re.search(r'\[.*\]', raw_text, re.DOTALL)
+        if match:
+            try:
+                data = json.loads(match.group())
+                if isinstance(data, list):
+                    detected = data
+            except (json.JSONDecodeError, TypeError):
+                pass
+
+    return {
+        "detected_aes": detected,
+        "raw_output": raw_text,
+        "latency_ms": round(latency_ms, 1),
+    }, None
+
+
+@csrf_exempt
+@require_POST
+def api_medgemma_analyze(request):
+    """Run live MedGemma 4B finetuned inference via vLLM."""
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    baseline_name = body.get("baseline")
+    current_name = body.get("current")
+    if not baseline_name or not current_name:
+        return JsonResponse({"error": "baseline and current are required"}, status=400)
+
+    vllm_url = "http://clara-medgemma4b-ctcae:8000/v1"
+    model_id = "medgemma-4b-finetuned"
+
+    result, err = _medgemma_infer(baseline_name, current_name, vllm_url, model_id)
+    if err:
+        status = 404 if "not found" in err else 502
+        return JsonResponse({"error": err}, status=status)
+    return JsonResponse(result)
+
+
+@csrf_exempt
+@require_POST
+def api_medgemma_analyze_base(request):
+    """Run live MedGemma 4B base (zero-shot) inference via vLLM."""
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    baseline_name = body.get("baseline")
+    current_name = body.get("current")
+    if not baseline_name or not current_name:
+        return JsonResponse({"error": "baseline and current are required"}, status=400)
+
+    vllm_url = os.environ.get("MEDGEMMA4B_BASE_VLLM_BASE_URL", "http://clara-medgemma4b:8000/v1")
+    model_id = os.environ.get("MEDGEMMA4B_BASE_MODEL_ID", "google/medgemma-4b-it")
+
+    result, err = _medgemma_infer(baseline_name, current_name, vllm_url, model_id)
+    if err:
+        status = 404 if "not found" in err else 502
+        return JsonResponse({"error": err}, status=status)
+    return JsonResponse(result)
+
+
+def demo_hazard(request):
+    """Hazard Engine technology demo page."""
+    return render(request, "demo/hazard.html")
+
+
+# ─── AntiHallu API ───────────────────────────────────────────
+
+ANTIHALLU_ASSETS = Path(settings.BASE_DIR) / "static_dirs" / "assets" / "antihallu"
+ANTIHALLU_SERVER_URL = os.environ.get("ANTIHALLU_SERVER_URL", "").rstrip("/")
+_antihallu_log = logging.getLogger("antihallu")
+
+
+@require_GET
+def api_antihallu_examples(request):
+    """Return AntiHallu example questions."""
+    try:
+        data = json.loads((ANTIHALLU_ASSETS / "examples.json").read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        return JsonResponse({"error": "examples.json not found"}, status=404)
+    return JsonResponse(data)
+
+
+def _proxy_to_antihallu_server(question: str, system_prompt: str = None):
+    """Forward a generate request to the antihallu FastAPI server.
+
+    Returns the parsed JSON dict on success, or None on any failure.
+    """
+    if not ANTIHALLU_SERVER_URL:
+        return None
+    payload = {"question": question}
+    if system_prompt:
+        payload["system_prompt"] = system_prompt
+    body_bytes = json.dumps(payload).encode("utf-8")
+    req = Request(
+        f"{ANTIHALLU_SERVER_URL}/api/generate",
+        data=body_bytes,
+        headers={"Content-Type": "application/json"},
+        method="POST",
+    )
+    try:
+        with urlopen(req, timeout=120) as resp:
+            return json.loads(resp.read().decode("utf-8"))
+    except (URLError, OSError, json.JSONDecodeError, TimeoutError) as exc:
+        _antihallu_log.warning("antihallu-server proxy failed: %s", exc)
+        return None
+
+
+def _cache_lookup(question: str):
+    """Look up a question in the local AntiHallu cache. Returns dict or None."""
+    try:
+        cache = json.loads(
+            (ANTIHALLU_ASSETS / "cache.json").read_text(encoding="utf-8")
+        )
+    except FileNotFoundError:
+        return None
+    return cache.get(question.lower())
+
+
+@csrf_exempt
+@require_POST
+def api_antihallu_generate(request):
+    """Generate AntiHallu comparison: live proxy with cache fallback."""
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON body"}, status=400)
+
+    question = body.get("question", "").strip()
+    if not question:
+        return JsonResponse({"error": "question is required"}, status=400)
+
+    # 1) Try live inference via antihallu-server
+    live_result = _proxy_to_antihallu_server(question)
+    if live_result is not None:
+        live_result["live"] = True
+        return JsonResponse(live_result)
+
+    # 2) Fallback to local cache
+    entry = _cache_lookup(question)
+    if entry is not None:
+        return JsonResponse({
+            "question": entry["question"],
+            "original": entry["original"],
+            "defended": entry["defended"],
+            "cached": True,
+            "live": False,
+        })
+
+    return JsonResponse(
+        {"error": "AntiHallu server unavailable and question not in cache"},
+        status=503,
+    )
 
 
 def trial_viewer(request, run_id: str, day: int = 1):
@@ -721,8 +1017,11 @@ def trial_viewer(request, run_id: str, day: int = 1):
     drug_name = rule_set.get("drug_name", "Unknown")
     indication = rule_set.get("indication", "")
 
-    # Live simulation detection
-    is_live = request.GET.get("live") == "1" or run_id in _live_sims
+    # Live simulation detection: URL param, in-memory tracker, or meta says running
+    meta_status = _load_run_meta(run_path).get("status", "")
+    is_live = (request.GET.get("live") == "1"
+               or run_id in _live_sims
+               or meta_status == "running")
 
     context = {
         "run_id": run_id,
@@ -1240,7 +1539,410 @@ def sse_stream(request, run_id: str):
 
 
 # ═══════════════════════════════════════════════════════════════
-# Interactive Game Mode — Care Agent 대신 사람이 참여하는 시뮬레이션
+# Care Agent Demo — Automated nurse ↔ patient simulation
+# ═══════════════════════════════════════════════════════════════
+
+def _load_virtual_patients():
+    """Load virtual patient config for Care Agent demo."""
+    config_path = Path(settings.BASE_DIR).parent / "data" / "multimodal" / "care_agent_patients.json"
+    if config_path.exists():
+        return json.loads(config_path.read_text(encoding="utf-8"))
+    return {"patients": [], "drug_name": "Unknown", "indication": ""}
+
+
+def demo_care_agent(request):
+    """Care Agent demo page — Tab 1: MedGemma Vision, Tab 2: Care Agent Live."""
+    config = _load_virtual_patients()
+    return render(request, "demo/care_agent.html", {"vpatients": config.get("patients", [])})
+
+
+@csrf_exempt
+@require_POST
+def api_care_agent_run(request):
+    """Run Care Agent for a virtual patient — SSE stream with images + audio."""
+    from django.http import StreamingHttpResponse
+    import queue, threading
+
+    body = json.loads(request.body)
+    patient_id = body.get("patient_id", "")
+
+    config = _load_virtual_patients()
+    vpt = None
+    for p in config.get("patients", []):
+        if p["id"] == patient_id:
+            vpt = p
+            break
+    if not vpt:
+        return JsonResponse({"error": "Virtual patient not found"}, status=404)
+
+    drug_name = config.get("drug_name", "Unknown")
+    indication = config.get("indication", "")
+    rep = vpt.get("representative_day", {})
+    demographics = vpt.get("profile", {})
+    persona_type = vpt.get("persona", "minimizer")
+
+    q = queue.Queue()
+
+    def _run_medgemma(baseline_name, current_name):
+        """Call MedGemma finetuned model for real visual AE inference."""
+        import base64, urllib.request as ureq, re as _re
+        img_dir = Path(settings.BASE_DIR).parent / "data" / "multimodal" / "v3_images"
+        bl_path = img_dir / baseline_name
+        cur_path = img_dir / current_name
+        if not bl_path.exists():
+            bl_path = Path(settings.BASE_DIR) / "static_dirs" / "assets" / "medgemma" / baseline_name
+        if not cur_path.exists():
+            cur_path = Path(settings.BASE_DIR) / "static_dirs" / "assets" / "medgemma" / current_name
+        if not bl_path.exists() or not cur_path.exists():
+            return []
+        b64_bl = base64.b64encode(bl_path.read_bytes()).decode()
+        b64_cur = base64.b64encode(cur_path.read_bytes()).decode()
+        vllm_url = "http://clara-medgemma4b-ctcae:8000/v1"
+        model_id = "medgemma-4b-finetuned"
+        payload = json.dumps({
+            "model": model_id, "max_completion_tokens": 512, "temperature": 0,
+            "messages": [{"role": "user", "content": [
+                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64_bl}"}},
+                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64_cur}"}},
+                {"type": "text", "text": _MEDGEMMA_PROMPT},
+            ]}],
+        }).encode()
+        req = ureq.Request(f"{vllm_url}/chat/completions", data=payload,
+                           headers={"Content-Type": "application/json"})
+        try:
+            with ureq.urlopen(req, timeout=60) as resp:
+                result = json.loads(resp.read())
+            text = result["choices"][0]["message"]["content"]
+            text = text.strip()
+            if text.startswith("```"):
+                text = _re.sub(r"^```\w*\n?", "", text)
+                text = _re.sub(r"\n?```$", "", text)
+            parsed = json.loads(text)
+            return parsed if isinstance(parsed, list) else []
+        except Exception as exc:
+            import logging
+            logging.getLogger("care_agent").error("MedGemma inference error: %s", exc)
+            return []
+
+    def _run():
+        try:
+            if not os.environ.get("GOOGLE_API_KEY"):
+                env_path = Path(settings.BASE_DIR).parent / ".env"
+                if env_path.exists():
+                    for line in env_path.read_text().splitlines():
+                        if line.startswith("GOOGLE_API_KEY="):
+                            os.environ["GOOGLE_API_KEY"] = line.split("=", 1)[1].strip()
+
+            from src.agents.llm_client import generate_json, set_caller
+            from src.experiments.eval_prompt_templates import template_f_realistic, generate_final_assessment
+
+            padcev_ae_profile = [
+                {"ae_term": "rash_maculopapular", "incidence_pct": "55%", "common_symptoms": "skin rash, itching, redness"},
+                {"ae_term": "peripheral_neuropathy", "incidence_pct": "53%", "common_symptoms": "tingling, numbness in hands/feet"},
+                {"ae_term": "alopecia", "incidence_pct": "50%", "common_symptoms": "hair thinning or loss"},
+                {"ae_term": "fatigue", "incidence_pct": "50%", "common_symptoms": "tiredness, lack of energy"},
+                {"ae_term": "decreased_appetite", "incidence_pct": "44%", "common_symptoms": "reduced appetite, weight loss"},
+                {"ae_term": "nausea", "incidence_pct": "42%", "common_symptoms": "stomach upset, queasiness"},
+                {"ae_term": "pruritus", "incidence_pct": "32%", "common_symptoms": "itching without visible rash"},
+                {"ae_term": "pneumonitis", "incidence_pct": "10%", "common_symptoms": "cough, shortness of breath"},
+                {"ae_term": "stomatitis", "incidence_pct": "20%", "common_symptoms": "mouth sores, lip blisters"},
+                {"ae_term": "periorbital_edema", "incidence_pct": "15%", "common_symptoms": "swelling around eyes"},
+            ]
+
+            day = rep.get("day", 7)
+            ae_term = rep.get("ae")
+            ae_grade = rep.get("grade", 0)
+            image_file = rep.get("image", "")
+            audio_label = rep.get("audio_label", "none")
+            baseline_image = f"normal_{vpt['face_idx']}.png"
+
+            q.put(json.dumps({"type": "session_start", "patient_id": patient_id,
+                              "total_days": 1}))
+
+            # --- Step 1: MedGemma visual inference ---
+            q.put(json.dumps({"type": "medgemma_start"}))
+            import time as _time
+            t0 = _time.time()
+            mg_findings = _run_medgemma(baseline_image, image_file)
+            mg_elapsed = round((_time.time() - t0) * 1000)
+            if not isinstance(mg_findings, list):
+                mg_findings = []
+
+            visual_findings = []
+            for f in mg_findings:
+                visual_findings.append({
+                    "ae_term": f.get("ae_term", "unknown"),
+                    "grade": f.get("grade", 1),
+                    "confidence": f.get("confidence", 0.5),
+                    "reasoning": f.get("reasoning", ""),
+                })
+            visual_obs = []
+            if visual_findings:
+                for vf in visual_findings:
+                    visual_obs.append(f"{vf['ae_term'].replace('_',' ')} G{vf['grade']}")
+            else:
+                visual_obs.append("No visual AE changes detected")
+
+            q.put(json.dumps({
+                "type": "medgemma_result",
+                "findings": visual_findings,
+                "latency_ms": mg_elapsed,
+                "baseline_image": baseline_image,
+                "current_image": image_file,
+            }))
+
+            audio_assessment = "No cough detected"
+            if audio_label == "dry":
+                audio_assessment = "Dry cough detected — possible pneumonitis indicator"
+            elif audio_label == "wet":
+                audio_assessment = "Wet/productive cough detected — possible infection or fluid"
+
+            q.put(json.dumps({
+                "type": "day_start", "day": day,
+                "image": image_file,
+                "baseline_image": baseline_image,
+                "audio_label": audio_label,
+                "has_visual_ae": len(visual_findings) > 0,
+                "gt_ae": ae_term or "none",
+                "gt_grade": ae_grade,
+            }))
+
+            visual_assessment = {"findings": visual_findings, "general_observations": visual_obs}
+
+            current_labs = vpt.get("current_labs", {})
+            baseline_labs = vpt.get("baseline_labs", {})
+            current_vitals = vpt.get("current_vitals", {})
+            current_meds = vpt.get("current_medications", [])
+            med_history = vpt.get("medical_history", [])
+            ecog = vpt.get("ecog", 1)
+            mood_data = vpt.get("mood", {})
+
+            q.put(json.dumps({
+                "type": "nurse_context", "day": day,
+                "visual_assessment": visual_assessment,
+                "audio_assessment": audio_assessment,
+                "ae_profile_used": [a["ae_term"] for a in padcev_ae_profile],
+                "patient_info": demographics,
+                "current_labs": current_labs,
+                "baseline_labs": baseline_labs,
+                "current_vitals": current_vitals,
+                "current_medications": current_meds,
+                "medical_history": [h.get("condition", "") + (" (" + h.get("medication", "") + ")" if h.get("medication") and h["medication"] != "none" else "") for h in med_history],
+                "ecog": ecog,
+                "mood": mood_data,
+            }))
+
+            quality = {
+                "engagement": max(0.3, 1.0 - mood_data.get("defensiveness", 0.3)),
+                "under_report_prob": mood_data.get("defensiveness", 0.3),
+                "over_report_prob": mood_data.get("anxiety", 0.3) * 0.3,
+                "video_cooperation": 1.0 - mood_data.get("defensiveness", 0.3) * 0.5,
+            }
+
+            labs_text = ""
+            if current_labs:
+                lab_lines = []
+                for lname, ldata in current_labs.items():
+                    bl_val = baseline_labs.get(lname, {}).get("value", "?")
+                    trend = ldata.get("trend", "")
+                    lab_lines.append(f"  {lname}: {ldata['value']} {ldata.get('unit','')} (baseline: {bl_val}, {trend})")
+                labs_text = "\n".join(lab_lines)
+
+            vitals_text = ""
+            if current_vitals:
+                vitals_text = ", ".join(f"{k}={v}" for k, v in current_vitals.items())
+
+            meds_text = "\n".join(f"  - {m}" for m in current_meds) if current_meds else "  None"
+            hx_text = "\n".join(f"  - {h.get('condition', '')} ({h.get('medication', 'none')})" for h in med_history) if med_history else "  None"
+
+            scenario = {
+                "drug_name": drug_name, "indication": indication,
+                "visual_assessment": visual_assessment,
+                "audio_assessment": audio_assessment,
+                "drug_ae_profile": padcev_ae_profile,
+                "patient_demographics": demographics,
+                "treatment_day": day,
+                "current_labs_text": labs_text,
+                "current_vitals_text": vitals_text,
+                "current_medications_text": meds_text,
+                "medical_history_text": hx_text,
+                "ecog": ecog,
+                "patient_persona_type": persona_type,
+                "patient_mood": mood_data,
+            }
+
+            # --- Step 2: Patient greeting ---
+            patient_sys = f"""You are a cancer patient in a video call. Persona: {persona_type}.
+Profile: {demographics.get('age','?')}yo {demographics.get('sex','?')}, {demographics.get('race','?')}.
+Drug: {drug_name} for {indication}. Day {day}.
+{"You have " + ae_term.replace('_',' ') + " Grade " + str(ae_grade) + " but may not fully realize it." if ae_term else "No active AEs today."}
+{"You have a " + audio_label + " cough." if audio_label != "none" else ""}
+Speak naturally in English. Be realistic — match your persona.
+Output JSON: {{"greeting":"...", "reported_symptoms":[...], "mood_expression":"..."}}"""
+
+            set_caller(f"care_agent.patient.{patient_id}")
+            try:
+                greet_resp = generate_json(patient_sys,
+                    f"Day {day}. Greet the nurse briefly. Be yourself.",
+                    model="gemini-2.0-flash", max_tokens=512)
+            except Exception:
+                greet_resp = {"greeting": "Hey.", "reported_symptoms": [], "mood_expression": "neutral"}
+
+            greet_text = greet_resp.get("greeting", "Hi.")
+            q.put(json.dumps({
+                "type": "patient_greet", "day": day,
+                "text": greet_text,
+                "symptoms": greet_resp.get("reported_symptoms", []),
+                "mood": greet_resp.get("mood_expression", "neutral"),
+            }))
+
+            history = [{"_role": "patient", "_turn": 1,
+                        "greeting": greet_text,
+                        "reported_symptoms": greet_resp.get("reported_symptoms", []),
+                        "general_wellbeing": greet_resp.get("mood_expression", ""),
+                        "mood_expression": greet_resp.get("mood_expression", "neutral")}]
+
+            # --- Step 3: Multi-turn conversation ---
+            for turn in range(2, 5):
+                sys_prompt, usr_prompt = template_f_realistic(scenario, quality, turn, history)
+                set_caller(f"care_agent.nurse.{patient_id}")
+                try:
+                    nurse_resp = generate_json(sys_prompt, usr_prompt,
+                                               model="gemini-2.0-flash", max_tokens=1024)
+                except Exception:
+                    nurse_resp = {"acknowledgment": "Let me check a couple things.",
+                                  "questions": []}
+
+                nurse_msg = nurse_resp.get("acknowledgment", "")
+                questions = nurse_resp.get("questions", [])
+                nurse_full = nurse_msg
+                for nq in questions:
+                    nurse_full += f"\n{nq.get('question', '')}"
+
+                q.put(json.dumps({
+                    "type": "nurse_turn", "day": day, "turn": turn,
+                    "text": nurse_full,
+                    "questions": questions,
+                    "concerns": nurse_resp.get("concerns", []),
+                }))
+
+                history.append({"_role": "nurse", "_turn": turn,
+                                "acknowledgment": nurse_msg, "questions": questions})
+
+                pt_chat_sys = f"""You are a cancer patient responding to a nurse. Persona: {persona_type}.
+Day {day}. {"Active AE: " + ae_term.replace('_',' ') + " G" + str(ae_grade) if ae_term else "No AEs."}
+{"You have a " + audio_label + " cough." if audio_label != "none" else ""}
+Respond naturally in English. 1-2 sentences max.
+Output JSON: {{"response":"...", "revealed_new_info":true/false, "emotional_state":"..."}}"""
+
+                set_caller(f"care_agent.patient.{patient_id}")
+                try:
+                    pt_resp = generate_json(pt_chat_sys,
+                        f'Nurse said: "{nurse_full}"\nHistory: {json.dumps(history[-4:], default=str)[:600]}',
+                        model="gemini-2.0-flash", max_tokens=512)
+                except Exception:
+                    pt_resp = {"response": "I guess so.", "revealed_new_info": False,
+                               "emotional_state": "neutral"}
+
+                pt_text = pt_resp.get("response", "")
+                q.put(json.dumps({
+                    "type": "patient_turn", "day": day, "turn": turn,
+                    "text": pt_text,
+                    "revealed": pt_resp.get("revealed_new_info", False),
+                    "emotion": pt_resp.get("emotional_state", "neutral"),
+                }))
+                history.append({"_role": "patient", "_turn": turn,
+                                "responses": [{"answer": pt_text}],
+                                "emotional_reaction": pt_resp.get("emotional_state", "neutral")})
+
+            # --- Step 4: Final assessment ---
+            try:
+                assessment = generate_final_assessment(scenario, history,
+                    lambda s, u: generate_json(s, u, model="gemini-2.0-flash", max_tokens=2048))
+            except Exception:
+                assessment = {"detected_aes": [], "overall_concern_level": "unknown"}
+
+            detected_aes = assessment.get("detected_aes", [])
+            q.put(json.dumps({
+                "type": "assessment", "day": day,
+                "detected_aes": detected_aes,
+                "concern": assessment.get("overall_concern_level", "unknown"),
+                "action": assessment.get("recommended_action", "continue"),
+            }))
+
+            gt_list = [{"ae": ae_term, "grade": ae_grade}] if ae_term else []
+            q.put(json.dumps({
+                "type": "day_end", "day": day,
+                "gt_aes": gt_list,
+                "detected_aes": detected_aes,
+            }))
+
+            q.put(json.dumps({"type": "finished"}))
+        except Exception as e:
+            import traceback
+            q.put(json.dumps({"type": "error", "message": str(e),
+                              "trace": traceback.format_exc()[-500:]}))
+        finally:
+            q.put(None)
+
+    def _stream():
+        thread = threading.Thread(target=_run, daemon=True)
+        thread.start()
+        while True:
+            item = q.get()
+            if item is None:
+                break
+            yield f"data: {item}\n\n"
+
+    resp = StreamingHttpResponse(_stream(), content_type="text/event-stream")
+    resp["Cache-Control"] = "no-cache"
+    resp["X-Accel-Buffering"] = "no"
+    return resp
+
+
+@require_GET
+def api_care_agent_patients(request):
+    """List virtual patients for Care Agent demo."""
+    config = _load_virtual_patients()
+    patients = []
+    for p in config.get("patients", []):
+        rep = p.get("representative_day", {})
+        patients.append({
+            "patient_id": p["id"],
+            "age": p.get("profile", {}).get("age"),
+            "sex": p.get("profile", {}).get("sex"),
+            "race": p.get("profile", {}).get("race"),
+            "persona": p.get("persona", ""),
+            "ae_type": rep.get("ae", ""),
+            "ae_grade": rep.get("grade", 0),
+            "rep_day": rep.get("day", 0),
+            "baseline_image": f"normal_{p.get('face_idx', 0)}.png",
+        })
+    return JsonResponse({"patients": patients})
+
+
+@require_GET
+def api_care_agent_media(request, media_type: str, filename: str):
+    """Serve multimodal assets (images / audio) for Care Agent demo."""
+    from django.http import FileResponse
+    base = Path(settings.BASE_DIR).parent / "data" / "multimodal"
+    if media_type == "image":
+        fpath = base / "v3_images" / filename
+        content_type = "image/png"
+    elif media_type == "audio":
+        fpath = base / "generated_voices_v4" / filename
+        content_type = "audio/wav"
+    else:
+        return HttpResponse("Invalid media type", status=400)
+
+    if not fpath.exists() or ".." in filename:
+        return HttpResponse("Not found", status=404)
+
+    return FileResponse(open(fpath, "rb"), content_type=content_type)
+
+
+# ═══════════════════════════════════════════════════════════════
+# (Legacy) Interactive Game Mode — kept for backward compat
 # ═══════════════════════════════════════════════════════════════
 
 def game_landing(request, run_id: str):
@@ -1744,39 +2446,14 @@ def api_sim_start(request):
     except Exception:
         return JsonResponse({"error": "Invalid JSON body"}, status=400)
 
-    DRUG_PRESETS = {
-        "padcev_pembro": {
-            "drug": "Padcev + Pembrolizumab",
-            "indication": "metastatic urothelial carcinoma",
-            "rule_set": None,
-        },
-        "darbepoetin": {
-            "drug": "Darbepoetin alfa",
-            "indication": "Small Cell Lung Cancer (SCLC), Extensive Stage",
-            "rule_set": "rule_set_darbepoetin_sclc.json",
-        },
-        "ep_sclc": {
-            "drug": "Etoposide + Cisplatin",
-            "indication": "extensive-stage small cell lung cancer (ES-SCLC)",
-            "rule_set": "rule_set_ep_sclc.json",
-        },
-    }
-    drug_preset = body.get("drug_preset", body.get("drug", "padcev_pembro"))
-    preset = DRUG_PRESETS.get(drug_preset)
-    if preset:
-        drug = preset["drug"]
-        indication = preset["indication"]
-        rule_set_file = preset["rule_set"]
-    else:
-        drug = body.get("drug", "Padcev + Pembrolizumab")
-        indication = body.get("indication", "metastatic urothelial carcinoma")
-        rule_set_file = None
-
+    drug = body.get("drug", "Padcev + Pembrolizumab")
+    indication = body.get("indication", "metastatic urothelial carcinoma")
     n_patients = int(body.get("patients", 10))
     n_days = int(body.get("days", 126))
     mode = body.get("mode", "both")
     seed = body.get("seed")
-    skip_rules = body.get("skip_rules", True)
+    rule_set_preset = body.get("rule_set_preset")
+    skip_rules = rule_set_preset is not None or body.get("skip_rules", True)
 
     # Create run directory
     from datetime import datetime as _dt
@@ -1813,13 +2490,24 @@ def api_sim_start(request):
 
             # Phase 0: Rules
             if skip_rules:
-                if rule_set_file:
-                    base_rule_path = DATA_DIR / rule_set_file
-                else:
-                    base_rule_path = DATA_DIR / "rule_set.json"
-                    calibrated = DATA_DIR / "rule_set_calibrated_ev302.json"
-                    if calibrated.exists():
-                        base_rule_path = calibrated
+                base_rule_path = None
+                if rule_set_preset:
+                    _preset_map = {
+                        "rule_set_calibrated_ev302": DATA_DIR / "rule_set_calibrated_ev302.json",
+                        "rule_set_darbepoetin_sclc": DATA_DIR / "rule_set_darbepoetin_sclc.json",
+                        "rule_set_ep_sclc": DATA_DIR / "rule_set_ep_sclc.json",
+                    }
+                    if rule_set_preset in _preset_map:
+                        base_rule_path = _preset_map[rule_set_preset]
+                    elif rule_set_preset.startswith("gt_"):
+                        gt_folder = rule_set_preset[3:]
+                        gt_path = _RULESET_DIR / "ground_truth" / gt_folder / "base.json"
+                        if gt_path.exists():
+                            base_rule_path = gt_path
+                if not base_rule_path or not base_rule_path.exists():
+                    base_rule_path = DATA_DIR / "rule_set_calibrated_ev302.json"
+                    if not base_rule_path.exists():
+                        base_rule_path = DATA_DIR / "rule_set.json"
                 runner.load_rules(str(base_rule_path))
                 import shutil
                 shutil.copy2(base_rule_path, run_dir / "rule_set.json")
@@ -1951,6 +2639,54 @@ def api_sim_status(request, run_id: str):
             result["status"] = "completed"
         else:
             result["status"] = "not_found"
+
+    # Safety net: if meta says "running" but no live thread exists and all
+    # patient sim files are present with expected days, auto-complete
+    if (result.get("status") == "running"
+            and run_id not in _live_sims
+            and meta_path.exists()):
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            progress = meta.get("progress", {})
+            target_days = meta.get("total_days", 0)
+            n_target = meta.get("n_patients", 0)
+            n_files = result.get("files", {}).get("natural", 0)
+            all_done = (
+                n_files >= n_target > 0
+                and target_days > 0
+                and all(v.get("status") == "done" or v.get("day", 0) > target_days
+                        for v in progress.values())
+            )
+            # Also check by file: all sim files have reached target day
+            if not all_done and n_files >= n_target > 0 and target_days > 0:
+                sim_complete = True
+                for sf in sim_dir.glob("*_natural.jsonl"):
+                    try:
+                        with open(sf, "rb") as fh:
+                            fh.seek(max(0, sf.stat().st_size - 500))
+                            last_line = fh.read().decode(errors="ignore").strip().split("\n")[-1]
+                            last_day = json.loads(last_line).get("day", 0)
+                            if last_day < target_days:
+                                sim_complete = False
+                                break
+                    except Exception:
+                        sim_complete = False
+                        break
+                all_done = sim_complete
+
+            if all_done:
+                from datetime import datetime
+                meta["status"] = "completed"
+                for v in progress.values():
+                    v["status"] = "done"
+                meta["completed_at"] = datetime.now().isoformat()
+                meta_path.write_text(
+                    json.dumps(meta, indent=2, ensure_ascii=False),
+                    encoding="utf-8")
+                result["status"] = "completed"
+                result["meta"] = meta
+        except Exception:
+            pass
 
     # Include log line count for live panel
     if run_id in _live_sims:
@@ -2819,8 +3555,8 @@ def _inject_dates(rows, columns, start_date):
     for row in rows:
         for k in day_col_keys:
             v = row.pop(k, None)
-            if isinstance(v, (int, float)) and v > 0:
-                row[k + "_date"] = str(start_date + timedelta(days=int(v) - 1))
+            if isinstance(v, (int, float)) and v >= 0:
+                row[k + "_date"] = str(start_date + timedelta(days=max(0, int(v) - 1)))
             else:
                 row[k + "_date"] = None
 
@@ -2952,9 +3688,7 @@ def api_crf_excel_download(request, run_id: str):
     return response
 
 
-# ─── Multimodal Enhance API ──────────────────────────────────
-
-_mm_bridges: dict[str, object] = {}
+_mm_bridges = {}
 
 
 @csrf_exempt
@@ -3070,3 +3804,475 @@ def api_multimodal_enhance(request):
         import traceback
         traceback.print_exc()
         return JsonResponse({"error": f"Generation failed: {e}"}, status=500)
+
+# ═══════════════════════════════════════════════════════════════
+# Statistical Analysis (CSR Tables & Charts)
+# ═══════════════════════════════════════════════════════════════
+
+def statistical_analysis(request, run_id: str):
+    """Statistical Analysis page — CSR-style tables and charts."""
+    run_path = _get_run_path(run_id)
+    if not run_path.exists():
+        return HttpResponse("Run not found", status=404)
+
+    rule_set = _load_rule_set(run_path)
+    meta = _load_run_meta(run_path)
+    drug_name = rule_set.get("drug_name") or meta.get("drug_name", "Unknown")
+    indication = rule_set.get("indication") or meta.get("indication", "")
+
+    sim_dir = run_path / "simulations"
+    available_modes = []
+    if sim_dir.exists():
+        if list(sim_dir.glob("*_natural.jsonl")):
+            available_modes.append("natural")
+        if list(sim_dir.glob("*_care_ai.jsonl")):
+            available_modes.append("care_ai")
+
+    n_patients = len(_list_patients(run_path))
+
+    return render(request, "doc/statistical_analysis.html", {
+        "run_id": run_id,
+        "drug_name": drug_name,
+        "indication": indication,
+        "n_patients": n_patients,
+        "available_modes": available_modes,
+        "model_name": meta.get("model", ""),
+    })
+
+
+@require_GET
+def api_stats_data(request, run_id: str):
+    """JSON API: compute and return all CSR statistics."""
+    run_path = _get_run_path(run_id)
+    if not run_path.exists():
+        return JsonResponse({"error": "Run not found"}, status=404)
+
+    mode = request.GET.get("mode", "natural")
+
+    cache_path = run_path / "validation" / f"csr_stats_{mode}.json"
+    sim_dir = run_path / "simulations"
+    needs_compute = True
+    if cache_path.exists():
+        sim_files = list(sim_dir.glob("*.jsonl")) if sim_dir.exists() else []
+        if sim_files:
+            newest_sim = max(f.stat().st_mtime for f in sim_files)
+            if cache_path.stat().st_mtime >= newest_sim:
+                needs_compute = False
+
+    if needs_compute:
+        try:
+            import sys as _sys
+            _proj_root = str(Path(settings.BASE_DIR).parent)
+            if _proj_root not in _sys.path:
+                _sys.path.insert(0, _proj_root)
+            from validation.csr_stats import compute_csr_stats
+            stats = compute_csr_stats(str(run_path), mode)
+            cache_path.parent.mkdir(parents=True, exist_ok=True)
+            with open(cache_path, "w") as f:
+                json.dump(stats, f, ensure_ascii=False)
+        except Exception as e:
+            import traceback
+            traceback.print_exc()
+            return JsonResponse({"error": str(e)}, status=500)
+    else:
+        with open(cache_path) as f:
+            stats = json.load(f)
+
+    return JsonResponse(stats, json_dumps_params={"ensure_ascii": False})
+
+
+# ─── Rule Set Generation: GT vs Predicted Comparison ────────
+_RULESET_DIR = Path(settings.BASE_DIR).parent / "src" / "ruleset_generation"
+
+_GT_TO_OUTPUT = {
+    "1_Darbepoetin_alfa": "darbepoetin_alfa_small_cell_lung_cancer",
+    "2_Etoposide_Cisplatin": "etoposide+cisplatin_small_cell_lung_cancer",
+    "3_CALGB9732_Paclitaxel_Cisplatin_Etoposide": "paclitaxel+cisplatin+etoposide_small_cell_lung_cancer",
+    "4_Carboplatin_Etoposide": "etoposide+carboplatin_small_cell_lung_cancer",
+    "6_Paclitaxel_Carboplatin_Bevacizumab": "paclitaxel+carboplatin+bevacizumab_non-small_cell_lung_cancer",
+    "7_Paclitaxel_Carboplatin": "paclitaxel+carboplatin_non-small_cell_lung_cancer",
+    "8_Gemcitabine_Cisplatin": "gemcitabine+cisplatin_squamous_non-small_cell_lung_cancer",
+}
+
+
+def _load_json_safe(path):
+    try:
+        with open(path) as f:
+            return json.load(f)
+    except Exception:
+        return None
+
+
+def _normalize_ae(term):
+    import re
+    t = term.lower().strip().replace(" ", "_").replace("-", "_")
+    t = re.sub(r"_s$", "", t)
+    _syn = {
+        "diarrhoea": "diarrhea", "dyspnoea": "dyspnea", "anaemia": "anemia",
+        "haemoglobin_decreased": "lower_hemoglobin", "paraesthesia": "paresthesia",
+        "hyponatraemia": "hyponatremia", "oedema": "edema", "leucopenia": "leukopenia",
+    }
+    return _syn.get(t, t)
+
+
+def _clamp01(x):
+    return max(0.0, min(1.0, x))
+
+
+def _score_ruleset(out, gt):
+    """Score predicted vs GT across 9 dimensions. Returns list of {dim, score, detail}."""
+    import re
+
+    def _parse_dose(s):
+        m = re.search(r"([\d.]+)", str(s or ""))
+        return float(m.group(1)) if m else None
+
+    results = []
+
+    # 1. Doses
+    out_sched = out.get("administration_schedule", [])
+    gt_sched = gt.get("administration_schedule", [])
+    out_d = {e.get("drug_name", "").lower().strip(): _parse_dose(e.get("dose_per_administration")) for e in out_sched}
+    gt_d = {e.get("drug_name", "").lower().strip(): _parse_dose(e.get("dose_per_administration")) for e in gt_sched}
+    if gt_d:
+        sc = []
+        for drug, gd in gt_d.items():
+            if drug in out_d and out_d[drug] and gd:
+                r = min(out_d[drug], gd) / max(out_d[drug], gd)
+                sc.append(1.0 if r >= 0.9 else r)
+            else:
+                sc.append(0.0)
+        results.append({"dim": "Doses", "score": sum(sc) / len(sc), "detail": f"out={out_d} gt={gt_d}"})
+    else:
+        results.append({"dim": "Doses", "score": 0.0, "detail": "no GT doses"})
+
+    # 2. ORR
+    out_orr = out.get("efficacy", {}).get("overall_response_rate")
+    gt_orr = gt.get("efficacy", {}).get("overall_response_rate")
+    if gt_orr and out_orr is not None:
+        results.append({"dim": "ORR", "score": _clamp01(1.0 - abs(out_orr - gt_orr) / gt_orr), "detail": f"out={out_orr:.3f} gt={gt_orr:.3f}"})
+    else:
+        results.append({"dim": "ORR", "score": 0.0, "detail": f"out={out_orr} gt={gt_orr}"})
+
+    # 3. Age Range
+    oa = out.get("demographics", {}).get("age", {}).get("params", {})
+    ga = gt.get("demographics", {}).get("age", {}).get("params", {})
+    om, ox, gm, gx = oa.get("min"), oa.get("max"), ga.get("min"), ga.get("max")
+    if gm is not None and gx is not None and gx != gm and om is not None and ox is not None:
+        results.append({"dim": "Age Range", "score": _clamp01(1.0 - (abs(om - gm) + abs(ox - gx)) / (gx - gm)), "detail": f"out={om}-{ox} gt={gm}-{gx}"})
+    else:
+        results.append({"dim": "Age Range", "score": 0.0, "detail": f"out={om}-{ox} gt={gm}-{gx}"})
+
+    # 4. Sex Ratio
+    os_sex = out.get("demographics", {}).get("sex", {}).get("options", {})
+    gs_sex = gt.get("demographics", {}).get("sex", {}).get("options", {})
+    om_v = os_sex.get("Male", os_sex.get("M", 0))
+    gm_v = gs_sex.get("Male", gs_sex.get("M", 0))
+    if isinstance(om_v, dict):
+        om_v = om_v.get("probability", 0)
+    if isinstance(gm_v, dict):
+        gm_v = gm_v.get("probability", 0)
+    results.append({"dim": "Sex Ratio", "score": _clamp01(1.0 - abs(float(om_v) - float(gm_v))), "detail": f"out_M={om_v} gt_M={gm_v}"})
+
+    # 5. ECOG
+    oe = out.get("demographics", {}).get("ecog_ps", {}).get("options", {})
+    ge = gt.get("demographics", {}).get("ecog_ps", {}).get("options", {})
+    all_k = set(list(oe.keys()) + list(ge.keys()))
+    td = sum(abs(float(oe.get(k, 0)) - float(ge.get(k, 0))) for k in all_k) if all_k else 0
+    results.append({"dim": "ECOG", "score": _clamp01(1.0 - td / 2.0), "detail": f"out={dict(oe)} gt={dict(ge)}"})
+
+    # 6. AE Count
+    on = len(out.get("ae_profile", []))
+    gn = len(gt.get("ae_profile", []))
+    mx = max(on, gn)
+    results.append({"dim": "AE Count", "score": _clamp01(1.0 - abs(on - gn) / mx) if mx else 1.0, "detail": f"out={on} gt={gn}"})
+
+    # 7. AE Freq
+    oa_map = {_normalize_ae(ae.get("ae_term", "")): ae.get("incidence_all_grade", 0) for ae in out.get("ae_profile", [])}
+    ga_map = {_normalize_ae(ae.get("ae_term", "")): ae.get("incidence_all_grade", 0) for ae in gt.get("ae_profile", [])}
+    common = set(oa_map) & set(ga_map)
+    if common:
+        fsc = []
+        for t in common:
+            m = max(oa_map[t], ga_map[t])
+            fsc.append(1.0 if m == 0 else 1.0 - abs(oa_map[t] - ga_map[t]) / m)
+        results.append({"dim": "AE Freq", "score": sum(fsc) / len(fsc), "detail": f"{len(common)} common AEs"})
+    else:
+        results.append({"dim": "AE Freq", "score": 0.0, "detail": "no common AEs"})
+
+    # 8. Top AE overlap
+    oae_s = sorted([(k, v) for k, v in oa_map.items()], key=lambda x: -x[1])
+    gae_s = sorted([(k, v) for k, v in ga_map.items()], key=lambda x: -x[1])
+    ot10 = set(t for t, _ in oae_s[:10])
+    gt10 = set(t for t, _ in gae_s[:10])
+    overlap = ot10 & gt10
+    results.append({"dim": "Top AE", "score": len(overlap) / 10.0, "detail": f"overlap={sorted(overlap)}"})
+
+    # 9. PFS/OS
+    oe_eff = out.get("efficacy", {})
+    ge_eff = gt.get("efficacy", {})
+    surv_sc = []
+    for key in ["progression_free_survival_months", "overall_survival_months"]:
+        ov = oe_eff.get(key, {}).get("params", {}).get("mean")
+        gv = ge_eff.get(key, {}).get("params", {}).get("mean")
+        if gv and gv > 0 and ov is not None:
+            surv_sc.append(_clamp01(1.0 - abs(ov - gv) / gv))
+        elif gv is None and ov is None:
+            surv_sc.append(1.0)
+        else:
+            surv_sc.append(0.0)
+    results.append({"dim": "PFS/OS", "score": sum(surv_sc) / len(surv_sc) if surv_sc else 0.0,
+                     "detail": f"PFS: out={oe_eff.get('progression_free_survival_months',{}).get('params',{}).get('mean')} gt={ge_eff.get('progression_free_survival_months',{}).get('params',{}).get('mean')}"})
+
+    return results
+
+
+def api_ruleset_drugs(request):
+    """List available drugs with GT + predicted data."""
+    gt_dir = _RULESET_DIR / "ground_truth"
+    out_dir = _RULESET_DIR / "output"
+    drugs = []
+    for gt_folder, out_folder in _GT_TO_OUTPUT.items():
+        gt_path = gt_dir / gt_folder / "base.json"
+        out_path = out_dir / out_folder / "base.json"
+        gt_data = _load_json_safe(gt_path)
+        out_data = _load_json_safe(out_path)
+        if gt_data:
+            drugs.append({
+                "id": gt_folder,
+                "drug_name": gt_data.get("drug_name", gt_folder),
+                "indication": gt_data.get("indication", ""),
+                "has_gt": True,
+                "has_predicted": out_data is not None,
+            })
+    return JsonResponse({"drugs": drugs})
+
+
+def api_ruleset_compare(request, drug_id):
+    """Compare GT vs Predicted for a specific drug."""
+    gt_dir = _RULESET_DIR / "ground_truth"
+    out_dir = _RULESET_DIR / "output"
+    out_folder = _GT_TO_OUTPUT.get(drug_id)
+    if not out_folder:
+        return JsonResponse({"error": f"Unknown drug: {drug_id}"}, status=404)
+
+    gt_data = _load_json_safe(gt_dir / drug_id / "base.json")
+    out_data = _load_json_safe(out_dir / out_folder / "base.json")
+
+    if not gt_data:
+        return JsonResponse({"error": "GT data not found"}, status=404)
+    if not out_data:
+        return JsonResponse({"error": "Predicted data not found"}, status=404)
+
+    scores = _score_ruleset(out_data, gt_data)
+    avg = sum(s["score"] for s in scores) / len(scores) if scores else 0
+
+    gt_aes = sorted(
+        [{"term": ae.get("ae_term", ""), "incidence": ae.get("incidence_all_grade", 0)}
+         for ae in gt_data.get("ae_profile", [])],
+        key=lambda x: -x["incidence"]
+    )[:15]
+    pred_aes = sorted(
+        [{"term": ae.get("ae_term", ""), "incidence": ae.get("incidence_all_grade", 0)}
+         for ae in out_data.get("ae_profile", [])],
+        key=lambda x: -x["incidence"]
+    )[:15]
+
+    def _extract_fields(data):
+        demo = data.get("demographics", {})
+        age_raw = demo.get("age", {})
+        sex_raw = demo.get("sex", {})
+        eff = data.get("efficacy", {})
+        sched = data.get("administration_schedule", [])
+        doses = []
+        for s in sched:
+            doses.append({
+                "drug": s.get("drug_name", ""),
+                "dose": s.get("dose_per_administration", ""),
+                "route": s.get("route", ""),
+                "schedule_days": s.get("schedule_days", []),
+            })
+        ecog_raw = demo.get("ecog_ps", {})
+
+        age_params = age_raw.get("params", age_raw) if isinstance(age_raw, dict) else {}
+        sex_opts = sex_raw.get("options", sex_raw) if isinstance(sex_raw, dict) else {}
+        ecog_opts = ecog_raw.get("options", ecog_raw) if isinstance(ecog_raw, dict) else {}
+
+        pct_male = sex_opts.get("pct_male") or sex_opts.get("Male")
+        pct_female = sex_opts.get("pct_female") or sex_opts.get("Female")
+        if pct_male and pct_male <= 1:
+            pct_male = pct_male * 100
+        if pct_female and pct_female <= 1:
+            pct_female = pct_female * 100
+
+        pfs = eff.get("progression_free_survival") or eff.get("progression_free_survival_months", {})
+        os_data = eff.get("overall_survival") or eff.get("overall_survival_months", {})
+
+        return {
+            "n_aes": len(data.get("ae_profile", [])),
+            "orr": eff.get("overall_response_rate"),
+            "cycle_days": data.get("trial_design", {}).get("cycle_length_days"),
+            "doses": doses,
+            "age_mean": age_params.get("mean"),
+            "age_std": age_params.get("std"),
+            "age_min": age_params.get("min"),
+            "age_max": age_params.get("max"),
+            "pct_male": pct_male,
+            "pct_female": pct_female,
+            "ecog": ecog_opts if isinstance(ecog_opts, dict) else {},
+            "pfs_median": pfs.get("median") if isinstance(pfs, dict) else None,
+            "os_median": os_data.get("median") if isinstance(os_data, dict) else None,
+        }
+
+    gt_fields = _extract_fields(gt_data)
+    gt_fields["top_aes"] = gt_aes
+    pred_fields = _extract_fields(out_data)
+    pred_fields["top_aes"] = pred_aes
+
+    return JsonResponse({
+        "drug_id": drug_id,
+        "drug_name": gt_data.get("drug_name", drug_id),
+        "indication": gt_data.get("indication", ""),
+        "scores": scores,
+        "average_score": round(avg, 3),
+        "gt_summary": gt_fields,
+        "pred_summary": pred_fields,
+    }, json_dumps_params={"ensure_ascii": False})
+
+
+def api_ruleset_compare_all(request):
+    """Compare all 7 drugs at once — summary table."""
+    gt_dir = _RULESET_DIR / "ground_truth"
+    out_dir = _RULESET_DIR / "output"
+    rows = []
+    for gt_folder, out_folder in _GT_TO_OUTPUT.items():
+        gt_data = _load_json_safe(gt_dir / gt_folder / "base.json")
+        out_data = _load_json_safe(out_dir / out_folder / "base.json")
+        if not gt_data or not out_data:
+            continue
+        scores = _score_ruleset(out_data, gt_data)
+        avg = sum(s["score"] for s in scores) / len(scores) if scores else 0
+        rows.append({
+            "drug_id": gt_folder,
+            "drug_name": gt_data.get("drug_name", gt_folder),
+            "indication": gt_data.get("indication", ""),
+            "scores": {s["dim"]: round(s["score"], 3) for s in scores},
+            "average": round(avg, 3),
+        })
+    overall_avg = sum(r["average"] for r in rows) / len(rows) if rows else 0
+    dims = list(rows[0]["scores"].keys()) if rows else []
+    return JsonResponse({
+        "drugs": rows,
+        "dimensions": dims,
+        "overall_average": round(overall_avg, 3),
+    })
+
+
+def demo_ruleset_generation(request):
+    """Rule Set Generation demo page."""
+    return render(request, "demo/ruleset_generation.html")
+
+
+_ruleset_gen_jobs: dict = {}
+
+
+@csrf_exempt
+@require_POST
+def api_ruleset_generate(request):
+    """Start rule set generation for a custom drug."""
+    try:
+        body = json.loads(request.body)
+    except Exception:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    drug_name = body.get("drug_name", "").strip()
+    indication = body.get("indication", "").strip()
+    if not drug_name:
+        return JsonResponse({"error": "drug_name is required"}, status=400)
+
+    job_id = f"{drug_name}_{indication}".replace(" ", "_")[:60]
+
+    if job_id in _ruleset_gen_jobs and _ruleset_gen_jobs[job_id].get("status") == "running":
+        return JsonResponse({
+            "job_id": job_id,
+            "status": "running",
+            "message": "Generation already in progress",
+        })
+
+    _ruleset_gen_jobs[job_id] = {"status": "running", "progress": "Starting..."}
+
+    def _run():
+        import sys as _sys
+        _sys.path.insert(0, str(Path(settings.BASE_DIR).parent / "src" / "ruleset_generation"))
+        _sys.path.insert(0, str(Path(settings.BASE_DIR).parent))
+
+        env_path = Path(settings.BASE_DIR).parent / ".env"
+        if env_path.exists():
+            for line in env_path.read_text().splitlines():
+                line = line.strip()
+                if line and not line.startswith("#") and "=" in line:
+                    key, val = line.split("=", 1)
+                    os.environ.setdefault(key.strip(), val.strip())
+
+        try:
+            _ruleset_gen_jobs[job_id]["progress"] = "Collecting evidence from 10 databases..."
+            import asyncio
+            from rule_engine.config import RuleEngineConfig
+            from rule_engine.evidence.collector import collect_evidence
+            from rule_engine.agent import synthesize_rules
+
+            gkey = os.environ.get("GOOGLE_API_KEY", "")
+            if gkey and not os.environ.get("RULE_ENGINE_LLM_API_KEY"):
+                os.environ["RULE_ENGINE_LLM_API_KEY"] = gkey
+
+            drugs = [d.strip() for d in drug_name.split("+")]
+            config = RuleEngineConfig()
+
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+
+            _ruleset_gen_jobs[job_id]["progress"] = "Collecting evidence..."
+            evidence = loop.run_until_complete(collect_evidence(drugs, indication, config))
+
+            _ruleset_gen_jobs[job_id]["progress"] = "LLM synthesis (multi-stage)..."
+            rule_set, agent_log = loop.run_until_complete(
+                synthesize_rules(drugs, indication, evidence, config)
+            )
+            loop.close()
+
+            from rule_engine.converter import convert_ruleset, split_base_overlay
+            internal = json.loads(rule_set.model_dump_json())
+            converted, schema_type = convert_ruleset(internal)
+            base_dict, overlay_dict = split_base_overlay(converted, schema_type)
+
+            _ruleset_gen_jobs[job_id] = {
+                "status": "completed",
+                "progress": "Done!",
+                "result": base_dict,
+                "schema_type": schema_type,
+            }
+        except Exception as e:
+            _ruleset_gen_jobs[job_id] = {
+                "status": "error",
+                "progress": f"Failed: {e}",
+                "error": str(e),
+            }
+
+    import threading
+    t = threading.Thread(target=_run, daemon=True)
+    t.start()
+
+    return JsonResponse({"job_id": job_id, "status": "running", "message": "Generation started"})
+
+
+def api_ruleset_generate_status(request, job_id):
+    """Check rule set generation status."""
+    job = _ruleset_gen_jobs.get(job_id)
+    if not job:
+        return JsonResponse({"error": "Job not found"}, status=404)
+    resp = {"job_id": job_id, "status": job["status"], "progress": job.get("progress", "")}
+    if job["status"] == "completed" and "result" in job:
+        resp["result"] = job["result"]
+    if job["status"] == "error":
+        resp["error"] = job.get("error", "")
+    return JsonResponse(resp, json_dumps_params={"ensure_ascii": False})

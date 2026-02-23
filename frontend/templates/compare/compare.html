@@ -147,7 +147,6 @@
 <nav class="run-sidebar">
 
   <a href="{% url 'trial_viewer' run_id %}" title="Simulation"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><span>Sim</span></a>
-  <a href="{% url 'game_landing' run_id %}" title="Training"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg><span>Train</span></a>
   <a href="{% url 'crf_tables' run_id %}" title="Data"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg><span>Data</span></a>
   <a href="{% url 'compare_dashboard' run_id %}" class="sb-active" title="A/B Test"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>A/B</span></a>
 </nav>
@@ -158,21 +157,21 @@
   <div class="cmp-title">A/B Comparison Dashboard</div>
   <p class="cmp-sub">
     <strong>{{ drug_name }}</strong> — {{ indication }}<br>
-    Natural (Care AI 없음) vs Care AI (매일 영상통화) 시뮬레이션 비교
+    Natural (No Care AI) vs Care AI (Daily Video Calls) — Simulation Comparison
   </p>
 
   {% if error %}
   <div style="background: rgba(255,100,100,0.1); border: 1px solid rgba(255,100,100,0.3); border-radius: 8px; padding: 20px 24px; margin-bottom: 1.5em;">
     <div style="font-size: 1.1em; font-weight: 700; color: #ff6b6b; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-      비교 데이터 준비 중
+      Preparing Comparison Data
     </div>
     <div style="color: var(--text-secondary); font-size: 0.9em; line-height: 1.6;">
       {{ error }}<br><br>
-      시뮬레이션이 진행 중이라면 완료 후 다시 접속해 주세요.
+      If the simulation is still running, please revisit after it completes.
       <br>
       <a href="{% url 'compare_dashboard' run_id %}" style="color: var(--accent-cyan); text-decoration: underline; margin-top: 8px; display: inline-block;">
-        새로고침
+        Refresh
       </a>
     </div>
   </div>

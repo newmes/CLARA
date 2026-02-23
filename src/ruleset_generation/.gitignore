@@ -1,0 +1,26 @@
+# Data files (too large for GitHub — download via setup.sh)
+data/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+.eggs/
+venv/
+
+# Env
+.env
+*.log
+run_logs/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+
+# Legacy
+rule_sets*/
+proton/

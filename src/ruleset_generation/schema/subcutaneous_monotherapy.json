@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "subcutaneous_monotherapy.json",
+  "title": "Rule Set — Subcutaneous Monotherapy",
+  "description": "피하주사 단일요법 (e.g., Trastuzumab SC, Daratumumab SC). 투여 경로가 SC인 약물.",
+  "_examples": [
+    "Trastuzumab SC 600mg Q3W (유방암 HER2+)",
+    "Daratumumab SC 1800mg Q1-4W (다발성 골수종)",
+    "Bortezomib SC 1.3mg/m² D1,4,8,11 Q3W (다발성 골수종)"
+  ],
+  "_differs_from_base": [
+    "route = 'SUBCUTANEOUS'",
+    "infusion_duration_minutes 불필요 (제거)",
+    "injection_site_reactions 필드 추가: 주사 부위 반응 관련 정보"
+  ],
+
+  "allOf": [
+    { "$ref": "base.json" },
+    {
+      "properties": {
+        "administration_schedule": {
+          "minItems": 1,
+          "maxItems": 1,
+          "items": {
+            "properties": {
+              "route": { "const": "SUBCUTANEOUS" },
+              "injection_volume_ml": {
+                "type": "number",
+                "description": "피하주사 1회 주입량 (mL). 대용량 SC 주사 시 주사 부위 반응 위험 증가."
+              }
+            },
+            "not": {
+              "required": ["infusion_duration_minutes"]
+            }
+          }
+        },
+        "ae_profile": {
+          "items": {
+            "properties": {
+              "injection_site_specific": {
+                "type": "boolean",
+                "description": "true이면 주사 부위 국소 반응 AE (e.g., injection_site_reaction, injection_site_erythema)"
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

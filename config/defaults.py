@@ -18,95 +18,10 @@
 from __future__ import annotations
 
 # ══════════════════════════════════════════════════════
-# Canonical Lab Name Mapping
-# ══════════════════════════════════════════════════════
-# LLM 생성 데이터의 lab key 대소문자가 config 상수와 불일치할 수 있으므로
-# lowercase → canonical form 매핑을 통해 일관성을 보장한다.
-
-_CANONICAL_LAB_NAMES: dict[str, str] = {
-    # 약어
-    "anc": "ANC",
-    "wbc": "WBC",
-    "alt": "ALT",
-    "ast": "AST",
-    "tsh": "TSH",
-    "hba1c": "HbA1c",
-    "ldh": "LDH",
-    "egfr": "eGFR",
-    # LLM이 full name으로 반환하는 경우
-    "alanine_aminotransferase": "ALT",
-    "alanine aminotransferase": "ALT",
-    "aspartate_aminotransferase": "AST",
-    "aspartate aminotransferase": "AST",
-    "sgpt": "ALT",
-    "sgot": "AST",
-    # bilirubin 변형
-    "bilirubin": "total_bilirubin",
-    "total bilirubin": "total_bilirubin",
-    "tbil": "total_bilirubin",
-    "direct_bilirubin": "total_bilirubin",
-    # glucose 변형
-    "glucose": "glucose_fasting",
-    "fasting_glucose": "glucose_fasting",
-    "fasting glucose": "glucose_fasting",
-    "blood_glucose": "glucose_fasting",
-    # hemoglobin 변형
-    "hgb": "hemoglobin",
-    "hb": "hemoglobin",
-    "haemoglobin": "hemoglobin",
-    "hemoglobin a1c": "HbA1c",
-    "hemoglobin_a1c": "HbA1c",
-    "glycated_hemoglobin": "HbA1c",
-    "glycated hemoglobin": "HbA1c",
-    "a1c": "HbA1c",
-    # 기타
-    "absolute_neutrophil_count": "ANC",
-    "white_blood_cell": "WBC",
-    "white blood cell": "WBC",
-    "plt": "platelets",
-    "platelet": "platelets",
-    "platelet_count": "platelets",
-    "creat": "creatinine",
-    "lactate_dehydrogenase": "LDH",
-    "lactate dehydrogenase": "LDH",
-    "thyroid_stimulating_hormone": "TSH",
-    "thyroid stimulating hormone": "TSH",
-    "uric acid": "uric_acid",
-    "estimated_gfr": "eGFR",
-    "estimated gfr": "eGFR",
-    "glomerular_filtration_rate": "eGFR",
-}
-
-
-def normalize_lab_key(key: str) -> str:
-    """Lab key를 config에서 사용하는 canonical form으로 정규화한다.
-
-    LLM이 어떤 이름으로 반환하든 동일한 canonical key에 매핑.
-    매핑에 없으면 소문자로 반환 (대소문자 불일치 방지).
-    """
-    lowered = key.lower().strip()
-    return _CANONICAL_LAB_NAMES.get(lowered, lowered)
-
-
-def normalize_ae_term(term: str) -> str:
-    """AE term을 정규화한다.
-
-    모든 AE 매칭에서 이 함수를 거쳐야 한다.
-    공백/하이픈 → 언더스코어, 소문자.
-    """
-    return term.lower().strip().replace(" ", "_").replace("-", "_")
-
-
-# ══════════════════════════════════════════════════════
 # A. AE Grade 전이 확률 (역학 모델)
 # ══════════════════════════════════════════════════════
-GRADE_TRANSITION_BASE_WORSEN = 0.03       # 기본 악화 확률 (~3%/day)
+GRADE_TRANSITION_BASE_WORSEN = 0.02       # 기본 악화 확률 (~2%/day)
 GRADE_TRANSITION_BASE_IMPROVE = 0.005     # 기본 개선 확률 (~0.5%/day)
-
-# Target-grade-aware escalation:
-# Sampled grade = "이 환자의 peak grade 목표". 목표 미달 시 악화 확률 부스트.
-TARGET_GRADE_ESCALATION_BOOST = 3.0       # 목표 대비 grade gap 당 worsen 배수 부스트
-TARGET_GRADE_IMPROVE_DAMPING = 0.3        # 목표 미달 시 improve 확률 감쇠 (×0.3)
 GRADE_TIME_STABILIZE_DAY = 21             # 비누적 AE — 이 날짜 이후 안정화
 GRADE_HIGH_WORSEN_DAMPING = 0.7           # Grade ≥3 → 악화 확률 ×0.7 (감쇄)
 GRADE_4_TO_5_DAMPING = 0.3               # Grade 4→5 추가 감쇄 (치명적 전환 억제)
@@ -148,10 +63,6 @@ ECOG_MORTALITY_MAP = {0: 1, 1: 1, 2: 1.5, 3: 2.5, 4: 5}
 TREATMENT_DISCONTINUED_MORTALITY_MULT = 1.5
 MAX_DAILY_MORTALITY = 0.5  # 일별 사망률 상한
 
-# Background mortality: baseline_annual의 일정 비율은 CSF와 무관하게 항상 적용.
-# 진행성 암 환자의 돌발 사건(PE, 감염, 출혈) 등 예측 불가 사망 반영.
-BACKGROUND_MORTALITY_FRACTION = 0.30
-
 # ══════════════════════════════════════════════════════
 # D. ECOG — 동적 변화 파라미터
 # ══════════════════════════════════════════════════════
@@ -168,12 +79,9 @@ OU_THETA_VITALS = 0.15  # vitals mean-reversion 속도
 OU_THETA_LABS = 0.10     # labs mean-reversion 속도
 
 VITALS_NOISE = {
-    "SBP": 3.5, "DBP": 2.5, "HR": 2.5, "BT": 0.25,
-    "RR": 1.2, "SpO2": 0.8, "weight_kg": 0.2,
+    "SBP": 3, "DBP": 2, "HR": 2, "BT": 0.1,
+    "RR": 0.5, "SpO2": 0.3, "weight_kg": 0.1,
 }
-
-# 항암 치료 중 체중 감소 drift (kg/day): 4-6개월에 5-10% 감소
-CHEMO_WEIGHT_LOSS_PER_DAY = -0.03  # ~3.8kg/126일 (60kg 기준 ~6.3%)
 
 # Lab별 noise fraction (값의 N%를 noise std로 사용)
 # 생리적 일간 변동성이 큰 lab (ANC, WBC, platelets)은 큰 값,
@@ -233,28 +141,6 @@ VITAL_ROUNDING = {
     "RR": 0,                         # breaths/min — 정수
     "SpO2": 0,                       # % — 정수
     "weight_kg": 1,                  # kg — 소수1자리
-}
-
-# Lab 정상 참고 범위 (rule_set.lab_reference_ranges가 없을 때 fallback)
-# 성인 기준, 실험실마다 약간 다를 수 있으나 임상시험 표준 범위
-DEFAULT_LAB_REFERENCE_RANGES: dict[str, dict] = {
-    "hemoglobin":      {"unit": "g/dL",      "LLN": 12.0,  "ULN": 17.5},
-    "ANC":             {"unit": "x10^9/L",   "LLN": 2.0,   "ULN": 7.5},
-    "WBC":             {"unit": "x10^9/L",   "LLN": 4.0,   "ULN": 11.0},
-    "platelets":       {"unit": "x10^9/L",   "LLN": 150.0, "ULN": 400.0},
-    "creatinine":      {"unit": "mg/dL",     "LLN": 0.6,   "ULN": 1.3},
-    "eGFR":            {"unit": "mL/min",    "LLN": 60.0,  "ULN": 999.0},
-    "ALT":             {"unit": "U/L",       "LLN": 7.0,   "ULN": 56.0},
-    "AST":             {"unit": "U/L",       "LLN": 10.0,  "ULN": 40.0},
-    "total_bilirubin": {"unit": "mg/dL",     "LLN": 0.1,   "ULN": 1.2},
-    "glucose_fasting": {"unit": "mg/dL",     "LLN": 70.0,  "ULN": 100.0},
-    "HbA1c":           {"unit": "%",         "LLN": 4.0,   "ULN": 5.7},
-    "TSH":             {"unit": "mIU/L",     "LLN": 0.4,   "ULN": 4.5},
-    "LDH":             {"unit": "U/L",       "LLN": 125.0, "ULN": 243.0},
-    "albumin":         {"unit": "g/dL",      "LLN": 3.4,   "ULN": 5.4},
-    "sodium":          {"unit": "mmol/L",    "LLN": 135.0, "ULN": 145.0},
-    "potassium":       {"unit": "mmol/L",    "LLN": 3.5,   "ULN": 5.0},
-    "uric_acid":       {"unit": "mg/dL",     "LLN": 2.5,   "ULN": 7.0},
 }
 
 # Lab 일일 최대 변화량 (생리적 한계)
@@ -555,18 +441,6 @@ DEFAULT_AE_LAB_LINKS: list[dict] = [
      "grade_effects": {"2": 0.95, "3": 0.85, "4": 0.75}},
     {"ae_term": "febrile_neutropenia", "lab": "ANC",
      "grade_effects": {"3": 0.15, "4": 0.05}},
-    {"ae_term": "leukopenia", "lab": "WBC",
-     "grade_effects": {"1": 0.75, "2": 0.5, "3": 0.25, "4": 0.1}},
-    {"ae_term": "hepatitis", "lab": "ALT",
-     "grade_effects": {"1": 2.0, "2": 4.0, "3": 10.0, "4": 25.0}},
-    {"ae_term": "hepatitis", "lab": "AST",
-     "grade_effects": {"1": 2.0, "2": 4.0, "3": 10.0, "4": 25.0}},
-    {"ae_term": "hepatitis", "lab": "total_bilirubin",
-     "grade_effects": {"1": 1.3, "2": 2.0, "3": 5.0, "4": 12.0}},
-    {"ae_term": "alt_increased", "lab": "ALT",
-     "grade_effects": {"1": 2.0, "2": 4.0, "3": 10.0, "4": 25.0}},
-    {"ae_term": "ast_increased", "lab": "AST",
-     "grade_effects": {"1": 2.0, "2": 4.0, "3": 10.0, "4": 25.0}},
 ]
 
 # ══════════════════════════════════════════════════════
@@ -730,7 +604,7 @@ ACUTE_ONSET_AES: frozenset[str] = frozenset({
     "bowel_perforation",
 })
 
-MAX_ONSET_GRADE_GRADUAL = 1  # [레거시] 사용되지 않음 — target_grade 기반 onset으로 대체
+MAX_ONSET_GRADE_GRADUAL = 1  # 점진적 AE는 Grade 1로 시작 (Grade skip 방지)
 
 # ══════════════════════════════════════════════════════
 # I-1. IO/ADC Drug-AE Attribution
@@ -882,19 +756,6 @@ CONMED_AE_TIER: dict[str, int] = {
     "pruritus": 3,
     "arthralgia": 3,
     "myalgia": 3,
-    "leukopenia": 2,
-    "thrombocytopenia": 2,
-    "neutropenia": 2,
-    "nephrotoxicity": 3,
-    "nephritis": 2,
-    "headache": 3,
-    "constipation": 3,
-    "dyspnea": 3,
-    "cough": 3,
-    "adrenal_insufficiency": 2,
-    "skin_reaction": 3,
-    "encephalitis": 2,
-    "myocarditis": 2,
 }
 
 
@@ -1043,3 +904,34 @@ IO_MAX_CYCLES: int = 35
 
 # J-5. AE 재발 hazard 배수 (해소 후 재발 시 원래 hazard의 N%)
 AE_RECURRENCE_HAZARD_MULT: float = 0.5
+
+
+# ─── Normalize helpers (used by experiments) ─────────────────
+
+_CANONICAL_LAB_NAMES: dict[str, str] = {
+    "anc": "ANC", "wbc": "WBC", "alt": "ALT", "ast": "AST",
+    "tsh": "TSH", "hba1c": "HbA1c", "ldh": "LDH", "egfr": "eGFR",
+    "alanine_aminotransferase": "ALT", "alanine aminotransferase": "ALT",
+    "aspartate_aminotransferase": "AST", "aspartate aminotransferase": "AST",
+    "sgpt": "ALT", "sgot": "AST",
+    "bilirubin": "total_bilirubin", "total bilirubin": "total_bilirubin",
+    "tbil": "total_bilirubin", "direct_bilirubin": "total_bilirubin",
+    "glucose": "glucose_fasting", "fasting_glucose": "glucose_fasting",
+    "fasting glucose": "glucose_fasting", "blood_glucose": "glucose_fasting",
+    "hgb": "hemoglobin", "hb": "hemoglobin", "haemoglobin": "hemoglobin",
+    "hemoglobin a1c": "HbA1c", "hemoglobin_a1c": "HbA1c",
+    "glycated_hemoglobin": "HbA1c", "glycated hemoglobin": "HbA1c", "a1c": "HbA1c",
+    "absolute_neutrophil_count": "ANC", "white_blood_cell": "WBC",
+    "white blood cell": "WBC", "plt": "platelets", "platelet": "platelets",
+    "platelet_count": "platelets", "creat": "creatinine",
+    "na": "sodium", "k": "potassium", "uric acid": "uric_acid",
+}
+
+
+def normalize_lab_key(key: str) -> str:
+    low = key.strip().lower()
+    return _CANONICAL_LAB_NAMES.get(low, key)
+
+
+def normalize_ae_term(term: str) -> str:
+    return term.strip().lower().replace(" ", "_").replace("-", "_")

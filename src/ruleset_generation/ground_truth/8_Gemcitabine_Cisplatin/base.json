@@ -1,0 +1,1499 @@
+{
+  "drug_name": "Gemcitabine + Cisplatin",
+  "indication": "non-small cell lung cancer (NSCLC)",
+  "trial_design": {
+    "cycle_length_days": 21
+  },
+  "demographics": {
+    "age": {
+      "type": "numeric",
+      "distribution": "normal",
+      "params": {
+        "mean": 61.7,
+        "std": 8.2,
+        "min": 32,
+        "max": 86
+      }
+    },
+    "sex": {
+      "type": "categorical",
+      "options": {
+        "Male": 0.836,
+        "Female": 0.164
+      }
+    },
+    "race": {
+      "type": "categorical",
+      "options": {
+        "White": 0.832,
+        "Asian": 0.077,
+        "Black": 0.011,
+        "Other": 0.08
+      }
+    },
+    "ecog_ps": {
+      "type": "categorical",
+      "options": {
+        "0": 0.328,
+        "1": 0.584,
+        "2": 0.088
+      }
+    },
+    "bmi": {
+      "type": "numeric",
+      "distribution": "normal",
+      "params": {
+        "mean": 24.8,
+        "std": 4.9,
+        "min": 14.9,
+        "max": 55.8
+      }
+    }
+  },
+  "comorbidities": [
+    {
+      "condition": "hypertension",
+      "base_probability": 0.39,
+      "conditional_modifiers": null
+    },
+    {
+      "condition": "copd",
+      "base_probability": 0.265,
+      "conditional_modifiers": null
+    },
+    {
+      "condition": "cardiac_disease",
+      "base_probability": 0.254,
+      "conditional_modifiers": null
+    },
+    {
+      "condition": "diabetes",
+      "base_probability": 0.13,
+      "conditional_modifiers": null
+    },
+    {
+      "condition": "hyperlipidemia",
+      "base_probability": 0.12,
+      "conditional_modifiers": null
+    }
+  ],
+  "disease_baseline": {
+    "tumor_sites": null,
+    "n_target_lesions": null,
+    "sum_of_diameters_mm": null,
+    "tumor_response_distribution": {
+      "CR": 0.006,
+      "PR": 0.325,
+      "SD": 0.554,
+      "PD": 0.115
+    }
+  },
+  "ae_profile": [
+    {
+      "ae_term": "nausea",
+      "incidence_all_grade": 0.523,
+      "grade_distribution": {
+        "1": 0.552,
+        "2": 0.399,
+        "3": 0.049
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 43.7,
+          "std": 36.9,
+          "min": 1,
+          "max": 156
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 9.9,
+          "std": 15.8,
+          "min": 1,
+          "max": 150
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "anaemia",
+      "incidence_all_grade": 0.458,
+      "grade_distribution": {
+        "1": 0.137,
+        "2": 0.625,
+        "3": 0.226,
+        "4": 0.012
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 68.6,
+          "std": 37.8,
+          "min": 1,
+          "max": 176
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 18.9,
+          "std": 19.3,
+          "min": 1,
+          "max": 162
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "neutropenia",
+      "incidence_all_grade": 0.447,
+      "grade_distribution": {
+        "1": 0.066,
+        "2": 0.331,
+        "3": 0.425,
+        "4": 0.178
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 69.3,
+          "std": 38.9,
+          "min": 5,
+          "max": 165
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 10.9,
+          "std": 7.2,
+          "min": 1,
+          "max": 57
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "decreased_appetite",
+      "incidence_all_grade": 0.279,
+      "grade_distribution": {
+        "1": 0.55,
+        "2": 0.397,
+        "3": 0.053
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 43.4,
+          "std": 36.8,
+          "min": 1,
+          "max": 130
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 19.6,
+          "std": 21.7,
+          "min": 1,
+          "max": 119
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "vomiting",
+      "incidence_all_grade": 0.25,
+      "grade_distribution": {
+        "1": 0.6,
+        "2": 0.363,
+        "3": 0.037
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 46.1,
+          "std": 38.5,
+          "min": 1,
+          "max": 156
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 6.0,
+          "std": 8.0,
+          "min": 1,
+          "max": 48
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "thrombocytopenia",
+      "incidence_all_grade": 0.244,
+      "grade_distribution": {
+        "1": 0.258,
+        "2": 0.333,
+        "3": 0.25,
+        "4": 0.159
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 70.2,
+          "std": 44.6,
+          "min": 4,
+          "max": 163
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 11.2,
+          "std": 10.5,
+          "min": 1,
+          "max": 90
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "fatigue",
+      "incidence_all_grade": 0.226,
+      "grade_distribution": {
+        "1": 0.443,
+        "2": 0.41,
+        "3": 0.139,
+        "4": 0.008
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 45.9,
+          "std": 38.4,
+          "min": 1,
+          "max": 163
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 22.3,
+          "std": 24.5,
+          "min": 1,
+          "max": 140
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "asthenia",
+      "incidence_all_grade": 0.209,
+      "grade_distribution": {
+        "1": 0.354,
+        "2": 0.469,
+        "3": 0.168,
+        "4": 0.009
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 52.0,
+          "std": 41.5,
+          "min": 1,
+          "max": 155
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 17.2,
+          "std": 16.3,
+          "min": 1,
+          "max": 84
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "constipation",
+      "incidence_all_grade": 0.181,
+      "grade_distribution": {
+        "1": 0.735,
+        "2": 0.255,
+        "3": 0.01
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 30.4,
+          "std": 32.2,
+          "min": 1,
+          "max": 129
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 14.4,
+          "std": 23.0,
+          "min": 1,
+          "max": 149
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "leukopenia",
+      "incidence_all_grade": 0.161,
+      "grade_distribution": {
+        "1": 0.172,
+        "2": 0.415,
+        "3": 0.356,
+        "4": 0.057
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 64.3,
+          "std": 39.3,
+          "min": 5,
+          "max": 142
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 10.4,
+          "std": 7.6,
+          "min": 1,
+          "max": 57
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "hypomagnesaemia",
+      "incidence_all_grade": 0.152,
+      "grade_distribution": {
+        "1": 0.561,
+        "2": 0.366,
+        "3": 0.073
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 74.2,
+          "std": 33.7,
+          "min": 7,
+          "max": 163
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 23.5,
+          "std": 22.3,
+          "min": 2,
+          "max": 132
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "dyspnoea",
+      "incidence_all_grade": 0.146,
+      "grade_distribution": {
+        "1": 0.38,
+        "2": 0.354,
+        "3": 0.253,
+        "4": 0.013
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 49.2,
+          "std": 38.5,
+          "min": 1,
+          "max": 148
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 17.8,
+          "std": 17.0,
+          "min": 1,
+          "max": 75
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "alopecia",
+      "incidence_all_grade": 0.129,
+      "grade_distribution": {
+        "1": 0.786,
+        "2": 0.214
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 44.9,
+          "std": 28.6,
+          "min": 6,
+          "max": 128
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 62.1,
+          "std": 49.8,
+          "min": 8,
+          "max": 156
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "cough",
+      "incidence_all_grade": 0.128,
+      "grade_distribution": {
+        "1": 0.551,
+        "2": 0.406,
+        "3": 0.043
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 59.6,
+          "std": 40.2,
+          "min": 1,
+          "max": 149
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 15.7,
+          "std": 15.3,
+          "min": 1,
+          "max": 76
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "diarrhoea",
+      "incidence_all_grade": 0.113,
+      "grade_distribution": {
+        "1": 0.623,
+        "2": 0.246,
+        "3": 0.098,
+        "4": 0.033
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 41.9,
+          "std": 35.0,
+          "min": 1,
+          "max": 140
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 5.5,
+          "std": 11.1,
+          "min": 1,
+          "max": 88
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "pyrexia",
+      "incidence_all_grade": 0.111,
+      "grade_distribution": {
+        "1": 0.65,
+        "2": 0.317,
+        "3": 0.033
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 42.7,
+          "std": 36.9,
+          "min": 1,
+          "max": 145
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 4.4,
+          "std": 4.0,
+          "min": 1,
+          "max": 16
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "dizziness",
+      "incidence_all_grade": 0.078,
+      "grade_distribution": {
+        "1": 0.785,
+        "2": 0.167,
+        "3": 0.048
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 42.5,
+          "std": 37.3,
+          "min": 1,
+          "max": 137
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 12.1,
+          "std": 14.3,
+          "min": 1,
+          "max": 51
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "oedema_peripheral",
+      "incidence_all_grade": 0.076,
+      "grade_distribution": {
+        "1": 0.683,
+        "2": 0.317
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 65.3,
+          "std": 41.7,
+          "min": 2,
+          "max": 162
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 22.9,
+          "std": 24.3,
+          "min": 1,
+          "max": 92
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "blood_creatinine_increased",
+      "incidence_all_grade": 0.076,
+      "grade_distribution": {
+        "1": 0.61,
+        "2": 0.366,
+        "3": 0.024
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 61.3,
+          "std": 39.1,
+          "min": 7,
+          "max": 143
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 17.3,
+          "std": 13.4,
+          "min": 2,
+          "max": 57
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "weight_decreased",
+      "incidence_all_grade": 0.063,
+      "grade_distribution": {
+        "1": 0.5,
+        "2": 0.412,
+        "3": 0.088
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 49.0,
+          "std": 37.7,
+          "min": 1,
+          "max": 127
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 34.5,
+          "std": 25.5,
+          "min": 1,
+          "max": 86
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "stomatitis",
+      "incidence_all_grade": 0.063,
+      "grade_distribution": {
+        "1": 0.736,
+        "2": 0.176,
+        "3": 0.088
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 49.5,
+          "std": 38.5,
+          "min": 8,
+          "max": 153
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 16.6,
+          "std": 17.5,
+          "min": 3,
+          "max": 98
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "headache",
+      "incidence_all_grade": 0.057,
+      "grade_distribution": {
+        "1": 0.612,
+        "2": 0.323,
+        "3": 0.065
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 53.5,
+          "std": 42.4,
+          "min": 1,
+          "max": 156
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 8.9,
+          "std": 19.1,
+          "min": 1,
+          "max": 102
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "rash",
+      "incidence_all_grade": 0.055,
+      "grade_distribution": {
+        "1": 0.867,
+        "2": 0.1,
+        "3": 0.033
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 34.1,
+          "std": 34.7,
+          "min": 2,
+          "max": 126
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 18.7,
+          "std": 24.4,
+          "min": 1,
+          "max": 98
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "hyponatraemia",
+      "incidence_all_grade": 0.055,
+      "grade_distribution": {
+        "1": 0.233,
+        "2": 0.033,
+        "3": 0.634,
+        "4": 0.1
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 46.0,
+          "std": 36.5,
+          "min": 1,
+          "max": 121
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 13.6,
+          "std": 12.9,
+          "min": 1,
+          "max": 63
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "abdominal_pain_upper",
+      "incidence_all_grade": 0.052,
+      "grade_distribution": {
+        "1": 0.464,
+        "2": 0.536
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 51.1,
+          "std": 36.0,
+          "min": 1,
+          "max": 134
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 17.6,
+          "std": 28.2,
+          "min": 2,
+          "max": 142
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "back_pain",
+      "incidence_all_grade": 0.052,
+      "grade_distribution": {
+        "1": 0.464,
+        "2": 0.393,
+        "3": 0.143
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 44.8,
+          "std": 35.6,
+          "min": 2,
+          "max": 148
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 13.4,
+          "std": 11.0,
+          "min": 1,
+          "max": 39
+        }
+      },
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "hypokalaemia",
+      "incidence_all_grade": 0.052,
+      "grade_distribution": {
+        "1": 0.535,
+        "2": 0.179,
+        "3": 0.25,
+        "4": 0.036
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 55.7,
+          "std": 38.6,
+          "min": 3,
+          "max": 126
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 8.9,
+          "std": 8.7,
+          "min": 1,
+          "max": 48
+        }
+      },
+      "risk_modifiers": null
+    }
+  ],
+  "efficacy": {
+    "overall_response_rate": 0.331,
+    "complete_response_rate": 0.006,
+    "progression_free_survival_months": {
+      "type": "numeric",
+      "distribution": "exponential",
+      "params": {
+        "mean": 5.1,
+        "std": 4.49,
+        "min": 0.03,
+        "max": 30.49
+      }
+    },
+    "overall_survival_months": {
+      "type": "numeric",
+      "distribution": "exponential",
+      "params": {
+        "mean": 11.3,
+        "std": 8.2,
+        "min": 0.03,
+        "max": 38.54
+      }
+    }
+  },
+  "lab_reference_ranges": {
+    "hemoglobin": {
+      "LLN": 13.0,
+      "ULN": 17.0,
+      "unit": "g/dL",
+      "normal_range": {
+        "min": 13.0,
+        "max": 17.0
+      }
+    },
+    "wbc": {
+      "LLN": 4.0,
+      "ULN": 10.0,
+      "unit": "x10^3/uL",
+      "normal_range": {
+        "min": 4.0,
+        "max": 10.0
+      }
+    },
+    "neutrophils": {
+      "LLN": 2.0,
+      "ULN": 7.0,
+      "unit": "x10^3/uL",
+      "normal_range": {
+        "min": 2.0,
+        "max": 7.0
+      }
+    },
+    "platelets": {
+      "LLN": 150.0,
+      "ULN": 400.0,
+      "unit": "x10^3/uL",
+      "normal_range": {
+        "min": 150.0,
+        "max": 400.0
+      }
+    },
+    "hematocrit": {
+      "LLN": 40.0,
+      "ULN": 50.4,
+      "unit": "%",
+      "normal_range": {
+        "min": 40.0,
+        "max": 50.4
+      }
+    },
+    "rbc": {
+      "LLN": 4.2,
+      "ULN": 5.7,
+      "unit": "x10^6/uL",
+      "normal_range": {
+        "min": 4.2,
+        "max": 5.7
+      }
+    },
+    "creatinine": {
+      "LLN": 0.6,
+      "ULN": 1.3,
+      "unit": "mg/dL",
+      "normal_range": {
+        "min": 0.6,
+        "max": 1.3
+      }
+    },
+    "alt": {
+      "LLN": 1.0,
+      "ULN": 41.0,
+      "unit": "U/L",
+      "normal_range": {
+        "min": 1.0,
+        "max": 41.0
+      }
+    },
+    "ast": {
+      "LLN": 1.0,
+      "ULN": 39.0,
+      "unit": "U/L",
+      "normal_range": {
+        "min": 1.0,
+        "max": 39.0
+      }
+    },
+    "total_bilirubin": {
+      "LLN": 0.0,
+      "ULN": 1.0,
+      "unit": "mg/dL",
+      "normal_range": {
+        "min": 0.0,
+        "max": 1.0
+      }
+    },
+    "alkaline_phosphatase": {
+      "LLN": 40.0,
+      "ULN": 129.0,
+      "unit": "U/L",
+      "normal_range": {
+        "min": 40.0,
+        "max": 129.0
+      }
+    },
+    "ldh": {
+      "LLN": 135.0,
+      "ULN": 250.0,
+      "unit": "U/L",
+      "normal_range": {
+        "min": 135.0,
+        "max": 250.0
+      }
+    },
+    "albumin": {
+      "LLN": 3.5,
+      "ULN": 5.0,
+      "unit": "g/dL",
+      "normal_range": {
+        "min": 3.5,
+        "max": 5.0
+      }
+    },
+    "potassium": {
+      "LLN": 3.5,
+      "ULN": 5.1,
+      "unit": "mEq/L",
+      "normal_range": {
+        "min": 3.5,
+        "max": 5.1
+      }
+    },
+    "sodium": {
+      "LLN": 135.0,
+      "ULN": 145.0,
+      "unit": "mEq/L",
+      "normal_range": {
+        "min": 135.0,
+        "max": 145.0
+      }
+    },
+    "calcium": {
+      "LLN": 8.5,
+      "ULN": 10.3,
+      "unit": "mg/dL",
+      "normal_range": {
+        "min": 8.5,
+        "max": 10.3
+      }
+    },
+    "chloride": {
+      "LLN": 98.0,
+      "ULN": 107.0,
+      "unit": "mEq/L",
+      "normal_range": {
+        "min": 98.0,
+        "max": 107.0
+      }
+    },
+    "urea_nitrogen": {
+      "LLN": 7.0,
+      "ULN": 23.2,
+      "unit": "mg/dL",
+      "normal_range": {
+        "min": 7.0,
+        "max": 23.2
+      }
+    },
+    "magnesium": {
+      "LLN": 1.7,
+      "ULN": 2.6,
+      "unit": "mg/dL",
+      "normal_range": {
+        "min": 1.7,
+        "max": 2.6
+      }
+    },
+    "phosphate": {
+      "LLN": 2.5,
+      "ULN": 4.5,
+      "unit": "mg/dL",
+      "normal_range": {
+        "min": 2.5,
+        "max": 4.5
+      }
+    },
+    "urate": {
+      "LLN": 3.4,
+      "ULN": 7.1,
+      "unit": "mg/dL",
+      "normal_range": {
+        "min": 3.4,
+        "max": 7.1
+      }
+    }
+  },
+  "administration_schedule": [
+    {
+      "drug_name": "Gemcitabine",
+      "dose_per_administration": "1250 mg/m2",
+      "dose_value": 1250,
+      "dose_unit": "mg/m2",
+      "route": "INTRAVENOUS",
+      "cycle_days": [
+        1,
+        8
+      ],
+      "infusion_duration_minutes": 0
+    },
+    {
+      "drug_name": "Cisplatin",
+      "dose_per_administration": "75 mg/m2",
+      "dose_value": 75,
+      "dose_unit": "mg/m2",
+      "route": "INTRAVENOUS",
+      "cycle_days": [
+        1
+      ],
+      "infusion_duration_minutes": 0
+    }
+  ],
+  "dose_modification_rules": [
+    {
+      "ae_term": "neutropenia",
+      "grade_actions": {
+        "1": "continue",
+        "2": "dose_modified",
+        "3": "dose_modified",
+        "4": "dose_modified"
+      },
+      "dose_reduction_levels": [
+        0.75,
+        0.5
+      ],
+      "rechallenge_criteria": "ANC >= 1.5 x10^9/L"
+    },
+    {
+      "ae_term": "thrombocytopenia",
+      "grade_actions": {
+        "1": "continue",
+        "2": "dose_modified",
+        "3": "dose_modified",
+        "4": "dose_modified"
+      },
+      "dose_reduction_levels": [
+        0.75,
+        0.5
+      ],
+      "rechallenge_criteria": "platelets >= 100 x10^9/L"
+    },
+    {
+      "ae_term": "anaemia",
+      "grade_actions": {
+        "1": "continue",
+        "2": "continue",
+        "3": "dose_modified",
+        "4": "dose_modified"
+      },
+      "dose_reduction_levels": [
+        0.75,
+        0.5
+      ],
+      "rechallenge_criteria": "hemoglobin recovery or grade <= 2"
+    },
+    {
+      "ae_term": "leukopenia",
+      "grade_actions": {
+        "1": "continue",
+        "2": "dose_modified",
+        "3": "continue",
+        "4": "continue"
+      },
+      "dose_reduction_levels": [
+        0.75,
+        0.5
+      ],
+      "rechallenge_criteria": "WBC recovery or grade <= 1"
+    },
+    {
+      "ae_term": "blood_creatinine_increased",
+      "grade_actions": {
+        "1": "dose_modified",
+        "2": "discontinued",
+        "3": "continue"
+      },
+      "dose_reduction_levels": [
+        0.75,
+        0.5
+      ],
+      "rechallenge_criteria": "creatinine <= 1.5x ULN"
+    },
+    {
+      "ae_term": "nausea",
+      "grade_actions": {
+        "1": "continue",
+        "2": "continue",
+        "3": "dose_modified"
+      },
+      "dose_reduction_levels": [
+        0.75,
+        0.5
+      ],
+      "rechallenge_criteria": "grade <= 1"
+    },
+    {
+      "ae_term": "vomiting",
+      "grade_actions": {
+        "1": "continue",
+        "2": "dose_modified",
+        "3": "dose_modified"
+      },
+      "dose_reduction_levels": [
+        0.75,
+        0.5
+      ],
+      "rechallenge_criteria": "grade <= 1"
+    },
+    {
+      "ae_term": "fatigue",
+      "grade_actions": {
+        "1": "continue",
+        "2": "continue",
+        "3": "dose_modified"
+      },
+      "dose_reduction_levels": [
+        0.75,
+        0.5
+      ],
+      "rechallenge_criteria": "grade <= 1 or improved"
+    },
+    {
+      "ae_term": "asthenia",
+      "grade_actions": {
+        "1": "continue",
+        "2": "continue",
+        "3": "dose_modified",
+        "4": "discontinued"
+      },
+      "dose_reduction_levels": [
+        0.75,
+        0.5
+      ],
+      "rechallenge_criteria": "grade <= 1 or improved"
+    },
+    {
+      "ae_term": "hyponatraemia",
+      "grade_actions": {
+        "1": "continue",
+        "3": "dose_modified",
+        "4": "discontinued"
+      },
+      "dose_reduction_levels": [
+        0.75,
+        0.5
+      ],
+      "rechallenge_criteria": "sodium recovered or grade <= 1"
+    }
+  ],
+  "supportive_care_rules": [
+    {
+      "ae_term": "nausea",
+      "treatments": [
+        {
+          "drug": "dexamethasone",
+          "dose": null,
+          "unit": null,
+          "route": "INTRAVENOUS",
+          "frequency": "per_cycle",
+          "probability": 0.821
+        },
+        {
+          "drug": "ondansetron",
+          "dose": null,
+          "unit": null,
+          "route": "INTRAVENOUS",
+          "frequency": "per_cycle",
+          "probability": 0.799
+        },
+        {
+          "drug": "aprepitant",
+          "dose": null,
+          "unit": null,
+          "route": "ORAL",
+          "frequency": "per_cycle",
+          "probability": 0.349
+        },
+        {
+          "drug": "metoclopramide",
+          "dose": null,
+          "unit": null,
+          "route": "ORAL",
+          "frequency": "as_needed",
+          "probability": 0.414
+        },
+        {
+          "drug": "granisetron",
+          "dose": null,
+          "unit": null,
+          "route": "INTRAVENOUS",
+          "frequency": "per_cycle",
+          "probability": 0.092
+        },
+        {
+          "drug": "palonosetron",
+          "dose": null,
+          "unit": null,
+          "route": "INTRAVENOUS",
+          "frequency": "per_cycle",
+          "probability": 0.091
+        }
+      ]
+    },
+    {
+      "ae_term": "cisplatin_nephrotoxicity",
+      "treatments": [
+        {
+          "drug": "sodium_chloride",
+          "dose": null,
+          "unit": null,
+          "route": "INTRAVENOUS",
+          "frequency": "per_cycle",
+          "probability": 0.494
+        },
+        {
+          "drug": "furosemide",
+          "dose": null,
+          "unit": null,
+          "route": "INTRAVENOUS",
+          "frequency": "per_cycle",
+          "probability": 0.323
+        },
+        {
+          "drug": "mannitol",
+          "dose": null,
+          "unit": null,
+          "route": "INTRAVENOUS",
+          "frequency": "per_cycle",
+          "probability": 0.261
+        }
+      ]
+    },
+    {
+      "ae_term": "hypomagnesaemia",
+      "treatments": [
+        {
+          "drug": "magnesium_sulfate",
+          "dose": null,
+          "unit": null,
+          "route": "INTRAVENOUS",
+          "frequency": "as_needed",
+          "probability": 0.17
+        }
+      ]
+    },
+    {
+      "ae_term": "hypokalaemia",
+      "treatments": [
+        {
+          "drug": "potassium_chloride",
+          "dose": null,
+          "unit": null,
+          "route": "INTRAVENOUS",
+          "frequency": "as_needed",
+          "probability": 0.203
+        }
+      ]
+    },
+    {
+      "ae_term": "neutropenia",
+      "treatments": [
+        {
+          "drug": "filgrastim",
+          "dose": null,
+          "unit": null,
+          "route": "SUBCUTANEOUS",
+          "frequency": "as_needed",
+          "probability": 0.12
+        }
+      ]
+    },
+    {
+      "ae_term": "constipation",
+      "treatments": [
+        {
+          "drug": "lactulose",
+          "dose": null,
+          "unit": null,
+          "route": "ORAL",
+          "frequency": "as_needed",
+          "probability": 0.091
+        }
+      ]
+    }
+  ],
+  "mortality_model": {
+    "baseline_annual_mortality": 0.654,
+    "channels": {
+      "malignant_disease": {
+        "proportion_of_deaths": 1.0,
+        "description": "442 deaths, no cause-specific breakdown available"
+      }
+    }
+  },
+  "ecog_model": {
+    "ae_burden_weight": 0.0,
+    "disease_weight": 0.0,
+    "response_lag_days": 0,
+    "response_benefit": 0.0,
+    "comorbidity_penalty": 0.0
+  },
+  "ae_cascade_rules": [
+    {
+      "trigger_ae": "nausea",
+      "grade_threshold": 2,
+      "target_ae": "vomiting",
+      "multiplier": 2.02
+    },
+    {
+      "trigger_ae": "neutropenia",
+      "grade_threshold": 3,
+      "target_ae": "leukopenia",
+      "multiplier": 1.96
+    },
+    {
+      "trigger_ae": "thrombocytopenia",
+      "grade_threshold": 3,
+      "target_ae": "anaemia",
+      "multiplier": 1.66
+    },
+    {
+      "trigger_ae": "nausea",
+      "grade_threshold": 2,
+      "target_ae": "decreased_appetite",
+      "multiplier": 1.52
+    },
+    {
+      "trigger_ae": "vomiting",
+      "grade_threshold": 2,
+      "target_ae": "hypomagnesaemia",
+      "multiplier": 1.47
+    },
+    {
+      "trigger_ae": "nausea",
+      "grade_threshold": 2,
+      "target_ae": "hyponatraemia",
+      "multiplier": 1.42
+    },
+    {
+      "trigger_ae": "hypomagnesaemia",
+      "grade_threshold": 2,
+      "target_ae": "hypokalaemia",
+      "multiplier": 3.76
+    }
+  ],
+  "disposition_model": {
+    "independent_hazards": {
+      "ae_discontinuation": {
+        "daily_probability": 0.001474,
+        "description": "80/541 over mean 100.3 days study exposure"
+      },
+      "consent_withdrawal": {
+        "daily_probability": 0.000608,
+        "description": "33/541 over mean 100.3 days"
+      },
+      "physician_decision": {
+        "daily_probability": 0.000663,
+        "description": "36/541 (other reasons) over mean 100.3 days"
+      }
+    }
+  }
+}

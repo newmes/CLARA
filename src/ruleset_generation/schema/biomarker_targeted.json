@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "biomarker_targeted.json",
+  "title": "Rule Set — Biomarker-Targeted Therapy (Extension)",
+  "description": "바이오마커 의존적 약물 확장 스키마. 단독 사용이 아닌 다른 route 스키마(iv_monotherapy, oral_monotherapy 등)와 함께 적용. disease_baseline에 biomarker 필드가 추가됨.",
+  "_examples": [
+    "Trastuzumab: HER2 IHC 3+ 또는 FISH+ 필수 (유방암, 위암)",
+    "Pembrolizumab: PD-L1 CPS ≥ 10 권장 (방광암 1L 단독)",
+    "Osimertinib: EGFR exon 19del 또는 L858R 필수 (폐암)",
+    "Olaparib: BRCA1/2 mutation 필수 (난소암, 유방암)",
+    "Vemurafenib: BRAF V600E 필수 (흑색종)",
+    "Crizotinib: ALK rearrangement 필수 (폐암)"
+  ],
+  "_differs_from_base": [
+    "disease_baseline.biomarker 객체 추가 (필수)",
+    "disease_baseline.biomarker.eligibility_criteria: 등록 기준",
+    "demographics에 biomarker 양성률 분포 추가 가능",
+    "efficacy에 biomarker 수준별 반응률 세분화 가능"
+  ],
+
+  "type": "object",
+  "properties": {
+    "disease_baseline": {
+      "type": "object",
+      "required": ["biomarker"],
+      "properties": {
+        "biomarker": {
+          "type": "object",
+          "required": ["name", "type", "eligibility_criteria"],
+          "properties": {
+            "name": {
+              "type": "string",
+              "description": "바이오마커 이름 (e.g., 'HER2', 'PD-L1', 'EGFR', 'BRCA1/2', 'ALK')"
+            },
+            "type": {
+              "type": "string",
+              "enum": ["IHC", "FISH", "PCR", "NGS", "combined"],
+              "description": "검사 방법"
+            },
+            "eligibility_criteria": {
+              "type": "string",
+              "description": "등록 기준 (e.g., 'IHC 3+ or FISH+', 'CPS ≥ 10', 'exon 19del or L858R')"
+            },
+            "prevalence_in_indication": {
+              "type": "number",
+              "description": "해당 적응증 내 양성률 (0-1). e.g., HER2+ 위암 ~20%"
+            },
+            "distribution": {
+              "type": "object",
+              "description": "바이오마커 수준별 분포 (선택). e.g., PD-L1 CPS 분포",
+              "additionalProperties": { "type": "number" }
+            }
+          }
+        }
+      }
+    },
+    "efficacy": {
+      "type": "object",
+      "properties": {
+        "by_biomarker_level": {
+          "type": "object",
+          "description": "바이오마커 수준별 효능 차이 (선택). e.g., PD-L1 high vs low",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "overall_response_rate":               { "type": "number" },
+              "progression_free_survival_months":     { "type": "object" },
+              "overall_survival_months":              { "type": "object" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

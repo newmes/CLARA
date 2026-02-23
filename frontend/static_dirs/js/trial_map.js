@@ -24,10 +24,15 @@ const SPRITE_MAP = {
 // Flat list of ALL indices (for preloading)
 const SPRITE_INDICES = [].concat(...Object.values(SPRITE_MAP.F), ...Object.values(SPRITE_MAP.M));
 
-// Session-level random seed so same run gets consistent sprites, different runs get different ones
-const _spriteSeed = Math.floor(Math.random() * 99991);
+// Per-run sprite offset — set via setSpriteOffset(runId) from each page
+let _spriteOffset = 0;
+function setSpriteOffset(runId) {
+  let h = 0;
+  for (let i = 0; i < runId.length; i++) h = ((h << 5) - h + runId.charCodeAt(i)) | 0;
+  _spriteOffset = Math.abs(h);
+}
 
-/** Pick sprite index matching patient sex + race (randomized per session) */
+/** Pick sprite index matching patient sex + race */
 function _pickSprite(p, fallbackIdx) {
   const sex = ((p.sex || '').charAt(0) || 'M').toUpperCase();
   const gender = sex === 'F' ? 'F' : 'M';
@@ -38,7 +43,7 @@ function _pickSprite(p, fallbackIdx) {
              : 'medium';
   const pool = (SPRITE_MAP[gender] && SPRITE_MAP[gender][tone]) || SPRITE_MAP.M.light;
   const num = parseInt((p.patient_id || '').replace(/\D/g, ''), 10) || (fallbackIdx + 1);
-  return pool[(_spriteSeed + num) % pool.length];
+  return pool[(_spriteOffset + num - 1) % pool.length];
 }
 
 const STATUS_COLORS = {

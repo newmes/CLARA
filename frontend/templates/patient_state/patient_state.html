@@ -152,11 +152,11 @@
     font-weight: 700; font-size: 0.82em; color: #fff;
     font-family: 'JetBrains Mono', monospace;
   }
-  .grade-1 { background: var(--grade-1); }
-  .grade-2 { background: var(--grade-2); }
-  .grade-3 { background: var(--grade-3); }
-  .grade-4 { background: var(--grade-4); }
-  .grade-5 { background: var(--grade-5); }
+  .ae-table .grade-1 { background: var(--grade-1); color: #fff; }
+  .ae-table .grade-2 { background: var(--grade-2); color: #fff; }
+  .ae-table .grade-3 { background: var(--grade-3); color: #fff; }
+  .ae-table .grade-4 { background: var(--grade-4); color: #fff; }
+  .ae-table .grade-5 { background: var(--grade-5); color: #fff; }
   .ae-table tr.resolved { opacity: 0.6; }
 
   /* Doc generation button */
@@ -323,7 +323,6 @@
 <nav class="run-sidebar">
 
   <a href="{% url 'trial_viewer' run_id %}" class="sb-active" title="Simulation"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><span>Sim</span></a>
-  <a href="{% url 'game_landing' run_id %}" title="Training"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg><span>Train</span></a>
   <a href="{% url 'crf_tables' run_id %}" title="Data"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg><span>Data</span></a>
   <a href="{% url 'compare_dashboard' run_id %}" title="A/B Test"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>A/B</span></a>
 </nav>
@@ -980,23 +979,27 @@
   // ── Care AI Call (KakaoTalk style) ──
   const _SPRITE_MAP = {
     F: {
-      light: [1,5,9,14,17,21,24,25,28,29,30,32,33,34,36,37,40,41,45,48,49,52,55,58,62,66,73,74,75,76,77,78,82,85,86,88,89,92,95],
-      medium: [20,35,38,42,44,46,50,53,56,61,65,67,68],
-      dark:   [2,8,12,39,43,47,51,54,57,59,60,63,64],
+      light:  [1,5,9,15,25,29,49,62,66,69,70,73,74,77,78,79,81,82,85,86,87,89,92,93,95],
+      medium: [2,12,14,53,61,63,65,67,71,75,90],
+      dark:   [3,31,51,54,64,68,72,76,80,83,84,88,91,94,96,97],
     },
     M: {
-      light: [7,11,69,70,71,72,83,87,93],
-      medium: [3,6,26,81,90,96],
-      dark:   [4,10,13,15,16,18,19,22,23,27,31,79,80,84,91,94,97],
+      light:  [6,10,11,17,21,24,32,33,36,37,40,41,45,52,55,58],
+      medium: [13,16,18,20,26,28,30,34,38,42,44,46,48,50,56,59],
+      dark:   [4,19,22,23,27,35,39,43,47,57,60],
     },
   };
+  const _RUN_ID = '{{ run_id }}';
+  let _spriteOff = 0;
+  for (let i = 0; i < _RUN_ID.length; i++) _spriteOff = ((_spriteOff << 5) - _spriteOff + _RUN_ID.charCodeAt(i)) | 0;
+  _spriteOff = Math.abs(_spriteOff);
   function _getCharSpriteUrl(pid, sex, race) {
     const gender = ((sex || '').charAt(0) || 'M').toUpperCase() === 'F' ? 'F' : 'M';
     const r = (race || '').toUpperCase();
     const tone = r.includes('BLACK') ? 'dark' : r.includes('ASIAN') ? 'medium' : r.includes('WHITE') ? 'light' : 'medium';
     const pool = (_SPRITE_MAP[gender] && _SPRITE_MAP[gender][tone]) || _SPRITE_MAP.M.light;
     const num = parseInt((pid || '').replace(/\D/g, ''), 10) || 1;
-    const n = pool[(num - 1) % pool.length];
+    const n = pool[(_spriteOff + num - 1) % pool.length];
     return `/static/assets/characters/patient_${String(n).padStart(2, '0')}.png`;
   }
   const _PAGE_PATIENT_ID = '{{ patient_id }}';

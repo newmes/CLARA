@@ -1,0 +1,68 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "maintenance_therapy.json",
+  "title": "Rule Set — Maintenance Therapy (Extension)",
+  "description": "유지요법 확장 스키마. 초기 유도요법(induction) 후 장기간 저용량/단일제 유지하는 패턴. trial_design에 phase 구분이 추가됨.",
+  "_examples": [
+    "Pemetrexed 유지요법 Q3W after 4C Carboplatin+Pemetrexed (폐암)",
+    "Bevacizumab 유지요법 Q3W after 6C FOLFOX+Beva (대장암)",
+    "Olaparib 유지요법 QD after platinum-based chemo (난소암 BRCA+)",
+    "Rituximab 유지요법 Q2M after R-CHOP (림프종)"
+  ],
+  "_differs_from_base": [
+    "trial_design.phases 추가: induction + maintenance 2단계 정의",
+    "각 phase에 별도 administration_schedule, cycle_length_days",
+    "phase_transition_criteria: 유도→유지 전환 조건"
+  ],
+
+  "type": "object",
+  "properties": {
+    "trial_design": {
+      "type": "object",
+      "required": ["phases"],
+      "properties": {
+        "phases": {
+          "type": "array",
+          "minItems": 2,
+          "items": {
+            "type": "object",
+            "required": ["phase_name", "cycle_length_days", "max_cycles", "administration_schedule"],
+            "properties": {
+              "phase_name": {
+                "type": "string",
+                "enum": ["induction", "maintenance"],
+                "description": "단계 이름"
+              },
+              "cycle_length_days": {
+                "type": "integer",
+                "description": "해당 단계의 사이클 길이"
+              },
+              "max_cycles": {
+                "type": ["integer", "null"],
+                "description": "최대 사이클 수. null이면 progression까지 지속."
+              },
+              "administration_schedule": {
+                "type": "array",
+                "items": { "$ref": "base.json#/definitions/drug_schedule" }
+              }
+            }
+          }
+        },
+        "phase_transition_criteria": {
+          "type": "object",
+          "properties": {
+            "min_induction_cycles": {
+              "type": "integer",
+              "description": "최소 유도요법 사이클 수"
+            },
+            "required_response": {
+              "type": "array",
+              "items": { "type": "string", "enum": ["CR", "PR", "SD"] },
+              "description": "유지요법 진입에 필요한 최소 반응 (e.g., SD 이상)"
+            }
+          }
+        }
+      }
+    }
+  }
+}

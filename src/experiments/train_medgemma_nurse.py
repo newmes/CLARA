@@ -75,8 +75,9 @@ def _patch_medgemma_forward(model):
 def build_sft_prompt(example: dict) -> dict:
     """Convert an SFT example to chat format for training.
 
-    Supports both legacy (system_context/user_input/assistant_output) and
-    v2 selfplay format (context/expert_response).
+    v3 format: includes drug_ae_profile + visual_assessment in system prompt,
+    matching the inference-time prompt structure from build_nurse_system_prompt().
+    Also supports legacy formats.
     """
     if "context" in example and "expert_response" in example:
         ctx = example["context"]
@@ -93,18 +94,50 @@ def build_sft_prompt(example: dict) -> dict:
         turn_type = example.get("turn_type", "followup")
         mood = ctx.get("mood_state", ctx.get("patient_mood", {}))
 
-    mood_str = ", ".join(f"{k}={v:.2f}" for k, v in mood.items() if isinstance(v, (int, float)))
+    drug_name = ctx.get("drug_name", "")
+    indication = ctx.get("indication", "")
+    vis_assess = ctx.get("visual_assessment", {})
+    drug_profile = ctx.get("drug_ae_profile", [])
 
-    system_msg = (
-        f"You are an AI nurse conducting turn {turn} ({turn_type}) of a daily video call with a cancer patient. "
-        f"Use motivational interviewing (OARS): open questions, affirmations, reflective listening, summarizing. "
-        f"Be warm, empathetic, and non-threatening. "
-        f"Your goal: detect adverse events early while maintaining the patient's trust and comfort. "
-        f"Patient mood: {mood_str}. "
-        f"Output JSON only."
-    )
+    vis_findings = vis_assess.get("findings", []) if isinstance(vis_assess, dict) else []
+    vis_text = json.dumps(vis_findings, ensure_ascii=False, indent=2) if vis_findings else "No significant visual findings."
+    gen_obs = "; ".join(vis_assess.get("general_observations", [])) if isinstance(vis_assess, dict) else ""
 
-    user_msg = f"Patient said:\n{json.dumps(patient_said, ensure_ascii=False, indent=2)}"
+    profile_lines = []
+    for ae in (drug_profile[:6] if drug_profile else []):
+        if isinstance(ae, dict):
+            profile_lines.append(f"  - {ae.get('ae_term','')} ({ae.get('incidence_pct','')}): {ae.get('common_symptoms','')}")
+    profile_text = "\n".join(profile_lines) if profile_lines else "Not available."
+
+    if drug_name:
+        system_msg = (
+            f"You are an AI nurse conducting Turn 2 of a daily video call with a cancer patient.\n"
+            f"You've just heard the patient's initial report and received visual analysis from a separate system.\n\n"
+            f"CLINICAL CONTEXT:\n- Drug: {drug_name}\n- Indication: {indication}\n\n"
+            f"VISUAL ASSESSMENT (from MedGemma-Vision front-end):\n{vis_text}\nGeneral: {gen_obs}\n\n"
+            f"NON-VISUAL AE PROFILE FOR THIS DRUG (these require conversation to detect):\n{profile_text}\n\n"
+            f"YOUR OBJECTIVES (dual):\n"
+            f"  (a) DETECT non-visual AEs through conversation — ask about specific symptoms from the drug profile\n"
+            f"  (b) MAINTAIN patient comfort — be warm, empathetic, build trust\n\n"
+            f"STRATEGY:\n"
+            f"1. Acknowledge what the patient shared (empathy first)\n"
+            f"2. If visual findings exist, acknowledge them naturally\n"
+            f"3. Ask about TOP non-visual AEs for this drug — use open-ended, non-threatening language\n"
+            f"4. Maximum 3 targeted questions (don't overwhelm)\n"
+            f"5. Use OARS: Open questions, Affirmations, Reflective listening, Summarizing\n\n"
+            f"Output JSON only."
+        )
+    else:
+        mood_str = ", ".join(f"{k}={v:.2f}" for k, v in mood.items() if isinstance(v, (int, float)))
+        system_msg = (
+            f"You are an AI nurse conducting turn {turn} ({turn_type}) of a daily video call with a cancer patient. "
+            f"Use motivational interviewing (OARS). Be warm, empathetic, non-threatening. "
+            f"Detect adverse events early while maintaining the patient's trust and comfort. "
+            f"Patient mood: {mood_str}. Output JSON only."
+        )
+
+    day = ctx.get("treatment_day", "")
+    user_msg = f"DAY {day} — TURN 2\n\nPATIENT'S INITIAL REPORT (T1):\n{json.dumps(patient_said, ensure_ascii=False, indent=2)}"
     assistant_msg = json.dumps(nurse_output, ensure_ascii=False, indent=2)
 
     return {

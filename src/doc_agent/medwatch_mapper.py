@@ -174,7 +174,6 @@ def map_crf_to_medwatch(
     section_a = SectionA(
         patient_id=crf.dm.SUBJID,
         age=crf.dm.AGE,
-        dob=crf.dm.BRTHDAT,
         sex=crf.dm.SEX,
         weight=crf.vs.WEIGHT,
         ethnicity=crf.dm.ETHNIC,

@@ -1,0 +1,659 @@
+{
+  "drug_name": "Paclitaxel + Cisplatin + Etoposide",
+  "indication": "extensive-stage small cell lung cancer (ES-SCLC)",
+  "trial_design": {
+    "cycle_length_days": 21
+  },
+  "demographics": {
+    "age": {
+      "type": "numeric",
+      "distribution": "normal",
+      "params": {
+        "mean": 61.3,
+        "std": 9.0,
+        "min": 24,
+        "max": 82
+      }
+    },
+    "sex": {
+      "type": "categorical",
+      "options": {
+        "Male": 0.546,
+        "Female": 0.454
+      }
+    },
+    "race": {
+      "type": "categorical",
+      "options": {
+        "White": 0.932,
+        "Black": 0.038,
+        "Asian": 0.01,
+        "American_Indian": 0.003,
+        "Unknown": 0.017
+      }
+    },
+    "ecog_ps": {
+      "type": "categorical",
+      "options": {
+        "0": 0.322,
+        "1": 0.63,
+        "2": 0.048
+      }
+    }
+  },
+  "comorbidities": [],
+  "disease_baseline": {
+    "tumor_sites": null,
+    "tumor_response_distribution": {
+      "CR": 0.194,
+      "PR": 0.657,
+      "SD": 0.109,
+      "PD": 0.04
+    },
+    "n_target_lesions": null,
+    "sum_of_diameters_mm": null
+  },
+  "ae_profile": [
+    {
+      "ae_term": "anaemia",
+      "incidence_all_grade": 0.86,
+      "grade_distribution": {
+        "1": 0.254,
+        "2": 0.496,
+        "3": 0.23,
+        "4": 0.02
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "other_miscellaneous_1",
+      "incidence_all_grade": 0.85,
+      "grade_distribution": {
+        "1": 0.116,
+        "2": 0.45,
+        "3": 0.281,
+        "4": 0.092,
+        "5": 0.06
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "nausea",
+      "incidence_all_grade": 0.785,
+      "grade_distribution": {
+        "1": 0.361,
+        "2": 0.426,
+        "3": 0.196,
+        "4": 0.017
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "leukopenia",
+      "incidence_all_grade": 0.686,
+      "grade_distribution": {
+        "1": 0.154,
+        "2": 0.219,
+        "3": 0.269,
+        "4": 0.333,
+        "5": 0.025
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "vomiting",
+      "incidence_all_grade": 0.652,
+      "grade_distribution": {
+        "1": 0.393,
+        "2": 0.387,
+        "3": 0.136,
+        "4": 0.079,
+        "5": 0.005
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "thrombocytopenia",
+      "incidence_all_grade": 0.645,
+      "grade_distribution": {
+        "1": 0.397,
+        "2": 0.222,
+        "3": 0.265,
+        "4": 0.116
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "other_miscellaneous_2",
+      "incidence_all_grade": 0.631,
+      "grade_distribution": {
+        "1": 0.227,
+        "2": 0.535,
+        "3": 0.168,
+        "4": 0.059,
+        "5": 0.011
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "neutropenia",
+      "incidence_all_grade": 0.607,
+      "grade_distribution": {
+        "1": 0.124,
+        "2": 0.129,
+        "3": 0.219,
+        "4": 0.528
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "anorexia",
+      "incidence_all_grade": 0.594,
+      "grade_distribution": {
+        "1": 0.385,
+        "2": 0.402,
+        "3": 0.172,
+        "4": 0.04
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "dyspnoea",
+      "incidence_all_grade": 0.59,
+      "grade_distribution": {
+        "1": 0.231,
+        "2": 0.399,
+        "3": 0.249,
+        "4": 0.104,
+        "5": 0.017
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "lymphopenia",
+      "incidence_all_grade": 0.58,
+      "grade_distribution": {
+        "1": 0.171,
+        "2": 0.212,
+        "3": 0.335,
+        "4": 0.282
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "neurologic_other",
+      "incidence_all_grade": 0.549,
+      "grade_distribution": {
+        "1": 0.342,
+        "2": 0.366,
+        "3": 0.255,
+        "4": 0.031,
+        "5": 0.006
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "peripheral_sensory_neuropathy",
+      "incidence_all_grade": 0.539,
+      "grade_distribution": {
+        "1": 0.494,
+        "2": 0.323,
+        "3": 0.171,
+        "4": 0.013
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "alkaline_phosphatase_increased",
+      "incidence_all_grade": 0.478,
+      "grade_distribution": {
+        "1": 0.821,
+        "2": 0.143,
+        "3": 0.036
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "diarrhoea",
+      "incidence_all_grade": 0.478,
+      "grade_distribution": {
+        "1": 0.564,
+        "2": 0.3,
+        "3": 0.093,
+        "4": 0.043
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "gastrointestinal_other",
+      "incidence_all_grade": 0.461,
+      "grade_distribution": {
+        "1": 0.422,
+        "2": 0.341,
+        "3": 0.215,
+        "4": 0.015,
+        "5": 0.007
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "myalgia_arthralgia",
+      "incidence_all_grade": 0.406,
+      "grade_distribution": {
+        "1": 0.462,
+        "2": 0.454,
+        "3": 0.067,
+        "4": 0.017
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "flu_like_symptoms",
+      "incidence_all_grade": 0.389,
+      "grade_distribution": {
+        "1": 0.36,
+        "2": 0.43,
+        "3": 0.184,
+        "4": 0.018,
+        "5": 0.009
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "pulmonary_other",
+      "incidence_all_grade": 0.386,
+      "grade_distribution": {
+        "1": 0.549,
+        "2": 0.186,
+        "3": 0.15,
+        "4": 0.071,
+        "5": 0.044
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "peripheral_motor_neuropathy",
+      "incidence_all_grade": 0.382,
+      "grade_distribution": {
+        "1": 0.286,
+        "2": 0.321,
+        "3": 0.357,
+        "4": 0.036
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "renal_other",
+      "incidence_all_grade": 0.334,
+      "grade_distribution": {
+        "1": 0.469,
+        "2": 0.306,
+        "3": 0.133,
+        "4": 0.071,
+        "5": 0.02
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "blood_creatinine_increased",
+      "incidence_all_grade": 0.307,
+      "grade_distribution": {
+        "1": 0.578,
+        "2": 0.244,
+        "3": 0.133,
+        "4": 0.044
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "cardiac_other",
+      "incidence_all_grade": 0.294,
+      "grade_distribution": {
+        "1": 0.442,
+        "2": 0.221,
+        "3": 0.186,
+        "4": 0.116,
+        "5": 0.035
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "stomatitis",
+      "incidence_all_grade": 0.253,
+      "grade_distribution": {
+        "1": 0.635,
+        "2": 0.297,
+        "3": 0.041,
+        "4": 0.027
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "transaminases_increased",
+      "incidence_all_grade": 0.212,
+      "grade_distribution": {
+        "1": 0.758,
+        "2": 0.161,
+        "3": 0.065,
+        "4": 0.016
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "hepatic_other",
+      "incidence_all_grade": 0.195,
+      "grade_distribution": {
+        "1": 0.579,
+        "2": 0.281,
+        "3": 0.105,
+        "4": 0.035
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "pyrexia",
+      "incidence_all_grade": 0.171,
+      "grade_distribution": {
+        "1": 0.26,
+        "2": 0.2,
+        "3": 0.36,
+        "4": 0.16,
+        "5": 0.02
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "haematologic_other",
+      "incidence_all_grade": 0.164,
+      "grade_distribution": {
+        "1": 0.354,
+        "2": 0.229,
+        "3": 0.333,
+        "4": 0.062,
+        "5": 0.021
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "cardiac_arrhythmia",
+      "incidence_all_grade": 0.123,
+      "grade_distribution": {
+        "1": 0.278,
+        "2": 0.167,
+        "3": 0.389,
+        "4": 0.139,
+        "5": 0.028
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "hearing_impaired",
+      "incidence_all_grade": 0.119,
+      "grade_distribution": {
+        "1": 0.486,
+        "2": 0.314,
+        "3": 0.2
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "hypersensitivity",
+      "incidence_all_grade": 0.109,
+      "grade_distribution": {
+        "1": 0.781,
+        "2": 0.156,
+        "3": 0.062
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "blood_bilirubin_increased",
+      "incidence_all_grade": 0.102,
+      "grade_distribution": {
+        "1": 0.533,
+        "2": 0.267,
+        "3": 0.133,
+        "4": 0.067
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "allergic_reaction",
+      "incidence_all_grade": 0.061,
+      "grade_distribution": {
+        "1": 0.667,
+        "2": 0.167,
+        "3": 0.111,
+        "4": 0.056
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    },
+    {
+      "ae_term": "cardiac_ischemia",
+      "incidence_all_grade": 0.061,
+      "grade_distribution": {
+        "1": 0.444,
+        "2": 0.111,
+        "3": 0.167,
+        "4": 0.222,
+        "5": 0.056
+      },
+      "onset_day": null,
+      "duration_days": null,
+      "risk_modifiers": null
+    }
+  ],
+  "efficacy": {
+    "overall_response_rate": 0.851,
+    "complete_response_rate": 0.194,
+    "progression_free_survival_months": {
+      "type": "numeric",
+      "distribution": "exponential",
+      "params": {
+        "mean": 7.16,
+        "std": 6.54,
+        "min": 0.0,
+        "max": 59.53
+      }
+    },
+    "overall_survival_months": {
+      "type": "numeric",
+      "distribution": "exponential",
+      "params": {
+        "mean": 12.33,
+        "std": 9.88,
+        "min": 0.0,
+        "max": 59.53
+      }
+    }
+  },
+  "lab_reference_ranges": {},
+  "administration_schedule": [
+    {
+      "drug_name": "Paclitaxel",
+      "dose_per_administration": "175 mg/m2",
+      "dose_value": 175,
+      "dose_unit": "mg/m2",
+      "route": "INTRAVENOUS",
+      "cycle_days": [
+        1
+      ]
+    },
+    {
+      "drug_name": "Cisplatin",
+      "dose_per_administration": "80 mg/m2",
+      "dose_value": 80,
+      "dose_unit": "mg/m2",
+      "route": "INTRAVENOUS",
+      "cycle_days": [
+        1
+      ]
+    },
+    {
+      "drug_name": "Etoposide",
+      "dose_per_administration": "80 mg/m2",
+      "dose_value": 80,
+      "dose_unit": "mg/m2",
+      "route": "INTRAVENOUS",
+      "cycle_days": [
+        1,
+        2,
+        3
+      ]
+    }
+  ],
+  "dose_modification_rules": [],
+  "supportive_care_rules": [
+    {
+      "ae_term": "neutropenia",
+      "treatments": [
+        {
+          "drug": "Filgrastim (G-CSF)",
+          "dose": "5",
+          "unit": "mcg/kg",
+          "route": "SC",
+          "frequency": "QD D4-18",
+          "probability": 1.0
+        }
+      ]
+    }
+  ],
+  "mortality_model": {
+    "baseline_annual_mortality": 0.622,
+    "channels": {
+      "malignant_disease": {
+        "proportion_of_deaths": 0.903,
+        "description": "241/267 deaths from disease"
+      },
+      "drug_toxicity": {
+        "proportion_of_deaths": 0.049,
+        "description": "13/267 deaths from protocol treatment"
+      },
+      "other": {
+        "proportion_of_deaths": 0.049,
+        "description": "13/267 deaths from other cause"
+      }
+    }
+  },
+  "ecog_model": {
+    "ae_burden_weight": 0.0,
+    "disease_weight": 0.0,
+    "response_lag_days": 0,
+    "response_benefit": 0.0,
+    "comorbidity_penalty": 0.0
+  },
+  "ae_cascade_rules": [
+    {
+      "trigger_ae": "neutropenia",
+      "grade_threshold": 4,
+      "target_ae": "pyrexia",
+      "multiplier": 2.49
+    },
+    {
+      "trigger_ae": "neutropenia",
+      "grade_threshold": 3,
+      "target_ae": "pyrexia",
+      "multiplier": 1.94
+    },
+    {
+      "trigger_ae": "nausea",
+      "grade_threshold": 2,
+      "target_ae": "vomiting",
+      "multiplier": 1.39
+    },
+    {
+      "trigger_ae": "nausea",
+      "grade_threshold": 3,
+      "target_ae": "anorexia",
+      "multiplier": 1.2
+    },
+    {
+      "trigger_ae": "anaemia",
+      "grade_threshold": 2,
+      "target_ae": "dyspnoea",
+      "multiplier": 1.13
+    }
+  ],
+  "disposition_model": {
+    "independent_hazards": {
+      "ae_discontinuation": {
+        "daily_probability": 0.000447,
+        "description": "22/293 over median 168 days treatment exposure"
+      },
+      "consent_withdrawal": {
+        "daily_probability": 0.000488,
+        "description": "24/293 (patient refused) over median 168 days"
+      },
+      "died_during_treatment": {
+        "daily_probability": 0.000447,
+        "description": "22/293 over median 168 days"
+      }
+    }
+  }
+}

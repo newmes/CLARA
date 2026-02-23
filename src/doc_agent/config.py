@@ -17,11 +17,11 @@ class Settings(BaseSettings):
 
     # ── LLM backend (MedGemma via vLLM) ──
     VLLM_BASE_URL: str = Field(
-        default="http://localhost:38000/v1",
+        default="http://localhost:38002/v1",
         description="vLLM OpenAI-compatible API base URL",
     )
     VLLM_MODEL_ID: str = Field(
-        default="google/medgemma-27b-it",
+        default="medgemma-4b-antihallu",
         description="Model ID served by vLLM",
     )
     VLLM_API_KEY: str = Field(

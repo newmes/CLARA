@@ -1,0 +1,18 @@
+# Core pipeline
+openai>=1.0
+pydantic>=2.0
+pydantic-settings>=2.0
+httpx>=0.25
+requests>=2.31
+urllib3>=2.0
+
+# Data processing
+numpy>=1.26
+pandas>=2.1
+
+# CLI
+typer>=0.9
+rich>=13.0
+
+# Schema validation (scripts only)
+jsonschema>=4.20

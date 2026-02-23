@@ -1,10 +1,10 @@
 {
-  "n_patients": 200,
-  "map_width": 569,
+  "n_patients": 50,
+  "map_width": 162,
   "map_height": 22,
   "tile_size": 16,
   "hospital": {
-    "x": 284,
+    "x": 75,
     "y": 10,
     "waypoint_id": "hosp"
   },
@@ -203,1421 +203,221 @@
     },
     {
       "patient_idx": 24,
-      "x": 72,
+      "x": 83,
       "y": 7,
-      "house_x": 71,
+      "house_x": 82,
       "house_y": 5,
       "waypoint_id": "h24"
     },
     {
       "patient_idx": 25,
-      "x": 78,
+      "x": 89,
       "y": 7,
-      "house_x": 77,
+      "house_x": 88,
       "house_y": 5,
       "waypoint_id": "h25"
     },
     {
       "patient_idx": 26,
-      "x": 72,
+      "x": 83,
       "y": 13,
-      "house_x": 71,
+      "house_x": 82,
       "house_y": 14,
       "waypoint_id": "h26"
     },
     {
       "patient_idx": 27,
-      "x": 78,
+      "x": 89,
       "y": 13,
-      "house_x": 77,
+      "house_x": 88,
       "house_y": 14,
       "waypoint_id": "h27"
     },
     {
       "patient_idx": 28,
-      "x": 83,
+      "x": 94,
       "y": 7,
-      "house_x": 82,
+      "house_x": 93,
       "house_y": 5,
       "waypoint_id": "h28"
     },
     {
       "patient_idx": 29,
-      "x": 89,
+      "x": 100,
       "y": 7,
-      "house_x": 88,
+      "house_x": 99,
       "house_y": 5,
       "waypoint_id": "h29"
     },
     {
       "patient_idx": 30,
-      "x": 83,
+      "x": 94,
       "y": 13,
-      "house_x": 82,
+      "house_x": 93,
       "house_y": 14,
       "waypoint_id": "h30"
     },
     {
       "patient_idx": 31,
-      "x": 89,
+      "x": 100,
       "y": 13,
-      "house_x": 88,
+      "house_x": 99,
       "house_y": 14,
       "waypoint_id": "h31"
     },
     {
       "patient_idx": 32,
-      "x": 94,
+      "x": 105,
       "y": 7,
-      "house_x": 93,
+      "house_x": 104,
       "house_y": 5,
       "waypoint_id": "h32"
     },
     {
       "patient_idx": 33,
-      "x": 100,
+      "x": 111,
       "y": 7,
-      "house_x": 99,
+      "house_x": 110,
       "house_y": 5,
       "waypoint_id": "h33"
     },
     {
       "patient_idx": 34,
-      "x": 94,
+      "x": 105,
       "y": 13,
-      "house_x": 93,
+      "house_x": 104,
       "house_y": 14,
       "waypoint_id": "h34"
     },
     {
       "patient_idx": 35,
-      "x": 100,
+      "x": 111,
       "y": 13,
-      "house_x": 99,
+      "house_x": 110,
       "house_y": 14,
       "waypoint_id": "h35"
     },
     {
       "patient_idx": 36,
-      "x": 105,
+      "x": 116,
       "y": 7,
-      "house_x": 104,
+      "house_x": 115,
       "house_y": 5,
       "waypoint_id": "h36"
     },
     {
       "patient_idx": 37,
-      "x": 111,
+      "x": 122,
       "y": 7,
-      "house_x": 110,
+      "house_x": 121,
       "house_y": 5,
       "waypoint_id": "h37"
     },
     {
       "patient_idx": 38,
-      "x": 105,
+      "x": 116,
       "y": 13,
-      "house_x": 104,
+      "house_x": 115,
       "house_y": 14,
       "waypoint_id": "h38"
     },
     {
       "patient_idx": 39,
-      "x": 111,
+      "x": 122,
       "y": 13,
-      "house_x": 110,
+      "house_x": 121,
       "house_y": 14,
       "waypoint_id": "h39"
     },
     {
       "patient_idx": 40,
-      "x": 116,
+      "x": 127,
       "y": 7,
-      "house_x": 115,
+      "house_x": 126,
       "house_y": 5,
       "waypoint_id": "h40"
     },
     {
       "patient_idx": 41,
-      "x": 122,
+      "x": 133,
       "y": 7,
-      "house_x": 121,
+      "house_x": 132,
       "house_y": 5,
       "waypoint_id": "h41"
     },
     {
       "patient_idx": 42,
-      "x": 116,
+      "x": 127,
       "y": 13,
-      "house_x": 115,
+      "house_x": 126,
       "house_y": 14,
       "waypoint_id": "h42"
     },
     {
       "patient_idx": 43,
-      "x": 122,
+      "x": 133,
       "y": 13,
-      "house_x": 121,
+      "house_x": 132,
       "house_y": 14,
       "waypoint_id": "h43"
     },
     {
       "patient_idx": 44,
-      "x": 127,
+      "x": 138,
       "y": 7,
-      "house_x": 126,
+      "house_x": 137,
       "house_y": 5,
       "waypoint_id": "h44"
     },
     {
       "patient_idx": 45,
-      "x": 133,
+      "x": 144,
       "y": 7,
-      "house_x": 132,
+      "house_x": 143,
       "house_y": 5,
       "waypoint_id": "h45"
     },
     {
       "patient_idx": 46,
-      "x": 127,
+      "x": 138,
       "y": 13,
-      "house_x": 126,
+      "house_x": 137,
       "house_y": 14,
       "waypoint_id": "h46"
     },
     {
       "patient_idx": 47,
-      "x": 133,
+      "x": 144,
       "y": 13,
-      "house_x": 132,
+      "house_x": 143,
       "house_y": 14,
       "waypoint_id": "h47"
     },
     {
       "patient_idx": 48,
-      "x": 138,
+      "x": 149,
       "y": 7,
-      "house_x": 137,
+      "house_x": 148,
       "house_y": 5,
       "waypoint_id": "h48"
     },
     {
       "patient_idx": 49,
-      "x": 144,
+      "x": 155,
       "y": 7,
-      "house_x": 143,
+      "house_x": 154,
       "house_y": 5,
       "waypoint_id": "h49"
-    },
-    {
-      "patient_idx": 50,
-      "x": 138,
-      "y": 13,
-      "house_x": 137,
-      "house_y": 14,
-      "waypoint_id": "h50"
-    },
-    {
-      "patient_idx": 51,
-      "x": 144,
-      "y": 13,
-      "house_x": 143,
-      "house_y": 14,
-      "waypoint_id": "h51"
-    },
-    {
-      "patient_idx": 52,
-      "x": 149,
-      "y": 7,
-      "house_x": 148,
-      "house_y": 5,
-      "waypoint_id": "h52"
-    },
-    {
-      "patient_idx": 53,
-      "x": 155,
-      "y": 7,
-      "house_x": 154,
-      "house_y": 5,
-      "waypoint_id": "h53"
-    },
-    {
-      "patient_idx": 54,
-      "x": 149,
-      "y": 13,
-      "house_x": 148,
-      "house_y": 14,
-      "waypoint_id": "h54"
-    },
-    {
-      "patient_idx": 55,
-      "x": 155,
-      "y": 13,
-      "house_x": 154,
-      "house_y": 14,
-      "waypoint_id": "h55"
-    },
-    {
-      "patient_idx": 56,
-      "x": 160,
-      "y": 7,
-      "house_x": 159,
-      "house_y": 5,
-      "waypoint_id": "h56"
-    },
-    {
-      "patient_idx": 57,
-      "x": 166,
-      "y": 7,
-      "house_x": 165,
-      "house_y": 5,
-      "waypoint_id": "h57"
-    },
-    {
-      "patient_idx": 58,
-      "x": 160,
-      "y": 13,
-      "house_x": 159,
-      "house_y": 14,
-      "waypoint_id": "h58"
-    },
-    {
-      "patient_idx": 59,
-      "x": 166,
-      "y": 13,
-      "house_x": 165,
-      "house_y": 14,
-      "waypoint_id": "h59"
-    },
-    {
-      "patient_idx": 60,
-      "x": 171,
-      "y": 7,
-      "house_x": 170,
-      "house_y": 5,
-      "waypoint_id": "h60"
-    },
-    {
-      "patient_idx": 61,
-      "x": 177,
-      "y": 7,
-      "house_x": 176,
-      "house_y": 5,
-      "waypoint_id": "h61"
-    },
-    {
-      "patient_idx": 62,
-      "x": 171,
-      "y": 13,
-      "house_x": 170,
-      "house_y": 14,
-      "waypoint_id": "h62"
-    },
-    {
-      "patient_idx": 63,
-      "x": 177,
-      "y": 13,
-      "house_x": 176,
-      "house_y": 14,
-      "waypoint_id": "h63"
-    },
-    {
-      "patient_idx": 64,
-      "x": 182,
-      "y": 7,
-      "house_x": 181,
-      "house_y": 5,
-      "waypoint_id": "h64"
-    },
-    {
-      "patient_idx": 65,
-      "x": 188,
-      "y": 7,
-      "house_x": 187,
-      "house_y": 5,
-      "waypoint_id": "h65"
-    },
-    {
-      "patient_idx": 66,
-      "x": 182,
-      "y": 13,
-      "house_x": 181,
-      "house_y": 14,
-      "waypoint_id": "h66"
-    },
-    {
-      "patient_idx": 67,
-      "x": 188,
-      "y": 13,
-      "house_x": 187,
-      "house_y": 14,
-      "waypoint_id": "h67"
-    },
-    {
-      "patient_idx": 68,
-      "x": 193,
-      "y": 7,
-      "house_x": 192,
-      "house_y": 5,
-      "waypoint_id": "h68"
-    },
-    {
-      "patient_idx": 69,
-      "x": 199,
-      "y": 7,
-      "house_x": 198,
-      "house_y": 5,
-      "waypoint_id": "h69"
-    },
-    {
-      "patient_idx": 70,
-      "x": 193,
-      "y": 13,
-      "house_x": 192,
-      "house_y": 14,
-      "waypoint_id": "h70"
-    },
-    {
-      "patient_idx": 71,
-      "x": 199,
-      "y": 13,
-      "house_x": 198,
-      "house_y": 14,
-      "waypoint_id": "h71"
-    },
-    {
-      "patient_idx": 72,
-      "x": 204,
-      "y": 7,
-      "house_x": 203,
-      "house_y": 5,
-      "waypoint_id": "h72"
-    },
-    {
-      "patient_idx": 73,
-      "x": 210,
-      "y": 7,
-      "house_x": 209,
-      "house_y": 5,
-      "waypoint_id": "h73"
-    },
-    {
-      "patient_idx": 74,
-      "x": 204,
-      "y": 13,
-      "house_x": 203,
-      "house_y": 14,
-      "waypoint_id": "h74"
-    },
-    {
-      "patient_idx": 75,
-      "x": 210,
-      "y": 13,
-      "house_x": 209,
-      "house_y": 14,
-      "waypoint_id": "h75"
-    },
-    {
-      "patient_idx": 76,
-      "x": 215,
-      "y": 7,
-      "house_x": 214,
-      "house_y": 5,
-      "waypoint_id": "h76"
-    },
-    {
-      "patient_idx": 77,
-      "x": 221,
-      "y": 7,
-      "house_x": 220,
-      "house_y": 5,
-      "waypoint_id": "h77"
-    },
-    {
-      "patient_idx": 78,
-      "x": 215,
-      "y": 13,
-      "house_x": 214,
-      "house_y": 14,
-      "waypoint_id": "h78"
-    },
-    {
-      "patient_idx": 79,
-      "x": 221,
-      "y": 13,
-      "house_x": 220,
-      "house_y": 14,
-      "waypoint_id": "h79"
-    },
-    {
-      "patient_idx": 80,
-      "x": 226,
-      "y": 7,
-      "house_x": 225,
-      "house_y": 5,
-      "waypoint_id": "h80"
-    },
-    {
-      "patient_idx": 81,
-      "x": 232,
-      "y": 7,
-      "house_x": 231,
-      "house_y": 5,
-      "waypoint_id": "h81"
-    },
-    {
-      "patient_idx": 82,
-      "x": 226,
-      "y": 13,
-      "house_x": 225,
-      "house_y": 14,
-      "waypoint_id": "h82"
-    },
-    {
-      "patient_idx": 83,
-      "x": 232,
-      "y": 13,
-      "house_x": 231,
-      "house_y": 14,
-      "waypoint_id": "h83"
-    },
-    {
-      "patient_idx": 84,
-      "x": 237,
-      "y": 7,
-      "house_x": 236,
-      "house_y": 5,
-      "waypoint_id": "h84"
-    },
-    {
-      "patient_idx": 85,
-      "x": 243,
-      "y": 7,
-      "house_x": 242,
-      "house_y": 5,
-      "waypoint_id": "h85"
-    },
-    {
-      "patient_idx": 86,
-      "x": 237,
-      "y": 13,
-      "house_x": 236,
-      "house_y": 14,
-      "waypoint_id": "h86"
-    },
-    {
-      "patient_idx": 87,
-      "x": 243,
-      "y": 13,
-      "house_x": 242,
-      "house_y": 14,
-      "waypoint_id": "h87"
-    },
-    {
-      "patient_idx": 88,
-      "x": 248,
-      "y": 7,
-      "house_x": 247,
-      "house_y": 5,
-      "waypoint_id": "h88"
-    },
-    {
-      "patient_idx": 89,
-      "x": 254,
-      "y": 7,
-      "house_x": 253,
-      "house_y": 5,
-      "waypoint_id": "h89"
-    },
-    {
-      "patient_idx": 90,
-      "x": 248,
-      "y": 13,
-      "house_x": 247,
-      "house_y": 14,
-      "waypoint_id": "h90"
-    },
-    {
-      "patient_idx": 91,
-      "x": 254,
-      "y": 13,
-      "house_x": 253,
-      "house_y": 14,
-      "waypoint_id": "h91"
-    },
-    {
-      "patient_idx": 92,
-      "x": 259,
-      "y": 7,
-      "house_x": 258,
-      "house_y": 5,
-      "waypoint_id": "h92"
-    },
-    {
-      "patient_idx": 93,
-      "x": 265,
-      "y": 7,
-      "house_x": 264,
-      "house_y": 5,
-      "waypoint_id": "h93"
-    },
-    {
-      "patient_idx": 94,
-      "x": 259,
-      "y": 13,
-      "house_x": 258,
-      "house_y": 14,
-      "waypoint_id": "h94"
-    },
-    {
-      "patient_idx": 95,
-      "x": 265,
-      "y": 13,
-      "house_x": 264,
-      "house_y": 14,
-      "waypoint_id": "h95"
-    },
-    {
-      "patient_idx": 96,
-      "x": 270,
-      "y": 7,
-      "house_x": 269,
-      "house_y": 5,
-      "waypoint_id": "h96"
-    },
-    {
-      "patient_idx": 97,
-      "x": 276,
-      "y": 7,
-      "house_x": 275,
-      "house_y": 5,
-      "waypoint_id": "h97"
-    },
-    {
-      "patient_idx": 98,
-      "x": 270,
-      "y": 13,
-      "house_x": 269,
-      "house_y": 14,
-      "waypoint_id": "h98"
-    },
-    {
-      "patient_idx": 99,
-      "x": 276,
-      "y": 13,
-      "house_x": 275,
-      "house_y": 14,
-      "waypoint_id": "h99"
-    },
-    {
-      "patient_idx": 100,
-      "x": 292,
-      "y": 7,
-      "house_x": 291,
-      "house_y": 5,
-      "waypoint_id": "h100"
-    },
-    {
-      "patient_idx": 101,
-      "x": 298,
-      "y": 7,
-      "house_x": 297,
-      "house_y": 5,
-      "waypoint_id": "h101"
-    },
-    {
-      "patient_idx": 102,
-      "x": 292,
-      "y": 13,
-      "house_x": 291,
-      "house_y": 14,
-      "waypoint_id": "h102"
-    },
-    {
-      "patient_idx": 103,
-      "x": 298,
-      "y": 13,
-      "house_x": 297,
-      "house_y": 14,
-      "waypoint_id": "h103"
-    },
-    {
-      "patient_idx": 104,
-      "x": 303,
-      "y": 7,
-      "house_x": 302,
-      "house_y": 5,
-      "waypoint_id": "h104"
-    },
-    {
-      "patient_idx": 105,
-      "x": 309,
-      "y": 7,
-      "house_x": 308,
-      "house_y": 5,
-      "waypoint_id": "h105"
-    },
-    {
-      "patient_idx": 106,
-      "x": 303,
-      "y": 13,
-      "house_x": 302,
-      "house_y": 14,
-      "waypoint_id": "h106"
-    },
-    {
-      "patient_idx": 107,
-      "x": 309,
-      "y": 13,
-      "house_x": 308,
-      "house_y": 14,
-      "waypoint_id": "h107"
-    },
-    {
-      "patient_idx": 108,
-      "x": 314,
-      "y": 7,
-      "house_x": 313,
-      "house_y": 5,
-      "waypoint_id": "h108"
-    },
-    {
-      "patient_idx": 109,
-      "x": 320,
-      "y": 7,
-      "house_x": 319,
-      "house_y": 5,
-      "waypoint_id": "h109"
-    },
-    {
-      "patient_idx": 110,
-      "x": 314,
-      "y": 13,
-      "house_x": 313,
-      "house_y": 14,
-      "waypoint_id": "h110"
-    },
-    {
-      "patient_idx": 111,
-      "x": 320,
-      "y": 13,
-      "house_x": 319,
-      "house_y": 14,
-      "waypoint_id": "h111"
-    },
-    {
-      "patient_idx": 112,
-      "x": 325,
-      "y": 7,
-      "house_x": 324,
-      "house_y": 5,
-      "waypoint_id": "h112"
-    },
-    {
-      "patient_idx": 113,
-      "x": 331,
-      "y": 7,
-      "house_x": 330,
-      "house_y": 5,
-      "waypoint_id": "h113"
-    },
-    {
-      "patient_idx": 114,
-      "x": 325,
-      "y": 13,
-      "house_x": 324,
-      "house_y": 14,
-      "waypoint_id": "h114"
-    },
-    {
-      "patient_idx": 115,
-      "x": 331,
-      "y": 13,
-      "house_x": 330,
-      "house_y": 14,
-      "waypoint_id": "h115"
-    },
-    {
-      "patient_idx": 116,
-      "x": 336,
-      "y": 7,
-      "house_x": 335,
-      "house_y": 5,
-      "waypoint_id": "h116"
-    },
-    {
-      "patient_idx": 117,
-      "x": 342,
-      "y": 7,
-      "house_x": 341,
-      "house_y": 5,
-      "waypoint_id": "h117"
-    },
-    {
-      "patient_idx": 118,
-      "x": 336,
-      "y": 13,
-      "house_x": 335,
-      "house_y": 14,
-      "waypoint_id": "h118"
-    },
-    {
-      "patient_idx": 119,
-      "x": 342,
-      "y": 13,
-      "house_x": 341,
-      "house_y": 14,
-      "waypoint_id": "h119"
-    },
-    {
-      "patient_idx": 120,
-      "x": 347,
-      "y": 7,
-      "house_x": 346,
-      "house_y": 5,
-      "waypoint_id": "h120"
-    },
-    {
-      "patient_idx": 121,
-      "x": 353,
-      "y": 7,
-      "house_x": 352,
-      "house_y": 5,
-      "waypoint_id": "h121"
-    },
-    {
-      "patient_idx": 122,
-      "x": 347,
-      "y": 13,
-      "house_x": 346,
-      "house_y": 14,
-      "waypoint_id": "h122"
-    },
-    {
-      "patient_idx": 123,
-      "x": 353,
-      "y": 13,
-      "house_x": 352,
-      "house_y": 14,
-      "waypoint_id": "h123"
-    },
-    {
-      "patient_idx": 124,
-      "x": 358,
-      "y": 7,
-      "house_x": 357,
-      "house_y": 5,
-      "waypoint_id": "h124"
-    },
-    {
-      "patient_idx": 125,
-      "x": 364,
-      "y": 7,
-      "house_x": 363,
-      "house_y": 5,
-      "waypoint_id": "h125"
-    },
-    {
-      "patient_idx": 126,
-      "x": 358,
-      "y": 13,
-      "house_x": 357,
-      "house_y": 14,
-      "waypoint_id": "h126"
-    },
-    {
-      "patient_idx": 127,
-      "x": 364,
-      "y": 13,
-      "house_x": 363,
-      "house_y": 14,
-      "waypoint_id": "h127"
-    },
-    {
-      "patient_idx": 128,
-      "x": 369,
-      "y": 7,
-      "house_x": 368,
-      "house_y": 5,
-      "waypoint_id": "h128"
-    },
-    {
-      "patient_idx": 129,
-      "x": 375,
-      "y": 7,
-      "house_x": 374,
-      "house_y": 5,
-      "waypoint_id": "h129"
-    },
-    {
-      "patient_idx": 130,
-      "x": 369,
-      "y": 13,
-      "house_x": 368,
-      "house_y": 14,
-      "waypoint_id": "h130"
-    },
-    {
-      "patient_idx": 131,
-      "x": 375,
-      "y": 13,
-      "house_x": 374,
-      "house_y": 14,
-      "waypoint_id": "h131"
-    },
-    {
-      "patient_idx": 132,
-      "x": 380,
-      "y": 7,
-      "house_x": 379,
-      "house_y": 5,
-      "waypoint_id": "h132"
-    },
-    {
-      "patient_idx": 133,
-      "x": 386,
-      "y": 7,
-      "house_x": 385,
-      "house_y": 5,
-      "waypoint_id": "h133"
-    },
-    {
-      "patient_idx": 134,
-      "x": 380,
-      "y": 13,
-      "house_x": 379,
-      "house_y": 14,
-      "waypoint_id": "h134"
-    },
-    {
-      "patient_idx": 135,
-      "x": 386,
-      "y": 13,
-      "house_x": 385,
-      "house_y": 14,
-      "waypoint_id": "h135"
-    },
-    {
-      "patient_idx": 136,
-      "x": 391,
-      "y": 7,
-      "house_x": 390,
-      "house_y": 5,
-      "waypoint_id": "h136"
-    },
-    {
-      "patient_idx": 137,
-      "x": 397,
-      "y": 7,
-      "house_x": 396,
-      "house_y": 5,
-      "waypoint_id": "h137"
-    },
-    {
-      "patient_idx": 138,
-      "x": 391,
-      "y": 13,
-      "house_x": 390,
-      "house_y": 14,
-      "waypoint_id": "h138"
-    },
-    {
-      "patient_idx": 139,
-      "x": 397,
-      "y": 13,
-      "house_x": 396,
-      "house_y": 14,
-      "waypoint_id": "h139"
-    },
-    {
-      "patient_idx": 140,
-      "x": 402,
-      "y": 7,
-      "house_x": 401,
-      "house_y": 5,
-      "waypoint_id": "h140"
-    },
-    {
-      "patient_idx": 141,
-      "x": 408,
-      "y": 7,
-      "house_x": 407,
-      "house_y": 5,
-      "waypoint_id": "h141"
-    },
-    {
-      "patient_idx": 142,
-      "x": 402,
-      "y": 13,
-      "house_x": 401,
-      "house_y": 14,
-      "waypoint_id": "h142"
-    },
-    {
-      "patient_idx": 143,
-      "x": 408,
-      "y": 13,
-      "house_x": 407,
-      "house_y": 14,
-      "waypoint_id": "h143"
-    },
-    {
-      "patient_idx": 144,
-      "x": 413,
-      "y": 7,
-      "house_x": 412,
-      "house_y": 5,
-      "waypoint_id": "h144"
-    },
-    {
-      "patient_idx": 145,
-      "x": 419,
-      "y": 7,
-      "house_x": 418,
-      "house_y": 5,
-      "waypoint_id": "h145"
-    },
-    {
-      "patient_idx": 146,
-      "x": 413,
-      "y": 13,
-      "house_x": 412,
-      "house_y": 14,
-      "waypoint_id": "h146"
-    },
-    {
-      "patient_idx": 147,
-      "x": 419,
-      "y": 13,
-      "house_x": 418,
-      "house_y": 14,
-      "waypoint_id": "h147"
-    },
-    {
-      "patient_idx": 148,
-      "x": 424,
-      "y": 7,
-      "house_x": 423,
-      "house_y": 5,
-      "waypoint_id": "h148"
-    },
-    {
-      "patient_idx": 149,
-      "x": 430,
-      "y": 7,
-      "house_x": 429,
-      "house_y": 5,
-      "waypoint_id": "h149"
-    },
-    {
-      "patient_idx": 150,
-      "x": 424,
-      "y": 13,
-      "house_x": 423,
-      "house_y": 14,
-      "waypoint_id": "h150"
-    },
-    {
-      "patient_idx": 151,
-      "x": 430,
-      "y": 13,
-      "house_x": 429,
-      "house_y": 14,
-      "waypoint_id": "h151"
-    },
-    {
-      "patient_idx": 152,
-      "x": 435,
-      "y": 7,
-      "house_x": 434,
-      "house_y": 5,
-      "waypoint_id": "h152"
-    },
-    {
-      "patient_idx": 153,
-      "x": 441,
-      "y": 7,
-      "house_x": 440,
-      "house_y": 5,
-      "waypoint_id": "h153"
-    },
-    {
-      "patient_idx": 154,
-      "x": 435,
-      "y": 13,
-      "house_x": 434,
-      "house_y": 14,
-      "waypoint_id": "h154"
-    },
-    {
-      "patient_idx": 155,
-      "x": 441,
-      "y": 13,
-      "house_x": 440,
-      "house_y": 14,
-      "waypoint_id": "h155"
-    },
-    {
-      "patient_idx": 156,
-      "x": 446,
-      "y": 7,
-      "house_x": 445,
-      "house_y": 5,
-      "waypoint_id": "h156"
-    },
-    {
-      "patient_idx": 157,
-      "x": 452,
-      "y": 7,
-      "house_x": 451,
-      "house_y": 5,
-      "waypoint_id": "h157"
-    },
-    {
-      "patient_idx": 158,
-      "x": 446,
-      "y": 13,
-      "house_x": 445,
-      "house_y": 14,
-      "waypoint_id": "h158"
-    },
-    {
-      "patient_idx": 159,
-      "x": 452,
-      "y": 13,
-      "house_x": 451,
-      "house_y": 14,
-      "waypoint_id": "h159"
-    },
-    {
-      "patient_idx": 160,
-      "x": 457,
-      "y": 7,
-      "house_x": 456,
-      "house_y": 5,
-      "waypoint_id": "h160"
-    },
-    {
-      "patient_idx": 161,
-      "x": 463,
-      "y": 7,
-      "house_x": 462,
-      "house_y": 5,
-      "waypoint_id": "h161"
-    },
-    {
-      "patient_idx": 162,
-      "x": 457,
-      "y": 13,
-      "house_x": 456,
-      "house_y": 14,
-      "waypoint_id": "h162"
-    },
-    {
-      "patient_idx": 163,
-      "x": 463,
-      "y": 13,
-      "house_x": 462,
-      "house_y": 14,
-      "waypoint_id": "h163"
-    },
-    {
-      "patient_idx": 164,
-      "x": 468,
-      "y": 7,
-      "house_x": 467,
-      "house_y": 5,
-      "waypoint_id": "h164"
-    },
-    {
-      "patient_idx": 165,
-      "x": 474,
-      "y": 7,
-      "house_x": 473,
-      "house_y": 5,
-      "waypoint_id": "h165"
-    },
-    {
-      "patient_idx": 166,
-      "x": 468,
-      "y": 13,
-      "house_x": 467,
-      "house_y": 14,
-      "waypoint_id": "h166"
-    },
-    {
-      "patient_idx": 167,
-      "x": 474,
-      "y": 13,
-      "house_x": 473,
-      "house_y": 14,
-      "waypoint_id": "h167"
-    },
-    {
-      "patient_idx": 168,
-      "x": 479,
-      "y": 7,
-      "house_x": 478,
-      "house_y": 5,
-      "waypoint_id": "h168"
-    },
-    {
-      "patient_idx": 169,
-      "x": 485,
-      "y": 7,
-      "house_x": 484,
-      "house_y": 5,
-      "waypoint_id": "h169"
-    },
-    {
-      "patient_idx": 170,
-      "x": 479,
-      "y": 13,
-      "house_x": 478,
-      "house_y": 14,
-      "waypoint_id": "h170"
-    },
-    {
-      "patient_idx": 171,
-      "x": 485,
-      "y": 13,
-      "house_x": 484,
-      "house_y": 14,
-      "waypoint_id": "h171"
-    },
-    {
-      "patient_idx": 172,
-      "x": 490,
-      "y": 7,
-      "house_x": 489,
-      "house_y": 5,
-      "waypoint_id": "h172"
-    },
-    {
-      "patient_idx": 173,
-      "x": 496,
-      "y": 7,
-      "house_x": 495,
-      "house_y": 5,
-      "waypoint_id": "h173"
-    },
-    {
-      "patient_idx": 174,
-      "x": 490,
-      "y": 13,
-      "house_x": 489,
-      "house_y": 14,
-      "waypoint_id": "h174"
-    },
-    {
-      "patient_idx": 175,
-      "x": 496,
-      "y": 13,
-      "house_x": 495,
-      "house_y": 14,
-      "waypoint_id": "h175"
-    },
-    {
-      "patient_idx": 176,
-      "x": 501,
-      "y": 7,
-      "house_x": 500,
-      "house_y": 5,
-      "waypoint_id": "h176"
-    },
-    {
-      "patient_idx": 177,
-      "x": 507,
-      "y": 7,
-      "house_x": 506,
-      "house_y": 5,
-      "waypoint_id": "h177"
-    },
-    {
-      "patient_idx": 178,
-      "x": 501,
-      "y": 13,
-      "house_x": 500,
-      "house_y": 14,
-      "waypoint_id": "h178"
-    },
-    {
-      "patient_idx": 179,
-      "x": 507,
-      "y": 13,
-      "house_x": 506,
-      "house_y": 14,
-      "waypoint_id": "h179"
-    },
-    {
-      "patient_idx": 180,
-      "x": 512,
-      "y": 7,
-      "house_x": 511,
-      "house_y": 5,
-      "waypoint_id": "h180"
-    },
-    {
-      "patient_idx": 181,
-      "x": 518,
-      "y": 7,
-      "house_x": 517,
-      "house_y": 5,
-      "waypoint_id": "h181"
-    },
-    {
-      "patient_idx": 182,
-      "x": 512,
-      "y": 13,
-      "house_x": 511,
-      "house_y": 14,
-      "waypoint_id": "h182"
-    },
-    {
-      "patient_idx": 183,
-      "x": 518,
-      "y": 13,
-      "house_x": 517,
-      "house_y": 14,
-      "waypoint_id": "h183"
-    },
-    {
-      "patient_idx": 184,
-      "x": 523,
-      "y": 7,
-      "house_x": 522,
-      "house_y": 5,
-      "waypoint_id": "h184"
-    },
-    {
-      "patient_idx": 185,
-      "x": 529,
-      "y": 7,
-      "house_x": 528,
-      "house_y": 5,
-      "waypoint_id": "h185"
-    },
-    {
-      "patient_idx": 186,
-      "x": 523,
-      "y": 13,
-      "house_x": 522,
-      "house_y": 14,
-      "waypoint_id": "h186"
-    },
-    {
-      "patient_idx": 187,
-      "x": 529,
-      "y": 13,
-      "house_x": 528,
-      "house_y": 14,
-      "waypoint_id": "h187"
-    },
-    {
-      "patient_idx": 188,
-      "x": 534,
-      "y": 7,
-      "house_x": 533,
-      "house_y": 5,
-      "waypoint_id": "h188"
-    },
-    {
-      "patient_idx": 189,
-      "x": 540,
-      "y": 7,
-      "house_x": 539,
-      "house_y": 5,
-      "waypoint_id": "h189"
-    },
-    {
-      "patient_idx": 190,
-      "x": 534,
-      "y": 13,
-      "house_x": 533,
-      "house_y": 14,
-      "waypoint_id": "h190"
-    },
-    {
-      "patient_idx": 191,
-      "x": 540,
-      "y": 13,
-      "house_x": 539,
-      "house_y": 14,
-      "waypoint_id": "h191"
-    },
-    {
-      "patient_idx": 192,
-      "x": 545,
-      "y": 7,
-      "house_x": 544,
-      "house_y": 5,
-      "waypoint_id": "h192"
-    },
-    {
-      "patient_idx": 193,
-      "x": 551,
-      "y": 7,
-      "house_x": 550,
-      "house_y": 5,
-      "waypoint_id": "h193"
-    },
-    {
-      "patient_idx": 194,
-      "x": 545,
-      "y": 13,
-      "house_x": 544,
-      "house_y": 14,
-      "waypoint_id": "h194"
-    },
-    {
-      "patient_idx": 195,
-      "x": 551,
-      "y": 13,
-      "house_x": 550,
-      "house_y": 14,
-      "waypoint_id": "h195"
-    },
-    {
-      "patient_idx": 196,
-      "x": 556,
-      "y": 7,
-      "house_x": 555,
-      "house_y": 5,
-      "waypoint_id": "h196"
-    },
-    {
-      "patient_idx": 197,
-      "x": 562,
-      "y": 7,
-      "house_x": 561,
-      "house_y": 5,
-      "waypoint_id": "h197"
-    },
-    {
-      "patient_idx": 198,
-      "x": 556,
-      "y": 13,
-      "house_x": 555,
-      "house_y": 14,
-      "waypoint_id": "h198"
-    },
-    {
-      "patient_idx": 199,
-      "x": 562,
-      "y": 13,
-      "house_x": 561,
-      "house_y": 14,
-      "waypoint_id": "h199"
     }
   ],
   "waypoints": [
     {
       "id": "hosp",
-      "x": 284,
+      "x": 75,
       "y": 10,
       "neighbors": [
         "road_0",
-        "road_25"
+        "road_6"
       ]
     },
     {
@@ -2000,18 +800,19 @@
     },
     {
       "id": "road_6",
-      "x": 75,
+      "x": 86,
       "y": 10,
       "neighbors": [
         "st_6_top",
         "st_6_bot",
         "road_5",
-        "road_7"
+        "road_7",
+        "hosp"
       ]
     },
     {
       "id": "st_6_top",
-      "x": 75,
+      "x": 86,
       "y": 7,
       "neighbors": [
         "road_6",
@@ -2021,7 +822,7 @@
     },
     {
       "id": "st_6_bot",
-      "x": 75,
+      "x": 86,
       "y": 13,
       "neighbors": [
         "road_6",
@@ -2031,7 +832,7 @@
     },
     {
       "id": "h24",
-      "x": 72,
+      "x": 83,
       "y": 7,
       "neighbors": [
         "st_6_top"
@@ -2039,7 +840,7 @@
     },
     {
       "id": "h25",
-      "x": 78,
+      "x": 89,
       "y": 7,
       "neighbors": [
         "st_6_top"
@@ -2047,7 +848,7 @@
     },
     {
       "id": "h26",
-      "x": 72,
+      "x": 83,
       "y": 13,
       "neighbors": [
         "st_6_bot"
@@ -2055,7 +856,7 @@
     },
     {
       "id": "h27",
-      "x": 78,
+      "x": 89,
       "y": 13,
       "neighbors": [
         "st_6_bot"
@@ -2063,7 +864,7 @@
     },
     {
       "id": "road_7",
-      "x": 86,
+      "x": 97,
       "y": 10,
       "neighbors": [
         "st_7_top",
@@ -2074,7 +875,7 @@
     },
     {
       "id": "st_7_top",
-      "x": 86,
+      "x": 97,
       "y": 7,
       "neighbors": [
         "road_7",
@@ -2084,7 +885,7 @@
     },
     {
       "id": "st_7_bot",
-      "x": 86,
+      "x": 97,
       "y": 13,
       "neighbors": [
         "road_7",
@@ -2094,7 +895,7 @@
     },
     {
       "id": "h28",
-      "x": 83,
+      "x": 94,
       "y": 7,
       "neighbors": [
         "st_7_top"
@@ -2102,7 +903,7 @@
     },
     {
       "id": "h29",
-      "x": 89,
+      "x": 100,
       "y": 7,
       "neighbors": [
         "st_7_top"
@@ -2110,7 +911,7 @@
     },
     {
       "id": "h30",
-      "x": 83,
+      "x": 94,
       "y": 13,
       "neighbors": [
         "st_7_bot"
@@ -2118,7 +919,7 @@
     },
     {
       "id": "h31",
-      "x": 89,
+      "x": 100,
       "y": 13,
       "neighbors": [
         "st_7_bot"
@@ -2126,7 +927,7 @@
     },
     {
       "id": "road_8",
-      "x": 97,
+      "x": 108,
       "y": 10,
       "neighbors": [
         "st_8_top",
@@ -2137,7 +938,7 @@
     },
     {
       "id": "st_8_top",
-      "x": 97,
+      "x": 108,
       "y": 7,
       "neighbors": [
         "road_8",
@@ -2147,7 +948,7 @@
     },
     {
       "id": "st_8_bot",
-      "x": 97,
+      "x": 108,
       "y": 13,
       "neighbors": [
         "road_8",
@@ -2157,7 +958,7 @@
     },
     {
       "id": "h32",
-      "x": 94,
+      "x": 105,
       "y": 7,
       "neighbors": [
         "st_8_top"
@@ -2165,7 +966,7 @@
     },
     {
       "id": "h33",
-      "x": 100,
+      "x": 111,
       "y": 7,
       "neighbors": [
         "st_8_top"
@@ -2173,7 +974,7 @@
     },
     {
       "id": "h34",
-      "x": 94,
+      "x": 105,
       "y": 13,
       "neighbors": [
         "st_8_bot"
@@ -2181,7 +982,7 @@
     },
     {
       "id": "h35",
-      "x": 100,
+      "x": 111,
       "y": 13,
       "neighbors": [
         "st_8_bot"
@@ -2189,7 +990,7 @@
     },
     {
       "id": "road_9",
-      "x": 108,
+      "x": 119,
       "y": 10,
       "neighbors": [
         "st_9_top",
@@ -2200,7 +1001,7 @@
     },
     {
       "id": "st_9_top",
-      "x": 108,
+      "x": 119,
       "y": 7,
       "neighbors": [
         "road_9",
@@ -2210,7 +1011,7 @@
     },
     {
       "id": "st_9_bot",
-      "x": 108,
+      "x": 119,
       "y": 13,
       "neighbors": [
         "road_9",
@@ -2220,7 +1021,7 @@
     },
     {
       "id": "h36",
-      "x": 105,
+      "x": 116,
       "y": 7,
       "neighbors": [
         "st_9_top"
@@ -2228,7 +1029,7 @@
     },
     {
       "id": "h37",
-      "x": 111,
+      "x": 122,
       "y": 7,
       "neighbors": [
         "st_9_top"
@@ -2236,7 +1037,7 @@
     },
     {
       "id": "h38",
-      "x": 105,
+      "x": 116,
       "y": 13,
       "neighbors": [
         "st_9_bot"
@@ -2244,7 +1045,7 @@
     },
     {
       "id": "h39",
-      "x": 111,
+      "x": 122,
       "y": 13,
       "neighbors": [
         "st_9_bot"
@@ -2252,7 +1053,7 @@
     },
     {
       "id": "road_10",
-      "x": 119,
+      "x": 130,
       "y": 10,
       "neighbors": [
         "st_10_top",
@@ -2263,7 +1064,7 @@
     },
     {
       "id": "st_10_top",
-      "x": 119,
+      "x": 130,
       "y": 7,
       "neighbors": [
         "road_10",
@@ -2273,7 +1074,7 @@
     },
     {
       "id": "st_10_bot",
-      "x": 119,
+      "x": 130,
       "y": 13,
       "neighbors": [
         "road_10",
@@ -2283,7 +1084,7 @@
     },
     {
       "id": "h40",
-      "x": 116,
+      "x": 127,
       "y": 7,
       "neighbors": [
         "st_10_top"
@@ -2291,7 +1092,7 @@
     },
     {
       "id": "h41",
-      "x": 122,
+      "x": 133,
       "y": 7,
       "neighbors": [
         "st_10_top"
@@ -2299,7 +1100,7 @@
     },
     {
       "id": "h42",
-      "x": 116,
+      "x": 127,
       "y": 13,
       "neighbors": [
         "st_10_bot"
@@ -2307,7 +1108,7 @@
     },
     {
       "id": "h43",
-      "x": 122,
+      "x": 133,
       "y": 13,
       "neighbors": [
         "st_10_bot"
@@ -2315,7 +1116,7 @@
     },
     {
       "id": "road_11",
-      "x": 130,
+      "x": 141,
       "y": 10,
       "neighbors": [
         "st_11_top",
@@ -2326,7 +1127,7 @@
     },
     {
       "id": "st_11_top",
-      "x": 130,
+      "x": 141,
       "y": 7,
       "neighbors": [
         "road_11",
@@ -2336,7 +1137,7 @@
     },
     {
       "id": "st_11_bot",
-      "x": 130,
+      "x": 141,
       "y": 13,
       "neighbors": [
         "road_11",
@@ -2346,7 +1147,7 @@
     },
     {
       "id": "h44",
-      "x": 127,
+      "x": 138,
       "y": 7,
       "neighbors": [
         "st_11_top"
@@ -2354,7 +1155,7 @@
     },
     {
       "id": "h45",
-      "x": 133,
+      "x": 144,
       "y": 7,
       "neighbors": [
         "st_11_top"
@@ -2362,7 +1163,7 @@
     },
     {
       "id": "h46",
-      "x": 127,
+      "x": 138,
       "y": 13,
       "neighbors": [
         "st_11_bot"
@@ -2370,7 +1171,7 @@
     },
     {
       "id": "h47",
-      "x": 133,
+      "x": 144,
       "y": 13,
       "neighbors": [
         "st_11_bot"
@@ -2378,18 +1179,17 @@
     },
     {
       "id": "road_12",
-      "x": 141,
+      "x": 152,
       "y": 10,
       "neighbors": [
         "st_12_top",
         "st_12_bot",
-        "road_11",
-        "road_13"
+        "road_11"
       ]
     },
     {
       "id": "st_12_top",
-      "x": 141,
+      "x": 152,
       "y": 7,
       "neighbors": [
         "road_12",
@@ -2399,17 +1199,15 @@
     },
     {
       "id": "st_12_bot",
-      "x": 141,
+      "x": 152,
       "y": 13,
       "neighbors": [
-        "road_12",
-        "h50",
-        "h51"
+        "road_12"
       ]
     },
     {
       "id": "h48",
-      "x": 138,
+      "x": 149,
       "y": 7,
       "neighbors": [
         "st_12_top"
@@ -2417,2357 +1215,10 @@
     },
     {
       "id": "h49",
-      "x": 144,
+      "x": 155,
       "y": 7,
       "neighbors": [
         "st_12_top"
-      ]
-    },
-    {
-      "id": "h50",
-      "x": 138,
-      "y": 13,
-      "neighbors": [
-        "st_12_bot"
-      ]
-    },
-    {
-      "id": "h51",
-      "x": 144,
-      "y": 13,
-      "neighbors": [
-        "st_12_bot"
-      ]
-    },
-    {
-      "id": "road_13",
-      "x": 152,
-      "y": 10,
-      "neighbors": [
-        "st_13_top",
-        "st_13_bot",
-        "road_12",
-        "road_14"
-      ]
-    },
-    {
-      "id": "st_13_top",
-      "x": 152,
-      "y": 7,
-      "neighbors": [
-        "road_13",
-        "h52",
-        "h53"
-      ]
-    },
-    {
-      "id": "st_13_bot",
-      "x": 152,
-      "y": 13,
-      "neighbors": [
-        "road_13",
-        "h54",
-        "h55"
-      ]
-    },
-    {
-      "id": "h52",
-      "x": 149,
-      "y": 7,
-      "neighbors": [
-        "st_13_top"
-      ]
-    },
-    {
-      "id": "h53",
-      "x": 155,
-      "y": 7,
-      "neighbors": [
-        "st_13_top"
-      ]
-    },
-    {
-      "id": "h54",
-      "x": 149,
-      "y": 13,
-      "neighbors": [
-        "st_13_bot"
-      ]
-    },
-    {
-      "id": "h55",
-      "x": 155,
-      "y": 13,
-      "neighbors": [
-        "st_13_bot"
-      ]
-    },
-    {
-      "id": "road_14",
-      "x": 163,
-      "y": 10,
-      "neighbors": [
-        "st_14_top",
-        "st_14_bot",
-        "road_13",
-        "road_15"
-      ]
-    },
-    {
-      "id": "st_14_top",
-      "x": 163,
-      "y": 7,
-      "neighbors": [
-        "road_14",
-        "h56",
-        "h57"
-      ]
-    },
-    {
-      "id": "st_14_bot",
-      "x": 163,
-      "y": 13,
-      "neighbors": [
-        "road_14",
-        "h58",
-        "h59"
-      ]
-    },
-    {
-      "id": "h56",
-      "x": 160,
-      "y": 7,
-      "neighbors": [
-        "st_14_top"
-      ]
-    },
-    {
-      "id": "h57",
-      "x": 166,
-      "y": 7,
-      "neighbors": [
-        "st_14_top"
-      ]
-    },
-    {
-      "id": "h58",
-      "x": 160,
-      "y": 13,
-      "neighbors": [
-        "st_14_bot"
-      ]
-    },
-    {
-      "id": "h59",
-      "x": 166,
-      "y": 13,
-      "neighbors": [
-        "st_14_bot"
-      ]
-    },
-    {
-      "id": "road_15",
-      "x": 174,
-      "y": 10,
-      "neighbors": [
-        "st_15_top",
-        "st_15_bot",
-        "road_14",
-        "road_16"
-      ]
-    },
-    {
-      "id": "st_15_top",
-      "x": 174,
-      "y": 7,
-      "neighbors": [
-        "road_15",
-        "h60",
-        "h61"
-      ]
-    },
-    {
-      "id": "st_15_bot",
-      "x": 174,
-      "y": 13,
-      "neighbors": [
-        "road_15",
-        "h62",
-        "h63"
-      ]
-    },
-    {
-      "id": "h60",
-      "x": 171,
-      "y": 7,
-      "neighbors": [
-        "st_15_top"
-      ]
-    },
-    {
-      "id": "h61",
-      "x": 177,
-      "y": 7,
-      "neighbors": [
-        "st_15_top"
-      ]
-    },
-    {
-      "id": "h62",
-      "x": 171,
-      "y": 13,
-      "neighbors": [
-        "st_15_bot"
-      ]
-    },
-    {
-      "id": "h63",
-      "x": 177,
-      "y": 13,
-      "neighbors": [
-        "st_15_bot"
-      ]
-    },
-    {
-      "id": "road_16",
-      "x": 185,
-      "y": 10,
-      "neighbors": [
-        "st_16_top",
-        "st_16_bot",
-        "road_15",
-        "road_17"
-      ]
-    },
-    {
-      "id": "st_16_top",
-      "x": 185,
-      "y": 7,
-      "neighbors": [
-        "road_16",
-        "h64",
-        "h65"
-      ]
-    },
-    {
-      "id": "st_16_bot",
-      "x": 185,
-      "y": 13,
-      "neighbors": [
-        "road_16",
-        "h66",
-        "h67"
-      ]
-    },
-    {
-      "id": "h64",
-      "x": 182,
-      "y": 7,
-      "neighbors": [
-        "st_16_top"
-      ]
-    },
-    {
-      "id": "h65",
-      "x": 188,
-      "y": 7,
-      "neighbors": [
-        "st_16_top"
-      ]
-    },
-    {
-      "id": "h66",
-      "x": 182,
-      "y": 13,
-      "neighbors": [
-        "st_16_bot"
-      ]
-    },
-    {
-      "id": "h67",
-      "x": 188,
-      "y": 13,
-      "neighbors": [
-        "st_16_bot"
-      ]
-    },
-    {
-      "id": "road_17",
-      "x": 196,
-      "y": 10,
-      "neighbors": [
-        "st_17_top",
-        "st_17_bot",
-        "road_16",
-        "road_18"
-      ]
-    },
-    {
-      "id": "st_17_top",
-      "x": 196,
-      "y": 7,
-      "neighbors": [
-        "road_17",
-        "h68",
-        "h69"
-      ]
-    },
-    {
-      "id": "st_17_bot",
-      "x": 196,
-      "y": 13,
-      "neighbors": [
-        "road_17",
-        "h70",
-        "h71"
-      ]
-    },
-    {
-      "id": "h68",
-      "x": 193,
-      "y": 7,
-      "neighbors": [
-        "st_17_top"
-      ]
-    },
-    {
-      "id": "h69",
-      "x": 199,
-      "y": 7,
-      "neighbors": [
-        "st_17_top"
-      ]
-    },
-    {
-      "id": "h70",
-      "x": 193,
-      "y": 13,
-      "neighbors": [
-        "st_17_bot"
-      ]
-    },
-    {
-      "id": "h71",
-      "x": 199,
-      "y": 13,
-      "neighbors": [
-        "st_17_bot"
-      ]
-    },
-    {
-      "id": "road_18",
-      "x": 207,
-      "y": 10,
-      "neighbors": [
-        "st_18_top",
-        "st_18_bot",
-        "road_17",
-        "road_19"
-      ]
-    },
-    {
-      "id": "st_18_top",
-      "x": 207,
-      "y": 7,
-      "neighbors": [
-        "road_18",
-        "h72",
-        "h73"
-      ]
-    },
-    {
-      "id": "st_18_bot",
-      "x": 207,
-      "y": 13,
-      "neighbors": [
-        "road_18",
-        "h74",
-        "h75"
-      ]
-    },
-    {
-      "id": "h72",
-      "x": 204,
-      "y": 7,
-      "neighbors": [
-        "st_18_top"
-      ]
-    },
-    {
-      "id": "h73",
-      "x": 210,
-      "y": 7,
-      "neighbors": [
-        "st_18_top"
-      ]
-    },
-    {
-      "id": "h74",
-      "x": 204,
-      "y": 13,
-      "neighbors": [
-        "st_18_bot"
-      ]
-    },
-    {
-      "id": "h75",
-      "x": 210,
-      "y": 13,
-      "neighbors": [
-        "st_18_bot"
-      ]
-    },
-    {
-      "id": "road_19",
-      "x": 218,
-      "y": 10,
-      "neighbors": [
-        "st_19_top",
-        "st_19_bot",
-        "road_18",
-        "road_20"
-      ]
-    },
-    {
-      "id": "st_19_top",
-      "x": 218,
-      "y": 7,
-      "neighbors": [
-        "road_19",
-        "h76",
-        "h77"
-      ]
-    },
-    {
-      "id": "st_19_bot",
-      "x": 218,
-      "y": 13,
-      "neighbors": [
-        "road_19",
-        "h78",
-        "h79"
-      ]
-    },
-    {
-      "id": "h76",
-      "x": 215,
-      "y": 7,
-      "neighbors": [
-        "st_19_top"
-      ]
-    },
-    {
-      "id": "h77",
-      "x": 221,
-      "y": 7,
-      "neighbors": [
-        "st_19_top"
-      ]
-    },
-    {
-      "id": "h78",
-      "x": 215,
-      "y": 13,
-      "neighbors": [
-        "st_19_bot"
-      ]
-    },
-    {
-      "id": "h79",
-      "x": 221,
-      "y": 13,
-      "neighbors": [
-        "st_19_bot"
-      ]
-    },
-    {
-      "id": "road_20",
-      "x": 229,
-      "y": 10,
-      "neighbors": [
-        "st_20_top",
-        "st_20_bot",
-        "road_19",
-        "road_21"
-      ]
-    },
-    {
-      "id": "st_20_top",
-      "x": 229,
-      "y": 7,
-      "neighbors": [
-        "road_20",
-        "h80",
-        "h81"
-      ]
-    },
-    {
-      "id": "st_20_bot",
-      "x": 229,
-      "y": 13,
-      "neighbors": [
-        "road_20",
-        "h82",
-        "h83"
-      ]
-    },
-    {
-      "id": "h80",
-      "x": 226,
-      "y": 7,
-      "neighbors": [
-        "st_20_top"
-      ]
-    },
-    {
-      "id": "h81",
-      "x": 232,
-      "y": 7,
-      "neighbors": [
-        "st_20_top"
-      ]
-    },
-    {
-      "id": "h82",
-      "x": 226,
-      "y": 13,
-      "neighbors": [
-        "st_20_bot"
-      ]
-    },
-    {
-      "id": "h83",
-      "x": 232,
-      "y": 13,
-      "neighbors": [
-        "st_20_bot"
-      ]
-    },
-    {
-      "id": "road_21",
-      "x": 240,
-      "y": 10,
-      "neighbors": [
-        "st_21_top",
-        "st_21_bot",
-        "road_20",
-        "road_22"
-      ]
-    },
-    {
-      "id": "st_21_top",
-      "x": 240,
-      "y": 7,
-      "neighbors": [
-        "road_21",
-        "h84",
-        "h85"
-      ]
-    },
-    {
-      "id": "st_21_bot",
-      "x": 240,
-      "y": 13,
-      "neighbors": [
-        "road_21",
-        "h86",
-        "h87"
-      ]
-    },
-    {
-      "id": "h84",
-      "x": 237,
-      "y": 7,
-      "neighbors": [
-        "st_21_top"
-      ]
-    },
-    {
-      "id": "h85",
-      "x": 243,
-      "y": 7,
-      "neighbors": [
-        "st_21_top"
-      ]
-    },
-    {
-      "id": "h86",
-      "x": 237,
-      "y": 13,
-      "neighbors": [
-        "st_21_bot"
-      ]
-    },
-    {
-      "id": "h87",
-      "x": 243,
-      "y": 13,
-      "neighbors": [
-        "st_21_bot"
-      ]
-    },
-    {
-      "id": "road_22",
-      "x": 251,
-      "y": 10,
-      "neighbors": [
-        "st_22_top",
-        "st_22_bot",
-        "road_21",
-        "road_23"
-      ]
-    },
-    {
-      "id": "st_22_top",
-      "x": 251,
-      "y": 7,
-      "neighbors": [
-        "road_22",
-        "h88",
-        "h89"
-      ]
-    },
-    {
-      "id": "st_22_bot",
-      "x": 251,
-      "y": 13,
-      "neighbors": [
-        "road_22",
-        "h90",
-        "h91"
-      ]
-    },
-    {
-      "id": "h88",
-      "x": 248,
-      "y": 7,
-      "neighbors": [
-        "st_22_top"
-      ]
-    },
-    {
-      "id": "h89",
-      "x": 254,
-      "y": 7,
-      "neighbors": [
-        "st_22_top"
-      ]
-    },
-    {
-      "id": "h90",
-      "x": 248,
-      "y": 13,
-      "neighbors": [
-        "st_22_bot"
-      ]
-    },
-    {
-      "id": "h91",
-      "x": 254,
-      "y": 13,
-      "neighbors": [
-        "st_22_bot"
-      ]
-    },
-    {
-      "id": "road_23",
-      "x": 262,
-      "y": 10,
-      "neighbors": [
-        "st_23_top",
-        "st_23_bot",
-        "road_22",
-        "road_24"
-      ]
-    },
-    {
-      "id": "st_23_top",
-      "x": 262,
-      "y": 7,
-      "neighbors": [
-        "road_23",
-        "h92",
-        "h93"
-      ]
-    },
-    {
-      "id": "st_23_bot",
-      "x": 262,
-      "y": 13,
-      "neighbors": [
-        "road_23",
-        "h94",
-        "h95"
-      ]
-    },
-    {
-      "id": "h92",
-      "x": 259,
-      "y": 7,
-      "neighbors": [
-        "st_23_top"
-      ]
-    },
-    {
-      "id": "h93",
-      "x": 265,
-      "y": 7,
-      "neighbors": [
-        "st_23_top"
-      ]
-    },
-    {
-      "id": "h94",
-      "x": 259,
-      "y": 13,
-      "neighbors": [
-        "st_23_bot"
-      ]
-    },
-    {
-      "id": "h95",
-      "x": 265,
-      "y": 13,
-      "neighbors": [
-        "st_23_bot"
-      ]
-    },
-    {
-      "id": "road_24",
-      "x": 273,
-      "y": 10,
-      "neighbors": [
-        "st_24_top",
-        "st_24_bot",
-        "road_23",
-        "road_25"
-      ]
-    },
-    {
-      "id": "st_24_top",
-      "x": 273,
-      "y": 7,
-      "neighbors": [
-        "road_24",
-        "h96",
-        "h97"
-      ]
-    },
-    {
-      "id": "st_24_bot",
-      "x": 273,
-      "y": 13,
-      "neighbors": [
-        "road_24",
-        "h98",
-        "h99"
-      ]
-    },
-    {
-      "id": "h96",
-      "x": 270,
-      "y": 7,
-      "neighbors": [
-        "st_24_top"
-      ]
-    },
-    {
-      "id": "h97",
-      "x": 276,
-      "y": 7,
-      "neighbors": [
-        "st_24_top"
-      ]
-    },
-    {
-      "id": "h98",
-      "x": 270,
-      "y": 13,
-      "neighbors": [
-        "st_24_bot"
-      ]
-    },
-    {
-      "id": "h99",
-      "x": 276,
-      "y": 13,
-      "neighbors": [
-        "st_24_bot"
-      ]
-    },
-    {
-      "id": "road_25",
-      "x": 295,
-      "y": 10,
-      "neighbors": [
-        "st_25_top",
-        "st_25_bot",
-        "road_24",
-        "road_26",
-        "hosp"
-      ]
-    },
-    {
-      "id": "st_25_top",
-      "x": 295,
-      "y": 7,
-      "neighbors": [
-        "road_25",
-        "h100",
-        "h101"
-      ]
-    },
-    {
-      "id": "st_25_bot",
-      "x": 295,
-      "y": 13,
-      "neighbors": [
-        "road_25",
-        "h102",
-        "h103"
-      ]
-    },
-    {
-      "id": "h100",
-      "x": 292,
-      "y": 7,
-      "neighbors": [
-        "st_25_top"
-      ]
-    },
-    {
-      "id": "h101",
-      "x": 298,
-      "y": 7,
-      "neighbors": [
-        "st_25_top"
-      ]
-    },
-    {
-      "id": "h102",
-      "x": 292,
-      "y": 13,
-      "neighbors": [
-        "st_25_bot"
-      ]
-    },
-    {
-      "id": "h103",
-      "x": 298,
-      "y": 13,
-      "neighbors": [
-        "st_25_bot"
-      ]
-    },
-    {
-      "id": "road_26",
-      "x": 306,
-      "y": 10,
-      "neighbors": [
-        "st_26_top",
-        "st_26_bot",
-        "road_25",
-        "road_27"
-      ]
-    },
-    {
-      "id": "st_26_top",
-      "x": 306,
-      "y": 7,
-      "neighbors": [
-        "road_26",
-        "h104",
-        "h105"
-      ]
-    },
-    {
-      "id": "st_26_bot",
-      "x": 306,
-      "y": 13,
-      "neighbors": [
-        "road_26",
-        "h106",
-        "h107"
-      ]
-    },
-    {
-      "id": "h104",
-      "x": 303,
-      "y": 7,
-      "neighbors": [
-        "st_26_top"
-      ]
-    },
-    {
-      "id": "h105",
-      "x": 309,
-      "y": 7,
-      "neighbors": [
-        "st_26_top"
-      ]
-    },
-    {
-      "id": "h106",
-      "x": 303,
-      "y": 13,
-      "neighbors": [
-        "st_26_bot"
-      ]
-    },
-    {
-      "id": "h107",
-      "x": 309,
-      "y": 13,
-      "neighbors": [
-        "st_26_bot"
-      ]
-    },
-    {
-      "id": "road_27",
-      "x": 317,
-      "y": 10,
-      "neighbors": [
-        "st_27_top",
-        "st_27_bot",
-        "road_26",
-        "road_28"
-      ]
-    },
-    {
-      "id": "st_27_top",
-      "x": 317,
-      "y": 7,
-      "neighbors": [
-        "road_27",
-        "h108",
-        "h109"
-      ]
-    },
-    {
-      "id": "st_27_bot",
-      "x": 317,
-      "y": 13,
-      "neighbors": [
-        "road_27",
-        "h110",
-        "h111"
-      ]
-    },
-    {
-      "id": "h108",
-      "x": 314,
-      "y": 7,
-      "neighbors": [
-        "st_27_top"
-      ]
-    },
-    {
-      "id": "h109",
-      "x": 320,
-      "y": 7,
-      "neighbors": [
-        "st_27_top"
-      ]
-    },
-    {
-      "id": "h110",
-      "x": 314,
-      "y": 13,
-      "neighbors": [
-        "st_27_bot"
-      ]
-    },
-    {
-      "id": "h111",
-      "x": 320,
-      "y": 13,
-      "neighbors": [
-        "st_27_bot"
-      ]
-    },
-    {
-      "id": "road_28",
-      "x": 328,
-      "y": 10,
-      "neighbors": [
-        "st_28_top",
-        "st_28_bot",
-        "road_27",
-        "road_29"
-      ]
-    },
-    {
-      "id": "st_28_top",
-      "x": 328,
-      "y": 7,
-      "neighbors": [
-        "road_28",
-        "h112",
-        "h113"
-      ]
-    },
-    {
-      "id": "st_28_bot",
-      "x": 328,
-      "y": 13,
-      "neighbors": [
-        "road_28",
-        "h114",
-        "h115"
-      ]
-    },
-    {
-      "id": "h112",
-      "x": 325,
-      "y": 7,
-      "neighbors": [
-        "st_28_top"
-      ]
-    },
-    {
-      "id": "h113",
-      "x": 331,
-      "y": 7,
-      "neighbors": [
-        "st_28_top"
-      ]
-    },
-    {
-      "id": "h114",
-      "x": 325,
-      "y": 13,
-      "neighbors": [
-        "st_28_bot"
-      ]
-    },
-    {
-      "id": "h115",
-      "x": 331,
-      "y": 13,
-      "neighbors": [
-        "st_28_bot"
-      ]
-    },
-    {
-      "id": "road_29",
-      "x": 339,
-      "y": 10,
-      "neighbors": [
-        "st_29_top",
-        "st_29_bot",
-        "road_28",
-        "road_30"
-      ]
-    },
-    {
-      "id": "st_29_top",
-      "x": 339,
-      "y": 7,
-      "neighbors": [
-        "road_29",
-        "h116",
-        "h117"
-      ]
-    },
-    {
-      "id": "st_29_bot",
-      "x": 339,
-      "y": 13,
-      "neighbors": [
-        "road_29",
-        "h118",
-        "h119"
-      ]
-    },
-    {
-      "id": "h116",
-      "x": 336,
-      "y": 7,
-      "neighbors": [
-        "st_29_top"
-      ]
-    },
-    {
-      "id": "h117",
-      "x": 342,
-      "y": 7,
-      "neighbors": [
-        "st_29_top"
-      ]
-    },
-    {
-      "id": "h118",
-      "x": 336,
-      "y": 13,
-      "neighbors": [
-        "st_29_bot"
-      ]
-    },
-    {
-      "id": "h119",
-      "x": 342,
-      "y": 13,
-      "neighbors": [
-        "st_29_bot"
-      ]
-    },
-    {
-      "id": "road_30",
-      "x": 350,
-      "y": 10,
-      "neighbors": [
-        "st_30_top",
-        "st_30_bot",
-        "road_29",
-        "road_31"
-      ]
-    },
-    {
-      "id": "st_30_top",
-      "x": 350,
-      "y": 7,
-      "neighbors": [
-        "road_30",
-        "h120",
-        "h121"
-      ]
-    },
-    {
-      "id": "st_30_bot",
-      "x": 350,
-      "y": 13,
-      "neighbors": [
-        "road_30",
-        "h122",
-        "h123"
-      ]
-    },
-    {
-      "id": "h120",
-      "x": 347,
-      "y": 7,
-      "neighbors": [
-        "st_30_top"
-      ]
-    },
-    {
-      "id": "h121",
-      "x": 353,
-      "y": 7,
-      "neighbors": [
-        "st_30_top"
-      ]
-    },
-    {
-      "id": "h122",
-      "x": 347,
-      "y": 13,
-      "neighbors": [
-        "st_30_bot"
-      ]
-    },
-    {
-      "id": "h123",
-      "x": 353,
-      "y": 13,
-      "neighbors": [
-        "st_30_bot"
-      ]
-    },
-    {
-      "id": "road_31",
-      "x": 361,
-      "y": 10,
-      "neighbors": [
-        "st_31_top",
-        "st_31_bot",
-        "road_30",
-        "road_32"
-      ]
-    },
-    {
-      "id": "st_31_top",
-      "x": 361,
-      "y": 7,
-      "neighbors": [
-        "road_31",
-        "h124",
-        "h125"
-      ]
-    },
-    {
-      "id": "st_31_bot",
-      "x": 361,
-      "y": 13,
-      "neighbors": [
-        "road_31",
-        "h126",
-        "h127"
-      ]
-    },
-    {
-      "id": "h124",
-      "x": 358,
-      "y": 7,
-      "neighbors": [
-        "st_31_top"
-      ]
-    },
-    {
-      "id": "h125",
-      "x": 364,
-      "y": 7,
-      "neighbors": [
-        "st_31_top"
-      ]
-    },
-    {
-      "id": "h126",
-      "x": 358,
-      "y": 13,
-      "neighbors": [
-        "st_31_bot"
-      ]
-    },
-    {
-      "id": "h127",
-      "x": 364,
-      "y": 13,
-      "neighbors": [
-        "st_31_bot"
-      ]
-    },
-    {
-      "id": "road_32",
-      "x": 372,
-      "y": 10,
-      "neighbors": [
-        "st_32_top",
-        "st_32_bot",
-        "road_31",
-        "road_33"
-      ]
-    },
-    {
-      "id": "st_32_top",
-      "x": 372,
-      "y": 7,
-      "neighbors": [
-        "road_32",
-        "h128",
-        "h129"
-      ]
-    },
-    {
-      "id": "st_32_bot",
-      "x": 372,
-      "y": 13,
-      "neighbors": [
-        "road_32",
-        "h130",
-        "h131"
-      ]
-    },
-    {
-      "id": "h128",
-      "x": 369,
-      "y": 7,
-      "neighbors": [
-        "st_32_top"
-      ]
-    },
-    {
-      "id": "h129",
-      "x": 375,
-      "y": 7,
-      "neighbors": [
-        "st_32_top"
-      ]
-    },
-    {
-      "id": "h130",
-      "x": 369,
-      "y": 13,
-      "neighbors": [
-        "st_32_bot"
-      ]
-    },
-    {
-      "id": "h131",
-      "x": 375,
-      "y": 13,
-      "neighbors": [
-        "st_32_bot"
-      ]
-    },
-    {
-      "id": "road_33",
-      "x": 383,
-      "y": 10,
-      "neighbors": [
-        "st_33_top",
-        "st_33_bot",
-        "road_32",
-        "road_34"
-      ]
-    },
-    {
-      "id": "st_33_top",
-      "x": 383,
-      "y": 7,
-      "neighbors": [
-        "road_33",
-        "h132",
-        "h133"
-      ]
-    },
-    {
-      "id": "st_33_bot",
-      "x": 383,
-      "y": 13,
-      "neighbors": [
-        "road_33",
-        "h134",
-        "h135"
-      ]
-    },
-    {
-      "id": "h132",
-      "x": 380,
-      "y": 7,
-      "neighbors": [
-        "st_33_top"
-      ]
-    },
-    {
-      "id": "h133",
-      "x": 386,
-      "y": 7,
-      "neighbors": [
-        "st_33_top"
-      ]
-    },
-    {
-      "id": "h134",
-      "x": 380,
-      "y": 13,
-      "neighbors": [
-        "st_33_bot"
-      ]
-    },
-    {
-      "id": "h135",
-      "x": 386,
-      "y": 13,
-      "neighbors": [
-        "st_33_bot"
-      ]
-    },
-    {
-      "id": "road_34",
-      "x": 394,
-      "y": 10,
-      "neighbors": [
-        "st_34_top",
-        "st_34_bot",
-        "road_33",
-        "road_35"
-      ]
-    },
-    {
-      "id": "st_34_top",
-      "x": 394,
-      "y": 7,
-      "neighbors": [
-        "road_34",
-        "h136",
-        "h137"
-      ]
-    },
-    {
-      "id": "st_34_bot",
-      "x": 394,
-      "y": 13,
-      "neighbors": [
-        "road_34",
-        "h138",
-        "h139"
-      ]
-    },
-    {
-      "id": "h136",
-      "x": 391,
-      "y": 7,
-      "neighbors": [
-        "st_34_top"
-      ]
-    },
-    {
-      "id": "h137",
-      "x": 397,
-      "y": 7,
-      "neighbors": [
-        "st_34_top"
-      ]
-    },
-    {
-      "id": "h138",
-      "x": 391,
-      "y": 13,
-      "neighbors": [
-        "st_34_bot"
-      ]
-    },
-    {
-      "id": "h139",
-      "x": 397,
-      "y": 13,
-      "neighbors": [
-        "st_34_bot"
-      ]
-    },
-    {
-      "id": "road_35",
-      "x": 405,
-      "y": 10,
-      "neighbors": [
-        "st_35_top",
-        "st_35_bot",
-        "road_34",
-        "road_36"
-      ]
-    },
-    {
-      "id": "st_35_top",
-      "x": 405,
-      "y": 7,
-      "neighbors": [
-        "road_35",
-        "h140",
-        "h141"
-      ]
-    },
-    {
-      "id": "st_35_bot",
-      "x": 405,
-      "y": 13,
-      "neighbors": [
-        "road_35",
-        "h142",
-        "h143"
-      ]
-    },
-    {
-      "id": "h140",
-      "x": 402,
-      "y": 7,
-      "neighbors": [
-        "st_35_top"
-      ]
-    },
-    {
-      "id": "h141",
-      "x": 408,
-      "y": 7,
-      "neighbors": [
-        "st_35_top"
-      ]
-    },
-    {
-      "id": "h142",
-      "x": 402,
-      "y": 13,
-      "neighbors": [
-        "st_35_bot"
-      ]
-    },
-    {
-      "id": "h143",
-      "x": 408,
-      "y": 13,
-      "neighbors": [
-        "st_35_bot"
-      ]
-    },
-    {
-      "id": "road_36",
-      "x": 416,
-      "y": 10,
-      "neighbors": [
-        "st_36_top",
-        "st_36_bot",
-        "road_35",
-        "road_37"
-      ]
-    },
-    {
-      "id": "st_36_top",
-      "x": 416,
-      "y": 7,
-      "neighbors": [
-        "road_36",
-        "h144",
-        "h145"
-      ]
-    },
-    {
-      "id": "st_36_bot",
-      "x": 416,
-      "y": 13,
-      "neighbors": [
-        "road_36",
-        "h146",
-        "h147"
-      ]
-    },
-    {
-      "id": "h144",
-      "x": 413,
-      "y": 7,
-      "neighbors": [
-        "st_36_top"
-      ]
-    },
-    {
-      "id": "h145",
-      "x": 419,
-      "y": 7,
-      "neighbors": [
-        "st_36_top"
-      ]
-    },
-    {
-      "id": "h146",
-      "x": 413,
-      "y": 13,
-      "neighbors": [
-        "st_36_bot"
-      ]
-    },
-    {
-      "id": "h147",
-      "x": 419,
-      "y": 13,
-      "neighbors": [
-        "st_36_bot"
-      ]
-    },
-    {
-      "id": "road_37",
-      "x": 427,
-      "y": 10,
-      "neighbors": [
-        "st_37_top",
-        "st_37_bot",
-        "road_36",
-        "road_38"
-      ]
-    },
-    {
-      "id": "st_37_top",
-      "x": 427,
-      "y": 7,
-      "neighbors": [
-        "road_37",
-        "h148",
-        "h149"
-      ]
-    },
-    {
-      "id": "st_37_bot",
-      "x": 427,
-      "y": 13,
-      "neighbors": [
-        "road_37",
-        "h150",
-        "h151"
-      ]
-    },
-    {
-      "id": "h148",
-      "x": 424,
-      "y": 7,
-      "neighbors": [
-        "st_37_top"
-      ]
-    },
-    {
-      "id": "h149",
-      "x": 430,
-      "y": 7,
-      "neighbors": [
-        "st_37_top"
-      ]
-    },
-    {
-      "id": "h150",
-      "x": 424,
-      "y": 13,
-      "neighbors": [
-        "st_37_bot"
-      ]
-    },
-    {
-      "id": "h151",
-      "x": 430,
-      "y": 13,
-      "neighbors": [
-        "st_37_bot"
-      ]
-    },
-    {
-      "id": "road_38",
-      "x": 438,
-      "y": 10,
-      "neighbors": [
-        "st_38_top",
-        "st_38_bot",
-        "road_37",
-        "road_39"
-      ]
-    },
-    {
-      "id": "st_38_top",
-      "x": 438,
-      "y": 7,
-      "neighbors": [
-        "road_38",
-        "h152",
-        "h153"
-      ]
-    },
-    {
-      "id": "st_38_bot",
-      "x": 438,
-      "y": 13,
-      "neighbors": [
-        "road_38",
-        "h154",
-        "h155"
-      ]
-    },
-    {
-      "id": "h152",
-      "x": 435,
-      "y": 7,
-      "neighbors": [
-        "st_38_top"
-      ]
-    },
-    {
-      "id": "h153",
-      "x": 441,
-      "y": 7,
-      "neighbors": [
-        "st_38_top"
-      ]
-    },
-    {
-      "id": "h154",
-      "x": 435,
-      "y": 13,
-      "neighbors": [
-        "st_38_bot"
-      ]
-    },
-    {
-      "id": "h155",
-      "x": 441,
-      "y": 13,
-      "neighbors": [
-        "st_38_bot"
-      ]
-    },
-    {
-      "id": "road_39",
-      "x": 449,
-      "y": 10,
-      "neighbors": [
-        "st_39_top",
-        "st_39_bot",
-        "road_38",
-        "road_40"
-      ]
-    },
-    {
-      "id": "st_39_top",
-      "x": 449,
-      "y": 7,
-      "neighbors": [
-        "road_39",
-        "h156",
-        "h157"
-      ]
-    },
-    {
-      "id": "st_39_bot",
-      "x": 449,
-      "y": 13,
-      "neighbors": [
-        "road_39",
-        "h158",
-        "h159"
-      ]
-    },
-    {
-      "id": "h156",
-      "x": 446,
-      "y": 7,
-      "neighbors": [
-        "st_39_top"
-      ]
-    },
-    {
-      "id": "h157",
-      "x": 452,
-      "y": 7,
-      "neighbors": [
-        "st_39_top"
-      ]
-    },
-    {
-      "id": "h158",
-      "x": 446,
-      "y": 13,
-      "neighbors": [
-        "st_39_bot"
-      ]
-    },
-    {
-      "id": "h159",
-      "x": 452,
-      "y": 13,
-      "neighbors": [
-        "st_39_bot"
-      ]
-    },
-    {
-      "id": "road_40",
-      "x": 460,
-      "y": 10,
-      "neighbors": [
-        "st_40_top",
-        "st_40_bot",
-        "road_39",
-        "road_41"
-      ]
-    },
-    {
-      "id": "st_40_top",
-      "x": 460,
-      "y": 7,
-      "neighbors": [
-        "road_40",
-        "h160",
-        "h161"
-      ]
-    },
-    {
-      "id": "st_40_bot",
-      "x": 460,
-      "y": 13,
-      "neighbors": [
-        "road_40",
-        "h162",
-        "h163"
-      ]
-    },
-    {
-      "id": "h160",
-      "x": 457,
-      "y": 7,
-      "neighbors": [
-        "st_40_top"
-      ]
-    },
-    {
-      "id": "h161",
-      "x": 463,
-      "y": 7,
-      "neighbors": [
-        "st_40_top"
-      ]
-    },
-    {
-      "id": "h162",
-      "x": 457,
-      "y": 13,
-      "neighbors": [
-        "st_40_bot"
-      ]
-    },
-    {
-      "id": "h163",
-      "x": 463,
-      "y": 13,
-      "neighbors": [
-        "st_40_bot"
-      ]
-    },
-    {
-      "id": "road_41",
-      "x": 471,
-      "y": 10,
-      "neighbors": [
-        "st_41_top",
-        "st_41_bot",
-        "road_40",
-        "road_42"
-      ]
-    },
-    {
-      "id": "st_41_top",
-      "x": 471,
-      "y": 7,
-      "neighbors": [
-        "road_41",
-        "h164",
-        "h165"
-      ]
-    },
-    {
-      "id": "st_41_bot",
-      "x": 471,
-      "y": 13,
-      "neighbors": [
-        "road_41",
-        "h166",
-        "h167"
-      ]
-    },
-    {
-      "id": "h164",
-      "x": 468,
-      "y": 7,
-      "neighbors": [
-        "st_41_top"
-      ]
-    },
-    {
-      "id": "h165",
-      "x": 474,
-      "y": 7,
-      "neighbors": [
-        "st_41_top"
-      ]
-    },
-    {
-      "id": "h166",
-      "x": 468,
-      "y": 13,
-      "neighbors": [
-        "st_41_bot"
-      ]
-    },
-    {
-      "id": "h167",
-      "x": 474,
-      "y": 13,
-      "neighbors": [
-        "st_41_bot"
-      ]
-    },
-    {
-      "id": "road_42",
-      "x": 482,
-      "y": 10,
-      "neighbors": [
-        "st_42_top",
-        "st_42_bot",
-        "road_41",
-        "road_43"
-      ]
-    },
-    {
-      "id": "st_42_top",
-      "x": 482,
-      "y": 7,
-      "neighbors": [
-        "road_42",
-        "h168",
-        "h169"
-      ]
-    },
-    {
-      "id": "st_42_bot",
-      "x": 482,
-      "y": 13,
-      "neighbors": [
-        "road_42",
-        "h170",
-        "h171"
-      ]
-    },
-    {
-      "id": "h168",
-      "x": 479,
-      "y": 7,
-      "neighbors": [
-        "st_42_top"
-      ]
-    },
-    {
-      "id": "h169",
-      "x": 485,
-      "y": 7,
-      "neighbors": [
-        "st_42_top"
-      ]
-    },
-    {
-      "id": "h170",
-      "x": 479,
-      "y": 13,
-      "neighbors": [
-        "st_42_bot"
-      ]
-    },
-    {
-      "id": "h171",
-      "x": 485,
-      "y": 13,
-      "neighbors": [
-        "st_42_bot"
-      ]
-    },
-    {
-      "id": "road_43",
-      "x": 493,
-      "y": 10,
-      "neighbors": [
-        "st_43_top",
-        "st_43_bot",
-        "road_42",
-        "road_44"
-      ]
-    },
-    {
-      "id": "st_43_top",
-      "x": 493,
-      "y": 7,
-      "neighbors": [
-        "road_43",
-        "h172",
-        "h173"
-      ]
-    },
-    {
-      "id": "st_43_bot",
-      "x": 493,
-      "y": 13,
-      "neighbors": [
-        "road_43",
-        "h174",
-        "h175"
-      ]
-    },
-    {
-      "id": "h172",
-      "x": 490,
-      "y": 7,
-      "neighbors": [
-        "st_43_top"
-      ]
-    },
-    {
-      "id": "h173",
-      "x": 496,
-      "y": 7,
-      "neighbors": [
-        "st_43_top"
-      ]
-    },
-    {
-      "id": "h174",
-      "x": 490,
-      "y": 13,
-      "neighbors": [
-        "st_43_bot"
-      ]
-    },
-    {
-      "id": "h175",
-      "x": 496,
-      "y": 13,
-      "neighbors": [
-        "st_43_bot"
-      ]
-    },
-    {
-      "id": "road_44",
-      "x": 504,
-      "y": 10,
-      "neighbors": [
-        "st_44_top",
-        "st_44_bot",
-        "road_43",
-        "road_45"
-      ]
-    },
-    {
-      "id": "st_44_top",
-      "x": 504,
-      "y": 7,
-      "neighbors": [
-        "road_44",
-        "h176",
-        "h177"
-      ]
-    },
-    {
-      "id": "st_44_bot",
-      "x": 504,
-      "y": 13,
-      "neighbors": [
-        "road_44",
-        "h178",
-        "h179"
-      ]
-    },
-    {
-      "id": "h176",
-      "x": 501,
-      "y": 7,
-      "neighbors": [
-        "st_44_top"
-      ]
-    },
-    {
-      "id": "h177",
-      "x": 507,
-      "y": 7,
-      "neighbors": [
-        "st_44_top"
-      ]
-    },
-    {
-      "id": "h178",
-      "x": 501,
-      "y": 13,
-      "neighbors": [
-        "st_44_bot"
-      ]
-    },
-    {
-      "id": "h179",
-      "x": 507,
-      "y": 13,
-      "neighbors": [
-        "st_44_bot"
-      ]
-    },
-    {
-      "id": "road_45",
-      "x": 515,
-      "y": 10,
-      "neighbors": [
-        "st_45_top",
-        "st_45_bot",
-        "road_44",
-        "road_46"
-      ]
-    },
-    {
-      "id": "st_45_top",
-      "x": 515,
-      "y": 7,
-      "neighbors": [
-        "road_45",
-        "h180",
-        "h181"
-      ]
-    },
-    {
-      "id": "st_45_bot",
-      "x": 515,
-      "y": 13,
-      "neighbors": [
-        "road_45",
-        "h182",
-        "h183"
-      ]
-    },
-    {
-      "id": "h180",
-      "x": 512,
-      "y": 7,
-      "neighbors": [
-        "st_45_top"
-      ]
-    },
-    {
-      "id": "h181",
-      "x": 518,
-      "y": 7,
-      "neighbors": [
-        "st_45_top"
-      ]
-    },
-    {
-      "id": "h182",
-      "x": 512,
-      "y": 13,
-      "neighbors": [
-        "st_45_bot"
-      ]
-    },
-    {
-      "id": "h183",
-      "x": 518,
-      "y": 13,
-      "neighbors": [
-        "st_45_bot"
-      ]
-    },
-    {
-      "id": "road_46",
-      "x": 526,
-      "y": 10,
-      "neighbors": [
-        "st_46_top",
-        "st_46_bot",
-        "road_45",
-        "road_47"
-      ]
-    },
-    {
-      "id": "st_46_top",
-      "x": 526,
-      "y": 7,
-      "neighbors": [
-        "road_46",
-        "h184",
-        "h185"
-      ]
-    },
-    {
-      "id": "st_46_bot",
-      "x": 526,
-      "y": 13,
-      "neighbors": [
-        "road_46",
-        "h186",
-        "h187"
-      ]
-    },
-    {
-      "id": "h184",
-      "x": 523,
-      "y": 7,
-      "neighbors": [
-        "st_46_top"
-      ]
-    },
-    {
-      "id": "h185",
-      "x": 529,
-      "y": 7,
-      "neighbors": [
-        "st_46_top"
-      ]
-    },
-    {
-      "id": "h186",
-      "x": 523,
-      "y": 13,
-      "neighbors": [
-        "st_46_bot"
-      ]
-    },
-    {
-      "id": "h187",
-      "x": 529,
-      "y": 13,
-      "neighbors": [
-        "st_46_bot"
-      ]
-    },
-    {
-      "id": "road_47",
-      "x": 537,
-      "y": 10,
-      "neighbors": [
-        "st_47_top",
-        "st_47_bot",
-        "road_46",
-        "road_48"
-      ]
-    },
-    {
-      "id": "st_47_top",
-      "x": 537,
-      "y": 7,
-      "neighbors": [
-        "road_47",
-        "h188",
-        "h189"
-      ]
-    },
-    {
-      "id": "st_47_bot",
-      "x": 537,
-      "y": 13,
-      "neighbors": [
-        "road_47",
-        "h190",
-        "h191"
-      ]
-    },
-    {
-      "id": "h188",
-      "x": 534,
-      "y": 7,
-      "neighbors": [
-        "st_47_top"
-      ]
-    },
-    {
-      "id": "h189",
-      "x": 540,
-      "y": 7,
-      "neighbors": [
-        "st_47_top"
-      ]
-    },
-    {
-      "id": "h190",
-      "x": 534,
-      "y": 13,
-      "neighbors": [
-        "st_47_bot"
-      ]
-    },
-    {
-      "id": "h191",
-      "x": 540,
-      "y": 13,
-      "neighbors": [
-        "st_47_bot"
-      ]
-    },
-    {
-      "id": "road_48",
-      "x": 548,
-      "y": 10,
-      "neighbors": [
-        "st_48_top",
-        "st_48_bot",
-        "road_47",
-        "road_49"
-      ]
-    },
-    {
-      "id": "st_48_top",
-      "x": 548,
-      "y": 7,
-      "neighbors": [
-        "road_48",
-        "h192",
-        "h193"
-      ]
-    },
-    {
-      "id": "st_48_bot",
-      "x": 548,
-      "y": 13,
-      "neighbors": [
-        "road_48",
-        "h194",
-        "h195"
-      ]
-    },
-    {
-      "id": "h192",
-      "x": 545,
-      "y": 7,
-      "neighbors": [
-        "st_48_top"
-      ]
-    },
-    {
-      "id": "h193",
-      "x": 551,
-      "y": 7,
-      "neighbors": [
-        "st_48_top"
-      ]
-    },
-    {
-      "id": "h194",
-      "x": 545,
-      "y": 13,
-      "neighbors": [
-        "st_48_bot"
-      ]
-    },
-    {
-      "id": "h195",
-      "x": 551,
-      "y": 13,
-      "neighbors": [
-        "st_48_bot"
-      ]
-    },
-    {
-      "id": "road_49",
-      "x": 559,
-      "y": 10,
-      "neighbors": [
-        "st_49_top",
-        "st_49_bot",
-        "road_48"
-      ]
-    },
-    {
-      "id": "st_49_top",
-      "x": 559,
-      "y": 7,
-      "neighbors": [
-        "road_49",
-        "h196",
-        "h197"
-      ]
-    },
-    {
-      "id": "st_49_bot",
-      "x": 559,
-      "y": 13,
-      "neighbors": [
-        "road_49",
-        "h198",
-        "h199"
-      ]
-    },
-    {
-      "id": "h196",
-      "x": 556,
-      "y": 7,
-      "neighbors": [
-        "st_49_top"
-      ]
-    },
-    {
-      "id": "h197",
-      "x": 562,
-      "y": 7,
-      "neighbors": [
-        "st_49_top"
-      ]
-    },
-    {
-      "id": "h198",
-      "x": 556,
-      "y": 13,
-      "neighbors": [
-        "st_49_bot"
-      ]
-    },
-    {
-      "id": "h199",
-      "x": 562,
-      "y": 13,
-      "neighbors": [
-        "st_49_bot"
       ]
     }
   ]
