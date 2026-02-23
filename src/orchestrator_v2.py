@@ -50,6 +50,67 @@ def _get_cycle_info(day, cycle_length):
     return (cycle, cycle_day)
 
 
+def _build_day0_record(patient: dict, simulator) -> dict:
+    """Day 0 (screening/pre-treatment baseline) record from EMR data."""
+    emr = patient.get("emr", {})
+    pid = patient.get("patient_id", "")
+
+    labs = {}
+    for lab_name, lab_data in emr.get("baseline_labs", {}).items():
+        if isinstance(lab_data, dict):
+            labs[lab_name] = {
+                "value": lab_data.get("value"),
+                "unit": lab_data.get("unit", ""),
+                "trend": "baseline",
+                "LBBLFL": "Y",
+            }
+        elif isinstance(lab_data, (int, float)):
+            labs[lab_name] = {
+                "value": lab_data,
+                "unit": "",
+                "trend": "baseline",
+                "LBBLFL": "Y",
+            }
+
+    vitals = dict(emr.get("baseline_vitals", {}))
+
+    baseline_ecog = emr.get("baseline_ecog", 1)
+
+    baseline_cm = []
+    for mh in emr.get("medical_history", []):
+        med = mh.get("medication")
+        if med and mh.get("ongoing", False):
+            baseline_cm.append({
+                "CMTRT": med,
+                "CMINDC": mh.get("condition", ""),
+                "CMSTDAT": 0,
+                "_baseline": True,
+            })
+
+    return {
+        "patient_id": pid,
+        "day": 0,
+        "cycle": 0,
+        "cycle_day": 0,
+        "is_baseline": True,
+        "objective": {
+            "location": "OUTPATIENT",
+            "treatment_status": "screening",
+            "labs": labs,
+            "vitals": vitals,
+            "active_aes": [],
+            "ecog": baseline_ecog,
+        },
+        "subjective": {
+            "overall_awareness": "UNAWARE",
+            "symptoms_patient_perceives": [],
+        },
+        "cm_records": baseline_cm,
+        "ec_records": [],
+        "care_record": [],
+    }
+
+
 def _find_last_hospital_record(day_results: list[dict]) -> dict | None:
     """day_results에서 가장 최근 병원 방문일의 hospital_record를 역순 검색."""
     for dr in reversed(day_results):
@@ -74,7 +135,6 @@ class SimulationRunnerV2:
         self.max_retries = max_retries
         self.seed = seed
         self.rule_set = None
-        self._lab_ref: dict | None = None
         self._progress = {}  # {patient_id: {day, total_days, status}}
         self._cancelled = False
         self._log_lines: list[str] = []
@@ -157,7 +217,6 @@ class SimulationRunnerV2:
         _logger.info(f'''Phase 0: Discovering rules for {self.drug_name} ({self.indication})''')
         save_path = self.data_dir / 'rule_set.json'
         self.rule_set = rule_agent.discover_rules(drug_name=self.drug_name, indication=self.indication, model=self.model, save_path=str(save_path))
-        self._lab_ref = self.rule_set.get('lab_reference_ranges') if self.rule_set else None
         return self.rule_set
 
     def load_rules(self, path=None):
@@ -165,7 +224,6 @@ class SimulationRunnerV2:
         if not path:
             path = str(self.data_dir / 'rule_set.json')
         self.rule_set = rule_agent.load_rules(path)
-        self._lab_ref = self.rule_set.get('lab_reference_ranges') if self.rule_set else None
         return self.rule_set
 
     def create_patients(self, n):
@@ -262,6 +320,14 @@ class SimulationRunnerV2:
         llm_calls = 0
         quiet_days = 0
 
+        # Day 0: pre-treatment baseline from EMR
+        day0 = _build_day0_record(patient, simulator)
+        day_results.append(day0)
+        if save:
+            cdash_day0 = map_day_record(day0, patient)
+            with open(sim_path, 'a', encoding='utf-8') as f:
+                f.write(json.dumps(cdash_day0, ensure_ascii=False) + '\n')
+
         for day in range(1, total_days + 1):
             if self._cancelled:
                 self.log(f"⛔ {pid} — Cancelled at Day {day}")
@@ -306,7 +372,7 @@ class SimulationRunnerV2:
             day_results.append(day_result)
 
             if save:
-                cdash_record = map_day_record(day_result, patient, lab_ref=self._lab_ref)
+                cdash_record = map_day_record(day_result, patient)
                 with open(sim_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(cdash_record, ensure_ascii=False) + "\n")
                 # Hospital-only record
@@ -374,7 +440,7 @@ class SimulationRunnerV2:
                         fu_result["mood_state"] = fu_observed.get("mood_state")
                         day_results.append(fu_result)
                         if save:
-                            cdash_fu = map_day_record(fu_result, patient, lab_ref=self._lab_ref)
+                            cdash_fu = map_day_record(fu_result, patient)
                             with open(sim_path, "a", encoding="utf-8") as f:
                                 f.write(json.dumps(cdash_fu, ensure_ascii=False) + "\n")
                             hr_fu = extract_hospital_record(cdash_fu)
@@ -433,6 +499,14 @@ class SimulationRunnerV2:
         force_hospital_tomorrow = False
         last_forced_hospital_day = -999
         HOSPITAL_COOLDOWN_DAYS = 3
+
+        # Day 0: pre-treatment baseline from EMR
+        day0 = _build_day0_record(patient, simulator)
+        day_results.append(day0)
+        if save:
+            cdash_day0 = map_day_record(day0, patient)
+            with open(sim_path, 'a', encoding='utf-8') as f:
+                f.write(json.dumps(cdash_day0, ensure_ascii=False) + '\n')
 
         for day in range(1, total_days + 1):
             cycle, cycle_day = _get_cycle_info(day, cycle_length)
@@ -496,7 +570,7 @@ class SimulationRunnerV2:
             day_results.append(day_result)
 
             if save:
-                cdash_record = map_day_record(day_result, patient, lab_ref=self._lab_ref)
+                cdash_record = map_day_record(day_result, patient)
                 with open(sim_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(cdash_record, ensure_ascii=False) + "\n")
                 hr_record = extract_hospital_record(cdash_record)
@@ -544,7 +618,7 @@ class SimulationRunnerV2:
                         fu_result["care_record"] = [fu_care]
                         day_results.append(fu_result)
                         if save:
-                            cdash_fu = map_day_record(fu_result, patient, lab_ref=self._lab_ref)
+                            cdash_fu = map_day_record(fu_result, patient)
                             with open(sim_path, "a", encoding="utf-8") as f:
                                 f.write(json.dumps(cdash_fu, ensure_ascii=False) + "\n")
                             hr_fu = extract_hospital_record(cdash_fu)
@@ -575,8 +649,7 @@ class SimulationRunnerV2:
                 last_error = e
                 _tb = f'''{type(e).__name__}: {e}'''
                 pid = simulator.patient.get('patient_id', '?')
-                import traceback as _traceback_mod
-                _logger.error(f'''[{pid}] Day {day} attempt {attempt + 1} failed: {_tb}\n{_traceback_mod.format_exc()}''')
+                _logger.error(f'''[{pid}] Day {day} attempt {attempt + 1} failed: {_tb}''')
                 if attempt < self.max_retries:
                     time.sleep(1)
         raise RuntimeError(f'''Day {day} failed after {self.max_retries + 1} attempts: {last_error}''')
@@ -630,8 +703,7 @@ class SimulationRunnerV2:
                 'error': None,
             }
         except Exception as e:
-            import traceback
-            _logger.error(f'''[{pid}] Simulation failed: {e}\n{traceback.format_exc()}''')
+            _logger.error(f'''[{pid}] Simulation failed: {e}''')
             return {
                 'pid': pid,
                 'results': [],
@@ -685,6 +757,14 @@ class SimulationRunnerV2:
         force_hospital_tomorrow = False
         last_forced_hospital_day = -999
         HOSPITAL_COOLDOWN_DAYS = 3
+
+        # Day 0: pre-treatment baseline from EMR
+        day0 = _build_day0_record(patient, simulator)
+        day_results.append(day0)
+        if save:
+            cdash_day0 = map_day_record(day0, patient)
+            with open(sim_path, 'a', encoding='utf-8') as f:
+                f.write(json.dumps(cdash_day0, ensure_ascii=False) + '\n')
 
         for day in range(1, total_days + 1):
             if self._cancelled:
@@ -752,7 +832,7 @@ class SimulationRunnerV2:
             day_results.append(day_result)
 
             if save:
-                cdash_record = map_day_record(day_result, patient, lab_ref=self._lab_ref)
+                cdash_record = map_day_record(day_result, patient)
                 with open(sim_path, "a", encoding="utf-8") as f:
                     f.write(json.dumps(cdash_record, ensure_ascii=False) + "\n")
                 hr_record = extract_hospital_record(cdash_record)
@@ -806,7 +886,7 @@ class SimulationRunnerV2:
                             fu_result["care_record"] = []
                         day_results.append(fu_result)
                         if save:
-                            cdash_fu = map_day_record(fu_result, patient, lab_ref=self._lab_ref)
+                            cdash_fu = map_day_record(fu_result, patient)
                             with open(sim_path, "a", encoding="utf-8") as f:
                                 f.write(json.dumps(cdash_fu, ensure_ascii=False) + "\n")
                         if fu_result.get("objective", {}).get("location") == "DECEASED":

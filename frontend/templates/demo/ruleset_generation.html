@@ -1,0 +1,1683 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}CLARA — Rule Set Generation{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+/* =================================================================
+   RuleSet Generation Demo — CLARA Design System (Cyan Theme)
+   ================================================================= */
+
+/* -- Static Ambient Glow (cyan aurora) -- */
+.rs-aurora-bg {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1; pointer-events: none; overflow: hidden;
+}
+.rs-aurora-bg::before {
+  content: '';
+  position: absolute;
+  top: -10%; left: 5%; right: 5%;
+  height: 55%;
+  background:
+    radial-gradient(ellipse 60% 55% at 20% 0%, rgba(57,210,192,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 50% at 80% 5%, rgba(88,166,255,0.05) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 35% at 50% 15%, rgba(63,185,80,0.03) 0%, transparent 60%);
+}
+.rs-aurora-bg::after {
+  content: '';
+  position: absolute;
+  bottom: -5%; left: 10%; right: 10%;
+  height: 30%;
+  background:
+    radial-gradient(ellipse 50% 60% at 30% 100%, rgba(57,210,192,0.03) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 70% 100%, rgba(88,166,255,0.03) 0%, transparent 70%);
+}
+
+/* -- Dot Grid Background (cyan tint) -- */
+.rs-dot-grid {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1; pointer-events: none;
+  background-image: radial-gradient(rgba(57,210,192,0.025) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 70% 40% at 50% 20%, black 10%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 40% at 50% 20%, black 10%, transparent 70%);
+}
+
+/* -- Layout Container -- */
+.rs-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px 4em;
+  position: relative;
+  z-index: 1;
+}
+
+/* -- Scroll-triggered reveal -- */
+.rs-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.rs-reveal.visible { opacity: 1; transform: translateY(0); }
+.rs-reveal-d1 { transition-delay: 0.1s; }
+.rs-reveal-d2 { transition-delay: 0.2s; }
+.rs-reveal-d3 { transition-delay: 0.3s; }
+.rs-reveal-d4 { transition-delay: 0.4s; }
+
+/* =================================================================
+   HERO SECTION
+   ================================================================= */
+.rs-hero {
+  padding: 4em 0 2.5em;
+  text-align: center;
+  position: relative;
+}
+
+.rs-hero-overline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 0.68em 'JetBrains Mono', monospace;
+  color: var(--accent-cyan);
+  padding: 5px 16px;
+  border: 1px solid rgba(57,210,192,0.2);
+  border-radius: 24px;
+  background: rgba(57,210,192,0.05);
+  margin-bottom: 1.6em;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+.rs-hero-overline .rs-pulse-pip {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent-cyan);
+  animation: rsPipPulse 2s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(57,210,192,0.6);
+}
+@keyframes rsPipPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+/* Hero icon */
+.rs-hero-icon {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5em;
+  margin-bottom: 0.8em;
+  opacity: 0;
+  animation: rsIconReveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.05s;
+}
+.rs-hero-icon-inner {
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.rs-hero-icon-inner:hover {
+  transform: scale(1.08) rotate(2deg);
+}
+.rs-hero-icon-inner svg {
+  filter: drop-shadow(0 0 16px rgba(57,210,192,0.3));
+}
+@keyframes rsIconReveal {
+  from { opacity: 0; transform: translateY(-16px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Title */
+.rs-hero-title {
+  font-size: 3em;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.12;
+  margin-bottom: 0.5em;
+  position: relative;
+}
+.rs-hero-title .rs-title-line {
+  display: block;
+}
+.rs-hero-title .rs-title-line-sub {
+  display: block;
+  font-size: 0.52em;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-top: 0.3em;
+}
+.rs-hero-title .rs-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: rsWordReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.rs-hero-title .rs-word-accent {
+  background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-blue) 50%, var(--accent-green) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 30px rgba(57,210,192,0.25));
+}
+.rs-hero-title .rs-word-dim {
+  color: var(--text-secondary);
+  -webkit-text-fill-color: var(--text-secondary);
+}
+@keyframes rsWordReveal {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Subtitle */
+.rs-hero-subtitle {
+  font-size: 1.05em;
+  color: var(--text-muted);
+  font-weight: 400;
+  max-width: 700px;
+  margin: 0 auto 1.2em;
+  line-height: 1.7;
+  opacity: 0;
+  animation: rsFadeUpSoft 0.8s ease forwards 0.8s;
+}
+.rs-hero-subtitle strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+@keyframes rsFadeUpSoft {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hero badges */
+.rs-hero-badges {
+  display: flex; gap: 10px; margin-top: 1.2em; flex-wrap: wrap;
+  justify-content: center;
+  opacity: 0;
+  animation: rsFadeUpSoft 0.8s ease forwards 1s;
+}
+.rs-hero-badge {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 20px;
+  background: rgba(57,210,192,0.05); border: 1px solid rgba(57,210,192,0.15);
+  font-size: 0.72em; font-family: 'JetBrains Mono', monospace; font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.25s ease;
+}
+.rs-hero-badge:hover {
+  border-color: rgba(57,210,192,0.3);
+  background: rgba(57,210,192,0.08);
+  transform: translateY(-1px);
+}
+.rs-hero-badge .bv { color: var(--accent-cyan); }
+.rs-hero-badge.green { background: rgba(63,185,80,0.05); border-color: rgba(63,185,80,0.15); }
+.rs-hero-badge.green:hover { border-color: rgba(63,185,80,0.3); background: rgba(63,185,80,0.08); }
+.rs-hero-badge.green .bv { color: var(--accent-green); }
+
+/* =================================================================
+   SECTION SHARED
+   ================================================================= */
+.rs-section-label-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 2em;
+}
+.rs-section-label-row .rs-sl-marker {
+  width: 3px; height: 18px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.rs-section-label-row .rs-sl-marker-cyan {
+  background: linear-gradient(180deg, var(--accent-cyan), rgba(57,210,192,0.4));
+}
+.rs-section-label-row .rs-sl-marker-green {
+  background: linear-gradient(180deg, var(--accent-green), rgba(63,185,80,0.4));
+}
+.rs-section-label-row .rs-sl-marker-blue {
+  background: linear-gradient(180deg, var(--accent-blue), rgba(88,166,255,0.4));
+}
+.rs-section-label-row .rs-sl-text {
+  font-size: 0.78em;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.rs-section-label-row .rs-sl-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* =================================================================
+   QUICK STATS (4-col)
+   ================================================================= */
+.rs-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 3em;
+}
+.rs-stat-block {
+  text-align: center;
+  padding: 22px 16px;
+  background: rgba(22,27,34,0.75);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(48,54,61,0.6);
+  border-radius: 16px;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+.rs-stat-block::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  opacity: 0.5;
+}
+.rs-stat-block:nth-child(1)::before {
+  background: linear-gradient(90deg, var(--accent-cyan), rgba(57,210,192,0.2));
+}
+.rs-stat-block:nth-child(2)::before {
+  background: linear-gradient(90deg, var(--accent-blue), rgba(88,166,255,0.2));
+}
+.rs-stat-block:nth-child(3)::before {
+  background: linear-gradient(90deg, var(--accent-green), rgba(63,185,80,0.2));
+}
+.rs-stat-block:nth-child(4)::before {
+  background: linear-gradient(90deg, var(--accent-orange), rgba(210,153,34,0.2));
+}
+.rs-stat-block:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+}
+.rs-stat-block:nth-child(1):hover { border-color: rgba(57,210,192,0.15); }
+.rs-stat-block:nth-child(2):hover { border-color: rgba(88,166,255,0.15); }
+.rs-stat-block:nth-child(3):hover { border-color: rgba(63,185,80,0.15); }
+.rs-stat-block:nth-child(4):hover { border-color: rgba(210,153,34,0.15); }
+.rs-stat-number {
+  font: 800 2em 'JetBrains Mono', monospace;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+.rs-stat-number.cyan {
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.rs-stat-number.blue { color: var(--accent-blue); }
+.rs-stat-number.green { color: var(--accent-green); }
+.rs-stat-number.amber { color: var(--accent-orange); }
+.rs-stat-unit {
+  font-size: 0.72em;
+  color: var(--text-muted);
+  font-weight: 500;
+  letter-spacing: 0.3px;
+}
+
+/* =================================================================
+   GLASSMORPHISM CARD
+   ================================================================= */
+.rs-card {
+  background: rgba(22,27,34,0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(48,54,61,0.6);
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.rs-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-cyan), rgba(88,166,255,0.3));
+  opacity: 0.5;
+  transition: opacity 0.35s;
+}
+.rs-card:hover {
+  border-color: rgba(57,210,192,0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.3), 0 0 40px rgba(57,210,192,0.05);
+}
+.rs-card:hover::before { opacity: 1; }
+
+/* =================================================================
+   DRUG PILL TABS
+   ================================================================= */
+.rs-drug-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--border);
+}
+.rs-drug-tab {
+  padding: 7px 16px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font: 600 0.72em 'JetBrains Mono', monospace;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+}
+.rs-drug-tab:hover {
+  border-color: rgba(57,210,192,0.3);
+  color: var(--text-secondary);
+  background: rgba(57,210,192,0.05);
+}
+.rs-drug-tab.active {
+  border-color: rgba(57,210,192,0.5);
+  color: var(--accent-cyan);
+  background: rgba(57,210,192,0.1);
+  box-shadow: 0 0 12px rgba(57,210,192,0.1);
+}
+
+/* =================================================================
+   DRUG DETAIL VIEW
+   ================================================================= */
+.rs-drug-detail {
+  padding: 24px;
+}
+.rs-drug-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 20px; flex-wrap: wrap; gap: 12px;
+}
+.rs-drug-name {
+  font-size: 1.3em; font-weight: 800; color: var(--text-primary);
+}
+.rs-drug-indication {
+  font-size: 0.82em; color: var(--text-muted); font-weight: 500;
+  margin-top: 2px;
+}
+.rs-drug-avg-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 16px; border-radius: 20px;
+  font: 700 0.85em 'JetBrains Mono', monospace;
+}
+
+.rs-detail-grid {
+  display: grid; grid-template-columns: 340px 1fr; gap: 20px;
+  margin-bottom: 24px;
+}
+
+/* Radar chart container */
+.rs-radar-wrap {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 300px;
+}
+.rs-radar-wrap canvas {
+  max-width: 320px; max-height: 320px;
+}
+
+/* Score table */
+.rs-score-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 0.82em;
+}
+.rs-score-table th {
+  text-align: left; padding: 8px 12px;
+  font-size: 0.7em; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--text-muted);
+  border-bottom: 1px solid rgba(48,54,61,0.6);
+}
+.rs-score-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(48,54,61,0.3);
+  color: var(--text-secondary);
+  vertical-align: top;
+}
+.rs-score-table tr:last-child td { border-bottom: none; }
+.rs-score-cell {
+  font-family: 'JetBrains Mono', monospace; font-weight: 700;
+  display: inline-flex; align-items: center; gap: 6px;
+}
+.rs-score-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+}
+.rs-score-bar {
+  display: inline-block; height: 6px; border-radius: 3px;
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* AE comparison section */
+.rs-ae-compare-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  margin-bottom: 20px;
+}
+.rs-ae-compare-card {
+  background: rgba(0,0,0,0.2); border-radius: 14px;
+  padding: 16px; position: relative; overflow: hidden;
+}
+.rs-ae-compare-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px; opacity: 0.7;
+}
+.rs-ae-compare-card.gt-card {
+  border: 1px solid rgba(210,153,34,0.3);
+}
+.rs-ae-compare-card.gt-card::before {
+  background: linear-gradient(90deg, var(--accent-orange), rgba(210,153,34,0.2));
+}
+.rs-ae-compare-card.pred-card {
+  border: 1px solid rgba(57,210,192,0.3);
+}
+.rs-ae-compare-card.pred-card::before {
+  background: linear-gradient(90deg, var(--accent-cyan), rgba(57,210,192,0.2));
+}
+.rs-ae-compare-label {
+  font-size: 0.6em; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; margin-bottom: 10px;
+}
+.rs-ae-compare-card.gt-card .rs-ae-compare-label { color: var(--accent-orange); }
+.rs-ae-compare-card.pred-card .rs-ae-compare-label { color: var(--accent-cyan); }
+
+.rs-ae-bar-row {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
+}
+.rs-ae-bar-name {
+  width: 140px; font-size: 0.72em; color: var(--text-secondary);
+  font-family: 'JetBrains Mono', monospace; text-align: right; flex-shrink: 0;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+.rs-ae-bar-track {
+  flex: 1; height: 14px; background: rgba(0,0,0,0.2);
+  border-radius: 3px; overflow: hidden; position: relative;
+}
+.rs-ae-bar-fill {
+  height: 100%; border-radius: 3px;
+  transition: width 1s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex; align-items: center; justify-content: flex-end; padding-right: 4px;
+  font-size: 8px; font-weight: 700; font-family: 'JetBrains Mono', monospace;
+}
+.rs-ae-bar-fill.gt-fill {
+  background: linear-gradient(90deg, rgba(210,153,34,0.4), rgba(210,153,34,0.7));
+  color: var(--accent-orange);
+}
+.rs-ae-bar-fill.pred-fill {
+  background: linear-gradient(90deg, rgba(57,210,192,0.4), rgba(57,210,192,0.7));
+  color: var(--accent-cyan);
+}
+
+/* Summary stats row */
+.rs-summary-stats {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px;
+}
+.rs-summary-stat {
+  background: rgba(0,0,0,0.15); border-radius: 12px;
+  padding: 12px; text-align: center;
+}
+.rs-summary-stat .ss-val {
+  font: 700 1.05em 'JetBrains Mono', monospace; color: var(--accent-cyan);
+}
+.rs-summary-stat .ss-label {
+  font-size: 0.6em; font-weight: 600; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--text-muted); margin-top: 2px;
+}
+
+/* Placeholder */
+.rs-placeholder {
+  text-align: center; color: var(--text-muted); padding: 60px 20px;
+  font-size: 0.88em; line-height: 1.8;
+}
+.rs-placeholder .ph-icon {
+  font-size: 2.4em; margin-bottom: 12px; opacity: 0.25;
+  display: block; filter: grayscale(1);
+}
+
+/* =================================================================
+   ALL DRUGS SUMMARY TABLE
+   ================================================================= */
+.rs-all-table-wrap {
+  padding: 20px;
+  overflow-x: auto;
+}
+.rs-all-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 0.78em;
+}
+.rs-all-table th {
+  text-align: center; padding: 10px 8px;
+  font-size: 0.65em; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1px; color: var(--text-muted);
+  border-bottom: 2px solid rgba(48,54,61,0.6);
+}
+.rs-all-table th:first-child { text-align: left; }
+.rs-all-table td {
+  padding: 10px 8px; text-align: center;
+  border-bottom: 1px solid rgba(48,54,61,0.3);
+  font-family: 'JetBrains Mono', monospace; font-weight: 600;
+}
+.rs-all-table td:first-child {
+  text-align: left; font-family: inherit; font-weight: 700;
+  color: var(--text-primary);
+}
+.rs-all-table tr:last-child td { border-bottom: none; }
+.rs-all-table tr.rs-avg-row td {
+  border-top: 2px solid rgba(57,210,192,0.3);
+  font-weight: 800;
+}
+.rs-all-table tr.rs-avg-row td:first-child {
+  color: var(--accent-cyan);
+}
+
+.rs-cell-green { color: var(--accent-green); }
+.rs-cell-yellow { color: var(--accent-orange); }
+.rs-cell-red { color: var(--accent-red); }
+
+/* =================================================================
+   PIPELINE SECTION
+   ================================================================= */
+.rs-pipeline-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
+}
+.rs-pipeline-step {
+  padding: 24px;
+}
+.rs-pipeline-num {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 32px; height: 32px; border-radius: 50%;
+  background: rgba(57,210,192,0.1); border: 1px solid rgba(57,210,192,0.25);
+  font: 700 0.85em 'JetBrains Mono', monospace; color: var(--accent-cyan);
+  margin-bottom: 12px;
+}
+.rs-pipeline-title {
+  font-size: 0.95em; font-weight: 700; color: var(--text-primary);
+  margin-bottom: 8px;
+}
+.rs-pipeline-desc {
+  font-size: 0.78em; color: var(--text-secondary); line-height: 1.6;
+}
+.rs-pipeline-list {
+  margin-top: 10px; padding: 0; list-style: none;
+}
+.rs-pipeline-list li {
+  font-size: 0.72em; color: var(--text-muted); padding: 3px 0;
+  font-family: 'JetBrains Mono', monospace;
+  display: flex; align-items: center; gap: 6px;
+}
+.rs-pipeline-list li::before {
+  content: '';
+  width: 4px; height: 4px; border-radius: 50%;
+  background: var(--accent-cyan); flex-shrink: 0;
+}
+
+/* =================================================================
+   AI NOTICE
+   ================================================================= */
+.rs-ai-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 32px;
+  padding: 14px 20px;
+  border: 1px solid rgba(48,54,61,0.3);
+  border-radius: 12px;
+  font: 400 0.72em/1.6 'JetBrains Mono', 'SF Mono', monospace;
+  color: var(--text-muted);
+  opacity: 0.6;
+  letter-spacing: 0.2px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+}
+.rs-ai-notice svg {
+  flex-shrink: 0; width: 16px; height: 16px; opacity: 0.7;
+  margin-top: 1px;
+}
+.rs-ai-notice strong {
+  color: var(--text-secondary); font-weight: 600; opacity: 0.85;
+}
+
+/* =================================================================
+   LOADING SPINNER
+   ================================================================= */
+.rs-spinner-lg {
+  width: 32px; height: 32px; margin: 0 auto;
+  border: 3px solid rgba(57,210,192,0.15);
+  border-top-color: var(--accent-cyan);
+  border-radius: 50%;
+  animation: rsSpin 0.8s linear infinite;
+}
+@keyframes rsSpin { to { transform: rotate(360deg); } }
+
+/* =================================================================
+   RESPONSIVE
+   ================================================================= */
+@media (max-width: 900px) {
+  .rs-hero-title { font-size: 2.2em; }
+  .rs-stats-row { grid-template-columns: repeat(2, 1fr); }
+  .rs-detail-grid { grid-template-columns: 1fr; }
+  .rs-ae-compare-grid { grid-template-columns: 1fr; }
+  .rs-pipeline-grid { grid-template-columns: 1fr; }
+  .rs-summary-stats { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 600px) {
+  .rs-main { padding: 0 16px 3em; }
+  .rs-hero { padding: 2.5em 0 1.5em; }
+  .rs-hero-title { font-size: 1.8em; }
+  .rs-stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .rs-hero-badges { gap: 6px; }
+  .rs-hero-badge { font-size: 0.65em; padding: 5px 10px; }
+  .rs-drug-tabs { gap: 4px; padding: 12px 14px; }
+  .rs-drug-tab { font-size: 0.65em; padding: 5px 10px; }
+}
+
+/* ── Clinical Trial Simulation Tab Bar ── */
+.cts-tab-bar {
+  display: flex; gap: 4px; justify-content: center;
+  margin-bottom: 2.5em; padding: 4px;
+  background: rgba(22,27,34,0.6);
+  border: 1px solid rgba(48,54,61,0.5);
+  border-radius: 12px;
+  width: fit-content; margin-left: auto; margin-right: auto;
+}
+.cts-tab-link {
+  padding: 8px 20px; border-radius: 8px;
+  font: 600 0.78em 'JetBrains Mono', monospace;
+  color: var(--text-muted); text-decoration: none;
+  transition: all 0.25s; white-space: nowrap;
+  display: flex; align-items: center; gap: 6px;
+}
+.cts-tab-link:hover {
+  color: var(--text-secondary);
+  background: rgba(57,210,192,0.06);
+  text-decoration: none;
+}
+.cts-tab-link.active {
+  color: var(--accent-cyan);
+  background: rgba(57,210,192,0.1);
+  border: 1px solid rgba(57,210,192,0.2);
+}
+.cts-tab-link .cts-tab-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; opacity: 0.5;
+}
+.cts-tab-link.active .cts-tab-dot { opacity: 1; }
+
+/* ── Field-by-field Visual Comparison ── */
+.rs-fields-grid {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
+  background: rgba(48,54,61,0.3); border-radius: 14px;
+  overflow: hidden; margin-bottom: 20px;
+}
+.rs-field-col {
+  background: rgba(13,17,23,0.6); padding: 16px;
+}
+.rs-field-col-header {
+  font: 700 0.62em 'JetBrains Mono', monospace;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  margin-bottom: 14px; padding-bottom: 8px;
+  border-bottom: 1px solid rgba(48,54,61,0.5);
+}
+.rs-field-col.gt-col .rs-field-col-header { color: var(--accent-orange); }
+.rs-field-col.pred-col .rs-field-col-header { color: var(--accent-cyan); }
+.rs-field-row {
+  display: flex; justify-content: space-between; align-items: baseline;
+  padding: 5px 0; border-bottom: 1px solid rgba(48,54,61,0.2);
+  font-size: 0.8em;
+}
+.rs-field-row:last-child { border-bottom: none; }
+.rs-field-label { color: var(--text-muted); font-weight: 600; font-size: 0.9em; }
+.rs-field-value {
+  font-family: 'JetBrains Mono', monospace; font-weight: 600;
+  color: var(--text-primary); text-align: right; max-width: 55%;
+  word-break: break-word;
+}
+.rs-field-section {
+  font: 700 0.6em 'JetBrains Mono', monospace;
+  text-transform: uppercase; letter-spacing: 1px;
+  color: var(--text-muted); margin-top: 14px; margin-bottom: 6px;
+  opacity: 0.7;
+}
+.rs-field-section:first-child { margin-top: 0; }
+
+/* Dose pill */
+.rs-dose-pill {
+  display: inline-block; padding: 2px 8px; border-radius: 6px;
+  font: 600 0.8em 'JetBrains Mono', monospace;
+  background: rgba(57,210,192,0.06); border: 1px solid rgba(48,54,61,0.3);
+  margin-bottom: 3px;
+}
+
+/* ── Generate Rule Set Section ── */
+.rs-gen-form {
+  display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+.rs-gen-input-group { display: flex; flex-direction: column; gap: 4px; }
+.rs-gen-input-group label {
+  font: 600 0.6em 'JetBrains Mono', monospace;
+  text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);
+}
+.rs-gen-input-group input {
+  padding: 10px 14px; background: rgba(13,17,23,0.6);
+  border: 1px solid rgba(48,54,61,0.6); border-radius: 10px;
+  color: var(--text-primary); font: 0.88em 'JetBrains Mono', monospace;
+  min-width: 200px; transition: border-color 0.2s, box-shadow 0.2s;
+}
+.rs-gen-input-group input:focus {
+  outline: none; border-color: rgba(57,210,192,0.4);
+  box-shadow: 0 0 0 3px rgba(57,210,192,0.08);
+}
+.rs-gen-btn {
+  padding: 10px 22px; border: none; border-radius: 10px;
+  font: 700 0.8em 'JetBrains Mono', monospace;
+  background: linear-gradient(135deg, rgba(57,210,192,0.15), rgba(57,210,192,0.25));
+  border: 1px solid rgba(57,210,192,0.35); color: var(--accent-cyan);
+  cursor: pointer; transition: all 0.3s; white-space: nowrap;
+  display: flex; align-items: center; gap: 6px;
+}
+.rs-gen-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(57,210,192,0.25), rgba(57,210,192,0.35));
+  box-shadow: 0 0 16px rgba(57,210,192,0.15);
+  transform: translateY(-1px);
+}
+.rs-gen-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* Preset pills */
+.rs-gen-presets { margin-bottom: 14px; }
+.rs-gen-preset-label {
+  font: 600 0.6em 'JetBrains Mono', monospace;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--text-muted); margin-bottom: 8px;
+}
+.rs-gen-preset-pills {
+  display: flex; flex-wrap: wrap; gap: 6px;
+}
+.rs-gen-preset-pill {
+  padding: 5px 12px; border-radius: 16px;
+  font: 500 0.75em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  background: rgba(13,17,23,0.4);
+  border: 1px solid rgba(48,54,61,0.4);
+  cursor: pointer; transition: all 0.2s; white-space: nowrap;
+}
+.rs-gen-preset-pill:hover {
+  color: var(--accent-cyan);
+  border-color: rgba(57,210,192,0.3);
+  background: rgba(57,210,192,0.05);
+}
+.rs-gen-preset-pill.selected {
+  color: var(--accent-cyan);
+  border-color: rgba(57,210,192,0.5);
+  background: rgba(57,210,192,0.1);
+}
+.rs-gen-preset-pill.custom-pill {
+  border-style: dashed;
+}
+.rs-gen-preset-pill.custom-pill.selected {
+  border-style: solid;
+  color: var(--accent-orange);
+  border-color: rgba(210,153,34,0.5);
+  background: rgba(210,153,34,0.1);
+}
+
+.rs-gen-btn .rs-gen-spinner {
+  width: 14px; height: 14px; border: 2px solid rgba(57,210,192,0.3);
+  border-top-color: var(--accent-cyan); border-radius: 50%;
+  animation: rsSpin 0.8s linear infinite; display: none;
+}
+.rs-gen-btn.loading .rs-gen-spinner { display: inline-block; }
+.rs-gen-progress {
+  margin-top: 10px; font: 500 0.82em 'JetBrains Mono', monospace;
+  color: var(--accent-cyan); display: none;
+}
+.rs-gen-progress.visible { display: block; }
+.rs-gen-result {
+  margin-top: 16px; padding: 16px; border-radius: 12px;
+  background: rgba(0,0,0,0.2); border: 1px solid rgba(48,54,61,0.4);
+  display: none; max-height: 400px; overflow-y: auto;
+}
+.rs-gen-result.visible { display: block; }
+.rs-gen-result pre {
+  font: 0.75em/1.6 'JetBrains Mono', monospace;
+  color: var(--text-secondary); white-space: pre-wrap; word-break: break-all;
+  margin: 0;
+}
+</style>
+{% endblock %}
+
+{% block nav_items %}
+  <span class="nav-sep">/</span>
+  <a href="{% url 'demo_anti_hallucination' %}">Anti-Hallucination</a>
+  <span class="nav-sep">|</span>
+  <a href="{% url 'demo_care_agent' %}">Care Agent</a>
+  <span class="nav-sep">|</span>
+  <a href="{% url 'demo_hazard' %}">Hazard</a>
+  <span class="nav-sep">|</span>
+  <a href="{% url 'demo_ruleset_generation' %}" class="nav-active">Rule Set</a>
+  <span class="nav-sep">|</span>
+  <a href="{% url 'simulation_list' %}">Simulations</a>
+{% endblock %}
+
+{% block content %}
+<!-- Aurora Mesh Gradient BG (Cyan) -->
+<div class="rs-aurora-bg"></div>
+
+<!-- Dot Grid -->
+<div class="rs-dot-grid"></div>
+
+<div class="rs-main">
+
+<!-- ============================================================
+     HERO SECTION
+     ============================================================ -->
+<section class="rs-hero">
+  <div class="rs-hero-overline">
+    <span class="rs-pulse-pip"></span>
+    Evidence-Based Rule Discovery
+  </div>
+
+  <div class="rs-hero-icon">
+    <div class="rs-hero-icon-inner">
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="url(#rsGrad)" stroke-width="1.8">
+        <defs>
+          <linearGradient id="rsGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#39d2c0"/>
+            <stop offset="100%" stop-color="#58a6ff"/>
+          </linearGradient>
+        </defs>
+        <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+        <path d="M2 17l10 5 10-5"/>
+        <path d="M2 12l10 5 10-5"/>
+      </svg>
+    </div>
+  </div>
+
+  <h1 class="rs-hero-title">
+    <span class="rs-title-line">
+      <span class="rs-word rs-word-accent" style="animation-delay:0.1s">Rule Set Generation</span>
+    </span>
+    <span class="rs-title-line-sub">
+      <span class="rs-word rs-word-dim" style="animation-delay:0.26s">LLM</span>
+      <span class="rs-word rs-word-dim" style="animation-delay:0.36s">+</span>
+      <span class="rs-word rs-word-dim" style="animation-delay:0.46s">10 Biomedical</span>
+      <span class="rs-word rs-word-dim" style="animation-delay:0.56s">Databases</span>
+    </span>
+  </h1>
+
+  <p class="rs-hero-subtitle">
+    Generate validated <strong>probabilistic rule sets</strong> from drug labels and
+    <strong>10 biomedical evidence sources</strong>. Multi-stage LLM synthesis with
+    programmatic override for clinical trial simulation.
+  </p>
+
+  <div class="rs-hero-badges">
+    <div class="rs-hero-badge"><span class="bv">7</span> Drugs</div>
+    <div class="rs-hero-badge"><span class="bv">9</span> Scoring Dimensions</div>
+    <div class="rs-hero-badge green"><span class="bv">80.5%</span> Average Accuracy</div>
+    <div class="rs-hero-badge green"><span class="bv">10</span> Evidence Sources</div>
+  </div>
+</section>
+
+<!-- Clinical Trial Simulation Tab Bar -->
+<div class="cts-tab-bar rs-reveal">
+  <a href="{% url 'demo_hazard' %}" class="cts-tab-link">
+    <span class="cts-tab-dot"></span>
+    Hazard Engine
+  </a>
+  <a href="{% url 'demo_ruleset_generation' %}" class="cts-tab-link active">
+    <span class="cts-tab-dot"></span>
+    Rule Set Generation
+  </a>
+</div>
+
+<!-- ============================================================
+     GENERATE NEW RULE SET
+     ============================================================ -->
+<div class="rs-section-label-row rs-reveal">
+  <span class="rs-sl-marker rs-sl-marker-cyan"></span>
+  <span class="rs-sl-text">Generate Rule Set</span>
+  <span class="rs-sl-line"></span>
+</div>
+
+<div class="rs-card rs-reveal rs-reveal-d1" style="padding:20px;" id="rsGenCard">
+  <div style="font-size:0.85em;color:var(--text-secondary);margin-bottom:16px;line-height:1.6;">
+    Generate a rule set for any drug-indication pair. Select an existing drug or enter a custom one.
+    Pipeline collects evidence from <strong>10 databases</strong> and synthesizes via multi-stage LLM.
+    Takes approximately <strong>2-3 minutes</strong>.
+  </div>
+
+  <div class="rs-gen-presets" id="rsGenPresets">
+    <div class="rs-gen-preset-label">Quick Select</div>
+    <div class="rs-gen-preset-pills" id="rsGenPresetPills"></div>
+  </div>
+
+  <div class="rs-gen-form">
+    <div class="rs-gen-input-group" style="flex:1;">
+      <label>Drug Name</label>
+      <input type="text" id="rsGenDrug" placeholder="e.g., Pembrolizumab">
+    </div>
+    <div class="rs-gen-input-group" style="flex:1;">
+      <label>Indication</label>
+      <input type="text" id="rsGenIndication" placeholder="e.g., Melanoma">
+    </div>
+    <button class="rs-gen-btn" id="rsGenBtn" onclick="startGeneration()">
+      <span class="rs-gen-spinner"></span>
+      Generate
+    </button>
+  </div>
+  <div class="rs-gen-progress" id="rsGenProgress"></div>
+  <div class="rs-gen-result" id="rsGenResult">
+    <pre id="rsGenResultPre"></pre>
+  </div>
+</div>
+
+<!-- ============================================================
+     QUICK STATS (4-col)
+     ============================================================ -->
+<div class="rs-stats-row rs-reveal" style="margin-top:3em;">
+  <div class="rs-stat-block">
+    <div class="rs-stat-number cyan" id="rsStatDrugs">7</div>
+    <div class="rs-stat-unit">Drugs Validated</div>
+  </div>
+  <div class="rs-stat-block">
+    <div class="rs-stat-number blue" id="rsStatDims">9</div>
+    <div class="rs-stat-unit">Scoring Dimensions</div>
+  </div>
+  <div class="rs-stat-block">
+    <div class="rs-stat-number green" id="rsStatAvg">80.5%</div>
+    <div class="rs-stat-unit">Average Score</div>
+  </div>
+  <div class="rs-stat-block">
+    <div class="rs-stat-number amber" id="rsStatSources">10</div>
+    <div class="rs-stat-unit">Evidence Sources</div>
+  </div>
+</div>
+
+<!-- ============================================================
+     DRUG COMPARISON SECTION
+     ============================================================ -->
+<div class="rs-section-label-row rs-reveal">
+  <span class="rs-sl-marker rs-sl-marker-cyan"></span>
+  <span class="rs-sl-text">Ground Truth vs Predicted</span>
+  <span class="rs-sl-line"></span>
+</div>
+
+<div class="rs-card rs-reveal rs-reveal-d1" id="rsDrugSection">
+  <div class="rs-drug-tabs" id="rsDrugTabs">
+    <!-- Populated by JS -->
+  </div>
+  <div class="rs-drug-detail" id="rsDrugDetail">
+    <div class="rs-placeholder" id="rsDrugPlaceholder">
+      <span class="ph-icon">&#x1F489;</span>
+      Loading drug data...
+      <div style="margin-top:16px;"><div class="rs-spinner-lg"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     ALL DRUGS SUMMARY
+     ============================================================ -->
+<div class="rs-section-label-row rs-reveal" style="margin-top:3em;">
+  <span class="rs-sl-marker rs-sl-marker-green"></span>
+  <span class="rs-sl-text">All Drugs Summary</span>
+  <span class="rs-sl-line"></span>
+</div>
+
+<div class="rs-card rs-reveal rs-reveal-d1" id="rsAllSummary">
+  <div class="rs-all-table-wrap">
+    <div class="rs-placeholder" id="rsAllPlaceholder">
+      <span class="ph-icon">&#x1F4CA;</span>
+      Loading summary data...
+      <div style="margin-top:16px;"><div class="rs-spinner-lg"></div></div>
+    </div>
+    <table class="rs-all-table" id="rsAllTable" style="display:none;"></table>
+  </div>
+</div>
+
+<!-- ============================================================
+     PIPELINE OVERVIEW
+     ============================================================ -->
+<div class="rs-section-label-row rs-reveal" style="margin-top:3em;">
+  <span class="rs-sl-marker rs-sl-marker-blue"></span>
+  <span class="rs-sl-text">How It Works</span>
+  <span class="rs-sl-line"></span>
+</div>
+
+<div class="rs-pipeline-grid rs-reveal rs-reveal-d1">
+  <div class="rs-card rs-pipeline-step">
+    <div class="rs-pipeline-num">1</div>
+    <div class="rs-pipeline-title">Evidence Collection</div>
+    <div class="rs-pipeline-desc">
+      Gather pharmacological data from 10 biomedical databases and regulatory sources.
+    </div>
+    <ul class="rs-pipeline-list">
+      <li>FDA Drug Labels (DailyMed)</li>
+      <li>ClinicalTrials.gov</li>
+      <li>PubMed / MEDLINE</li>
+      <li>DrugBank</li>
+      <li>OpenFDA FAERS</li>
+      <li>SIDER Side Effects</li>
+      <li>NCI Thesaurus</li>
+      <li>MedDRA / CTCAE</li>
+      <li>PharmGKB</li>
+      <li>WHO Drug Dictionary</li>
+    </ul>
+  </div>
+
+  <div class="rs-card rs-pipeline-step">
+    <div class="rs-pipeline-num">2</div>
+    <div class="rs-pipeline-title">Multi-Stage LLM Synthesis</div>
+    <div class="rs-pipeline-desc">
+      Structured extraction and cross-validation of pharmacological parameters using
+      Gemini with evidence grounding.
+    </div>
+    <ul class="rs-pipeline-list">
+      <li>Demographics distributions</li>
+      <li>AE incidence + onset timing</li>
+      <li>Dose modification rules</li>
+      <li>Efficacy (ORR, PFS, OS)</li>
+      <li>Comorbidity profiles</li>
+      <li>Lab/vital baselines</li>
+    </ul>
+  </div>
+
+  <div class="rs-card rs-pipeline-step">
+    <div class="rs-pipeline-num">3</div>
+    <div class="rs-pipeline-title">Validation + Override</div>
+    <div class="rs-pipeline-desc">
+      Programmatic scoring across 9 dimensions with automatic correction for
+      known systematic biases.
+    </div>
+    <ul class="rs-pipeline-list">
+      <li>9-dimension quality scoring</li>
+      <li>AE incidence range checks</li>
+      <li>Onset distribution validation</li>
+      <li>Efficacy boundary guards</li>
+      <li>Demographics feasibility</li>
+      <li>Cross-drug consistency</li>
+    </ul>
+  </div>
+</div>
+
+<!-- AI Disclaimer -->
+<div class="rs-ai-notice rs-reveal rs-reveal-d4">
+  <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 1L2 4v4c0 3.5 2.6 6.4 6 7 3.4-.6 6-3.5 6-7V4L8 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+    <circle cx="8" cy="6.5" r="0.8" fill="currentColor"/>
+    <path d="M8 8.5v2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  </svg>
+  Rule sets are <strong>AI-generated</strong> from evidence databases and validated against FDA labels.
+  Scores reflect automated comparison accuracy, not clinical suitability. For research demonstration only.
+</div>
+
+</div>
+
+<script>
+/* =================================================================
+   Rule Set Generation Demo — JS Controller
+   ================================================================= */
+
+var rsDrugs = [];
+var rsAllData = null;
+var rsActiveDrugId = null;
+var rsRadarChart = null;
+var rsDimensions = [];
+
+/* ── Init ── */
+document.addEventListener('DOMContentLoaded', function() {
+  initScrollReveal();
+  loadDrugs();
+  loadAllSummary();
+});
+
+/* ── Scroll reveal (IntersectionObserver) ── */
+function initScrollReveal() {
+  var els = document.querySelectorAll('.rs-reveal');
+  if (!('IntersectionObserver' in window)) {
+    els.forEach(function(el) { el.classList.add('visible'); });
+    return;
+  }
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  els.forEach(function(el) { obs.observe(el); });
+}
+
+/* ── Load drugs list ── */
+function loadDrugs() {
+  fetch('/api/ruleset/drugs/')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      rsDrugs = data.drugs || data;
+      rsDimensions = data.dimensions || [];
+      renderDrugTabs();
+      renderGenPresets();
+      if (rsDrugs.length > 0) selectDrug(rsDrugs[0].drug_id || rsDrugs[0].id);
+    })
+    .catch(function(err) {
+      document.getElementById('rsDrugPlaceholder').innerHTML =
+        '<span class="ph-icon">&#x26A0;</span>Could not load drug data. API may be offline.';
+    });
+}
+
+/* ── Render generate preset pills ── */
+function renderGenPresets() {
+  var container = document.getElementById('rsGenPresetPills');
+  if (!container) return;
+  container.innerHTML = '';
+
+  rsDrugs.forEach(function(drug) {
+    var pill = document.createElement('span');
+    pill.className = 'rs-gen-preset-pill';
+    pill.textContent = drug.drug_name || drug.name;
+    pill.dataset.drug = drug.drug_name || drug.name;
+    pill.dataset.indication = drug.indication || '';
+    pill.addEventListener('click', function() {
+      selectGenPreset(pill);
+    });
+    container.appendChild(pill);
+  });
+
+  var customPill = document.createElement('span');
+  customPill.className = 'rs-gen-preset-pill custom-pill';
+  customPill.textContent = '+ Custom';
+  customPill.addEventListener('click', function() {
+    selectGenPreset(null);
+  });
+  container.appendChild(customPill);
+}
+
+function selectGenPreset(pill) {
+  var pills = document.querySelectorAll('.rs-gen-preset-pill');
+  pills.forEach(function(p) { p.classList.remove('selected'); });
+
+  var drugInput = document.getElementById('rsGenDrug');
+  var indInput = document.getElementById('rsGenIndication');
+
+  if (pill && !pill.classList.contains('custom-pill')) {
+    pill.classList.add('selected');
+    drugInput.value = pill.dataset.drug;
+    indInput.value = pill.dataset.indication;
+    drugInput.readOnly = true;
+    indInput.readOnly = true;
+    drugInput.style.opacity = '0.7';
+    indInput.style.opacity = '0.7';
+  } else {
+    var custom = document.querySelector('.rs-gen-preset-pill.custom-pill');
+    if (custom) custom.classList.add('selected');
+    drugInput.value = '';
+    indInput.value = '';
+    drugInput.readOnly = false;
+    indInput.readOnly = false;
+    drugInput.style.opacity = '1';
+    indInput.style.opacity = '1';
+    drugInput.focus();
+  }
+}
+
+/* ── Render drug tabs ── */
+function renderDrugTabs() {
+  var container = document.getElementById('rsDrugTabs');
+  container.innerHTML = '';
+  rsDrugs.forEach(function(drug) {
+    var tab = document.createElement('button');
+    tab.className = 'rs-drug-tab';
+    tab.dataset.id = drug.drug_id || drug.id;
+    tab.textContent = drug.drug_name || drug.name;
+    tab.addEventListener('click', function() {
+      selectDrug(drug.drug_id || drug.id);
+    });
+    container.appendChild(tab);
+  });
+}
+
+/* ── Select drug ── */
+function selectDrug(drugId) {
+  rsActiveDrugId = drugId;
+
+  var tabs = document.querySelectorAll('.rs-drug-tab');
+  tabs.forEach(function(t) {
+    t.classList.toggle('active', t.dataset.id === String(drugId));
+  });
+
+  var detail = document.getElementById('rsDrugDetail');
+  detail.innerHTML = '<div style="text-align:center;padding:40px;"><div class="rs-spinner-lg"></div><div style="margin-top:12px;color:var(--text-muted);font-size:0.85em;">Loading comparison...</div></div>';
+
+  fetch('/api/ruleset/compare/' + drugId + '/')
+    .then(function(r) { return r.json(); })
+    .then(function(data) { renderDrugDetail(data); })
+    .catch(function(err) {
+      detail.innerHTML = '<div class="rs-placeholder"><span class="ph-icon">&#x26A0;</span>Failed to load comparison data.</div>';
+    });
+}
+
+/* ── Render drug detail ── */
+function renderDrugDetail(data) {
+  var detail = document.getElementById('rsDrugDetail');
+  var avgScore = data.average_score || 0;
+  var avgClass = avgScore >= 0.8 ? 'var(--accent-green)' : avgScore >= 0.5 ? 'var(--accent-orange)' : 'var(--accent-red)';
+  var avgBg = avgScore >= 0.8 ? 'rgba(63,185,80,0.1)' : avgScore >= 0.5 ? 'rgba(210,153,34,0.1)' : 'rgba(248,81,73,0.1)';
+  var avgBorder = avgScore >= 0.8 ? 'rgba(63,185,80,0.3)' : avgScore >= 0.5 ? 'rgba(210,153,34,0.3)' : 'rgba(248,81,73,0.3)';
+
+  var gtSum = data.gt_summary || {};
+  var predSum = data.pred_summary || {};
+
+  var html = '';
+
+  /* Header */
+  html += '<div class="rs-drug-header">';
+  html += '<div><div class="rs-drug-name">' + (data.drug_name || '—') + '</div>';
+  html += '<div class="rs-drug-indication">' + (data.indication || '—') + '</div></div>';
+  html += '<div class="rs-drug-avg-badge" style="color:' + avgClass + ';background:' + avgBg + ';border:1px solid ' + avgBorder + ';">';
+  html += 'AVG ' + (avgScore * 100).toFixed(1) + '%</div>';
+  html += '</div>';
+
+  /* Radar + Score Table */
+  html += '<div class="rs-detail-grid">';
+  html += '<div class="rs-radar-wrap"><canvas id="rsRadarCanvas" width="320" height="320"></canvas></div>';
+  html += '<div><table class="rs-score-table"><thead><tr><th>Dimension</th><th>Score</th><th>Detail</th></tr></thead><tbody id="rsScoreBody"></tbody></table></div>';
+  html += '</div>';
+
+  /* Field-by-field visual comparison */
+  html += '<div class="rs-fields-grid">';
+
+  function buildFieldCol(label, colorClass, summary) {
+    var col = '<div class="rs-field-col ' + colorClass + '">';
+    col += '<div class="rs-field-col-header">' + label + '</div>';
+
+    // Doses
+    col += '<div class="rs-field-section">Administration</div>';
+    if (summary.doses && summary.doses.length > 0) {
+      summary.doses.forEach(function(d) {
+        col += '<div class="rs-field-row"><span class="rs-field-label">' + (d.drug || '—') + '</span>';
+        col += '<span class="rs-field-value"><span class="rs-dose-pill">' + (d.dose || '—') + '</span>';
+        if (d.route) col += '<br><span style="font-size:0.85em;color:var(--text-muted);">' + d.route + '</span>';
+        col += '</span></div>';
+      });
+    } else {
+      col += '<div class="rs-field-row"><span class="rs-field-label">No data</span><span class="rs-field-value">—</span></div>';
+    }
+
+    // Demographics
+    col += '<div class="rs-field-section">Demographics</div>';
+    col += '<div class="rs-field-row"><span class="rs-field-label">Age (mean ± std)</span><span class="rs-field-value">';
+    col += (summary.age_mean != null ? summary.age_mean.toFixed(1) : '—') + ' ± ' + (summary.age_std != null ? summary.age_std.toFixed(1) : '—');
+    col += '</span></div>';
+    col += '<div class="rs-field-row"><span class="rs-field-label">Age range</span><span class="rs-field-value">';
+    col += (summary.age_min != null ? summary.age_min : '—') + ' – ' + (summary.age_max != null ? summary.age_max : '—');
+    col += '</span></div>';
+    col += '<div class="rs-field-row"><span class="rs-field-label">Male / Female</span><span class="rs-field-value">';
+    col += (summary.pct_male != null ? summary.pct_male.toFixed(1) + '%' : '—') + ' / ' + (summary.pct_female != null ? summary.pct_female.toFixed(1) + '%' : '—');
+    col += '</span></div>';
+
+    // ECOG
+    if (summary.ecog && Object.keys(summary.ecog).length > 0) {
+      col += '<div class="rs-field-row"><span class="rs-field-label">ECOG PS</span><span class="rs-field-value">';
+      var ecogParts = [];
+      Object.keys(summary.ecog).sort().forEach(function(k) {
+        ecogParts.push(k + ': ' + (summary.ecog[k] * 100).toFixed(0) + '%');
+      });
+      col += ecogParts.join(', ');
+      col += '</span></div>';
+    }
+
+    // Efficacy
+    col += '<div class="rs-field-section">Efficacy</div>';
+    col += '<div class="rs-field-row"><span class="rs-field-label">ORR</span><span class="rs-field-value">';
+    col += summary.orr != null ? (summary.orr * 100).toFixed(1) + '%' : '—';
+    col += '</span></div>';
+    col += '<div class="rs-field-row"><span class="rs-field-label">PFS (median)</span><span class="rs-field-value">';
+    col += summary.pfs_median != null ? summary.pfs_median.toFixed(1) + ' mo' : '—';
+    col += '</span></div>';
+    col += '<div class="rs-field-row"><span class="rs-field-label">OS (median)</span><span class="rs-field-value">';
+    col += summary.os_median != null ? summary.os_median.toFixed(1) + ' mo' : '—';
+    col += '</span></div>';
+
+    // Trial design
+    col += '<div class="rs-field-section">Trial Design</div>';
+    col += '<div class="rs-field-row"><span class="rs-field-label">Cycle length</span><span class="rs-field-value">';
+    col += summary.cycle_days != null ? summary.cycle_days + ' days' : '—';
+    col += '</span></div>';
+    col += '<div class="rs-field-row"><span class="rs-field-label">AE count</span><span class="rs-field-value">';
+    col += summary.n_aes != null ? summary.n_aes : '—';
+    col += '</span></div>';
+
+    col += '</div>';
+    return col;
+  }
+
+  html += buildFieldCol('Ground Truth', 'gt-col', gtSum);
+  html += buildFieldCol('Predicted (LLM)', 'pred-col', predSum);
+  html += '</div>';
+
+  /* AE Comparison */
+  var gtAes = gtSum.top_aes || [];
+  var predAes = predSum.top_aes || [];
+
+  if (gtAes.length > 0 || predAes.length > 0) {
+    html += '<div class="rs-ae-compare-grid">';
+    html += '<div class="rs-ae-compare-card gt-card"><div class="rs-ae-compare-label">Ground Truth Top AEs</div><div id="rsGtBars"></div></div>';
+    html += '<div class="rs-ae-compare-card pred-card"><div class="rs-ae-compare-label">Predicted Top AEs</div><div id="rsPredBars"></div></div>';
+    html += '</div>';
+  }
+
+  /* Summary stats */
+  html += '<div class="rs-summary-stats">';
+  html += '<div class="rs-summary-stat"><div class="ss-val" style="color:var(--accent-orange);">' + (gtSum.n_aes != null ? gtSum.n_aes : '—') + '</div><div class="ss-label">GT AE Count</div></div>';
+  html += '<div class="rs-summary-stat"><div class="ss-val">' + (predSum.n_aes != null ? predSum.n_aes : '—') + '</div><div class="ss-label">Predicted AEs</div></div>';
+  html += '<div class="rs-summary-stat"><div class="ss-val" style="color:var(--accent-orange);">' + (gtSum.orr != null ? (gtSum.orr * 100).toFixed(1) + '%' : '—') + '</div><div class="ss-label">GT ORR</div></div>';
+  html += '<div class="rs-summary-stat"><div class="ss-val">' + (predSum.orr != null ? (predSum.orr * 100).toFixed(1) + '%' : '—') + '</div><div class="ss-label">Predicted ORR</div></div>';
+  html += '</div>';
+
+  detail.innerHTML = html;
+
+  /* Populate score table — API returns scores as array [{dim, score, detail}, ...] */
+  var scoresArr = data.scores || [];
+  var scoreBody = document.getElementById('rsScoreBody');
+  if (scoreBody && scoresArr.length > 0) {
+    var radarLabels = [];
+    var radarValues = [];
+    scoresArr.forEach(function(entry) {
+      var dim = entry.dim || '';
+      var score = entry.score != null ? entry.score : 0;
+      var desc = entry.detail || '';
+      var clr = score >= 0.8 ? 'var(--accent-green)' : score >= 0.5 ? 'var(--accent-orange)' : 'var(--accent-red)';
+      var bgClr = score >= 0.8 ? 'rgba(63,185,80,0.6)' : score >= 0.5 ? 'rgba(210,153,34,0.6)' : 'rgba(248,81,73,0.6)';
+      var dimLabel = dim.replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+      radarLabels.push(dimLabel);
+      radarValues.push(score);
+
+      var row = '<tr><td>' + dimLabel + '</td>';
+      row += '<td><span class="rs-score-cell"><span class="rs-score-dot" style="background:' + clr + '"></span>' + (score * 100).toFixed(1) + '%';
+      row += '</span><br><span class="rs-score-bar" style="width:' + (score * 100) + '%;background:' + bgClr + ';display:inline-block;"></span></td>';
+      row += '<td style="font-size:0.85em;color:var(--text-muted);max-width:300px;">' + desc + '</td>';
+      row += '</tr>';
+      scoreBody.innerHTML += row;
+    });
+
+    renderRadarChart(radarLabels, radarValues);
+  }
+
+  /* AE bar charts — API returns {term, incidence} */
+  renderAeBars('rsGtBars', gtAes, 'gt-fill');
+  renderAeBars('rsPredBars', predAes, 'pred-fill');
+}
+
+/* ── Render AE horizontal bars ── */
+function renderAeBars(containerId, aes, fillClass) {
+  var container = document.getElementById(containerId);
+  if (!container || !aes || aes.length === 0) return;
+
+  var maxVal = 0;
+  aes.forEach(function(ae) { if (ae.incidence > maxVal) maxVal = ae.incidence; });
+  if (maxVal === 0) maxVal = 1;
+
+  var html = '';
+  aes.forEach(function(ae) {
+    var pct = ((ae.incidence / maxVal) * 100).toFixed(0);
+    var label = ae.term || ae.name || ae.ae_name || '—';
+    var valText = (ae.incidence * 100).toFixed(0) + '%';
+    html += '<div class="rs-ae-bar-row">';
+    html += '<div class="rs-ae-bar-name" title="' + label + '">' + label + '</div>';
+    html += '<div class="rs-ae-bar-track"><div class="rs-ae-bar-fill ' + fillClass + '" style="width:' + pct + '%;">' + valText + '</div></div>';
+    html += '</div>';
+  });
+  container.innerHTML = html;
+}
+
+/* ── Radar / Spider Chart ── */
+function renderRadarChart(labels, values) {
+  var canvas = document.getElementById('rsRadarCanvas');
+  if (!canvas) return;
+
+  if (rsRadarChart) {
+    rsRadarChart.destroy();
+    rsRadarChart = null;
+  }
+
+  var ctx = canvas.getContext('2d');
+  rsRadarChart = new Chart(ctx, {
+    type: 'radar',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: 'Score',
+        data: values.map(function(v) { return v * 100; }),
+        borderColor: 'rgba(57,210,192,0.8)',
+        backgroundColor: 'rgba(57,210,192,0.12)',
+        borderWidth: 2,
+        pointBackgroundColor: 'rgba(57,210,192,1)',
+        pointBorderColor: '#0d1117',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: true,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: 'rgba(13,17,23,0.95)',
+          borderColor: 'rgba(57,210,192,0.3)',
+          borderWidth: 1,
+          titleFont: { family: "'JetBrains Mono', monospace", size: 11, weight: '700' },
+          bodyFont: { family: "'JetBrains Mono', monospace", size: 11 },
+          titleColor: '#39d2c0',
+          bodyColor: '#c9d1d9',
+          padding: 10,
+          cornerRadius: 8,
+          callbacks: {
+            label: function(ctx) { return ctx.parsed.r.toFixed(1) + '%'; }
+          }
+        }
+      },
+      scales: {
+        r: {
+          beginAtZero: true,
+          max: 100,
+          ticks: {
+            stepSize: 25,
+            color: 'rgba(156,163,175,0.4)',
+            backdropColor: 'transparent',
+            font: { family: "'JetBrains Mono', monospace", size: 9 },
+            callback: function(v) { return v + '%'; }
+          },
+          grid: {
+            color: 'rgba(48,54,61,0.5)',
+            lineWidth: 0.8
+          },
+          angleLines: {
+            color: 'rgba(48,54,61,0.4)',
+            lineWidth: 0.8
+          },
+          pointLabels: {
+            color: 'rgba(156,163,175,0.7)',
+            font: { family: "'JetBrains Mono', monospace", size: 10, weight: '600' },
+            padding: 8
+          }
+        }
+      }
+    }
+  });
+}
+
+/* ── Load all drugs summary ── */
+function loadAllSummary() {
+  fetch('/api/ruleset/compare-all/')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      rsAllData = data;
+      renderAllSummary(data);
+    })
+    .catch(function(err) {
+      document.getElementById('rsAllPlaceholder').innerHTML =
+        '<span class="ph-icon">&#x26A0;</span>Could not load summary data.';
+    });
+}
+
+/* ── Render all drugs summary table ── */
+function renderAllSummary(data) {
+  var table = document.getElementById('rsAllTable');
+  var placeholder = document.getElementById('rsAllPlaceholder');
+  if (!table) return;
+
+  var drugs = data.drugs || data;
+  var dims = data.dimensions || rsDimensions || [];
+
+  /* If dimensions not yet available from the drugs endpoint, infer from first drug */
+  if (dims.length === 0 && drugs.length > 0 && drugs[0].scores) {
+    dims = Object.keys(drugs[0].scores);
+  }
+
+  var thead = '<thead><tr><th>Drug</th>';
+  dims.forEach(function(d) {
+    var label = d.replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+    if (label.length > 12) label = label.substring(0, 11) + '.';
+    thead += '<th title="' + d + '">' + label + '</th>';
+  });
+  thead += '<th>AVG</th></tr></thead>';
+
+  var tbody = '<tbody>';
+  var dimTotals = {};
+  dims.forEach(function(d) { dimTotals[d] = 0; });
+  var totalAvg = 0;
+
+  drugs.forEach(function(drug) {
+    var scores = drug.scores || drug.dimension_scores || {};
+    tbody += '<tr>';
+    tbody += '<td>' + (drug.drug_name || drug.name || '—') + '</td>';
+    var rowSum = 0;
+    var rowCount = 0;
+    dims.forEach(function(d) {
+      var val = scores[d];
+      if (val != null && typeof val === 'object') val = val.score;
+      if (val == null) val = 0;
+      var cls = val >= 0.8 ? 'rs-cell-green' : val >= 0.5 ? 'rs-cell-yellow' : 'rs-cell-red';
+      tbody += '<td class="' + cls + '">' + (val * 100).toFixed(0) + '</td>';
+      dimTotals[d] += val;
+      rowSum += val;
+      rowCount++;
+    });
+    var rowAvg = rowCount > 0 ? rowSum / rowCount : 0;
+    totalAvg += rowAvg;
+    var avgCls = rowAvg >= 0.8 ? 'rs-cell-green' : rowAvg >= 0.5 ? 'rs-cell-yellow' : 'rs-cell-red';
+    tbody += '<td class="' + avgCls + '">' + (rowAvg * 100).toFixed(1) + '</td>';
+    tbody += '</tr>';
+  });
+
+  /* Average row */
+  var nDrugs = drugs.length || 1;
+  tbody += '<tr class="rs-avg-row"><td>AVERAGE</td>';
+  dims.forEach(function(d) {
+    var avg = dimTotals[d] / nDrugs;
+    var cls = avg >= 0.8 ? 'rs-cell-green' : avg >= 0.5 ? 'rs-cell-yellow' : 'rs-cell-red';
+    tbody += '<td class="' + cls + '">' + (avg * 100).toFixed(1) + '</td>';
+  });
+  var overallAvg = totalAvg / nDrugs;
+  var overallCls = overallAvg >= 0.8 ? 'rs-cell-green' : overallAvg >= 0.5 ? 'rs-cell-yellow' : 'rs-cell-red';
+  tbody += '<td class="' + overallCls + '">' + (overallAvg * 100).toFixed(1) + '</td>';
+  tbody += '</tr></tbody>';
+
+  table.innerHTML = thead + tbody;
+  placeholder.style.display = 'none';
+  table.style.display = 'table';
+
+  /* Update hero stat if we got fresh data */
+  var avgEl = document.getElementById('rsStatAvg');
+  if (avgEl) avgEl.textContent = (overallAvg * 100).toFixed(1) + '%';
+  var drugsEl = document.getElementById('rsStatDrugs');
+  if (drugsEl) drugsEl.textContent = nDrugs;
+}
+
+/* ── Color utility for scores ── */
+function scoreColor(score) {
+  if (score >= 0.8) return 'var(--accent-green)';
+  if (score >= 0.5) return 'var(--accent-orange)';
+  return 'var(--accent-red)';
+}
+
+/* ── Generate New Rule Set ── */
+var rsGenJobId = null;
+var rsGenPollTimer = null;
+
+function startGeneration() {
+  var drug = document.getElementById('rsGenDrug').value.trim();
+  var indication = document.getElementById('rsGenIndication').value.trim();
+  if (!drug) { alert('Please enter a drug name.'); return; }
+
+  var btn = document.getElementById('rsGenBtn');
+  var progress = document.getElementById('rsGenProgress');
+  var result = document.getElementById('rsGenResult');
+
+  btn.classList.add('loading');
+  btn.disabled = true;
+  progress.classList.add('visible');
+  progress.textContent = 'Starting generation...';
+  result.classList.remove('visible');
+
+  fetch('/api/ruleset/generate/', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({drug_name: drug, indication: indication}),
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    if (data.error) {
+      progress.textContent = 'Error: ' + data.error;
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      return;
+    }
+    rsGenJobId = data.job_id;
+    progress.textContent = data.message || 'Started...';
+    pollGeneration();
+  })
+  .catch(function(err) {
+    progress.textContent = 'Network error: ' + err.message;
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  });
+}
+
+function pollGeneration() {
+  if (!rsGenJobId) return;
+
+  fetch('/api/ruleset/generate/status/' + rsGenJobId + '/')
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var progress = document.getElementById('rsGenProgress');
+    var btn = document.getElementById('rsGenBtn');
+    var result = document.getElementById('rsGenResult');
+    var resultPre = document.getElementById('rsGenResultPre');
+
+    progress.textContent = data.progress || data.status;
+
+    if (data.status === 'completed') {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      progress.textContent = 'Generation complete!';
+      progress.style.color = 'var(--accent-green)';
+      if (data.result) {
+        resultPre.textContent = JSON.stringify(data.result, null, 2);
+        result.classList.add('visible');
+      }
+      rsGenJobId = null;
+      return;
+    }
+    if (data.status === 'error') {
+      btn.classList.remove('loading');
+      btn.disabled = false;
+      progress.textContent = 'Error: ' + (data.error || 'Unknown error');
+      progress.style.color = 'var(--accent-red)';
+      rsGenJobId = null;
+      return;
+    }
+
+    rsGenPollTimer = setTimeout(pollGeneration, 3000);
+  })
+  .catch(function() {
+    rsGenPollTimer = setTimeout(pollGeneration, 5000);
+  });
+}
+</script>
+{% endblock %}

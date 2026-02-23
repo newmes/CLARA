@@ -14,7 +14,6 @@ class DMDomain(BaseModel):
     SEX: Literal["Male", "Female"] = Field(..., description="Sex")
     RACE: str = Field(default="", description="Race")
     ETHNIC: str = Field(default="", description="Ethnicity")
-    BRTHDAT: Optional[date] = Field(default=None, description="Birth date")
 
 
 class AEDomain(BaseModel):

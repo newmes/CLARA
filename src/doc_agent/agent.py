@@ -55,8 +55,12 @@ def _format_dm_data(crf: CRFData) -> str:
     )
 
 
-def _format_ec_data(crf: CRFData) -> str:
+def _format_ec_data(crf: CRFData, drug_name: str = "", indication: str = "") -> str:
     lines = []
+    if drug_name:
+        lines.append(f"Suspect drug: {drug_name}")
+    if indication:
+        lines.append(f"Indication: {indication}")
     for i, ec in enumerate(crf.ec, 1):
         period = f"Exposure period {i}: " if len(crf.ec) > 1 else ""
         lines.append(
@@ -106,18 +110,53 @@ def _format_ae_data(crf: CRFData) -> str:
     return result
 
 
-def _format_lb_data(crf: CRFData) -> str:
+# Mapping: AE term keywords → relevant lab test codes
+_AE_RELEVANT_LABS: dict[str, set[str]] = {
+    "hyperglycemia": {"GLUCOSEFASTING", "GLUCOSE", "HBA1C"},
+    "neutropenia": {"ANC", "WBC"},
+    "febrile_neutropenia": {"ANC", "WBC"},
+    "thrombocytopenia": {"PLATELETS", "PLT"},
+    "anemia": {"HEMOGLOBIN", "HGB", "HCT"},
+    "hepatotoxicity": {"ALT", "AST", "TOTALBILIRUBIN", "ALP", "ALBUMIN"},
+    "nephrotoxicity": {"CREATININE", "EGFR", "BUN"},
+    "hypothyroidism": {"TSH", "FT4", "FT3"},
+    "hyperthyroidism": {"TSH", "FT4", "FT3"},
+    "pneumonitis": {"LDH", "KL6", "SPO2"},
+    "stomatitis": {"ANC", "WBC", "ALBUMIN"},
+    "fatigue": {"HEMOGLOBIN", "HGB", "TSH", "CREATININE", "EGFR", "SODIUM", "ALBUMIN"},
+    "diarrhea": {"SODIUM", "POTASSIUM", "CREATININE", "EGFR", "ALBUMIN"},
+    "colitis": {"ANC", "WBC", "CRP", "ALBUMIN", "SODIUM", "POTASSIUM"},
+    "rash": {"ANC", "WBC"},
+    "nausea": {"SODIUM", "POTASSIUM", "CREATININE"},
+    "infusion_related_reaction": {"ANC", "WBC", "CRP"},
+}
+
+
+def _get_relevant_lab_codes(ae_term: str) -> set[str] | None:
+    """Return relevant lab codes for an AE term, or None to include all."""
+    term_lower = ae_term.lower().replace(" ", "_").replace("-", "_")
+    for key, codes in _AE_RELEVANT_LABS.items():
+        if key in term_lower or term_lower in key:
+            return codes
+    return None
+
+
+def _format_lb_data(crf: CRFData, ae_term: str = "") -> str:
     if not crf.lb.records:
         return "No lab data available"
+    relevant_codes = _get_relevant_lab_codes(ae_term) if ae_term else None
     lines = []
     for r in crf.lb.records:
+        # Filter to AE-relevant labs if mapping exists
+        if relevant_codes and r.LBTESTCD.upper() not in relevant_codes:
+            continue
         ref = ""
         if r.LBORNRLO and r.LBORNRHI:
             ref = f" (ref: {r.LBORNRLO}-{r.LBORNRHI})"
         unit = f" {r.LBORRESU}" if r.LBORRESU else ""
         name = r.LBTEST or r.LBTESTCD
         lines.append(f"{name}: {r.LBORRES}{unit}{ref} [{_format_date(r.LBDAT)}]")
-    return "\n".join(lines)
+    return "\n".join(lines) if lines else "No relevant lab data"
 
 
 def _format_mh_data(crf: CRFData) -> str:
@@ -285,9 +324,9 @@ def format_b5_prompt(
     return B5_NARRATIVE_PROMPT.format(
         report_type="Initial",
         dm_data=_format_dm_data(crf),
-        ec_data=_format_ec_data(crf),
+        ec_data=_format_ec_data(crf, drug_name=settings.DRUG_NAME, indication=settings.INDICATION),
         ae_data=_format_ae_data(crf),
-        lb_data=_format_lb_data(crf),
+        lb_data=_format_lb_data(crf, ae_term=crf.ae.AETERM),
         mh_data=_format_mh_data(crf),
         vs_data=_format_vs_data(crf),
         cm_data=_format_cm_data(crf),

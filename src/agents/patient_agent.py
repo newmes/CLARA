@@ -93,15 +93,13 @@ Also add conditional dependencies between comorbidities:
     adjusted = estimate_probabilities(context, question, prob_schema, model)
     selected = []
     adjusted_list = adjusted.get('comorbidities', comorbidity_rules)
-    base_prob_map = {c['condition']: c['base_probability'] for c in comorbidity_rules}
     for item in adjusted_list:
         condition = item.get('condition', '')
+        prob = item.get('adjusted_probability', item.get('base_probability', 0))
         try:
-            raw_prob = float(item.get('adjusted_probability', item.get('base_probability', 0)))
-        except (ValueError, TypeError):
-            raw_prob = 0.1
-        base_p = float(base_prob_map.get(condition, raw_prob))
-        prob = max(base_p * 0.5, min(raw_prob, base_p * 2.0, 0.95))
+            prob = float(prob)
+        except (TypeError, ValueError):
+            prob = 0.0
         if sampler.boolean(prob):
             original = next(
                 (c for c in comorbidity_rules if c['condition'] == condition), {}
@@ -125,7 +123,6 @@ Also add conditional dependencies between comorbidities:
             })
 
     # Conditional modifiers: 한 질환이 다른 질환의 확률을 올리는 경우
-    # Uses base_probability (not LLM-adjusted) × multiplier to avoid double-counting
     conditions_present = {c['condition'].lower() for c in selected}
     for item in adjusted_list:
         condition = item.get('condition', '')
@@ -133,12 +130,15 @@ Also add conditional dependencies between comorbidities:
             continue
         for cm in comorbidity_rules:
             if cm['condition'] == condition:
-                for mod in cm.get('conditional_modifiers', []):
+                for mod in (cm.get('conditional_modifiers') or []):
                     trigger = mod.get('if_condition', '').lower()
                     for present in conditions_present:
                         if present in trigger:
-                            base_p = cm.get('base_probability', 0)
-                            extra_prob = base_p * mod.get('multiplier', 1)
+                            try:
+                                _ap = float(item.get('adjusted_probability', 0))
+                            except (TypeError, ValueError):
+                                _ap = 0.0
+                            extra_prob = _ap * float(mod.get('multiplier', 1))
                             if sampler.boolean(min(extra_prob, 0.95)):
                                 original = next(
                                     (c for c in comorbidity_rules if c['condition'] == condition), {}
@@ -352,7 +352,10 @@ def generate_patient(
 
     n_lesions_spec = disease_baseline.get('n_target_lesions', {})
     if n_lesions_spec:
-        n_lesions = int(sampler.sample_from_spec(n_lesions_spec))
+        raw = sampler.sample_from_spec(n_lesions_spec)
+        import re as _re
+        digits = _re.sub(r'[^\d]', '', str(raw))
+        n_lesions = int(digits) if digits else 3
         pre_disease['n_target_lesions'] = max(1, n_lesions)
 
     # Step 3: 기저값 생성 (LLM — 사전 샘플링된 질환값 반영)
@@ -370,14 +373,6 @@ def generate_patient(
         diagnosis = {}
     diagnosis.setdefault('primary', rule_set.get('indication', ''))
     diagnosis.setdefault('stage', '')
-
-    # Normalize target_lesion keys: LLM sometimes uses "site"/"location" instead of "tumor_site"
-    for lesion in diagnosis.get('target_lesions', []):
-        if isinstance(lesion, dict) and 'tumor_site' not in lesion:
-            for alt_key in ('site', 'location'):
-                if alt_key in lesion:
-                    lesion['tumor_site'] = lesion.pop(alt_key)
-                    break
 
     patient = {
         'patient_id': pid,
@@ -440,7 +435,6 @@ def map_patient_record(patient: dict) -> dict:
         'SEX': demo.get('sex'),
         'RACE': _normalize_race(demo.get('race', '')),
         'ETHNIC': 'NOT REPORTED',
-        'BRTHDAT': None,
     }
 
     mh_records = []

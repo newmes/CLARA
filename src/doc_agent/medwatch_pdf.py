@@ -272,11 +272,6 @@ def _build_page1_overlay(data: MedWatch3500A) -> bytes:
     if a.age:
         _draw_text(c, 106, 648, str(a.age))
         _draw_check(c, 132.8, 656)  # age_years checkbox
-    # DOB
-    day, mon, year = _date_parts(a.dob)
-    _draw_text(c, 111, 617, day, size=FONT_SMALL)
-    _draw_text(c, 135, 617, mon, size=FONT_SMALL)
-    _draw_text(c, 168, 617, year, size=FONT_SMALL)
     # Sex
     sex = (a.sex or "").lower()
     if sex in ("male", "m"):

@@ -1,0 +1,37 @@
+{
+  "model_id": "google/medgemma-1.5-4b-it",
+  "model_name": "MedGemma-1.5-4B",
+  "layer_idx": 20,
+  "top_k": 100,
+  "n_calibration_samples": 2000,
+  "n_self_calibration": 0,
+  "cv_auroc": 0.9862525000000002,
+  "cv_auroc_ci": 0.001243927971006985,
+  "cv_fold_aurocs": [
+    0.9858250000000001,
+    0.986175,
+    0.9880875,
+    0.98505,
+    0.986125
+  ],
+  "layer_results": {
+    "13": {
+      "auroc": 0.993709,
+      "depth_pct": 38.23529411764706
+    },
+    "20": {
+      "auroc": 0.998009,
+      "depth_pct": 58.82352941176471
+    },
+    "27": {
+      "auroc": 0.9942030000000001,
+      "depth_pct": 79.41176470588235
+    }
+  },
+  "thresholds": {
+    "low": 0.3,
+    "medium": 0.5,
+    "high": 0.7
+  },
+  "calibrated_at": "2026-02-12 16:55:01"
+}

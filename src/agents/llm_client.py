@@ -191,7 +191,7 @@ def generate_json(
                         result = json.loads(repaired)
                         _logger.warning(
                             f"[{agent}] JSON repaired (truncated output). "
-                            f"Original {len(raw)} chars."
+                            f"Original {out_chars} chars."
                         )
                         return result
                     except json.JSONDecodeError:
@@ -200,7 +200,7 @@ def generate_json(
                 # 복구 실패 → 재시도
                 _logger.warning(
                     f"[{agent}] JSON parse failed (attempt {attempt + 1}/{MAX_RETRIES}). "
-                    f"Raw length={len(raw)}"
+                    f"Raw length={out_chars}"
                 )
                 last_error = json.JSONDecodeError(
                     "LLM output is not valid JSON", raw[:200], 0

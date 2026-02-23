@@ -73,19 +73,9 @@ class Sampler:
         elif distribution == "uniform":
             val = self.rng.uniform(params.get("min", 0), params.get("max", 1))
         elif distribution == "lognormal":
-            mu = params.get("mu", None)
-            sigma = params.get("sigma", None)
-            if mu is None or sigma is None:
-                mean = params.get("mean", math.e)
-                std = params.get("std", mean * 0.5)
-                if mean > 0 and std > 0:
-                    sigma_sq = math.log(1 + (std / mean) ** 2)
-                    sigma = math.sqrt(sigma_sq)
-                    mu = math.log(mean) - sigma_sq / 2
-                else:
-                    mu = math.log(max(mean, 1))
-                    sigma = 0.5
-            val = self.rng.lognormvariate(mu, sigma)
+            val = self.rng.lognormvariate(
+                params.get("mu", 0), params.get("sigma", 1)
+            )
         elif distribution == "triangular":
             val = self.rng.triangular(
                 params.get("min", 0), params.get("max", 1), params.get("mode", 0.5)

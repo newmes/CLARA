@@ -1,0 +1,114 @@
+{
+  "administration_schedule": [
+    {
+      "drug_name": "Darbepoetin alfa",
+      "injection_volume_ml": 0.6
+    }
+  ],
+  "ae_profile": [
+    {
+      "ae_term": "nausea",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "neutropenia",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "vomiting",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "alopecia",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "thrombocytopenia",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "anorexia",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "constipation",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "fatigue",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "diarrhoea",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "insomnia",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "cough",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "anaemia",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "dyspnoea",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "leukopenia",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "asthenia",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "pyrexia",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "small_cell_lung_cancer_stage_unspecified",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "headache",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "non-cardiac_chest_pain",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "back_pain",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "abdominal_pain",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "hypertension",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "paraesthesia",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "cancer_pain",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "hypokalaemia",
+      "injection_site_specific": false
+    },
+    {
+      "ae_term": "injection_site_reaction",
+      "injection_site_specific": true
+    }
+  ]
+}
