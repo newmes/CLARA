@@ -374,7 +374,14 @@
   .lb-tooltip .tt-val { font-size: 1.2em; font-weight: 600; margin: 3px 0; }
   .lb-tooltip .tt-unit { font-size: 0.9em; color: var(--text-muted); }
   .lb-tooltip .tt-cs { font-size: 0.88em; margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--border); }
+  /* ── Chat-open: CRF table row hover ── */
+  .doc-container.chat-open .crf-table tbody tr { cursor: pointer; transition: outline .15s, box-shadow .15s; }
+  .doc-container.chat-open .crf-table tbody tr:hover {
+    outline: 1px solid rgba(88,166,255,.3);
+    box-shadow: 0 0 0 3px rgba(88,166,255,.08);
+  }
 </style>
+<link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
 {% endblock %}
 
 {% block nav_items %}
@@ -386,7 +393,6 @@
 
   <a href="{% url 'trial_viewer' run_id %}" title="Simulation"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><span>Sim</span></a>
   <a href="{% url 'crf_tables' run_id %}" class="sb-active" title="Data"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg><span>Data</span></a>
-  <a href="{% url 'compare_dashboard' run_id %}" title="A/B Test"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>A/B</span></a>
 </nav>
 {% endblock %}
 
@@ -397,6 +403,7 @@
     <a href="{% url 'crf_tables' run_id %}" class="tab-link active">CRF Tables</a>
     <a href="{% url 'statistical_analysis' run_id %}" class="tab-link">Statistical Analysis</a>
     <a href="{% url 'doc_hub' run_id %}" class="tab-link">SAE Reports</a>
+    <a href="{% url 'compare_dashboard' run_id %}" class="tab-link">A/B Comparison</a>
   </div>
 
   <!-- Header -->
@@ -559,6 +566,56 @@
   <!-- Pagination -->
   <div class="crf-pagination" id="pagination"></div>
 </div>
+
+{% include "includes/chatbot_panel.html" with chat_title="CRF Agent" chat_subtitle="medgemma-4b" %}
+<script src="{% static 'js/chatbot.js' %}"></script>
+<script>
+(function() {
+  var runId = "{{ run_id }}";
+  chatbot.init({
+    runId: runId,
+    endpoint: '/api/doc/' + runId + '/chat/',
+    pageType: 'crf',
+    suggestions: [
+      'How many Grade 3+ AEs?',
+      'Dose reduction pattern',
+      'Lab abnormalities',
+      'Patient disposition'
+    ],
+    getPageContext: function() {
+      var activeTab = document.querySelector('.domain-tab.active');
+      var domain = activeTab ? activeTab.dataset.domain || activeTab.textContent.trim().toLowerCase() : 'ae';
+      var modeBtn = document.querySelector('.ctrl-btn.active[data-mode]');
+      var mode = modeBtn ? modeBtn.dataset.mode : 'natural';
+      var patientSel = document.querySelector('.ctrl-select');
+      var patient = patientSel ? patientSel.value : '';
+      return { domain: domain, mode: mode, patient: patient };
+    },
+    clickToRef: function(e) {
+      if (e.target.closest('.domain-tab') || e.target.closest('.ctrl-btn') ||
+          e.target.closest('.ctrl-select') || e.target.closest('select') ||
+          e.target.closest('.btn-excel') || e.target.closest('.page-btn') ||
+          e.target.closest('a') || e.target.closest('.tab-bar') ||
+          e.target.closest('.tab-link') || e.target.closest('.lb-chart-controls')) {
+        return null;
+      }
+      var row = e.target.closest('.crf-table tbody tr');
+      if (row) {
+        var cells = row.querySelectorAll('td');
+        if (cells.length >= 3) {
+          var parts = [];
+          for (var i = 0; i < Math.min(cells.length, 4); i++) {
+            var txt = cells[i].textContent.trim();
+            if (txt) parts.push(txt);
+          }
+          return parts.join(' — ');
+        }
+      }
+      return null;
+    }
+  });
+})();
+</script>
 {% endblock %}
 
 {% block js_content %}

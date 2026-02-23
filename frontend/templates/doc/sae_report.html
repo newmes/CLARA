@@ -404,6 +404,7 @@
 @keyframes scaleIn { from { opacity:0; transform:scale(0.9); } to { opacity:1; transform:scale(1); } }
 @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
 </style>
+<link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
 {% endblock %}
 
 {% block run_sidebar %}
@@ -411,7 +412,6 @@
 
   <a href="{% url 'trial_viewer' run_id %}" title="Simulation"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><span>Sim</span></a>
   <a href="{% url 'crf_tables' run_id %}" class="sb-active" title="Data"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg><span>Data</span></a>
-  <a href="{% url 'compare_dashboard' run_id %}" title="A/B Test"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>A/B</span></a>
 </nav>
 {% endblock %}
 
@@ -810,6 +810,59 @@
 </div>
 
 {% endif %}
+
+{% include "includes/chatbot_panel.html" with chat_title="SAE Agent" chat_subtitle="medgemma-4b" %}
+<script src="{% static 'js/chatbot.js' %}"></script>
+<script>
+(function() {
+  var runId = "{{ run_id }}";
+  var patientId = "{{ patient_id }}";
+  var aeSlug = "{{ ae_slug }}";
+
+  chatbot.init({
+    runId: runId,
+    endpoint: '/api/doc/' + runId + '/chat/',
+    pageType: 'sae',
+    suggestions: [
+      'Is this AE drug-related?',
+      'Summarize this case',
+      'MedDRA coding?',
+      'Dechallenge analysis'
+    ],
+    getPageContext: function() {
+      return { patient_id: patientId, ae_slug: aeSlug };
+    },
+    clickToRef: function(e) {
+      if (e.target.closest('button') || e.target.closest('a') ||
+          e.target.closest('.tab-bar') || e.target.closest('.tab-link') ||
+          e.target.closest('.report-actions') || e.target.closest('select') ||
+          e.target.closest('input') || e.target.closest('textarea')) {
+        return null;
+      }
+      var fieldRow = e.target.closest('.field-row');
+      if (fieldRow) {
+        var label = fieldRow.querySelector('.field-label');
+        var input = fieldRow.querySelector('.field-input input, .field-input textarea, .field-input select');
+        if (label && input) {
+          var labelText = label.textContent.trim();
+          var value = input.value || input.textContent || '';
+          value = value.trim().substring(0, 120);
+          if (value) {
+            return labelText + ': ' + value;
+          }
+          return labelText;
+        }
+      }
+      var secHeader = e.target.closest('.form-section-header');
+      if (secHeader) {
+        var title = secHeader.querySelector('.sec-title, h3');
+        if (title) return 'Section: ' + title.textContent.trim();
+      }
+      return null;
+    }
+  });
+})();
+</script>
 {% endblock %}
 
 {% block js_content %}

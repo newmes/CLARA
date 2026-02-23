@@ -56,6 +56,7 @@
   }
   .btn-report-edit:hover { background: rgba(63,185,80,0.18); color: var(--accent-green); text-decoration: none; box-shadow: 0 4px 12px rgba(63,185,80,0.15); }
 </style>
+<link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
 {% endblock %}
 
 {% block nav_items %}
@@ -67,7 +68,6 @@
 
   <a href="{% url 'trial_viewer' run_id %}" title="Simulation"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><span>Sim</span></a>
   <a href="{% url 'crf_tables' run_id %}" class="sb-active" title="Data"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg><span>Data</span></a>
-  <a href="{% url 'compare_dashboard' run_id %}" title="A/B Test"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>A/B</span></a>
 </nav>
 {% endblock %}
 
@@ -78,6 +78,7 @@
     <a href="{% url 'crf_tables' run_id %}" class="tab-link">CRF Tables</a>
     <a href="{% url 'statistical_analysis' run_id %}" class="tab-link">Statistical Analysis</a>
     <a href="{% url 'doc_hub' run_id %}" class="tab-link active">SAE Reports</a>
+    <a href="{% url 'compare_dashboard' run_id %}" class="tab-link">A/B Comparison</a>
   </div>
 
   <div class="doc-header">
@@ -150,4 +151,37 @@
   </div>
   {% endif %}
 </div>
+
+{% include "includes/chatbot_panel.html" with chat_title="SAE Agent" chat_subtitle="medgemma-4b" %}
+
+<script src="{% static 'js/chatbot.js' %}"></script>
+<script>
+chatbot.init({
+  runId: "{{ run_id }}",
+  endpoint: '/api/doc/{{ run_id }}/chat/',
+  pageType: 'sae_hub',
+  suggestions: [
+    'How many SAEs total?',
+    'Most common SAE?',
+    'Grade distribution?',
+    'Which patients have SAEs?'
+  ],
+  getPageContext: function() {
+    return { mode: '{{ mode }}' };
+  },
+  clickToRef: function(e) {
+    var row = e.target.closest('.data-table tbody tr');
+    if (row) {
+      var cells = row.querySelectorAll('td');
+      if (cells.length >= 3) {
+        var pid = (cells[0].textContent || '').trim();
+        var ae = (cells[1].textContent || '').trim();
+        var grade = (cells[2].textContent || '').trim();
+        return '@[' + pid + ' — ' + ae + ', ' + grade + ']';
+      }
+    }
+    return null;
+  }
+});
+</script>
 {% endblock %}
