@@ -3110,26 +3110,31 @@ def api_doc_save(request):
     pdf_url = f"/api/doc/download/{run_id}/{patient_id}/{pdf_path.name}"
     xml_url = f"/api/doc/download/{run_id}/{patient_id}/{xml_path.name}"
 
-    # Auto-create status file if missing
+    # Update status file with refreshed MedDRA confidence
     from src.doc_agent.service import DOCS_OUTPUT_DIR as _DOCS_DIR
+    from datetime import datetime
     status_path = _DOCS_DIR / run_id / patient_id / f"report_status_{ae_slug}.json"
-    if not status_path.exists():
-        from datetime import datetime
-        status_path.parent.mkdir(parents=True, exist_ok=True)
+    status_path.parent.mkdir(parents=True, exist_ok=True)
+    if status_path.exists():
+        try:
+            status_data = json.loads(status_path.read_text(encoding="utf-8"))
+        except Exception:
+            status_data = {}
+    else:
         status_data = {
             "status": "draft",
             "ai_fields": {},
-            "meddra_confidence": None,
-            "meddra_source": None,
             "reviewed_by": None,
             "reviewed_at": None,
             "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat(),
         }
-        status_path.write_text(
-            json.dumps(status_data, indent=2, ensure_ascii=False),
-            encoding="utf-8",
-        )
+    status_data["meddra_confidence"] = meddra.confidence
+    status_data["meddra_source"] = meddra.source
+    status_data["updated_at"] = datetime.utcnow().isoformat()
+    status_path.write_text(
+        json.dumps(status_data, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
 
     return JsonResponse({
         "success": True,
@@ -3855,107 +3860,251 @@ _STATS_SYSTEM_PROMPT = (
     "You are CLARA's Statistical Analysis Assistant, an expert clinical trial biostatistician.\n"
     "You help researchers interpret CSR (Clinical Study Report) statistical results.\n\n"
     "Rules:\n"
-    "- Answer based ONLY on the provided statistics data. Do not fabricate numbers.\n"
+    "- Answer based ONLY on the provided statistics data below.\n"
+    "- NEVER fabricate, guess, or infer numbers that are not in the data.\n"
+    "- If the data does not contain enough information to answer, say \"The provided data does not include this information.\" Do NOT make up values.\n"
     "- Be concise (2-5 sentences) unless the user asks for detail.\n"
     "- Reference specific numbers and percentages from the data.\n"
     "- Use the same language as the user (Korean if asked in Korean, English if in English).\n"
-    "- If data is insufficient to answer, say so clearly.\n"
     "- You may explain statistical concepts (ORR, KM, hazard, p-value, etc.) when relevant.\n"
+    "- When user references data with @[...] tags, focus your answer on that specific data point.\n"
 )
 
 
 def _compact_stats(stats: dict, tab: str) -> str:
-    """Extract compact summary from full stats, prioritizing the active tab.
-    Target: <2500 chars to fit within 4096 token model context.
-    """
+    """Legacy: tab-based extraction. Use _retrieve_context() instead."""
+    return _retrieve_context(stats, "", tab)
+
+
+# ─── Keyword → section mapping for lightweight RAG ───
+_SECTION_KEYWORDS = {
+    "demographics": [
+        "age", "sex", "gender", "race", "ethnicity", "weight", "height", "bmi",
+        "demographic", "population", "patient characteristics", "baseline",
+        "나이", "성별", "인종", "체중", "환자 특성",
+    ],
+    "efficacy": [
+        "orr", "dcr", "response", "tumor", "waterfall", "survival", "pfs", "os",
+        "progression", "recist", "cr", "pr", "sd", "pd", "best response",
+        "time to response", "ttr", "duration of response", "dor",
+        "반응률", "종양", "생존", "효능",
+    ],
+    "safety": [
+        "ae", "adverse", "toxicity", "side effect", "safety", "grade",
+        "sae", "serious", "fatal",
+        "이상반응", "부작용", "독성", "안전",
+    ],
+    "safety_detail": [
+        "fatigue", "nausea", "diarrhea", "rash", "alopecia", "neuropathy",
+        "stomatitis", "pruritus", "hyperglycemia", "anemia", "pneumonitis",
+        "appetite", "infusion", "vomiting", "constipation", "pain",
+    ],
+    "treatment": [
+        "dose", "rdi", "interruption", "reduction", "modification", "discontinu",
+        "cycle", "duration", "administration", "drug",
+        "투여", "용량", "중단",
+    ],
+    "labs": [
+        "lab", "glucose", "hemoglobin", "platelet", "creatinine", "alt", "ast",
+        "bilirubin", "albumin", "sodium", "anc", "neutrophil", "blood",
+        "검사", "혈액",
+    ],
+    "ecog": [
+        "ecog", "performance status", "functional", "ps",
+        "수행능력",
+    ],
+    "conmeds": [
+        "concomitant", "medication", "conmed", "supportive", "steroid",
+        "병용약",
+    ],
+    "disposition": [
+        "disposition", "enrolled", "completed", "discontinued", "death", "dropout",
+        "withdrawal",
+        "등록", "완료", "중단", "사망",
+    ],
+}
+
+
+def _match_sections(message: str, tab: str) -> list:
+    """Return list of matched section names based on message keywords + active tab."""
+    msg_lower = message.lower()
+    scores = {}
+    for section, keywords in _SECTION_KEYWORDS.items():
+        score = sum(1 for kw in keywords if kw in msg_lower)
+        if score > 0:
+            scores[section] = score
+
+    # Always include the active tab
+    tab_to_section = {
+        "safety": "safety", "demographics": "demographics", "efficacy": "efficacy",
+        "labs": "labs", "ecog": "ecog", "conmeds": "conmeds",
+        "treatment": "treatment", "disposition": "disposition",
+    }
+    if tab in tab_to_section:
+        sec = tab_to_section[tab]
+        scores[sec] = scores.get(sec, 0) + 2  # boost active tab
+
+    # If safety_detail matched, ensure safety is also included
+    if "safety_detail" in scores:
+        scores["safety"] = scores.get("safety", 0) + scores["safety_detail"]
+
+    # If nothing matched, default to safety (most common)
+    if not scores:
+        scores["safety"] = 1
+
+    # Sort by score descending, return top sections
+    return [s for s, _ in sorted(scores.items(), key=lambda x: -x[1]) if s != "safety_detail"]
+
+
+def _extract_section(stats: dict, section: str, message: str) -> list:
+    """Extract formatted lines for a given section."""
     lines = []
+    msg_lower = message.lower()
 
-    # Always include high-level summary
-    disp = stats.get("disposition", {})
-    lines.append(f"Enrolled: {disp.get('enrolled',0)}, "
-                 f"Completed: {disp.get('completed',{}).get('n',0)} ({disp.get('completed',{}).get('pct',0)}%), "
-                 f"Discontinued: {disp.get('discontinued',{}).get('n',0)}, "
-                 f"Deaths: {disp.get('deaths',{}).get('n',0)}")
+    if section == "disposition":
+        disp = stats.get("disposition", {})
+        lines.append(f"[Disposition] Enrolled: {disp.get('enrolled',0)}, "
+                     f"Completed: {disp.get('completed',{}).get('n',0)} ({disp.get('completed',{}).get('pct',0)}%), "
+                     f"Discontinued: {disp.get('discontinued',{}).get('n',0)}, "
+                     f"Deaths: {disp.get('deaths',{}).get('n',0)}")
+        reasons = disp.get("reasons", {})
+        if reasons:
+            parts = [f"{k}: {v}" for k, v in reasons.items() if v]
+            if parts:
+                lines.append(f"  Reasons: {', '.join(parts)}")
 
-    # Efficacy KPIs
-    eff = stats.get("efficacy", {})
-    orr = eff.get("orr", {})
-    dcr = eff.get("dcr", {})
-    km_os = eff.get("km_os", {})
-    km_pfs = eff.get("km_pfs", {})
-    lines.append(f"ORR: {orr.get('pct',0)}%, DCR: {dcr.get('pct',0)}%, "
-                 f"Median OS: {km_os.get('median','NR')} days, "
-                 f"Median PFS: {km_pfs.get('median','NR')} days")
-
-    # Safety summary
-    safe = stats.get("safety", {})
-    sm = safe.get("summary", {})
-    lines.append(f"Any AE: {sm.get('any_ae',{}).get('pct',0)}%, "
-                 f"Grade>=3: {sm.get('grade_gte3',{}).get('pct',0)}%, "
-                 f"SAE: {sm.get('sae',{}).get('pct',0)}%, "
-                 f"Fatal: {sm.get('fatal',{}).get('pct',0)}%")
-
-    # Treatment summary
-    tx = stats.get("treatment", {})
-    lines.append(f"Median duration: {tx.get('duration',{}).get('median','?')} days, "
-                 f"Median cycles: {tx.get('cycles',{}).get('median','?')}, "
-                 f"Dose reduction: {tx.get('dose_reduction_all',{}).get('pct',0)}%, "
-                 f"Dose interruption: {tx.get('dose_interruption_all',{}).get('pct',0)}%")
-
-    # Tab-specific detail
-    if tab in ("safety", "") and safe.get("by_term"):
-        lines.append("\nTop AEs:")
-        for ae in safe["by_term"][:10]:
-            lines.append(f"  {ae['term']}: all={ae['all_grade']['pct']}%, "
-                         f"G3+={ae['grade_gte3']['pct']}%, "
-                         f"onset=Day {ae.get('onset_median','?')}")
-
-    if tab == "demographics":
+    elif section == "demographics":
         demo = stats.get("demographics", {})
         age = demo.get("age", {})
         if age:
-            lines.append(f"\nAge: mean={age.get('mean','?')} SD={age.get('std','?')}, "
-                         f"range={age.get('min','?')}-{age.get('max','?')}")
+            lines.append(f"[Demographics] Age: mean={age.get('mean','?')} SD={age.get('std','?')}, "
+                         f"median={age.get('median','?')}, range={age.get('min','?')}-{age.get('max','?')}")
         for cat_key in ("sex", "race", "ecog"):
             cat = demo.get(cat_key, {})
             if cat:
                 parts = [f"{k}={v.get('n',0)}({v.get('pct',0)}%)" for k, v in cat.items()]
-                lines.append(f"{cat_key.title()}: {', '.join(parts)}")
+                lines.append(f"  {cat_key.title()}: {', '.join(parts)}")
+        # BMI if asked
+        bmi = demo.get("bmi", {})
+        if bmi and any(kw in msg_lower for kw in ("bmi", "weight", "체중")):
+            lines.append(f"  BMI: mean={bmi.get('mean','?')} SD={bmi.get('std','?')}, "
+                         f"range={bmi.get('min','?')}-{bmi.get('max','?')}")
 
-    if tab == "efficacy":
+    elif section == "efficacy":
+        eff = stats.get("efficacy", {})
+        orr = eff.get("orr", {})
+        dcr = eff.get("dcr", {})
+        km_os = eff.get("km_os", {})
+        km_pfs = eff.get("km_pfs", {})
+        lines.append(f"[Efficacy] ORR: {orr.get('pct',0)}% (n={orr.get('n',0)}, "
+                     f"CI: {orr.get('ci','?')}), DCR: {dcr.get('pct',0)}%")
+        lines.append(f"  Median OS: {km_os.get('median','NR')} days, "
+                     f"Median PFS: {km_pfs.get('median','NR')} days")
         br = eff.get("best_response", {})
         if br:
             parts = [f"{k}={v.get('n',0)}({v.get('pct',0)}%)" for k, v in br.items()]
-            lines.append(f"\nBest response: {', '.join(parts)}")
+            lines.append(f"  Best response: {', '.join(parts)}")
         ttr = eff.get("time_to_response", {})
-        dor = eff.get("dor", {})
         if ttr.get("n"):
-            lines.append(f"TTR: median={ttr.get('median','?')} days (n={ttr['n']})")
+            lines.append(f"  TTR: median={ttr.get('median','?')} days (n={ttr['n']})")
+        dor = eff.get("dor", {})
         if dor.get("n"):
-            lines.append(f"DoR: median={dor.get('median','NR')} days, events={dor.get('events',0)}")
+            lines.append(f"  DoR: median={dor.get('median','NR')} days, events={dor.get('events',0)}")
+        # Waterfall individual data if asked
+        wf = eff.get("waterfall", [])
+        if wf and any(kw in msg_lower for kw in ("waterfall", "tumor change", "pd ", "pr ", "cr ", "종양")):
+            lines.append("  Waterfall (per patient):")
+            for w in wf:
+                lines.append(f"    {w.get('pid','?')}: {w.get('change',0)}% ({w.get('response','?')})")
 
-    if tab == "labs":
+    elif section == "safety":
+        safe = stats.get("safety", {})
+        sm = safe.get("summary", {})
+        lines.append(f"[Safety] Any AE: {sm.get('any_ae',{}).get('pct',0)}%, "
+                     f"Grade>=3: {sm.get('grade_gte3',{}).get('pct',0)}% (n={sm.get('grade_gte3',{}).get('n',0)}), "
+                     f"SAE: {sm.get('sae',{}).get('pct',0)}%, Fatal: {sm.get('fatal',{}).get('pct',0)}%")
+        by_term = safe.get("by_term", [])
+        # Check if user asks about a specific AE
+        specific_aes = [ae for ae in by_term
+                        if ae["term"].replace("_", " ") in msg_lower
+                        or ae["term"].replace("_", "") in msg_lower.replace(" ", "")]
+        if specific_aes:
+            for ae in specific_aes:
+                gd = ae.get("grade_dist", {})
+                gd_str = ", ".join(f"G{g}={n}" for g, n in sorted(gd.items()) if int(n) > 0)
+                lines.append(f"  {ae['term']}: all={ae['all_grade']['pct']}% (n={ae['all_grade']['n']}), "
+                             f"G3+={ae['grade_gte3']['pct']}%, onset=Day {ae.get('onset_median','?')} "
+                             f"(IQR: {ae.get('onset_iqr','?')}), grades: {gd_str}")
+        else:
+            # Top 10 AEs summary
+            lines.append("  Top AEs:")
+            for ae in by_term[:10]:
+                lines.append(f"    {ae['term']}: all={ae['all_grade']['pct']}%, "
+                             f"G3+={ae['grade_gte3']['pct']}%, onset=Day {ae.get('onset_median','?')}")
+
+    elif section == "treatment":
+        tx = stats.get("treatment", {})
+        lines.append(f"[Treatment] Duration: median={tx.get('duration',{}).get('median','?')} days, "
+                     f"Cycles: median={tx.get('cycles',{}).get('median','?')}")
+        lines.append(f"  Dose reduction: {tx.get('dose_reduction_all',{}).get('pct',0)}%, "
+                     f"Dose interruption: {tx.get('dose_interruption_all',{}).get('pct',0)}%, "
+                     f"Discontinuation: {tx.get('discontinuation_all',{}).get('pct',0)}%")
+        # Per-drug detail
+        per_drug = tx.get("per_drug", {})
+        for drug_name, drug_data in per_drug.items():
+            admins = drug_data.get("n_admins", {})
+            rdi = drug_data.get("rdi_median", "?")
+            lines.append(f"  {drug_name}: admins median={admins.get('median','?')} "
+                         f"(range {admins.get('min','?')}-{admins.get('max','?')}), RDI={rdi}%")
+
+    elif section == "labs":
         abn = stats.get("labs", {}).get("abnormalities", {})
         if abn:
-            lines.append("\nLab abnormalities:")
-            for test, v in list(abn.items())[:8]:
+            lines.append("[Labs] Abnormalities:")
+            for test, v in abn.items():
                 lines.append(f"  {test}: any={v.get('any_pct',0)}%, G3+={v.get('g3_pct',0)}%")
 
-    if tab == "ecog":
+    elif section == "ecog":
         ec = stats.get("ecog_shift", {})
         sm_ec = ec.get("summary", {})
         if sm_ec:
-            lines.append(f"\nECOG: improved={sm_ec.get('improved',{}).get('pct',0)}%, "
-                         f"stable={sm_ec.get('stable',{}).get('pct',0)}%, "
-                         f"worsened={sm_ec.get('worsened',{}).get('pct',0)}%")
+            lines.append(f"[ECOG Shift] Improved: {sm_ec.get('improved',{}).get('pct',0)}%, "
+                         f"Stable: {sm_ec.get('stable',{}).get('pct',0)}%, "
+                         f"Worsened: {sm_ec.get('worsened',{}).get('pct',0)}%")
+        # Individual shifts
+        patients = ec.get("patients", [])
+        if patients and any(kw in msg_lower for kw in ("shift", "individual", "patient", "detail")):
+            for p in patients[:10]:
+                lines.append(f"  {p.get('pid','?')}: {p.get('baseline',0)} → {p.get('worst',0)} → {p.get('last',0)}")
 
-    if tab == "conmeds":
+    elif section == "conmeds":
         cm = stats.get("concomitant_meds", {})
         tbl = cm.get("table", [])
         if tbl:
-            lines.append(f"\nConcomitant meds ({cm.get('total_unique_meds',0)} unique):")
-            for m in tbl[:8]:
-                lines.append(f"  {m['medication']}: {m['n']}({m['pct']}%)")
+            lines.append(f"[Concomitant Meds] {cm.get('total_unique_meds',0)} unique medications:")
+            for m in tbl[:10]:
+                lines.append(f"  {m['medication']}: {m['n']} ({m['pct']}%)")
+
+    return lines
+
+
+def _retrieve_context(stats: dict, message: str, tab: str) -> str:
+    """Keyword-based retrieval: select relevant sections from stats based on message content.
+    Target: <2500 chars to fit within 4096 token model context.
+    """
+    sections = _match_sections(message, tab)
+
+    lines = []
+    total_chars = 0
+    char_budget = 2400
+
+    for section in sections:
+        section_lines = _extract_section(stats, section, message)
+        section_text = "\n".join(section_lines)
+        if total_chars + len(section_text) > char_budget and lines:
+            break  # budget exceeded, stop adding sections
+        lines.extend(section_lines)
+        total_chars += len(section_text) + 1
 
     return "\n".join(lines)
 
@@ -3998,14 +4147,15 @@ def api_stats_chat(request, run_id: str):
     indication = rule_set.get("indication") or meta.get("indication", "")
     n_patients = len(_list_patients(run_path))
 
-    # Build compact context — 4B model has 4096 token limit
-    compact = _compact_stats(stats, tab)
+    # Keyword-based retrieval — select relevant sections from stats
+    matched_sections = _match_sections(message, tab)
+    compact = _retrieve_context(stats, message, tab)
     context_block = (
         f"Drug: {drug_name} | Indication: {indication} | "
         f"Mode: {mode} | N={n_patients}\n\n{compact}"
     )
 
-    # Put context in user message (not system) to save tokens
+    # Put context in system message
     context_msg = _STATS_SYSTEM_PROMPT + "\n---\nData:\n" + context_block
 
     # Build messages for vLLM — keep history minimal
@@ -4017,6 +4167,17 @@ def api_stats_chat(request, run_id: str):
         messages.append({"role": role, "content": msg.get("content", "")})
     messages.append({"role": "user", "content": message})
 
+    # Build query metadata for debug view
+    query_meta = {
+        "source": f"csr_stats_{mode}.json",
+        "model": _STATS_CHAT_MODEL,
+        "matched_sections": matched_sections,
+        "tab": tab or "(none)",
+        "context_data": compact,
+        "history_turns": len(history) // 2,
+        "message": message,
+    }
+
     # Call vLLM
     if not _STATS_CHAT_URL:
         return JsonResponse({"error": "vLLM not configured (CTE_VLLM_BASE_URL)"}, status=500)
@@ -4024,8 +4185,9 @@ def api_stats_chat(request, run_id: str):
     payload = {
         "model": _STATS_CHAT_MODEL,
         "messages": messages,
-        "max_tokens": 512,
+        "max_tokens": 1024,
         "temperature": 0.3,
+        "repetition_penalty": 1.15,
     }
     body_bytes = json.dumps(payload).encode("utf-8")
     req = Request(
@@ -4040,9 +4202,345 @@ def api_stats_chat(request, run_id: str):
             data = json.loads(resp.read().decode("utf-8"))
         latency_ms = round((time.time() - t0) * 1000)
         answer = data["choices"][0]["message"]["content"]
-        return JsonResponse({"response": answer, "latency_ms": latency_ms})
+        # Strip thinking tags leaked by the model (e.g. <unused94>thought...<unused95>)
+        import re as _re
+        answer = _re.sub(r'<unused\d+>.*?<unused\d+>', '', answer, flags=_re.DOTALL).strip()
+        return JsonResponse({
+            "response": answer,
+            "latency_ms": latency_ms,
+            "query": query_meta,
+        })
     except (URLError, OSError, json.JSONDecodeError, TimeoutError, KeyError) as exc:
         logging.warning("Stats chat vLLM call failed: %s", exc)
+        return JsonResponse({"error": f"LLM call failed: {exc}"}, status=500)
+
+
+# ─── Unified Doc Chat API ────────────────────────────────────
+
+_CRF_SYSTEM_PROMPT = (
+    "You are CLARA's CRF Data Assistant, an expert clinical data manager.\n"
+    "You help researchers explore CRF (Case Report Form) tabular data.\n\n"
+    "Rules:\n"
+    "- Answer based ONLY on the provided CRF data below.\n"
+    "- NEVER fabricate data not present in the provided rows.\n"
+    "- Be concise (2-5 sentences) unless asked for detail.\n"
+    "- Reference specific patient IDs, values, and counts from the data.\n"
+    "- Use the same language as the user.\n"
+    "- When user references data with @[...] tags, focus on that specific record.\n"
+)
+
+_SAE_SYSTEM_PROMPT = (
+    "You are CLARA's SAE Report Assistant, an expert in pharmacovigilance and MedWatch reporting.\n"
+    "You help researchers analyze Serious Adverse Event reports.\n\n"
+    "Rules:\n"
+    "- Answer based ONLY on the provided MedWatch/SAE data below.\n"
+    "- NEVER fabricate information not in the data.\n"
+    "- Be concise (2-5 sentences) unless asked for detail.\n"
+    "- Reference specific form sections, dates, and clinical details.\n"
+    "- Use the same language as the user.\n"
+    "- When user references data with @[...] tags, focus on that specific field.\n"
+)
+
+
+def _build_stats_chat_context(run_path, body, drug_name, indication, n_patients, message):
+    """Build context for stats page chat."""
+    mode = body.get("mode", "natural")
+    tab = body.get("tab", "")
+    cache_path = run_path / "validation" / f"csr_stats_{mode}.json"
+    if not cache_path.exists():
+        return JsonResponse({"error": "Stats not computed yet."}, status=400), None, None
+    with open(cache_path) as f:
+        stats = json.load(f)
+    matched_sections = _match_sections(message, tab)
+    compact = _retrieve_context(stats, message, tab)
+    context_block = (
+        f"Drug: {drug_name} | Indication: {indication} | "
+        f"Mode: {mode} | N={n_patients}\n\n{compact}"
+    )
+    query_meta = {
+        "source": f"csr_stats_{mode}.json",
+        "model": _STATS_CHAT_MODEL,
+        "matched_sections": matched_sections,
+        "tab": tab or "(none)",
+        "context_data": compact,
+        "history_turns": len(body.get("history", [])) // 2,
+        "message": message,
+    }
+    return context_block, _STATS_SYSTEM_PROMPT, query_meta
+
+
+def _build_crf_chat_context(run_path, body, drug_name, indication, n_patients, message):
+    """Build context for CRF tables page chat."""
+    domain = body.get("domain", "ae")
+    mode = body.get("mode", "natural")
+    patient = body.get("patient", "")
+
+    patient_ids = [patient] if patient else None
+    try:
+        rows, total, columns = aggregate_domain(
+            domain, run_path, patient_ids, mode, "hr", 1, 20)
+    except Exception:
+        rows, total, columns = [], 0, []
+
+    lines = [f"Drug: {drug_name} | Indication: {indication} | Mode: {mode} | N={n_patients}"]
+    lines.append(f"Domain: {domain.upper()} | Total rows: {total}")
+    lines.append(f"Columns: {', '.join(c.get('label', c.get('key', '')) for c in columns[:8])}")
+    lines.append("")
+
+    key_cols = columns[:6]
+    if rows:
+        header = " | ".join(c.get("label", c.get("key", "")) for c in key_cols)
+        lines.append(header)
+        lines.append("-" * len(header))
+        for row in rows[:20]:
+            vals = []
+            for c in key_cols:
+                v = row.get(c.get("key", ""), "")
+                vals.append(str(v)[:30])
+            lines.append(" | ".join(vals))
+
+    context_block = "\n".join(lines)
+    if len(context_block) > 2400:
+        context_block = context_block[:2400] + "\n...(truncated)"
+
+    query_meta = {
+        "source": f"CRF/{domain.upper()}",
+        "model": _STATS_CHAT_MODEL,
+        "matched_sections": [domain.upper()],
+        "tab": domain,
+        "context_data": context_block,
+        "history_turns": len(body.get("history", [])) // 2,
+        "message": message,
+    }
+    return context_block, _CRF_SYSTEM_PROMPT, query_meta
+
+
+def _build_sae_chat_context(run_path, body, drug_name, indication, n_patients, message):
+    """Build context for SAE report page chat."""
+    patient_id = body.get("patient_id", "")
+    ae_slug = body.get("ae_slug", "")
+
+    from src.doc_agent.service import DOCS_OUTPUT_DIR
+    json_path = DOCS_OUTPUT_DIR / run_path.name / patient_id / f"medwatch_data_{ae_slug}.json"
+
+    if not json_path.exists():
+        return JsonResponse({"error": "SAE data not found. Generate the report first."}, status=400), None, None
+
+    try:
+        mw = json.loads(json_path.read_text(encoding="utf-8"))
+    except Exception as e:
+        return JsonResponse({"error": f"Failed to load SAE data: {e}"}, status=500), None, None
+
+    lines = [f"Drug: {drug_name} | Indication: {indication} | Patient: {patient_id}"]
+    lines.append(f"AE: {ae_slug.replace('_', ' ')}")
+    lines.append("")
+
+    # Section A: Patient Info
+    a = mw.get("section_a", mw.get("A", {}))
+    if a:
+        lines.append("=== Section A: Patient ===")
+        for k in ["age", "sex", "weight", "ethnicity"]:
+            if k in a:
+                lines.append(f"  {k}: {a[k]}")
+
+    # Section B: Adverse Event
+    b = mw.get("section_b", mw.get("B", {}))
+    if b:
+        lines.append("=== Section B: Adverse Event ===")
+        for k in ["event_description", "onset_date", "outcome", "serious_criteria", "narrative"]:
+            v = b.get(k, "")
+            if v:
+                lines.append(f"  {k}: {str(v)[:400]}")
+
+    # Section C: Suspect Product
+    c = mw.get("section_c", mw.get("C", {}))
+    if c:
+        lines.append("=== Section C: Suspect Product ===")
+        for k in ["product_name", "dose", "route", "indication", "start_date", "stop_date", "dechallenge", "rechallenge"]:
+            v = c.get(k, "")
+            if v:
+                lines.append(f"  {k}: {v}")
+
+    # MedDRA coding
+    meddra = mw.get("meddra", mw.get("MedDRA", {}))
+    if meddra:
+        lines.append("=== MedDRA Coding ===")
+        for k, v in meddra.items():
+            if v:
+                lines.append(f"  {k}: {v}")
+
+    context_block = "\n".join(lines)
+    if len(context_block) > 2400:
+        context_block = context_block[:2400] + "\n...(truncated)"
+
+    query_meta = {
+        "source": f"medwatch_data_{ae_slug}.json",
+        "model": _STATS_CHAT_MODEL,
+        "matched_sections": ["A", "B", "C", "MedDRA"],
+        "tab": ae_slug,
+        "context_data": context_block,
+        "history_turns": len(body.get("history", [])) // 2,
+        "message": message,
+    }
+    return context_block, _SAE_SYSTEM_PROMPT, query_meta
+
+
+def _build_sae_hub_chat_context(run_path, body, drug_name, indication, n_patients, message):
+    """Build context for SAE hub listing page chat — summarises all SAEs."""
+    from src.doc_agent.sim_to_crf_adapter import find_serious_aes
+
+    mode = body.get("mode", "natural")
+    patient_ids = _list_patients(run_path)
+
+    lines = [f"Drug: {drug_name} | Indication: {indication} | Patients: {n_patients}"]
+    lines.append("")
+    lines.append("=== All Serious Adverse Events ===")
+
+    sae_rows = []
+    for pid in patient_ids:
+        profile, records = _load_patient_data(run_path, pid, mode)
+        if not records:
+            continue
+        saes = find_serious_aes(records)
+        for sae in saes:
+            ae = sae["ae_record"]
+            sae_rows.append({
+                "patient": pid,
+                "term": ae.get("AETERM", ""),
+                "grade": ae.get("_grade", 0),
+                "day": sae["day"],
+                "action": ae.get("AEACN", ""),
+                "serious": ae.get("AESER", False),
+            })
+
+    if not sae_rows:
+        lines.append("No serious adverse events found in this run.")
+    else:
+        lines.append(f"Total SAEs: {len(sae_rows)}")
+        lines.append(f"Affected patients: {len(set(r['patient'] for r in sae_rows))}")
+        lines.append("")
+        lines.append("Patient | AE Term | Grade | Onset | Action")
+        lines.append("--------|---------|-------|-------|-------")
+        for r in sae_rows[:40]:  # cap at 40 rows for context budget
+            lines.append(f"{r['patient']} | {r['term']} | G{r['grade']} | Day {r['day']} | {r['action'] or '—'}")
+
+    context_block = "\n".join(lines)
+    # Truncate to ~2.4KB
+    if len(context_block) > 2400:
+        context_block = context_block[:2400] + "\n... (truncated)"
+
+    system_prompt = (
+        "You are CLARA's SAE Overview Assistant, an expert in pharmacovigilance.\n"
+        "You help researchers analyze the overall SAE profile of a clinical trial run.\n\n"
+        "Rules:\n"
+        "- Answer based ONLY on the provided SAE listing data below.\n"
+        "- NEVER fabricate information not in the data.\n"
+        "- Be concise (2-5 sentences) unless asked for detail.\n"
+        "- Reference specific patients, AE terms, grades, and onset days.\n"
+        "- Use the same language as the user.\n"
+        "- When user references data with @[...] tags, focus on that specific row.\n"
+    )
+
+    query_meta = {
+        "page_type": "sae_hub",
+        "mode": mode,
+        "sae_count": len(sae_rows),
+        "message": message,
+    }
+    return context_block, system_prompt, query_meta
+
+
+@csrf_exempt
+def api_doc_chat(request, run_id: str):
+    """Unified chat API — routes to page-specific context builders."""
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    message = body.get("message", "").strip()
+    if not message:
+        return JsonResponse({"error": "Empty message"}, status=400)
+
+    page_type = body.get("page_type", "stats")
+    history = body.get("history", [])
+
+    run_path = _get_run_path(run_id)
+    if not run_path.exists():
+        return JsonResponse({"error": "Run not found"}, status=404)
+
+    # Load common metadata
+    rule_set = _load_rule_set(run_path)
+    meta = _load_run_meta(run_path)
+    drug_name = rule_set.get("drug_name") or meta.get("drug_name", "Unknown")
+    indication = rule_set.get("indication") or meta.get("indication", "")
+    n_patients = len(_list_patients(run_path))
+
+    # Route to context builder
+    if page_type == "stats":
+        context_block, system_prompt, query_meta = _build_stats_chat_context(
+            run_path, body, drug_name, indication, n_patients, message)
+    elif page_type == "crf":
+        context_block, system_prompt, query_meta = _build_crf_chat_context(
+            run_path, body, drug_name, indication, n_patients, message)
+    elif page_type == "sae":
+        context_block, system_prompt, query_meta = _build_sae_chat_context(
+            run_path, body, drug_name, indication, n_patients, message)
+    elif page_type == "sae_hub":
+        context_block, system_prompt, query_meta = _build_sae_hub_chat_context(
+            run_path, body, drug_name, indication, n_patients, message)
+    else:
+        return JsonResponse({"error": f"Unknown page_type: {page_type}"}, status=400)
+
+    if isinstance(context_block, JsonResponse):
+        return context_block  # Error response from builder
+
+    # Build LLM messages
+    full_system = system_prompt + "\n---\nData:\n" + context_block
+    messages = [{"role": "system", "content": full_system}]
+    for msg in history[-4:]:
+        role = msg.get("role", "user")
+        if role == "model":
+            role = "assistant"
+        messages.append({"role": role, "content": msg.get("content", "")})
+    messages.append({"role": "user", "content": message})
+
+    # Call vLLM
+    if not _STATS_CHAT_URL:
+        return JsonResponse({"error": "vLLM not configured (CTE_VLLM_BASE_URL)"}, status=500)
+
+    payload = {
+        "model": _STATS_CHAT_MODEL,
+        "messages": messages,
+        "max_tokens": 1024,
+        "temperature": 0.3,
+        "repetition_penalty": 1.15,
+    }
+    body_bytes = json.dumps(payload).encode("utf-8")
+    req = Request(
+        f"{_STATS_CHAT_URL}/chat/completions",
+        data=body_bytes,
+        headers={"Content-Type": "application/json", "Authorization": "Bearer EMPTY"},
+        method="POST",
+    )
+    try:
+        t0 = time.time()
+        with urlopen(req, timeout=120) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        latency_ms = round((time.time() - t0) * 1000)
+        answer = data["choices"][0]["message"]["content"]
+        import re as _re
+        answer = _re.sub(r'<unused\d+>.*?<unused\d+>', '', answer, flags=_re.DOTALL).strip()
+        return JsonResponse({
+            "response": answer,
+            "latency_ms": latency_ms,
+            "query": query_meta,
+        })
+    except (URLError, OSError, json.JSONDecodeError, TimeoutError, KeyError) as exc:
+        logging.warning("Doc chat vLLM call failed: %s", exc)
         return JsonResponse({"error": f"LLM call failed: {exc}"}, status=500)
 
 

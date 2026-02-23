@@ -112,6 +112,19 @@ _ALIASES: dict[str, str] = {
     "qt prolongation": "electrocardiogram qt prolonged",
     "peripheral neuropathy": "peripheral sensory neuropathy",
     "mucositis": "mucosal inflammation",
+    # US → UK spelling (MedDRA uses British English)
+    "hyperglycemia": "hyperglycaemia",
+    "hypercalcemia": "hypercalcaemia",
+    "hyperkalemia": "hyperkalaemia",
+    "hyperbilirubinemia": "hyperbilirubinaemia",
+    "hyperuricemia": "hyperuricaemia",
+    "hypoalbuminemia": "hypoalbuminaemia",
+    "hypocalcemia": "hypocalcaemia",
+    "hypomagnesemia": "hypomagnesaemia",
+    "hyponatremia": "hyponatraemia",
+    "hypophosphatemia": "hypophosphataemia",
+    "leukemia": "acute myeloid leukaemia",
+    "bacteremia": "bacteraemia",
 }
 
 
