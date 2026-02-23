@@ -3846,6 +3846,206 @@ def api_stats_data(request, run_id: str):
     return JsonResponse(stats, json_dumps_params={"ensure_ascii": False})
 
 
+# ─── Stats Chatbot ──────────────────────────────────────────
+
+_STATS_CHAT_URL = os.environ.get("CTE_VLLM_BASE_URL", "").rstrip("/")
+_STATS_CHAT_MODEL = os.environ.get("CTE_VLLM_MODEL_ID", "medgemma-4b-antihallu")
+
+_STATS_SYSTEM_PROMPT = (
+    "You are CLARA's Statistical Analysis Assistant, an expert clinical trial biostatistician.\n"
+    "You help researchers interpret CSR (Clinical Study Report) statistical results.\n\n"
+    "Rules:\n"
+    "- Answer based ONLY on the provided statistics data. Do not fabricate numbers.\n"
+    "- Be concise (2-5 sentences) unless the user asks for detail.\n"
+    "- Reference specific numbers and percentages from the data.\n"
+    "- Use the same language as the user (Korean if asked in Korean, English if in English).\n"
+    "- If data is insufficient to answer, say so clearly.\n"
+    "- You may explain statistical concepts (ORR, KM, hazard, p-value, etc.) when relevant.\n"
+)
+
+
+def _compact_stats(stats: dict, tab: str) -> str:
+    """Extract compact summary from full stats, prioritizing the active tab.
+    Target: <2500 chars to fit within 4096 token model context.
+    """
+    lines = []
+
+    # Always include high-level summary
+    disp = stats.get("disposition", {})
+    lines.append(f"Enrolled: {disp.get('enrolled',0)}, "
+                 f"Completed: {disp.get('completed',{}).get('n',0)} ({disp.get('completed',{}).get('pct',0)}%), "
+                 f"Discontinued: {disp.get('discontinued',{}).get('n',0)}, "
+                 f"Deaths: {disp.get('deaths',{}).get('n',0)}")
+
+    # Efficacy KPIs
+    eff = stats.get("efficacy", {})
+    orr = eff.get("orr", {})
+    dcr = eff.get("dcr", {})
+    km_os = eff.get("km_os", {})
+    km_pfs = eff.get("km_pfs", {})
+    lines.append(f"ORR: {orr.get('pct',0)}%, DCR: {dcr.get('pct',0)}%, "
+                 f"Median OS: {km_os.get('median','NR')} days, "
+                 f"Median PFS: {km_pfs.get('median','NR')} days")
+
+    # Safety summary
+    safe = stats.get("safety", {})
+    sm = safe.get("summary", {})
+    lines.append(f"Any AE: {sm.get('any_ae',{}).get('pct',0)}%, "
+                 f"Grade>=3: {sm.get('grade_gte3',{}).get('pct',0)}%, "
+                 f"SAE: {sm.get('sae',{}).get('pct',0)}%, "
+                 f"Fatal: {sm.get('fatal',{}).get('pct',0)}%")
+
+    # Treatment summary
+    tx = stats.get("treatment", {})
+    lines.append(f"Median duration: {tx.get('duration',{}).get('median','?')} days, "
+                 f"Median cycles: {tx.get('cycles',{}).get('median','?')}, "
+                 f"Dose reduction: {tx.get('dose_reduction_all',{}).get('pct',0)}%, "
+                 f"Dose interruption: {tx.get('dose_interruption_all',{}).get('pct',0)}%")
+
+    # Tab-specific detail
+    if tab in ("safety", "") and safe.get("by_term"):
+        lines.append("\nTop AEs:")
+        for ae in safe["by_term"][:10]:
+            lines.append(f"  {ae['term']}: all={ae['all_grade']['pct']}%, "
+                         f"G3+={ae['grade_gte3']['pct']}%, "
+                         f"onset=Day {ae.get('onset_median','?')}")
+
+    if tab == "demographics":
+        demo = stats.get("demographics", {})
+        age = demo.get("age", {})
+        if age:
+            lines.append(f"\nAge: mean={age.get('mean','?')} SD={age.get('std','?')}, "
+                         f"range={age.get('min','?')}-{age.get('max','?')}")
+        for cat_key in ("sex", "race", "ecog"):
+            cat = demo.get(cat_key, {})
+            if cat:
+                parts = [f"{k}={v.get('n',0)}({v.get('pct',0)}%)" for k, v in cat.items()]
+                lines.append(f"{cat_key.title()}: {', '.join(parts)}")
+
+    if tab == "efficacy":
+        br = eff.get("best_response", {})
+        if br:
+            parts = [f"{k}={v.get('n',0)}({v.get('pct',0)}%)" for k, v in br.items()]
+            lines.append(f"\nBest response: {', '.join(parts)}")
+        ttr = eff.get("time_to_response", {})
+        dor = eff.get("dor", {})
+        if ttr.get("n"):
+            lines.append(f"TTR: median={ttr.get('median','?')} days (n={ttr['n']})")
+        if dor.get("n"):
+            lines.append(f"DoR: median={dor.get('median','NR')} days, events={dor.get('events',0)}")
+
+    if tab == "labs":
+        abn = stats.get("labs", {}).get("abnormalities", {})
+        if abn:
+            lines.append("\nLab abnormalities:")
+            for test, v in list(abn.items())[:8]:
+                lines.append(f"  {test}: any={v.get('any_pct',0)}%, G3+={v.get('g3_pct',0)}%")
+
+    if tab == "ecog":
+        ec = stats.get("ecog_shift", {})
+        sm_ec = ec.get("summary", {})
+        if sm_ec:
+            lines.append(f"\nECOG: improved={sm_ec.get('improved',{}).get('pct',0)}%, "
+                         f"stable={sm_ec.get('stable',{}).get('pct',0)}%, "
+                         f"worsened={sm_ec.get('worsened',{}).get('pct',0)}%")
+
+    if tab == "conmeds":
+        cm = stats.get("concomitant_meds", {})
+        tbl = cm.get("table", [])
+        if tbl:
+            lines.append(f"\nConcomitant meds ({cm.get('total_unique_meds',0)} unique):")
+            for m in tbl[:8]:
+                lines.append(f"  {m['medication']}: {m['n']}({m['pct']}%)")
+
+    return "\n".join(lines)
+
+
+@csrf_exempt
+def api_stats_chat(request, run_id: str):
+    """Chat API for statistical analysis — answers questions using vLLM."""
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    message = body.get("message", "").strip()
+    if not message:
+        return JsonResponse({"error": "Empty message"}, status=400)
+
+    mode = body.get("mode", "natural")
+    tab = body.get("tab", "")
+    history = body.get("history", [])
+
+    # Load cached stats
+    run_path = _get_run_path(run_id)
+    if not run_path.exists():
+        return JsonResponse({"error": "Run not found"}, status=404)
+
+    cache_path = run_path / "validation" / f"csr_stats_{mode}.json"
+    if not cache_path.exists():
+        return JsonResponse({"error": "Stats not computed yet. Load the stats page first."}, status=400)
+
+    with open(cache_path) as f:
+        stats = json.load(f)
+
+    # Load run metadata
+    rule_set = _load_rule_set(run_path)
+    meta = _load_run_meta(run_path)
+    drug_name = rule_set.get("drug_name") or meta.get("drug_name", "Unknown")
+    indication = rule_set.get("indication") or meta.get("indication", "")
+    n_patients = len(_list_patients(run_path))
+
+    # Build compact context — 4B model has 4096 token limit
+    compact = _compact_stats(stats, tab)
+    context_block = (
+        f"Drug: {drug_name} | Indication: {indication} | "
+        f"Mode: {mode} | N={n_patients}\n\n{compact}"
+    )
+
+    # Put context in user message (not system) to save tokens
+    context_msg = _STATS_SYSTEM_PROMPT + "\n---\nData:\n" + context_block
+
+    # Build messages for vLLM — keep history minimal
+    messages = [{"role": "system", "content": context_msg}]
+    for msg in history[-4:]:  # last 2 turns
+        role = msg.get("role", "user")
+        if role == "model":
+            role = "assistant"
+        messages.append({"role": role, "content": msg.get("content", "")})
+    messages.append({"role": "user", "content": message})
+
+    # Call vLLM
+    if not _STATS_CHAT_URL:
+        return JsonResponse({"error": "vLLM not configured (CTE_VLLM_BASE_URL)"}, status=500)
+
+    payload = {
+        "model": _STATS_CHAT_MODEL,
+        "messages": messages,
+        "max_tokens": 512,
+        "temperature": 0.3,
+    }
+    body_bytes = json.dumps(payload).encode("utf-8")
+    req = Request(
+        f"{_STATS_CHAT_URL}/chat/completions",
+        data=body_bytes,
+        headers={"Content-Type": "application/json", "Authorization": "Bearer EMPTY"},
+        method="POST",
+    )
+    try:
+        t0 = time.time()
+        with urlopen(req, timeout=120) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        latency_ms = round((time.time() - t0) * 1000)
+        answer = data["choices"][0]["message"]["content"]
+        return JsonResponse({"response": answer, "latency_ms": latency_ms})
+    except (URLError, OSError, json.JSONDecodeError, TimeoutError, KeyError) as exc:
+        logging.warning("Stats chat vLLM call failed: %s", exc)
+        return JsonResponse({"error": f"LLM call failed: {exc}"}, status=500)
+
+
 # ─── Rule Set Generation: GT vs Predicted Comparison ────────
 _RULESET_DIR = Path(settings.BASE_DIR).parent / "src" / "ruleset_generation"
 

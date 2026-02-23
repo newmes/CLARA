@@ -11,6 +11,7 @@ services:
       - ./data:/app/data
       - ./frontend:/app/frontend
       - ./src:/app/src
+      - ./validation:/app/validation
     environment:
       CTE_VLLM_BASE_URL: "http://clara-medgemma4b-antihallu:8000/v1"
       CTE_VLLM_MODEL_ID: "medgemma-4b-antihallu"
@@ -19,6 +20,7 @@ services:
       MEDGEMMA4B_MODEL_ID: "medgemma-4b-finetuned"
       MEDGEMMA4B_BASE_VLLM_BASE_URL: "http://clara-medgemma4b-base:8000/v1"
       MEDGEMMA4B_BASE_MODEL_ID: "medgemma-1.5-4b-it"
+      GOOGLE_API_KEY: "${GOOGLE_API_KEY}"
       PYTHONPATH: "/app"
     networks:
       - vital-net

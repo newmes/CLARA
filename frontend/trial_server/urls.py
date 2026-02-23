@@ -123,6 +123,8 @@ urlpatterns = [
          views.statistical_analysis, name="statistical_analysis"),
     path("api/stats/<str:run_id>/",
          views.api_stats_data, name="api_stats_data"),
+    path("api/stats/<str:run_id>/chat/",
+         views.api_stats_chat, name="api_stats_chat"),
 
     # Multimodal Enhance API
     path('api/multimodal/enhance',
