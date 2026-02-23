@@ -19,7 +19,6 @@ services:
       MEDGEMMA4B_MODEL_ID: "medgemma-4b-finetuned"
       MEDGEMMA4B_BASE_VLLM_BASE_URL: "http://clara-medgemma4b-base:8000/v1"
       MEDGEMMA4B_BASE_MODEL_ID: "medgemma-1.5-4b-it"
-      ANTIHALLU_SERVER_URL: "http://clara-antihallu:8000"
       PYTHONPATH: "/app"
     networks:
       - vital-net
