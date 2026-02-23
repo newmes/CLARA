@@ -1,0 +1,16 @@
+{
+  "administration_schedule": [
+    {
+      "drug_name": "Paclitaxel",
+      "infusion_duration_minutes": 0
+    },
+    {
+      "drug_name": "Cisplatin",
+      "infusion_duration_minutes": 0
+    },
+    {
+      "drug_name": "Etoposide",
+      "infusion_duration_minutes": 0
+    }
+  ]
+}

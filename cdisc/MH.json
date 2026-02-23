@@ -1,0 +1,44 @@
+{
+  "domain": "MH",
+  "domain_name": "Medical History CRF",
+  "core_fields": [
+    {
+      "field": "MHDAT",
+      "label": "수집일",
+      "type": "date",
+      "required": false
+    },
+    {
+      "field": "MHTERM",
+      "label": "병력명",
+      "type": "text",
+      "required": true
+    },
+    {
+      "field": "MHSTDAT",
+      "label": "시작일",
+      "type": "date",
+      "required": false
+    },
+    {
+      "field": "MHONGO",
+      "label": "진행중 여부",
+      "type": "boolean",
+      "required": false
+    },
+    {
+      "field": "MHENDAT",
+      "label": "종료일",
+      "type": "date",
+      "required": false
+    }
+  ],
+  "metadata_fields": [
+    {
+      "field": "MHYN",
+      "label": "과거병력 여부",
+      "type": "boolean",
+      "required": false
+    }
+  ]
+}

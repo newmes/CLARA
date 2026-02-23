@@ -12,8 +12,12 @@ urlpatterns = [
     # Demo pages
     path('demo/anti-hallucination/',
          views.demo_anti_hallucination, name='demo_anti_hallucination'),
-    path('demo/medgemma/',
+    path('demo/care-agent/',
+         views.demo_care_agent, name='demo_care_agent'),
+    path('demo/care-agent/vision/',
          views.demo_medgemma, name='demo_medgemma'),
+    path('demo/care-agent/live/',
+         views.demo_care_agent, name='demo_care_agent_live'),
     path('demo/hazard/',
          views.demo_hazard, name='demo_hazard'),
 
@@ -49,26 +53,13 @@ urlpatterns = [
     path('api/map/<str:run_id>/tilemap/',
          views.api_map_tilemap, name='api_map_tilemap'),
 
-    # Game — landing & play
-    path('game/<str:run_id>/',
-         views.game_landing, name='game_landing'),
-
-    # Game — play
-    path('game/<str:run_id>/<str:patient_id>/',
-         views.game_play, name='game_play'),
-
-    # Game API
-    path('api/game/start', views.api_game_start, name='api_game_start'),
-    path('api/game/advance', views.api_game_advance, name='api_game_advance'),
-    path('api/game/greet', views.api_game_greet, name='api_game_greet'),
-    path('api/game/chat', views.api_game_chat, name='api_game_chat'),
-    path('api/game/end-chat', views.api_game_end_chat, name='api_game_end_chat'),
-    path('api/game/skip', views.api_game_skip, name='api_game_skip'),
-    path('api/game/reveal/<str:session_id>/',
-         views.api_game_reveal, name='api_game_reveal'),
-    path('api/game/debrief', views.api_game_debrief, name='api_game_debrief'),
-    path('api/game/copilot', views.api_game_copilot, name='api_game_copilot'),
-    path('api/game/sessions', views.api_game_sessions, name='api_game_sessions'),
+    # Care Agent API
+    path('api/care-agent/run/',
+         views.api_care_agent_run, name='api_care_agent_run'),
+    path('api/care-agent/patients/',
+         views.api_care_agent_patients, name='api_care_agent_patients'),
+    path('api/care-agent/media/<str:media_type>/<path:filename>',
+         views.api_care_agent_media, name='api_care_agent_media'),
 
     # Compare dashboard
     path('compare/<str:run_id>/',
@@ -126,4 +117,28 @@ urlpatterns = [
          views.api_crf_excel_download, name='api_crf_excel_download'),
     path('api/crf/<str:run_id>/<str:domain>/',
          views.api_crf_domain_data, name='api_crf_domain_data'),
+
+    # Statistical Analysis (CSR)
+    path("doc/<str:run_id>/stats/",
+         views.statistical_analysis, name="statistical_analysis"),
+    path("api/stats/<str:run_id>/",
+         views.api_stats_data, name="api_stats_data"),
+
+    # Multimodal Enhance API
+    path('api/multimodal/enhance',
+         views.api_multimodal_enhance, name='api_multimodal_enhance'),
+
+    # Rule Set Generation
+    path('demo/ruleset/',
+         views.demo_ruleset_generation, name='demo_ruleset_generation'),
+    path('api/ruleset/drugs/',
+         views.api_ruleset_drugs, name='api_ruleset_drugs'),
+    path('api/ruleset/compare-all/',
+         views.api_ruleset_compare_all, name='api_ruleset_compare_all'),
+    path('api/ruleset/compare/<str:drug_id>/',
+         views.api_ruleset_compare, name='api_ruleset_compare'),
+    path('api/ruleset/generate/',
+         views.api_ruleset_generate, name='api_ruleset_generate'),
+    path('api/ruleset/generate/status/<str:job_id>/',
+         views.api_ruleset_generate_status, name='api_ruleset_generate_status'),
 ]

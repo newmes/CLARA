@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "iv_monotherapy.json",
+  "title": "Rule Set — IV Monotherapy",
+  "description": "정맥주사 단일요법 (e.g., Pembrolizumab 단독, Docetaxel 단독).",
+  "_examples": [
+    "Pembrolizumab 200mg Q3W (방광암 2L, 폐암 1L PD-L1≥50%)",
+    "Nivolumab 240mg Q2W (신세포암, 흑색종)",
+    "Docetaxel 75mg/m² Q3W (폐암 2L)",
+    "Trastuzumab 6mg/kg Q3W (유방암 HER2+)"
+  ],
+  "_differs_from_base": "administration_schedule가 1개 항목만 가짐. 나머지 base.json과 동일.",
+
+  "allOf": [
+    { "$ref": "base.json" },
+    {
+      "properties": {
+        "administration_schedule": {
+          "minItems": 1,
+          "maxItems": 1,
+          "items": {
+            "required": ["infusion_duration_minutes"],
+            "properties": {
+              "route": { "const": "INTRAVENOUS" },
+              "infusion_duration_minutes": {
+                "type": "number",
+                "description": "주입 시간 (분). IV 약물 필수."
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+}

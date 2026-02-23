@@ -1,0 +1,201 @@
+{
+  "domain": "AE",
+  "domain_name": "Adverse Event CRF",
+  "core_fields": [
+    {
+      "field": "AETERM",
+      "label": "이상반응명",
+      "type": "text",
+      "required": true
+    },
+    {
+      "field": "AESTDAT",
+      "label": "시작일",
+      "type": "date",
+      "required": true
+    },
+    {
+      "field": "AEONGO",
+      "label": "진행중 여부",
+      "type": "boolean",
+      "required": false
+    },
+    {
+      "field": "AEENDAT",
+      "label": "종료일",
+      "type": "date",
+      "required": false
+    },
+    {
+      "field": "AESEV",
+      "label": "중증도",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "MILD",
+          "label": "Mild",
+          "label_ko": "경증"
+        },
+        {
+          "value": "MODERATE",
+          "label": "Moderate",
+          "label_ko": "중등도"
+        },
+        {
+          "value": "SEVERE",
+          "label": "Severe",
+          "label_ko": "중증"
+        }
+      ]
+    },
+    {
+      "field": "AESER",
+      "label": "중대한 이상반응 여부",
+      "type": "boolean",
+      "required": false
+    },
+    {
+      "field": "AESDTH",
+      "label": "사망 초래",
+      "type": "boolean",
+      "required": false
+    },
+    {
+      "field": "AESLIFE",
+      "label": "생명 위협",
+      "type": "boolean",
+      "required": false
+    },
+    {
+      "field": "AESHOSP",
+      "label": "입원/입원연장",
+      "type": "boolean",
+      "required": false
+    },
+    {
+      "field": "AESDISAB",
+      "label": "장애/후유증",
+      "type": "boolean",
+      "required": false
+    },
+    {
+      "field": "AESCONG",
+      "label": "선천성 기형",
+      "type": "boolean",
+      "required": false
+    },
+    {
+      "field": "AESMIE",
+      "label": "기타 의학적 중요 사건",
+      "type": "boolean",
+      "required": false
+    },
+    {
+      "field": "AEREL",
+      "label": "시험약과의 인과관계",
+      "type": "boolean",
+      "required": true
+    },
+    {
+      "field": "AEACN",
+      "label": "시험약 조치사항",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "DOSE INCREASED",
+          "label": "Dose Increased",
+          "label_ko": "용량 증가"
+        },
+        {
+          "value": "DOSE NOT CHANGED",
+          "label": "Dose Not Changed",
+          "label_ko": "용량 유지"
+        },
+        {
+          "value": "DOSE RATE REDUCED",
+          "label": "Dose Rate Reduced",
+          "label_ko": "투여속도 감소"
+        },
+        {
+          "value": "DOSE REDUCED",
+          "label": "Dose Reduced",
+          "label_ko": "용량 감소"
+        },
+        {
+          "value": "DRUG INTERRUPTED",
+          "label": "Drug Interrupted",
+          "label_ko": "일시 중단"
+        },
+        {
+          "value": "DRUG WITHDRAWN",
+          "label": "Drug Withdrawn",
+          "label_ko": "투약 중단"
+        },
+        {
+          "value": "NOT APPLICABLE",
+          "label": "Not Applicable",
+          "label_ko": "해당없음"
+        },
+        {
+          "value": "UNKNOWN",
+          "label": "Unknown",
+          "label_ko": "알수없음"
+        }
+      ]
+    },
+    {
+      "field": "AEACNOTH",
+      "label": "기타 조치사항",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "AEOUT",
+      "label": "결과",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "FATAL",
+          "label": "Fatal",
+          "label_ko": "사망"
+        },
+        {
+          "value": "NOT RECOVERED/NOT RESOLVED",
+          "label": "Not Recovered or Not Resolved",
+          "label_ko": "미회복/미해결"
+        },
+        {
+          "value": "RECOVERED/RESOLVED",
+          "label": "Recovered or Resolved",
+          "label_ko": "회복/해결"
+        },
+        {
+          "value": "RECOVERED/RESOLVED WITH SEQUELAE",
+          "label": "Recovered or Resolved with Sequelae",
+          "label_ko": "후유증 동반 회복"
+        },
+        {
+          "value": "RECOVERING/RESOLVING",
+          "label": "Recovering or Resolving",
+          "label_ko": "회복중"
+        },
+        {
+          "value": "UNKNOWN",
+          "label": "Unknown",
+          "label_ko": "알수없음"
+        }
+      ]
+    }
+  ],
+  "metadata_fields": [
+    {
+      "field": "AEYN",
+      "label": "이상반응 발생 여부",
+      "type": "boolean",
+      "required": false
+    }
+  ]
+}

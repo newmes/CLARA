@@ -1,0 +1,267 @@
+{
+  "domain": "TU/TR",
+  "domain_name": "TU/TR",
+  "core_fields": [
+    {
+      "field": "TULNKID",
+      "label": "병변 연결 ID",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "TULOC",
+      "label": "병변 위치",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "BREAST",
+          "label": "Breast",
+          "label_ko": "Breast"
+        },
+        {
+          "value": "CHEST",
+          "label": "Chest",
+          "label_ko": "Chest"
+        },
+        {
+          "value": "KIDNEY",
+          "label": "Kidney",
+          "label_ko": "Kidney"
+        },
+        {
+          "value": "LIVER",
+          "label": "Liver",
+          "label_ko": "Liver"
+        },
+        {
+          "value": "NECK",
+          "label": "Neck",
+          "label_ko": "Neck"
+        }
+      ]
+    },
+    {
+      "field": "TULAT",
+      "label": "좌/우",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "LEFT",
+          "label": "Left",
+          "label_ko": "Left"
+        },
+        {
+          "value": "RIGHT",
+          "label": "Right",
+          "label_ko": "Right"
+        },
+        {
+          "value": "BILATERAL",
+          "label": "Bilateral",
+          "label_ko": "Bilateral"
+        }
+      ]
+    },
+    {
+      "field": "TUDIR",
+      "label": "병변 방향",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "DISTAL",
+          "label": "Distal",
+          "label_ko": "말단"
+        },
+        {
+          "value": "INTERMEDIATE",
+          "label": "Intermediate",
+          "label_ko": "중간"
+        },
+        {
+          "value": "PROXIMAL",
+          "label": "Proximal",
+          "label_ko": "근위"
+        },
+        {
+          "value": "INNER",
+          "label": "Inner",
+          "label_ko": "내측"
+        },
+        {
+          "value": "OUTER",
+          "label": "Outer",
+          "label_ko": "외측"
+        }
+      ]
+    },
+    {
+      "field": "TULOCDTL",
+      "label": "병변 위치 상세",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "TUMETHOD",
+      "label": "평가 방법",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "CT SCAN",
+          "label": "CT Scan",
+          "label_ko": "CT Scan"
+        },
+        {
+          "value": "DUCTOGRAPHY",
+          "label": "Ductography",
+          "label_ko": "Ductography"
+        },
+        {
+          "value": "DXA SCAN",
+          "label": "DXA Scan",
+          "label_ko": "DXA Scan"
+        },
+        {
+          "value": "ECHOCARDIOGRAPHY",
+          "label": "Echocardiography",
+          "label_ko": "Echocardiography"
+        },
+        {
+          "value": "ENDOSCOPY",
+          "label": "Endoscopy",
+          "label_ko": "Endoscopy"
+        },
+        {
+          "value": "MAMMOGRAPHY",
+          "label": "Mammography",
+          "label_ko": "Mammography"
+        },
+        {
+          "value": "MRI",
+          "label": "MRI",
+          "label_ko": "MRI"
+        },
+        {
+          "value": "MUGA",
+          "label": "MUGA",
+          "label_ko": "MUGA"
+        },
+        {
+          "value": "PET SCAN",
+          "label": "PET Scan",
+          "label_ko": "PET Scan"
+        },
+        {
+          "value": "PET/CT SCAN",
+          "label": "PET/CT Scan",
+          "label_ko": "PET/CT Scan"
+        },
+        {
+          "value": "PET/MRI SCAN",
+          "label": "PET/MRI Scan",
+          "label_ko": "PET/MRI Scan"
+        },
+        {
+          "value": "ULTRASOUND",
+          "label": "Ultrasound",
+          "label_ko": "Ultrasound"
+        },
+        {
+          "value": "X-RAY",
+          "label": "X-Ray",
+          "label_ko": "X-Ray"
+        }
+      ]
+    },
+    {
+      "field": "TUDAT",
+      "label": "평가일",
+      "type": "date",
+      "required": false
+    },
+    {
+      "field": "TUEVAL",
+      "label": "평가자",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "INDEPENDENT ASSESSOR",
+          "label": "Independent Assessor",
+          "label_ko": "독립 평가자"
+        },
+        {
+          "value": "INVESTIGATOR",
+          "label": "Investigator",
+          "label_ko": "연구자"
+        }
+      ]
+    },
+    {
+      "field": "TUEVALID",
+      "label": "평가자 ID",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "RADIOLOGIST 1",
+          "label": "Radiologist 1",
+          "label_ko": "영상의학과 의사 1"
+        },
+        {
+          "value": "RADIOLOGIST 2",
+          "label": "Radiologist 2",
+          "label_ko": "영상의학과 의사 2"
+        },
+        {
+          "value": "RADIOLOGIST 3",
+          "label": "Radiologist 3",
+          "label_ko": "영상의학과 의사 3"
+        }
+      ]
+    },
+    {
+      "field": "TRORRES",
+      "label": "표적병변 측정값",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "TRORRESU",
+      "label": "표적병변 측정 단위",
+      "type": "float",
+      "required": false,
+      "unit": "mm"
+    },
+    {
+      "field": "TRSTAT",
+      "label": "미수행",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "NOT DONE",
+          "label": "Not Done",
+          "label_ko": "수행 안됨"
+        }
+      ]
+    },
+    {
+      "field": "TRREASND",
+      "label": "미수행 사유",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "metadata_fields": [
+    {
+      "field": "TUYN",
+      "label": "병변 식별 여부",
+      "type": "boolean",
+      "required": false
+    }
+  ]
+}

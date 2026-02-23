@@ -1,0 +1,16 @@
+{
+  "administration_schedule": [
+    {
+      "drug_name": "Paclitaxel",
+      "infusion_duration_minutes": 0
+    },
+    {
+      "drug_name": "Carboplatin",
+      "infusion_duration_minutes": 0
+    },
+    {
+      "drug_name": "Bevacizumab",
+      "infusion_duration_minutes": 0
+    }
+  ]
+}

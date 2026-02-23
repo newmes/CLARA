@@ -1,0 +1,271 @@
+{
+  "domain": "VS",
+  "domain_name": "Vital Signs CRF",
+  "core_fields": [
+    {
+      "field": "VSPERF",
+      "label": "활력징후 수행 여부",
+      "type": "boolean",
+      "required": false
+    },
+    {
+      "field": "SYSBP_VSORRES",
+      "label": "수축기 혈압",
+      "type": "float",
+      "required": false
+    },
+    {
+      "field": "VSDAT",
+      "label": "측정일",
+      "type": "date",
+      "required": false
+    },
+    {
+      "field": "DIABP_VSORRES",
+      "label": "이완기 혈압",
+      "type": "float",
+      "required": false
+    },
+    {
+      "field": "HEIGHT_VSORRES",
+      "label": "키",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "WEIGHT_VSORRES",
+      "label": "체중",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "PULSE_VSORRES",
+      "label": "맥박",
+      "type": "float",
+      "required": false
+    },
+    {
+      "field": "RESP_VSORRES",
+      "label": "호흡수",
+      "type": "float",
+      "required": false
+    },
+    {
+      "field": "TEMP_VSORRES",
+      "label": "체온",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "metadata_fields": [
+    {
+      "field": "SYSBP_VSORRESU",
+      "label": "수축기 혈압 단위",
+      "type": "float",
+      "required": true,
+      "unit": "mmHg"
+    },
+    {
+      "field": "DIABP_VSORRESU",
+      "label": "이완기 혈압 단위",
+      "type": "float",
+      "required": true,
+      "unit": "mmHg"
+    },
+    {
+      "field": "BP_VSPOS",
+      "label": "혈압 측정 자세",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "PRONE",
+          "label": "Prone",
+          "label_ko": "Prone"
+        },
+        {
+          "value": "SEMI-RECUMBENT",
+          "label": "Semi-Recumbent",
+          "label_ko": "Semi-Recumbent"
+        },
+        {
+          "value": "SITTING",
+          "label": "Sitting",
+          "label_ko": "Sitting"
+        },
+        {
+          "value": "STANDING",
+          "label": "Standing",
+          "label_ko": "Standing"
+        },
+        {
+          "value": "SUPINE",
+          "label": "Supine",
+          "label_ko": "Supine"
+        }
+      ]
+    },
+    {
+      "field": "BP_VSLOC",
+      "label": "혈압 측정 위치",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "BRACHIAL ARTERY",
+          "label": "Brachial Artery",
+          "label_ko": "Brachial Artery"
+        },
+        {
+          "value": "FINGER",
+          "label": "Finger",
+          "label_ko": "Finger"
+        },
+        {
+          "value": "PERIPHERAL ARTERY",
+          "label": "Peripheral Artery",
+          "label_ko": "Peripheral Artery"
+        },
+        {
+          "value": "RADIAL ARTERY",
+          "label": "Radial Artery",
+          "label_ko": "Radial Artery"
+        }
+      ]
+    },
+    {
+      "field": "HEIGHT_VSORRESU",
+      "label": "키 단위",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "cm",
+          "label": "Centimeter",
+          "label_ko": "Centimeter"
+        },
+        {
+          "value": "in",
+          "label": "Inch",
+          "label_ko": "Inch"
+        }
+      ]
+    },
+    {
+      "field": "WEIGHT_VSORRESU",
+      "label": "체중 단위",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "kg",
+          "label": "Kilogram",
+          "label_ko": "Kilogram"
+        },
+        {
+          "value": "LB",
+          "label": "Pound",
+          "label_ko": "Pound"
+        }
+      ]
+    },
+    {
+      "field": "PULSE_VSORRESU",
+      "label": "맥박 단위",
+      "type": "float",
+      "required": true,
+      "unit": "beats/min"
+    },
+    {
+      "field": "PULSE_VSLOC",
+      "label": "맥박 측정 위치",
+      "type": "text",
+      "required": true,
+      "values": [
+        {
+          "value": "BRACHIAL ARTERY",
+          "label": "Brachial Artery",
+          "label_ko": "Brachial Artery"
+        },
+        {
+          "value": "CAROTID ARTERY",
+          "label": "Carotid Artery",
+          "label_ko": "Carotid Artery"
+        },
+        {
+          "value": "CEREBRAL ARTERY",
+          "label": "Cerebral Artery",
+          "label_ko": "Cerebral Artery"
+        },
+        {
+          "value": "DORSALIS PEDIS ARTERY",
+          "label": "Dorsalis Pedis Artery",
+          "label_ko": "Dorsalis Pedis Artery"
+        },
+        {
+          "value": "FEMORAL ARTERY",
+          "label": "Femoral Artery",
+          "label_ko": "Femoral Artery"
+        },
+        {
+          "value": "PERIPHERAL ARTERY",
+          "label": "Peripheral Artery",
+          "label_ko": "Peripheral Artery"
+        }
+      ]
+    },
+    {
+      "field": "RESP_VSORRESU",
+      "label": "호흡수 단위",
+      "type": "float",
+      "required": true,
+      "unit": "breaths/min"
+    },
+    {
+      "field": "TEMP_VSORRESU",
+      "label": "체온 단위",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "C",
+          "label": "Celsius",
+          "label_ko": "Celsius"
+        },
+        {
+          "value": "F",
+          "label": "Fahrenheit",
+          "label_ko": "Fahrenheit"
+        }
+      ]
+    },
+    {
+      "field": "TEMP_VSLOC",
+      "label": "체온 측정 위치",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "AXILLA",
+          "label": "Axilla",
+          "label_ko": "Axilla"
+        },
+        {
+          "value": "EAR",
+          "label": "Ear",
+          "label_ko": "Ear"
+        },
+        {
+          "value": "FOREHEAD",
+          "label": "Forehead",
+          "label_ko": "Forehead"
+        },
+        {
+          "value": "ORAL CAVITY",
+          "label": "Oral Cavity",
+          "label_ko": "Oral Cavity"
+        }
+      ]
+    }
+  ]
+}

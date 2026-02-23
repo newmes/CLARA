@@ -1,0 +1,76 @@
+{
+  "domain": "EG",
+  "domain_name": "EG Central CRF",
+  "core_fields": [
+    {
+      "field": "EGPERF",
+      "label": "심전도 수행 여부",
+      "type": "boolean",
+      "required": true
+    },
+    {
+      "field": "EGREFID",
+      "label": "검사 식별번호",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "EGMETHOD",
+      "label": "검사 방법",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "12 LEAD STANDARD",
+          "label": "12 LEAD STANDARD",
+          "label_ko": "12 LEAD STANDARD"
+        },
+        {
+          "value": "HOLTER CONTINUOUS ECG RECORDING",
+          "label": "HOLTER CONTINUOUS ECG RECORDING",
+          "label_ko": "HOLTER CONTINUOUS ECG RECORDING"
+        }
+      ]
+    },
+    {
+      "field": "EGPOS",
+      "label": "측정 자세",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "SITTING",
+          "label": "Sitting",
+          "label_ko": "Sitting"
+        },
+        {
+          "value": "STANDING",
+          "label": "Standing",
+          "label_ko": "Standing"
+        },
+        {
+          "value": "SUPINE",
+          "label": "Supine",
+          "label_ko": "Supine"
+        },
+        {
+          "value": "SEMI-RECUMBENT",
+          "label": "Semi-Recumbent",
+          "label_ko": "Semi-Recumbent"
+        },
+        {
+          "value": "SEMI-FOWLERS",
+          "label": "Semi-Fowler's",
+          "label_ko": "Semi-Fowler's"
+        }
+      ]
+    },
+    {
+      "field": "EGDAT",
+      "label": "심전도 검사일",
+      "type": "date",
+      "required": false
+    }
+  ],
+  "metadata_fields": []
+}

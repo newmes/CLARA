@@ -1,0 +1,136 @@
+{
+  "domain": "DM",
+  "domain_name": "Demographics CRF",
+  "core_fields": [
+    {
+      "field": "BRTHDAT",
+      "label": "생년월일",
+      "type": "date",
+      "required": false
+    },
+    {
+      "field": "AGE",
+      "label": "나이",
+      "type": "integer",
+      "required": false
+    },
+    {
+      "field": "AGEU",
+      "label": "나이 단위",
+      "type": "float",
+      "required": false,
+      "unit": "years"
+    },
+    {
+      "field": "SEX",
+      "label": "성별",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "F",
+          "label": "Female",
+          "label_ko": "Female"
+        },
+        {
+          "value": "M",
+          "label": "Male",
+          "label_ko": "Male"
+        },
+        {
+          "value": "U",
+          "label": "Unknown",
+          "label_ko": "Unknown"
+        },
+        {
+          "value": "UNDIFFERENTIATED",
+          "label": "Undifferentiated",
+          "label_ko": "Undifferentiated"
+        }
+      ]
+    },
+    {
+      "field": "ETHNIC",
+      "label": "민족",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "HISPANIC OR LATINO",
+          "label": "Hispanic or Latino",
+          "label_ko": "Hispanic or Latino"
+        },
+        {
+          "value": "NOT HISPANIC OR LATINO",
+          "label": "Not Hispanic or Latino",
+          "label_ko": "Not Hispanic or Latino"
+        },
+        {
+          "value": "NOT REPORTED",
+          "label": "Not Reported",
+          "label_ko": "Not Reported"
+        },
+        {
+          "value": "UNKNOWN",
+          "label": "Unknown",
+          "label_ko": "알수없음"
+        }
+      ]
+    },
+    {
+      "field": "RACE",
+      "label": "인종",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "AMERICAN INDIAN OR ALASKA NATIVE",
+          "label": "American Indian or Alaska Native",
+          "label_ko": "American Indian or Alaska Native"
+        },
+        {
+          "value": "ASIAN",
+          "label": "Asian",
+          "label_ko": "Asian"
+        },
+        {
+          "value": "BLACK OR AFRICAN AMERICAN",
+          "label": "Black or African American",
+          "label_ko": "Black or African American"
+        },
+        {
+          "value": "NATIVE HAWAIIAN OR OTHER PACIFIC ISLANDER",
+          "label": "Native Hawaiian or Other Pacific Islander",
+          "label_ko": "Native Hawaiian or Other Pacific Islander"
+        },
+        {
+          "value": "WHITE",
+          "label": "White",
+          "label_ko": "White"
+        },
+        {
+          "value": "NOT REPORTED",
+          "label": "Not Reported",
+          "label_ko": "Not Reported"
+        },
+        {
+          "value": "UNKNOWN",
+          "label": "Unknown",
+          "label_ko": "알수없음"
+        },
+        {
+          "value": "OTHER",
+          "label": "Other",
+          "label_ko": "Other"
+        }
+      ]
+    },
+    {
+      "field": "RACEOTH",
+      "label": "인종 기타",
+      "type": "text",
+      "required": false
+    }
+  ],
+  "metadata_fields": []
+}

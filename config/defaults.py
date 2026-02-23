@@ -904,3 +904,34 @@ IO_MAX_CYCLES: int = 35
 
 # J-5. AE 재발 hazard 배수 (해소 후 재발 시 원래 hazard의 N%)
 AE_RECURRENCE_HAZARD_MULT: float = 0.5
+
+
+# ─── Normalize helpers (used by experiments) ─────────────────
+
+_CANONICAL_LAB_NAMES: dict[str, str] = {
+    "anc": "ANC", "wbc": "WBC", "alt": "ALT", "ast": "AST",
+    "tsh": "TSH", "hba1c": "HbA1c", "ldh": "LDH", "egfr": "eGFR",
+    "alanine_aminotransferase": "ALT", "alanine aminotransferase": "ALT",
+    "aspartate_aminotransferase": "AST", "aspartate aminotransferase": "AST",
+    "sgpt": "ALT", "sgot": "AST",
+    "bilirubin": "total_bilirubin", "total bilirubin": "total_bilirubin",
+    "tbil": "total_bilirubin", "direct_bilirubin": "total_bilirubin",
+    "glucose": "glucose_fasting", "fasting_glucose": "glucose_fasting",
+    "fasting glucose": "glucose_fasting", "blood_glucose": "glucose_fasting",
+    "hgb": "hemoglobin", "hb": "hemoglobin", "haemoglobin": "hemoglobin",
+    "hemoglobin a1c": "HbA1c", "hemoglobin_a1c": "HbA1c",
+    "glycated_hemoglobin": "HbA1c", "glycated hemoglobin": "HbA1c", "a1c": "HbA1c",
+    "absolute_neutrophil_count": "ANC", "white_blood_cell": "WBC",
+    "white blood cell": "WBC", "plt": "platelets", "platelet": "platelets",
+    "platelet_count": "platelets", "creat": "creatinine",
+    "na": "sodium", "k": "potassium", "uric acid": "uric_acid",
+}
+
+
+def normalize_lab_key(key: str) -> str:
+    low = key.strip().lower()
+    return _CANONICAL_LAB_NAMES.get(low, key)
+
+
+def normalize_ae_term(term: str) -> str:
+    return term.strip().lower().replace(" ", "_").replace("-", "_")

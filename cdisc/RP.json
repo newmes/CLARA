@@ -1,0 +1,49 @@
+{
+  "domain": "RP",
+  "domain_name": "Reproductive System Findings",
+  "core_fields": [
+    {
+      "field": "RPPERF",
+      "label": "생식계 검사 수행 여부",
+      "type": "boolean",
+      "required": false
+    },
+    {
+      "field": "RPREASND",
+      "label": "미수행 사유",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "RPDAT",
+      "label": "검사일",
+      "type": "date",
+      "required": false
+    },
+    {
+      "field": "RPORRES_CHILDPOT",
+      "label": "임신 가능성",
+      "type": "boolean",
+      "required": false
+    },
+    {
+      "field": "MENOSTAT_RPORRES",
+      "label": "폐경 상태",
+      "type": "text",
+      "required": false,
+      "values": [
+        {
+          "value": "PRE",
+          "label": "Premenopausal",
+          "label_ko": "폐경 전"
+        },
+        {
+          "value": "POST",
+          "label": "Postmenopausal",
+          "label_ko": "폐경 후"
+        }
+      ]
+    }
+  ],
+  "metadata_fields": []
+}

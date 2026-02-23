@@ -1116,6 +1116,60 @@
   }
 
   /* =================================================================
+     Clinical Trial Simulation — Inner Tabs
+     ================================================================= */
+  .cts-inner-tabs {
+    display: flex; gap: 4px; margin-bottom: 18px;
+  }
+  .cts-inner-tab {
+    padding: 7px 16px; border-radius: 8px;
+    border: 1px solid rgba(48,54,61,0.5);
+    background: transparent; color: var(--text-muted);
+    font: 600 0.7em 'JetBrains Mono', monospace;
+    cursor: pointer; transition: all 0.25s; white-space: nowrap;
+  }
+  .cts-inner-tab:hover {
+    border-color: rgba(57,210,192,0.3);
+    color: var(--text-secondary);
+    background: rgba(57,210,192,0.04);
+  }
+  .cts-inner-tab.active {
+    border-color: rgba(57,210,192,0.5);
+    color: var(--accent-cyan);
+    background: rgba(57,210,192,0.08);
+  }
+  .cts-tab-pane { display: none; }
+  .cts-tab-pane.active { display: block; }
+
+  /* Rule Set mini preview */
+  .rs-mini-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    margin-bottom: 10px;
+  }
+  .rs-mini-stat {
+    background: rgba(0,0,0,0.2); border-radius: 8px;
+    padding: 8px 10px; text-align: center;
+    border: 1px solid rgba(48,54,61,0.3);
+  }
+  .rs-mini-stat .rs-mini-val {
+    font: 700 1em 'JetBrains Mono', monospace;
+    color: var(--accent-cyan);
+  }
+  .rs-mini-stat .rs-mini-label {
+    font-size: 0.55em; font-weight: 600; text-transform: uppercase;
+    letter-spacing: 0.8px; color: var(--text-muted); margin-top: 2px;
+  }
+  .rs-mini-sources {
+    display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px;
+  }
+  .rs-mini-source {
+    padding: 2px 8px; border-radius: 10px;
+    border: 1px solid rgba(48,54,61,0.4);
+    font: 500 0.55em 'JetBrains Mono', monospace;
+    color: var(--text-muted);
+  }
+
+  /* =================================================================
      FOOTER
      ================================================================= */
   .landing-footer {
@@ -1380,20 +1434,20 @@
           <a href="{% url 'demo_anti_hallucination' %}" class="tc-btn">
             Try Demo
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </a>
-        </div>
+    </a>
+  </div>
         <div class="tc-right">
           <div class="ah-comparison-preview">
             <div class="ah-preview-prompt">
               <span class="ah-preview-prompt-icon">&#10070;</span>
               "What is the plasma half-life of Dravimotide?"
-            </div>
+  </div>
             <div class="ah-preview-cards">
               <div class="ah-preview-card ah-preview-baseline">
                 <div class="ah-preview-label"><span class="ah-preview-dot baseline"></span>Baseline</div>
                 <div class="ah-preview-text">Dravimotide has a plasma half-life of approximately 14.2 hours following oral administration...</div>
                 <div class="ah-preview-badge ah-preview-badge-red">HALLUCINATED</div>
-              </div>
+</div>
               <div class="ah-preview-card ah-preview-defended">
                 <div class="ah-preview-label"><span class="ah-preview-dot defended"></span>AntiHallu</div>
                 <div class="ah-preview-text">I cannot find verified information about "Dravimotide" in medical databases. This may not be a real drug...</div>
@@ -1412,22 +1466,22 @@
       </div>
     </div>
 
-    <!-- Card 2: MedGemma Clinical AE Detection -->
+    <!-- Card 2: Care Agent -->
     <div class="tech-card accent-purple reveal reveal-d2">
       <div class="tc-layout">
         <div class="tc-left">
           <div class="tc-header">
             <div class="tc-icon icon-purple">
-              <img src="{% static 'assets/ui/gemma.png' %}" alt="MedGemma" style="width:34px;height:34px;object-fit:contain;">
+              <img src="{% static 'assets/ui/gemma.png' %}" alt="Care Agent" style="width:34px;height:34px;object-fit:contain;">
             </div>
-            <div class="tc-title">MedGemma Clinical AE Detection</div>
-            <span class="tc-badge">LoRA Fine-tuned</span>
+            <div class="tc-title">Care Agent</div>
+            <span class="tc-badge">MedGemma + AI Nurse</span>
           </div>
           <div class="tc-desc">
-            MedGemma 4B-IT finetuned via LoRA for paired clinical photograph comparison.
-            Compares baseline and current patient photos to detect and grade adverse events
-            across 7 AE types aligned with CTCAE criteria. Trained on synthetic patient
-            images generated via Gemini Pro API with structured AE descriptions.
+            Two-part care pipeline: MedGemma 4B-IT finetuned via LoRA detects and grades
+            visual AEs from patient photographs, while an automated AI nurse conducts
+            daily video check-ins using the Deployment-Ready prompting strategy to uncover
+            non-visual adverse events through empathetic multi-turn conversations.
           </div>
           <div class="tc-stat">
             <span class="tc-stat-val del">4.8%</span>
@@ -1435,7 +1489,7 @@
             <span class="tc-stat-val good">90.5%</span>
             <span class="tc-stat-label">accuracy after LoRA finetuning</span>
           </div>
-          <a href="{% url 'demo_medgemma' %}" class="tc-btn">
+          <a href="{% url 'demo_care_agent' %}" class="tc-btn">
             Try Demo
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
           </a>
@@ -1511,7 +1565,7 @@
       </div>
     </div>
 
-    <!-- Card 3: Hazard Engine -->
+    <!-- Card 3: Clinical Trial Simulation (tabbed: Hazard Engine + Rule Set Generation) -->
     <div class="tech-card accent-cyan reveal reveal-d3">
       <div class="tc-layout">
         <div class="tc-left">
@@ -1521,45 +1575,116 @@
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
               </svg>
             </div>
-            <div class="tc-title">Hazard Engine</div>
-            <span class="tc-badge">Math</span>
+            <div class="tc-title">Clinical Trial Simulation</div>
+            <span class="tc-badge">Engine</span>
           </div>
-          <div class="tc-desc">
-            Mixture-model hazard functions compute daily AE onset probabilities from
-            onset distribution parameters. No fate tables &mdash; pure mathematical
-            hazard drives every simulation day. Each AE type has its own onset CDF
-            (Normal, LogNormal, or Uniform), and the engine calculates conditional
-            daily probability given no prior onset.
+
+          <div class="cts-inner-tabs">
+            <button class="cts-inner-tab active" onclick="switchCtsTab('hazard', this)">Hazard Engine</button>
+            <button class="cts-inner-tab" onclick="switchCtsTab('ruleset', this)">Rule Set Generation</button>
           </div>
-          <div class="tc-stat">
-            <span class="tc-stat-val good" style="opacity:1;">Daily onset probability</span>
-            <span class="tc-stat-label">computed per AE type, per patient</span>
+
+          <!-- Tab: Hazard Engine -->
+          <div class="cts-tab-pane active" id="ctsHazard">
+            <div class="tc-desc">
+              Mixture-model hazard functions compute daily AE onset probabilities from
+              onset distribution parameters. No fate tables &mdash; pure mathematical
+              hazard drives every simulation day. Each AE type has its own onset CDF
+              (Normal, LogNormal, or Uniform), and the engine calculates conditional
+              daily probability given no prior onset.
+            </div>
+            <div class="tc-stat">
+              <span class="tc-stat-val good" style="opacity:1;">Daily onset probability</span>
+              <span class="tc-stat-label">computed per AE type, per patient</span>
+            </div>
+            <a href="{% url 'demo_hazard' %}" class="tc-btn">
+              Try Demo
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
           </div>
-          <a href="{% url 'demo_hazard' %}" class="tc-btn">
-            Try Demo
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </a>
+
+          <!-- Tab: Rule Set Generation -->
+          <div class="cts-tab-pane" id="ctsRuleset">
+            <div class="tc-desc">
+              Generate validated probabilistic rule sets from drug labels and
+              10 biomedical evidence sources. Multi-stage LLM synthesis with
+              programmatic override produces dose schedules, AE profiles, and efficacy
+              parameters &mdash; scored across 9 dimensions against FDA-sourced ground truth.
+            </div>
+            <div class="tc-stat">
+              <span class="tc-stat-val del">Manual curation</span>
+              <span class="tc-stat-arrow">&#8594;</span>
+              <span class="tc-stat-val good">77.7% auto-match</span>
+              <span class="tc-stat-label">LLM + evidence databases vs ground truth</span>
+            </div>
+            <a href="{% url 'demo_ruleset_generation' %}" class="tc-btn">
+              Try Demo
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
         </div>
         <div class="tc-right">
-          <div class="hz-canvas-wrap">
-            <canvas id="hazardMiniCanvas" width="440" height="140"></canvas>
-            <div class="hz-label-row">
-              <span>Day 1</span>
-              <span>Day 84</span>
+          <!-- Hazard Engine visual (shown when hazard tab active) -->
+          <div id="ctsHazardRight">
+            <div class="hz-canvas-wrap">
+              <canvas id="hazardMiniCanvas" width="440" height="140"></canvas>
+              <div class="hz-label-row">
+                <span>Day 1</span>
+                <span>Day 84</span>
+              </div>
+              <div class="hz-formula">h(t) = I &middot; f(t) / (1 &minus; I &middot; F(t&minus;1))</div>
+              <div class="hz-legend">
+                <div class="hz-legend-item">
+                  <div class="hz-legend-dot" style="background:rgba(57,210,192,0.7);"></div>
+                  Early onset
+                </div>
+                <div class="hz-legend-item">
+                  <div class="hz-legend-dot" style="background:rgba(188,140,255,0.6);"></div>
+                  Mid-cycle
+                </div>
+                <div class="hz-legend-item">
+                  <div class="hz-legend-dot" style="background:rgba(210,153,34,0.5);"></div>
+                  Late onset
+                </div>
+              </div>
             </div>
-            <div class="hz-formula">h(t) = I &middot; f(t) / (1 &minus; I &middot; F(t&minus;1))</div>
-            <div class="hz-legend">
-              <div class="hz-legend-item">
-                <div class="hz-legend-dot" style="background:rgba(57,210,192,0.7);"></div>
-                Early onset
+          </div>
+          <!-- Rule Set visual (shown when ruleset tab active) -->
+          <div id="ctsRulesetRight" style="display:none;">
+            <div class="rs-mini-grid">
+              <div class="rs-mini-stat">
+                <div class="rs-mini-val">7</div>
+                <div class="rs-mini-label">Drugs Validated</div>
               </div>
-              <div class="hz-legend-item">
-                <div class="hz-legend-dot" style="background:rgba(188,140,255,0.6);"></div>
-                Mid-cycle
+              <div class="rs-mini-stat">
+                <div class="rs-mini-val">9</div>
+                <div class="rs-mini-label">Score Dimensions</div>
               </div>
-              <div class="hz-legend-item">
-                <div class="hz-legend-dot" style="background:rgba(210,153,34,0.5);"></div>
-                Late onset
+              <div class="rs-mini-stat">
+                <div class="rs-mini-val">77.7%</div>
+                <div class="rs-mini-label">Avg Accuracy</div>
+              </div>
+              <div class="rs-mini-stat">
+                <div class="rs-mini-val">10</div>
+                <div class="rs-mini-label">Evidence DBs</div>
+              </div>
+            </div>
+            <div class="hz-canvas-wrap" style="padding:14px 16px;">
+              <div style="font:600 0.6em 'JetBrains Mono',monospace;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Pipeline</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <span style="font:600 0.72em 'JetBrains Mono',monospace;color:var(--accent-cyan);padding:4px 10px;border:1px solid rgba(57,210,192,0.25);border-radius:8px;background:rgba(57,210,192,0.06);">Evidence</span>
+                <span style="color:var(--text-muted);font-size:0.8em;">&#8594;</span>
+                <span style="font:600 0.72em 'JetBrains Mono',monospace;color:var(--accent-blue);padding:4px 10px;border:1px solid rgba(88,166,255,0.25);border-radius:8px;background:rgba(88,166,255,0.06);">LLM Synthesis</span>
+                <span style="color:var(--text-muted);font-size:0.8em;">&#8594;</span>
+                <span style="font:600 0.72em 'JetBrains Mono',monospace;color:var(--accent-green);padding:4px 10px;border:1px solid rgba(63,185,80,0.25);border-radius:8px;background:rgba(63,185,80,0.06);">Validation</span>
+              </div>
+              <div class="rs-mini-sources" style="margin-top:12px;">
+                <span class="rs-mini-source">DailyMed</span>
+                <span class="rs-mini-source">ClinicalTrials.gov</span>
+                <span class="rs-mini-source">PubMed</span>
+                <span class="rs-mini-source">OpenFDA</span>
+                <span class="rs-mini-source">PubChem</span>
+                <span class="rs-mini-source">ChEMBL</span>
               </div>
             </div>
           </div>
@@ -1645,6 +1770,17 @@
       el.textContent = (decimals > 0 ? target.toFixed(decimals) : target) + suffix;
     });
   }
+
+  /* ─── 5a. Clinical Trial Simulation — inner tab switcher ─── */
+  window.switchCtsTab = function(tab, btn) {
+    document.querySelectorAll('.cts-inner-tab').forEach(function(t) { t.classList.remove('active'); });
+    document.querySelectorAll('.cts-tab-pane').forEach(function(p) { p.classList.remove('active'); });
+    btn.classList.add('active');
+    var leftPane = tab === 'hazard' ? 'ctsHazard' : 'ctsRuleset';
+    document.getElementById(leftPane).classList.add('active');
+    document.getElementById('ctsHazardRight').style.display = tab === 'hazard' ? 'block' : 'none';
+    document.getElementById('ctsRulesetRight').style.display = tab === 'ruleset' ? 'block' : 'none';
+  };
 
   /* ─── 5. Hazard Mini Canvas — 3 decorative curves ─── */
   var canvas = document.getElementById('hazardMiniCanvas');

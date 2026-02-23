@@ -18,7 +18,11 @@ RUN pip install --no-cache-dir \
     reportlab>=4.0 \
     requests>=2.31 \
     cryptography>=3.1 \
-    fastapi>=0.100
+    fastapi>=0.100 \
+    pandas>=2.1 \
+    numpy>=1.26 \
+    google-genai>=1.0 \
+    scipy>=1.12
 
 EXPOSE 9001
 

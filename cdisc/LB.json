@@ -1,0 +1,99 @@
+{
+  "domain": "LB",
+  "domain_name": "LB Central CRF",
+  "core_fields": [
+    {
+      "field": "LBCAT",
+      "label": "검사 분류",
+      "type": "text",
+      "required": false
+    },
+    {
+      "field": "LBPERF",
+      "label": "검사 수행 여부",
+      "type": "boolean",
+      "required": true
+    },
+    {
+      "field": "LBDAT",
+      "label": "채혈일",
+      "type": "date",
+      "required": false
+    },
+    {
+      "field": "LBTIM",
+      "label": "채혈 시간",
+      "type": "time",
+      "required": false
+    }
+  ],
+  "central_lab_fields": [
+    {
+      "field": "LBTESTCD",
+      "label": "검사 코드",
+      "type": "text",
+      "required": true,
+      "description": "표준 검사 코드 (예: ALT, AST, WBC, HGB 등)"
+    },
+    {
+      "field": "LBTEST",
+      "label": "검사명",
+      "type": "text",
+      "required": true,
+      "description": "검사 전체명 (예: Alanine Aminotransferase, White Blood Cell Count)"
+    },
+    {
+      "field": "LBORRES",
+      "label": "검사 결과값",
+      "type": "text",
+      "required": true,
+      "description": "중앙검사실에서 반환된 실제 검사 수치"
+    },
+    {
+      "field": "LBORRESU",
+      "label": "결과 단위",
+      "type": "text",
+      "required": true,
+      "description": "검사 결과의 단위 (예: U/L, g/dL, 10^3/uL)"
+    },
+    {
+      "field": "LBORNRLO",
+      "label": "정상범위 하한",
+      "type": "float",
+      "required": false,
+      "description": "검사실 기준 정상 범위 하한값"
+    },
+    {
+      "field": "LBORNRHI",
+      "label": "정상범위 상한",
+      "type": "float",
+      "required": false,
+      "description": "검사실 기준 정상 범위 상한값"
+    },
+    {
+      "field": "LBNRIND",
+      "label": "정상/비정상 구분",
+      "type": "text",
+      "required": false,
+      "values": [
+        {"value": "NORMAL", "label": "Normal", "label_ko": "정상"},
+        {"value": "ABNORMAL", "label": "Abnormal", "label_ko": "비정상"},
+        {"value": "HIGH", "label": "High", "label_ko": "상승"},
+        {"value": "LOW", "label": "Low", "label_ko": "저하"}
+      ]
+    },
+    {
+      "field": "LBCLSIG",
+      "label": "임상적 유의성",
+      "type": "text",
+      "required": false,
+      "description": "비정상 결과의 임상적 유의성 판단 (연구자 판단)",
+      "values": [
+        {"value": "Y", "label": "Clinically Significant", "label_ko": "임상적으로 유의"},
+        {"value": "N", "label": "Not Clinically Significant", "label_ko": "임상적으로 유의하지 않음"}
+      ]
+    }
+  ],
+  "metadata_fields": [],
+  "note": "core_fields는 CRF에서 채혈 시 기록하는 항목. central_lab_fields는 중앙검사실에서 결과를 반환받아 수집하는 항목."
+}

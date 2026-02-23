@@ -96,6 +96,10 @@ Also add conditional dependencies between comorbidities:
     for item in adjusted_list:
         condition = item.get('condition', '')
         prob = item.get('adjusted_probability', item.get('base_probability', 0))
+        try:
+            prob = float(prob)
+        except (TypeError, ValueError):
+            prob = 0.0
         if sampler.boolean(prob):
             original = next(
                 (c for c in comorbidity_rules if c['condition'] == condition), {}
@@ -126,11 +130,15 @@ Also add conditional dependencies between comorbidities:
             continue
         for cm in comorbidity_rules:
             if cm['condition'] == condition:
-                for mod in cm.get('conditional_modifiers', []):
+                for mod in (cm.get('conditional_modifiers') or []):
                     trigger = mod.get('if_condition', '').lower()
                     for present in conditions_present:
                         if present in trigger:
-                            extra_prob = item.get('adjusted_probability', 0) * mod.get('multiplier', 1)
+                            try:
+                                _ap = float(item.get('adjusted_probability', 0))
+                            except (TypeError, ValueError):
+                                _ap = 0.0
+                            extra_prob = _ap * float(mod.get('multiplier', 1))
                             if sampler.boolean(min(extra_prob, 0.95)):
                                 original = next(
                                     (c for c in comorbidity_rules if c['condition'] == condition), {}
@@ -344,7 +352,10 @@ def generate_patient(
 
     n_lesions_spec = disease_baseline.get('n_target_lesions', {})
     if n_lesions_spec:
-        n_lesions = int(sampler.sample_from_spec(n_lesions_spec))
+        raw = sampler.sample_from_spec(n_lesions_spec)
+        import re as _re
+        digits = _re.sub(r'[^\d]', '', str(raw))
+        n_lesions = int(digits) if digits else 3
         pre_disease['n_target_lesions'] = max(1, n_lesions)
 
     # Step 3: 기저값 생성 (LLM — 사전 샘플링된 질환값 반영)

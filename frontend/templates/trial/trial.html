@@ -127,6 +127,63 @@
     white-space: nowrap; min-width: 52px; text-align: right;
   }
 
+  /* ── Live Mode Overrides ── */
+  .live-badge {
+    position: fixed; top: 12px; right: 16px; z-index: 950;
+    display: flex; align-items: center; gap: 6px;
+    padding: 6px 14px; border-radius: 20px;
+    background: rgba(248,81,73,0.15); border: 1px solid rgba(248,81,73,0.4);
+    font: 700 0.82em 'JetBrains Mono', monospace; color: #f85149;
+    backdrop-filter: blur(8px);
+  }
+  .live-badge .dot {
+    width: 8px; height: 8px; border-radius: 50%; background: #f85149;
+    animation: livePulse 1.2s ease-in-out infinite;
+  }
+  @keyframes livePulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.4; transform: scale(0.8); }
+  }
+  .live-badge .phase-text {
+    color: var(--text-secondary); font-weight: 500; font-size: 0.92em;
+  }
+
+  body.is-live .hud-xp-fill {
+    background: linear-gradient(90deg, rgba(57,210,192,0.5), rgba(248,81,73,0.5));
+    animation: liveProgress 2s ease-in-out infinite alternate;
+  }
+  @keyframes liveProgress {
+    0% { filter: brightness(0.8); }
+    100% { filter: brightness(1.3); }
+  }
+
+  body.is-live .hud-xp-track input[type=range] { pointer-events: none; opacity: 0; }
+
+  .patient-card.new-entry {
+    animation: cardSlideIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  @keyframes cardSlideIn {
+    from { opacity: 0; transform: translateY(20px) scale(0.9); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .patient-card.ae-flash {
+    animation: aeFlash 1s ease;
+  }
+  @keyframes aeFlash {
+    0%, 100% { box-shadow: none; }
+    30% { box-shadow: 0 0 12px 2px rgba(248,81,73,0.5); }
+  }
+
+  .live-day-pulse {
+    animation: dayPulse 0.5s ease;
+  }
+  @keyframes dayPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.3); color: var(--accent-cyan); }
+    100% { transform: scale(1); }
+  }
+
   /* ── HUD Slot Toggles ── */
   .hud-slot-group {
     display: inline-flex; gap: 2px;
@@ -944,7 +1001,6 @@
 <nav class="run-sidebar">
 
   <a href="{% url 'trial_viewer' run_id %}" class="sb-active" title="Simulation"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><span>Sim</span></a>
-  <a href="{% url 'game_landing' run_id %}" title="Training"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.8 2.3A.3.3 0 1 0 5 2H4a2 2 0 0 0-2 2v5a6 6 0 0 0 6 6 6 6 0 0 0 6-6V4a2 2 0 0 0-2-2h-1a.2.2 0 1 0 .3.3"/><path d="M8 15v1a6 6 0 0 0 6 6 6 6 0 0 0 6-6v-4"/><circle cx="20" cy="10" r="2"/></svg><span>Train</span></a>
   <a href="{% url 'crf_tables' run_id %}" title="Data"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg><span>Data</span></a>
   <a href="{% url 'compare_dashboard' run_id %}" title="A/B Test"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>A/B</span></a>
 </nav>
@@ -976,14 +1032,14 @@
     <div class="hud-section">
       <button class="hud-play-btn" id="btn-play" title="Auto-play (Space)">
         <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 20,12 6,21"/></svg>
-      </button>
+        </button>
       <button class="hud-play-btn" id="btn-pause" title="Pause" style="display:none">
         <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-      </button>
+        </button>
       <select id="speed-select" class="hud-speed" title="Playback speed">
         <option value="1">&times;1</option><option value="5">&times;5</option><option value="10">&times;10</option>
       </select>
-    </div>
+      </div>
 
     <!-- XP Progress Bar -->
     <div class="hud-section hud-progress">
@@ -1008,8 +1064,8 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M19 10v1a7 7 0 01-14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/></svg>
           Care AI
         </button>
-      </div>
-    </div>
+  </div>
+</div>
     {% endif %}
 
     <!-- Record View Toggle -->
@@ -1024,7 +1080,7 @@
           GT
         </button>
       </div>
-    </div>
+</div>
 
   </div>
 </div>
@@ -1038,24 +1094,24 @@
   <aside class="list-sidebar" id="list-sidebar">
     <div class="sidebar-header">
       Patients <span class="count" id="patient-count">{{ patients|length }}</span>
-    </div>
-    <div class="sidebar-cards-scroll">
-      <div class="patient-cards" id="patient-cards">
-        {% for p in patients %}
-        <div class="patient-card" data-pid="{{ p.patient_id }}" id="card-{{ p.patient_id }}">
-          <div class="char-sprite" data-pid="{{ p.patient_id }}" data-sex="{{ p.sex }}" data-race="{{ p.race }}"></div>
-          <div class="pid">{{ p.patient_id }}</div>
-          <div class="meta">{{ p.age }}{{ p.sex }} · E{{ p.ecog|default:"?" }}</div>
-          {% if p.active_aes %}
-            {% for ae in p.active_aes %}
-              <span class="ae-badge danger">{{ ae.term }} G{{ ae.grade }}</span>
-            {% endfor %}
-          {% else %}
-            <span class="ae-badge safe">OK</span>
-          {% endif %}
         </div>
+    <div class="sidebar-cards-scroll">
+  <div class="patient-cards" id="patient-cards">
+    {% for p in patients %}
+    <div class="patient-card" data-pid="{{ p.patient_id }}" id="card-{{ p.patient_id }}">
+          <div class="char-sprite" data-pid="{{ p.patient_id }}" data-sex="{{ p.sex }}" data-race="{{ p.race }}"></div>
+      <div class="pid">{{ p.patient_id }}</div>
+          <div class="meta">{{ p.age }}{{ p.sex }} · E{{ p.ecog|default:"?" }}</div>
+      {% if p.active_aes %}
+        {% for ae in p.active_aes %}
+          <span class="ae-badge danger">{{ ae.term }} G{{ ae.grade }}</span>
         {% endfor %}
-      </div>
+      {% else %}
+            <span class="ae-badge safe">OK</span>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
     </div>
   </aside>
 
@@ -1127,7 +1183,7 @@
       <div class="char-avatar-col">
         <div class="char-avatar-frame" id="char-avatar-frame">
           <div id="char-avatar-svg"></div>
-        </div>
+      </div>
         <div class="char-pid" id="char-pid">PT-000</div>
         <div class="char-persona-badge" id="char-persona-badge">—</div>
       </div>
@@ -1144,8 +1200,8 @@
         <div class="char-stat-bars" id="char-stat-bars">
           <div class="char-stats-title">Mood Stats</div>
           <!-- JS fills stat bars here -->
-        </div>
       </div>
+    </div>
 
       <!-- Actions Column (top-right) -->
       <div class="char-actions-col">
@@ -1153,16 +1209,16 @@
           <div class="pill-group" id="record-view-toggle" style="flex-shrink:0;">
             <button data-view="hr" style="min-width:68px;" title="Hospital Record — data visible to medical staff">HR</button>
             <button data-view="gt" style="min-width:68px;" title="Ground Truth — actual simulation state">GT</button>
-          </div>
+            </div>
           <button class="patient-modal-close" id="patient-modal-close" title="Close">&#10005;</button>
-        </div>
+            </div>
         <span id="modal-view-hint" style="font-size:0.82em; color:var(--text-muted); white-space:nowrap;"></span>
         <div class="char-actions-bottom">
           <a href="#" id="detail-link" class="full-record-link">Full Record &#8594;</a>
-        </div>
-      </div>
+            </div>
+          </div>
 
-    </div>
+        </div>
 
     <!-- Body -->
     <div class="modal-body">
@@ -1180,52 +1236,52 @@
 
         <!-- Left column: AEs + Labs + Vitals -->
         <div>
-          <div class="detail-section">
+        <div class="detail-section">
             <h6><span class="sec-icon"></span> Active Adverse Events</h6>
-            <ul class="ae-list" id="detail-aes">
-              <li style="color:var(--text-muted)">None</li>
-            </ul>
-          </div>
+          <ul class="ae-list" id="detail-aes">
+            <li style="color:var(--text-muted)">None</li>
+          </ul>
+      </div>
 
-          <div class="detail-section">
+        <div class="detail-section">
             <h6><span class="sec-icon"></span> Key Labs</h6>
-            <div class="lab-grid" id="detail-labs"></div>
-          </div>
-
-          <div class="detail-section">
-            <h6><span class="sec-icon"></span> Vitals</h6>
-            <div class="lab-grid" id="detail-vitals"></div>
-          </div>
+          <div class="lab-grid" id="detail-labs"></div>
         </div>
+
+        <div class="detail-section">
+            <h6><span class="sec-icon"></span> Vitals</h6>
+          <div class="lab-grid" id="detail-vitals"></div>
+        </div>
+      </div>
 
         <!-- Right column: Subjective + Care + Mood -->
         <div>
-          <div class="detail-section">
+        <div class="detail-section">
             <h6><span class="sec-icon"></span> Patient Perception</h6>
             <div id="detail-subjective">—</div>
-          </div>
+        </div>
 
-          <div class="detail-section">
+        <div class="detail-section">
             <h6><span class="sec-icon"></span> Video Call</h6>
             <div id="detail-care">
               <em style="color:var(--text-muted)">No video call today</em>
-            </div>
           </div>
-
-          <!-- Mood bars moved to RPG character card header -->
         </div>
 
+          <!-- Mood bars moved to RPG character card header -->
+          </div>
+
+        </div>
       </div>
     </div>
   </div>
-</div>
 
 {% endblock %}
 
 {% block js_content %}
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
 {% load static %}
-<script src="{% static 'js/trial_map.js' %}"></script>
+<script src="{% static 'js/trial_map.js' %}?v=2"></script>
 <script>
 (function() {
   const RUN_ID = "{{ run_id }}";
@@ -1251,11 +1307,23 @@
   let currentEvents = {{ events_json|safe }};
   const IS_LIVE = {% if is_live %}true{% else %}false{% endif %};
 
-  // ── Live Mode: poll for new days ──
+  // ── Live Mode: real-time simulation tracking ──
   let liveMaxDay = TOTAL_DAYS;
   let liveStatus = IS_LIVE ? 'running' : 'completed';
+  let liveAutoFollow = true;
+  let livePrevPatientCount = currentPatients.length;
+  let livePrevAEs = {};
 
   if (IS_LIVE) {
+    document.body.classList.add('is-live');
+
+    // ── LIVE Badge (top-right floating) ──
+    const badge = document.createElement('div');
+    badge.className = 'live-badge';
+    badge.id = 'live-badge';
+    badge.innerHTML = '<div class="dot"></div> LIVE <span class="phase-text" id="badge-phase">Initializing...</span>';
+    document.body.appendChild(badge);
+
     // ── Live Panel: fixed bottom log + controls ──
     const livePanel = document.createElement('div');
     livePanel.id = 'live-panel';
@@ -1293,7 +1361,7 @@
         padding:6px 16px; border-bottom:1px solid var(--border);
       }
       #live-log {
-        height:220px; overflow-y:auto; padding:6px 16px;
+        height:180px; overflow-y:auto; padding:6px 16px;
         background:var(--bg-primary);
       }
       #live-log .log-line {
@@ -1309,11 +1377,12 @@
     `;
     document.head.appendChild(style);
     document.body.appendChild(livePanel);
-    document.body.style.paddingBottom = '260px';
+    document.body.style.paddingBottom = '220px';
 
     const logEl = document.getElementById('live-log');
     const progressEl = document.getElementById('live-progress');
     const phaseEl = document.getElementById('live-phase');
+    const badgePhaseEl = document.getElementById('badge-phase');
     let logSince = 0;
     let logAutoScroll = true;
 
@@ -1343,7 +1412,7 @@
       livePanel.classList.toggle('collapsed');
       const btn = document.getElementById('live-toggle-btn');
       btn.textContent = livePanel.classList.contains('collapsed') ? '▲' : '▼';
-      document.body.style.paddingBottom = livePanel.classList.contains('collapsed') ? '36px' : '260px';
+      document.body.style.paddingBottom = livePanel.classList.contains('collapsed') ? '36px' : '220px';
     });
 
     // Stop button
@@ -1367,32 +1436,97 @@
       }
     });
 
-    // Poll status + logs
+    // ── Helper: detect phase from status ──
+    function detectPhase(statusData) {
+      const pg = statusData.patients_generated || 0;
+      const nFiles = statusData.files?.natural || 0;
+      const meta = statusData.meta || {};
+      const metaStatus = meta.status || statusData.status || '';
+      if (metaStatus === 'completed') return 'complete';
+      if (nFiles > 0 || (meta.progress && Object.keys(meta.progress).length > 0)) return 'simulating';
+      if (pg > 0) return 'generating_patients';
+      return 'initializing';
+    }
+
+    function phaseLabel(phase) {
+      switch(phase) {
+        case 'initializing': return 'Initializing...';
+        case 'generating_patients': return 'Generating Patients';
+        case 'simulating': return 'Simulating Days';
+        case 'complete': return 'Complete';
+        default: return phase;
+      }
+    }
+
+    // ── Core polling: auto-follow + real-time updates ──
     let livePollInterval = setInterval(async () => {
       try {
-        // Fetch status
         const statusResp = await fetch(`/api/sim/status/${RUN_ID}/`);
         const statusData = await statusResp.json();
+        const phase = detectPhase(statusData);
 
-        // Update progress
-        if (statusData.meta) {
-          const meta = statusData.meta;
-          phaseEl.textContent = meta.mode ? `[${meta.mode}]` : '';
-          if (meta.progress) {
-            const prog = Object.values(meta.progress);
-            const running = prog.filter(p => p.status === 'running');
-            const done = prog.filter(p => p.status === 'done');
-            const avgDay = running.length > 0
-              ? Math.round(running.reduce((s,p) => s + (p.day || 0), 0) / running.length)
-              : '—';
-            progressEl.textContent = `${done.length} done · ${running.length} active · ~Day ${avgDay}`;
+        // Update phase displays
+        const phaseText = phaseLabel(phase);
+        phaseEl.textContent = phaseText;
+        badgePhaseEl.textContent = phaseText;
+
+        // Update progress text
+        if (statusData.meta?.progress) {
+          const prog = Object.values(statusData.meta.progress);
+          const running = prog.filter(p => p.status === 'running');
+          const done = prog.filter(p => p.status === 'done');
+          const totalPt = prog.length;
+          const avgDay = running.length > 0
+            ? Math.round(running.reduce((s,p) => s + (p.day || 0), 0) / running.length)
+            : '—';
+          progressEl.textContent = `${done.length}/${totalPt} patients done · ${running.length} active · ~Day ${avgDay}`;
+        } else if (phase === 'generating_patients') {
+          const pg = statusData.patients_generated || 0;
+          const cfg = statusData.config || statusData.meta?.config || {};
+          const targetPt = cfg.n_patients || cfg.patients || '?';
+          progressEl.textContent = `Generating patients: ${pg}/${targetPt}`;
+        }
+
+        // ★ AUTO-FOLLOW: jump to latest day when new data arrives
+        const latestDay = statusData.latest_day || 0;
+        if (latestDay > 0 && latestDay > liveMaxDay) {
+          liveMaxDay = latestDay;
+          TOTAL_DAYS = latestDay;
+          const slider = document.getElementById('day-slider');
+          if (slider) slider.max = latestDay;
+        }
+        if (liveAutoFollow && latestDay > 0 && latestDay !== currentDay) {
+          currentDay = latestDay;
+          const slider = document.getElementById('day-slider');
+          if (slider) slider.value = latestDay;
+          updateDayDisplay();
+          fetchDayData(latestDay);
+          // Day pulse animation
+          const dayEl = document.getElementById('day-display');
+          if (dayEl) {
+            dayEl.classList.remove('live-day-pulse');
+            void dayEl.offsetWidth;
+            dayEl.classList.add('live-day-pulse');
           }
         }
-        if (statusData.files) {
-          const n = statusData.files.natural || 0;
-          const c = statusData.files.care_ai || 0;
-          if (n > 0 || c > 0) {
-            progressEl.textContent += ` | files: ${n}N ${c}C`;
+
+        // ★ PATIENT CREATION: detect new patients and refresh map
+        const newPtCount = statusData.patients_generated || 0;
+        if (newPtCount > livePrevPatientCount) {
+          const wasEmpty = livePrevPatientCount === 0;
+          livePrevPatientCount = newPtCount;
+          // Fetch day data (even day 0/1 with no sim data — backend returns profile defaults)
+          const dayToFetch = (latestDay > 0) ? latestDay : Math.max(currentDay, 1);
+          fetchDayData(dayToFetch);
+          // First patients appearing: reinitialize map after data arrives
+          if (wasEmpty) {
+            setTimeout(() => {
+              if (currentPatients.length > 0) {
+                trialMap.updateDay(currentDay || 1, currentPatients);
+                trialMap.updateBubbles(currentPatients);
+                updateMapLocationCount(currentPatients);
+              }
+            }, 1000);
           }
         }
 
@@ -1407,6 +1541,7 @@
         // Handle terminal states
         if (['completed', 'cancelled'].includes(statusData.status)) {
           liveStatus = statusData.status;
+          document.body.classList.remove('is-live');
           const titleEl = document.getElementById('live-title');
           const dotEl = document.getElementById('live-dot');
           titleEl.textContent = statusData.status === 'completed' ? 'COMPLETE' : 'CANCELLED';
@@ -1415,23 +1550,37 @@
           dotEl.style.color = titleEl.style.color;
           document.getElementById('live-stop-btn').style.display = 'none';
           livePanel.style.borderTopColor = titleEl.style.color;
+          // Update badge
+          const badgeEl = document.getElementById('live-badge');
+          if (badgeEl) {
+            badgeEl.style.borderColor = titleEl.style.color;
+            badgeEl.style.background = statusData.status === 'completed'
+              ? 'rgba(63,185,80,0.15)' : 'rgba(210,153,34,0.15)';
+            badgeEl.querySelector('.dot').style.background = titleEl.style.color;
+            badgeEl.querySelector('.dot').style.animation = 'none';
+            badgeEl.childNodes[1].textContent = statusData.status === 'completed' ? ' DONE ' : ' STOPPED ';
+            badgePhaseEl.textContent = '';
+          }
           clearInterval(livePollInterval);
           appendLog([`--- Simulation ${statusData.status} ---`]);
-          setTimeout(() => location.reload(), 5000);
+          setTimeout(() => location.reload(), 4000);
         } else if (statusData.status === 'failed') {
           liveStatus = 'failed';
+          document.body.classList.remove('is-live');
           const titleEl = document.getElementById('live-title');
           titleEl.textContent = 'FAILED';
           titleEl.style.color = 'var(--accent-red)';
           livePanel.style.borderTopColor = 'var(--accent-red)';
           document.getElementById('live-stop-btn').style.display = 'none';
+          const badgeEl = document.getElementById('live-badge');
+          if (badgeEl) { badgeEl.style.borderColor = 'var(--accent-red)'; badgeEl.style.background = 'rgba(248,81,73,0.15)'; }
           clearInterval(livePollInterval);
           appendLog([`--- Simulation failed: ${statusData.meta?.error || 'unknown'} ---`]);
         }
       } catch(e) {
         console.warn('Live poll error:', e);
       }
-    }, 2000);
+    }, 1500);
 
     // Initial log fetch
     (async () => {
@@ -1512,6 +1661,12 @@
     fetch(`/api/day/${RUN_ID}/${day}/?mode=${currentMode}&view=${currentView}`)
       .then(r => r.json())
       .then(data => {
+        const prevIds = new Set(currentPatients.map(p => p.patient_id));
+        const prevAEMap = {};
+        currentPatients.forEach(p => {
+          prevAEMap[p.patient_id] = (p.active_aes || []).length;
+        });
+
         currentPatients = data.patients;
         currentEvents = data.events;
         renderPatientCards(data.patients);
@@ -1519,6 +1674,25 @@
         trialMap.updateDay(currentDay, data.patients);
         trialMap.updateBubbles(data.patients);
         updateMapLocationCount(data.patients);
+
+        // ★ Live mode: animate new patients and AE changes
+        if (IS_LIVE && liveStatus === 'running') {
+          data.patients.forEach((p, i) => {
+            const card = document.querySelector(`.patient-card[data-pid="${p.patient_id}"]`);
+            if (!card) return;
+            if (!prevIds.has(p.patient_id)) {
+              card.classList.add('new-entry');
+              card.style.animationDelay = `${i * 0.1}s`;
+            }
+            const prevAECount = prevAEMap[p.patient_id] || 0;
+            const curAECount = (p.active_aes || []).length;
+            if (curAECount > prevAECount && prevIds.has(p.patient_id)) {
+              card.classList.add('ae-flash');
+              setTimeout(() => card.classList.remove('ae-flash'), 1200);
+            }
+          });
+        }
+
         if (selectedPatient) {
           const p = data.patients.find(x => x.patient_id === selectedPatient);
           if (p) showPatientDetail(p);
@@ -2136,7 +2310,10 @@
   }
   bindCardClicks();
 
-  slider.addEventListener('input', function() { currentDay = parseInt(this.value); updateDayDisplay(); });
+  slider.addEventListener('input', function() {
+    if (IS_LIVE && liveStatus === 'running') { liveAutoFollow = false; }
+    currentDay = parseInt(this.value); updateDayDisplay();
+  });
   slider.addEventListener('change', function() {
     const wasPlaying = autoPlaying;
     if (wasPlaying) stopAutoPlay();
@@ -2151,7 +2328,7 @@
 
   speedSelect.addEventListener('change', function() {
     playSpeed = parseInt(this.value);
-    if (autoPlaying) { stopAutoPlay(); startAutoPlay(); }
+      if (autoPlaying) { stopAutoPlay(); startAutoPlay(); }
   });
 
   // Init on page load
@@ -2178,23 +2355,23 @@
         if (!resp.ok) break;
         const data = await resp.json();
 
-        currentDay = data.day;
-        currentPatients = data.patients;
-        currentEvents = data.events;
-        slider.value = currentDay;
-        updateDayDisplay();
-        renderPatientCards(data.patients);
-        renderEvents(data.events);
+      currentDay = data.day;
+      currentPatients = data.patients;
+      currentEvents = data.events;
+      slider.value = currentDay;
+      updateDayDisplay();
+      renderPatientCards(data.patients);
+      renderEvents(data.events);
 
         // Wait for animations to finish before advancing
         const animPromise = trialMap.updateDay(currentDay, data.patients);
         trialMap.updateBubbles(data.patients);
-        updateMapLocationCount(data.patients);
-        if (selectedPatient) {
-          const p = data.patients.find(x => x.patient_id === selectedPatient);
-          if (p) showPatientDetail(p);
-          trialMap.highlightPatient(selectedPatient);
-        }
+      updateMapLocationCount(data.patients);
+      if (selectedPatient) {
+        const p = data.patients.find(x => x.patient_id === selectedPatient);
+        if (p) showPatientDetail(p);
+        trialMap.highlightPatient(selectedPatient);
+      }
 
         // Delay scales with speed: x1=1200ms, x5=250ms, x10=100ms
         const delay = Math.max(80, 1200 / playSpeed);

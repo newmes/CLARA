@@ -927,7 +927,7 @@ def aggregate_lb(
             day = record.get("day")
             results = lb.get("results", {})
             for test_name, vals in results.items():
-                rows.append({
+                row_data = {
                     "patient_id": pid,
                     "day": day,
                     "test_name": _lab_display_name(test_name),
@@ -939,7 +939,10 @@ def aggregate_lb(
                     "LBCLSIG": vals.get("LBCLSIG"),
                     "LBCAT": vals.get("LBCAT"),
                     "_trend": vals.get("_trend"),
-                })
+                }
+                if vals.get("LBBLFL"):
+                    row_data["LBBLFL"] = vals["LBBLFL"]
+                rows.append(row_data)
     page_rows, total = _paginate(rows, page, per_page)
     return page_rows, total, LB_COLUMNS
 

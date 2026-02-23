@@ -324,8 +324,9 @@ class SimulationRunnerV2:
         day0 = _build_day0_record(patient, simulator)
         day_results.append(day0)
         if save:
+            cdash_day0 = map_day_record(day0, patient)
             with open(sim_path, 'a', encoding='utf-8') as f:
-                f.write(json.dumps(day0, ensure_ascii=False) + '\n')
+                f.write(json.dumps(cdash_day0, ensure_ascii=False) + '\n')
 
         for day in range(1, total_days + 1):
             if self._cancelled:
@@ -503,8 +504,9 @@ class SimulationRunnerV2:
         day0 = _build_day0_record(patient, simulator)
         day_results.append(day0)
         if save:
+            cdash_day0 = map_day_record(day0, patient)
             with open(sim_path, 'a', encoding='utf-8') as f:
-                f.write(json.dumps(day0, ensure_ascii=False) + '\n')
+                f.write(json.dumps(cdash_day0, ensure_ascii=False) + '\n')
 
         for day in range(1, total_days + 1):
             cycle, cycle_day = _get_cycle_info(day, cycle_length)
@@ -760,8 +762,9 @@ class SimulationRunnerV2:
         day0 = _build_day0_record(patient, simulator)
         day_results.append(day0)
         if save:
+            cdash_day0 = map_day_record(day0, patient)
             with open(sim_path, 'a', encoding='utf-8') as f:
-                f.write(json.dumps(day0, ensure_ascii=False) + '\n')
+                f.write(json.dumps(cdash_day0, ensure_ascii=False) + '\n')
 
         for day in range(1, total_days + 1):
             if self._cancelled:
