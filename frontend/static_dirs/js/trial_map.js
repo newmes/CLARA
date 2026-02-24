@@ -734,7 +734,15 @@ class TrialMap {
       // Handle newly deceased patients
       if (isDead) {
         if (!this.tombstones[p.patient_id]) {
-          // Place tombstone in front of house, slightly lower
+          // Immediately hide character sprite (no walk home)
+          this._scene.tweens.killTweensOf(sprite);
+          sprite.setAlpha(0);
+          sprite.setVisible(false);
+          // Hide emotion icon immediately
+          const oldDot = this.statusDots[p.patient_id];
+          if (oldDot) oldDot.destroy();
+          this.statusDots[p.patient_id] = null;
+          // Place tombstone in front of house with fade-in
           const tx = home.x * TILE + TILE / 2;
           const ty = home.y * TILE + TILE + 4;
           const tombFrame = 0;
@@ -743,17 +751,14 @@ class TrialMap {
           tomb.setAlpha(0);
           this._scene.tweens.add({ targets: tomb, alpha: 1, duration: 600 });
           this.tombstones[p.patient_id] = tomb;
-          // Fade out character sprite
-          this._scene.tweens.add({ targets: sprite, alpha: 0, duration: 600, onComplete: () => sprite.setVisible(false) });
           // Move label above tombstone and grey out
           const label = this.nameLabels[p.patient_id];
           if (label) {
-            this._scene.tweens.add({ targets: label, x: tx, y: ty - 28, duration: 600 });
+            label.setX(tx);
+            label.setY(ty - 28);
             label.setColor('#888888');
           }
-          // Replace emotion icon with skull
-          const oldDot = this.statusDots[p.patient_id];
-          if (oldDot) oldDot.destroy();
+          // Skull icon at tombstone
           const skull = this._scene.add.image(tx - 18, ty - 28, 'skull');
           skull.setOrigin(0.5, 1).setScale(0.7).setDepth(21).setAlpha(0);
           this._scene.tweens.add({ targets: skull, alpha: 1, duration: 600 });
