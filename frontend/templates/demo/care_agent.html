@@ -251,73 +251,16 @@
 .ci-btn.running .btn-label { display: none; }
 @keyframes ciSpin { to { transform: rotate(360deg); } }
 
-/* ═══════════════════════════════════════════════
-   LIVE BAR
-   ═══════════════════════════════════════════════ */
-.ci-live-bar {
-  display: none; align-items: center; justify-content: space-between;
-  padding: 10px 20px; margin-bottom: 16px;
-  background: rgba(22,27,34,0.8); border: 1px solid rgba(48,54,61,0.6);
-  border-radius: 12px;
-}
-.ci-live-bar.active { display: flex; }
-.ci-live-ind { display: flex; align-items: center; gap: 8px; font: 700 0.88em 'JetBrains Mono', monospace; color: var(--ci-green); }
-.ci-live-dot {
-  width: 10px; height: 10px; border-radius: 50%; background: var(--ci-green);
-  animation: ciLivePulse 1.5s ease-in-out infinite; box-shadow: 0 0 8px rgba(63,185,80,0.5);
-}
-@keyframes ciLivePulse {
-  0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(63,185,80,0.5); }
-  50% { opacity: 0.4; box-shadow: 0 0 4px rgba(63,185,80,0.2); }
-}
-.ci-live-bar.ended .ci-live-ind { color: var(--text-muted); }
-.ci-live-bar.ended .ci-live-dot { background: var(--text-muted); animation: none; box-shadow: none; }
-.ci-live-meta { display: flex; align-items: center; gap: 16px; }
-.ci-live-day {
-  font: 700 0.88em 'JetBrains Mono', monospace; color: var(--ci-accent);
-  padding: 4px 12px; border-radius: 6px;
-  background: var(--ci-accent-dim); border: 1px solid var(--ci-accent-border);
-}
-.ci-live-elapsed { font: 600 0.82em 'JetBrains Mono', monospace; color: var(--text-muted); }
-.ci-live-ctrls { display: flex; align-items: center; gap: 8px; }
-.ci-tts-toggle {
-  display: flex; align-items: center; justify-content: center;
-  width: 34px; height: 34px;
-  background: rgba(0,200,150,0.12); border: 1px solid rgba(0,200,150,0.25);
-  color: var(--ci-green); border-radius: 8px; padding: 0;
-  cursor: pointer; transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
-  position: relative; overflow: hidden;
-}
-.ci-tts-toggle::before {
-  content: ''; position: absolute; inset: 0; border-radius: 8px;
-  background: radial-gradient(circle at center, rgba(52,199,138,0.15), transparent 70%);
-  opacity: 0; transition: opacity 0.3s;
-}
-.ci-tts-toggle:hover::before { opacity: 1; }
-.ci-tts-toggle:hover {
-  transform: scale(1.08);
-  border-color: rgba(0,200,150,0.4);
-  box-shadow: 0 0 12px rgba(52,199,138,0.2);
-}
-.ci-tts-toggle:active { transform: scale(0.95); }
-.ci-tts-toggle svg { width: 18px; height: 18px; position: relative; z-index: 1; }
-.ci-tts-toggle:not(.on) {
-  background: rgba(248,81,73,0.08); border-color: rgba(248,81,73,0.2); color: var(--ci-red);
-}
-.ci-tts-toggle:not(.on):hover {
-  background: rgba(248,81,73,0.12); border-color: rgba(248,81,73,0.35);
-  box-shadow: 0 0 12px rgba(248,81,73,0.15);
-}
 
 /* ═══════════════════════════════════════════════
-   MAIN LAYOUT: Phone + Dashboard
+   MAIN LAYOUT: Phone | Conversation | Pipeline
    ═══════════════════════════════════════════════ */
 .ci-main {
   display: none; gap: 20px; margin-bottom: 24px;
 }
 .ci-main.active {
   display: grid;
-  grid-template-columns: 340px 1fr;
+  grid-template-columns: 300px 1fr 300px;
 }
 
 /* ── Left Column: Phone + Extras ── */
@@ -381,20 +324,6 @@
   width: 100%; height: 100%; object-fit: cover;
   transition: opacity 0.4s;
 }
-.ci-phone-ae-tag {
-  position: absolute; top: 8px; right: 8px;
-  padding: 3px 8px; border-radius: 6px;
-  font: 700 0.78em 'JetBrains Mono', monospace;
-  background: rgba(248,81,73,0.85); color: #fff;
-  display: none; z-index: 5;
-}
-.ci-phone-ae-tag.visible { display: block; }
-.ci-phone-day-tag {
-  position: absolute; top: 8px; left: 8px;
-  padding: 3px 8px; border-radius: 6px;
-  font: 700 0.78em 'JetBrains Mono', monospace;
-  background: rgba(52,199,138,0.7); color: #fff; z-index: 5;
-}
 
 /* Phone bottom controls */
 .ci-phone-controls {
@@ -450,99 +379,173 @@
 }
 .ci-extras-card {
   background: rgba(22,27,34,0.7); border: 1px solid rgba(48,54,61,0.5);
-  border-radius: 10px; padding: 10px 12px;
+  border-radius: 10px; padding: 12px 14px;
 }
 .ci-extras-title {
   font: 700 0.78em 'JetBrains Mono', monospace;
   color: var(--ci-accent); text-transform: uppercase;
-  letter-spacing: 0.5px; margin-bottom: 6px;
+  letter-spacing: 0.5px; margin-bottom: 10px;
+  display: flex; align-items: center; gap: 6px;
+}
+.ci-extras-title::before {
+  content: ''; width: 3px; height: 12px; border-radius: 2px;
+  background: var(--ci-accent); flex-shrink: 0;
 }
 
-/* Mood radar compact */
-.ci-mood-row { display: flex; flex-wrap: wrap; gap: 3px; }
+/* ── Mood: Horizontal bar chart ── */
+.ci-mood-row { display: flex; flex-direction: column; gap: 6px; }
+.ci-mood-item {
+  display: flex; align-items: center; gap: 8px;
+}
+.ci-mood-label {
+  font: 600 0.72em 'JetBrains Mono', monospace;
+  color: var(--text-muted); width: 72px; flex-shrink: 0;
+  text-transform: capitalize; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.ci-mood-bar-wrap {
+  flex: 1; height: 10px; border-radius: 5px;
+  background: rgba(255,255,255,0.04);
+  overflow: hidden; position: relative;
+}
+.ci-mood-bar {
+  height: 100%; border-radius: 5px;
+  transition: width 0.6s cubic-bezier(0.16,1,0.3,1);
+  position: relative;
+}
+.ci-mood-bar::after {
+  content: ''; position: absolute; inset: 0; border-radius: 5px;
+  background: linear-gradient(90deg, transparent 60%, rgba(255,255,255,0.12));
+}
+.ci-mood-val {
+  font: 700 0.72em 'JetBrains Mono', monospace;
+  width: 32px; text-align: right; flex-shrink: 0;
+}
+/* Fallback for unknown mood keys (must come first) */
+.ci-mood-item .ci-mood-bar { background: linear-gradient(90deg, #58a6ff80, #58a6ff); }
+.ci-mood-item .ci-mood-val { color: #58a6ff; }
+/* Mood-specific colors (attribute selectors override fallback) */
+.ci-mood-item[data-mood="anxiety"] .ci-mood-bar { background: linear-gradient(90deg, #f8514980, #f85149); }
+.ci-mood-item[data-mood="anxiety"] .ci-mood-val { color: #f85149; }
+.ci-mood-item[data-mood="depression"] .ci-mood-bar { background: linear-gradient(90deg, #b48efa80, #b48efa); }
+.ci-mood-item[data-mood="depression"] .ci-mood-val { color: #b48efa; }
+.ci-mood-item[data-mood="fatigue"] .ci-mood-bar { background: linear-gradient(90deg, #d2992280, #d29922); }
+.ci-mood-item[data-mood="fatigue"] .ci-mood-val { color: #d29922; }
+.ci-mood-item[data-mood="irritability"] .ci-mood-bar { background: linear-gradient(90deg, #e8985a80, #e8985a); }
+.ci-mood-item[data-mood="irritability"] .ci-mood-val { color: #e8985a; }
+.ci-mood-item[data-mood="hopefulness"] .ci-mood-bar { background: linear-gradient(90deg, #3fb95080, #3fb950); }
+.ci-mood-item[data-mood="hopefulness"] .ci-mood-val { color: #3fb950; }
+.ci-mood-item[data-mood="defensiveness"] .ci-mood-bar { background: linear-gradient(90deg, #f7c94880, #f7c948); }
+.ci-mood-item[data-mood="defensiveness"] .ci-mood-val { color: #f7c948; }
+.ci-mood-item[data-mood="trust"] .ci-mood-bar { background: linear-gradient(90deg, #34c78a80, #34c78a); }
+.ci-mood-item[data-mood="trust"] .ci-mood-val { color: #34c78a; }
+/* trust_in_ai alias (some data sends trust_in_ai instead of trust) */
+.ci-mood-item[data-mood="trust_in_ai"] .ci-mood-bar { background: linear-gradient(90deg, #34c78a80, #34c78a); }
+.ci-mood-item[data-mood="trust_in_ai"] .ci-mood-val { color: #34c78a; }
+/* energy alias */
+.ci-mood-item[data-mood="energy"] .ci-mood-bar { background: linear-gradient(90deg, #4ecdc480, #4ecdc4); }
+.ci-mood-item[data-mood="energy"] .ci-mood-val { color: #4ecdc4; }
+/* Waiting state */
 .ci-mood-chip {
   font: 600 0.75em 'JetBrains Mono', monospace;
   padding: 2px 6px; border-radius: 4px;
 }
-.ci-mood-chip.high { background: rgba(248,81,73,0.12); color: var(--ci-red); border: 1px solid rgba(248,81,73,0.2); }
-.ci-mood-chip.mid { background: rgba(240,180,41,0.1); color: #f0b429; border: 1px solid rgba(240,180,41,0.2); }
 .ci-mood-chip.low { background: rgba(0,200,150,0.08); color: var(--ci-green); border: 1px solid rgba(0,200,150,0.15); }
 
-/* Vitals chips */
-.ci-vitals-row { display: flex; flex-wrap: wrap; gap: 4px; }
+/* ── Vitals: 2-column grid with icons ── */
+.ci-vitals-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.ci-vital-card {
+  display: flex; align-items: center; gap: 8px;
+  background: rgba(13,17,23,0.5); border: 1px solid rgba(48,54,61,0.4);
+  border-radius: 8px; padding: 7px 9px;
+  transition: border-color 0.3s, background 0.3s;
+}
+.ci-vital-card.vital-warn {
+  border-color: rgba(210,153,34,0.4); background: rgba(210,153,34,0.06);
+}
+.ci-vital-card.vital-danger {
+  border-color: rgba(248,81,73,0.4); background: rgba(248,81,73,0.06);
+}
+.ci-vital-icon {
+  width: 24px; height: 24px; border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; font-size: 11px;
+}
+.ci-vital-icon.icon-bp { background: rgba(248,81,73,0.12); color: #f85149; }
+.ci-vital-icon.icon-hr { background: rgba(232,121,168,0.12); color: #e879a8; }
+.ci-vital-icon.icon-bt { background: rgba(88,166,255,0.12); color: #58a6ff; }
+.ci-vital-icon.icon-rr { background: rgba(78,205,196,0.12); color: #4ecdc4; }
+.ci-vital-icon.icon-spo2 { background: rgba(63,185,80,0.12); color: #3fb950; }
+.ci-vital-icon.icon-default { background: rgba(139,148,158,0.12); color: #8b949e; }
+.ci-vital-info { flex: 1; min-width: 0; }
+.ci-vital-name {
+  font: 600 0.68em 'JetBrains Mono', monospace;
+  color: var(--text-muted); text-transform: uppercase;
+  letter-spacing: 0.3px; line-height: 1;
+}
+.ci-vital-value {
+  font: 700 0.92em 'JetBrains Mono', monospace;
+  color: var(--text-secondary); line-height: 1.3;
+}
+.ci-vital-card.vital-warn .ci-vital-value { color: #d29922; }
+.ci-vital-card.vital-danger .ci-vital-value { color: #f85149; }
+.ci-vital-unit {
+  font: 500 0.6em 'JetBrains Mono', monospace;
+  color: var(--text-muted); opacity: 0.7;
+}
+/* Legacy chip for initial state */
 .ci-vital-chip {
   font: 600 0.78em 'JetBrains Mono', monospace;
   background: rgba(0,200,150,0.08); border: 1px solid rgba(0,200,150,0.15);
   border-radius: 4px; padding: 2px 6px; color: var(--text-secondary);
 }
 
-/* Mini timeline */
-.ci-mini-tl { max-height: 140px; overflow-y: auto; }
-.ci-mini-tl::-webkit-scrollbar { width: 2px; }
-.ci-mini-tl::-webkit-scrollbar-thumb { background: rgba(52,199,138,0.2); border-radius: 2px; }
-.ci-mini-tl-item {
-  display: flex; align-items: flex-start; gap: 6px;
-  padding: 3px 0; font-size: 0.75em;
-}
-.ci-mini-tl-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  margin-top: 3px; flex-shrink: 0;
-}
-.ci-mini-tl-dot.dot-day { background: var(--ci-accent); }
-.ci-mini-tl-dot.dot-ae { background: var(--ci-red); }
-.ci-mini-tl-dot.dot-ok { background: var(--ci-green); }
-.ci-mini-tl-text { color: var(--text-muted); line-height: 1.4; }
-
-/* ═══════════════════════════════════════════════
-   RIGHT: AI DASHBOARD
-   ═══════════════════════════════════════════════ */
-.ci-dashboard {
-  display: flex; flex-direction: column; gap: 14px;
-  max-height: 880px; overflow: hidden;
-}
 
 /* ── AI Inference Pipeline ── */
 .ci-pipeline-section {
   background: rgba(22,27,34,0.7); border: 1px solid rgba(48,54,61,0.6);
-  border-radius: 14px; overflow: hidden;
+  border-radius: 12px; overflow-x: hidden; overflow-y: auto;
+  max-height: 880px;
 }
+.ci-pipeline-section::-webkit-scrollbar { width: 4px; }
+.ci-pipeline-section::-webkit-scrollbar-thumb { background: rgba(52,199,138,0.2); border-radius: 2px; }
 .ci-pipeline-header {
-  padding: 10px 16px; background: rgba(13,17,23,0.4);
+  padding: 7px 14px; background: rgba(13,17,23,0.4);
   border-bottom: 1px solid rgba(48,54,61,0.4);
-  font: 700 0.88em 'JetBrains Mono', monospace; color: var(--text-secondary);
+  font: 700 0.82em 'JetBrains Mono', monospace; color: var(--text-secondary);
   display: flex; align-items: center; gap: 8px;
 }
-.ci-pipeline-header svg { width: 14px; height: 14px; opacity: 0.6; }
-.ci-pipeline-body { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+.ci-pipeline-header svg { width: 13px; height: 13px; opacity: 0.6; }
+.ci-pipeline-body { padding: 6px; display: flex; flex-direction: column; gap: 5px; }
 
 /* ── Pipeline Summary Bar ── */
 .ci-pipeline-summary {
-  display: flex; align-items: center; gap: 12px;
-  padding: 8px 14px; margin: 0 10px 6px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 5px 10px; margin: 0 4px 2px;
   background: rgba(13,17,23,0.6); border: 1px solid rgba(48,54,61,0.4);
-  border-radius: 8px; flex-wrap: wrap;
+  border-radius: 6px; flex-wrap: wrap;
 }
 .ci-pipe-stat {
-  display: flex; align-items: center; gap: 5px;
-  font: 600 0.78em 'JetBrains Mono', monospace; color: var(--text-muted);
+  display: flex; align-items: center; gap: 4px;
+  font: 600 0.72em 'JetBrains Mono', monospace; color: var(--text-muted);
   white-space: nowrap;
 }
 .ci-pipe-stat-val {
   font-weight: 700; color: var(--text-secondary);
-  padding: 1px 6px; border-radius: 4px;
+  padding: 1px 5px; border-radius: 3px;
   background: rgba(255,255,255,0.04); border: 1px solid rgba(48,54,61,0.3);
 }
 .ci-pipe-stat-val.val-green { color: var(--ci-green); background: rgba(63,185,80,0.08); border-color: rgba(63,185,80,0.15); }
 .ci-pipe-stat-val.val-orange { color: var(--ci-orange); background: rgba(210,153,34,0.08); border-color: rgba(210,153,34,0.15); }
 .ci-pipe-stat-val.val-red { color: var(--ci-red); background: rgba(248,81,73,0.08); border-color: rgba(248,81,73,0.15); }
-.ci-pipe-sep { width: 1px; height: 16px; background: rgba(48,54,61,0.5); flex-shrink: 0; }
+.ci-pipe-sep { width: 1px; height: 14px; background: rgba(48,54,61,0.5); flex-shrink: 0; }
 .ci-pipe-icons {
   display: flex; align-items: center; gap: 4px; margin-left: auto;
 }
 .ci-pipe-mini {
-  width: 18px; height: 18px; border-radius: 4px;
+  width: 16px; height: 16px; border-radius: 3px;
   display: flex; align-items: center; justify-content: center;
-  font: 700 0.55em 'JetBrains Mono', monospace;
+  font: 700 0.5em 'JetBrains Mono', monospace;
   border: 1px solid rgba(48,54,61,0.4);
   transition: all 0.3s;
 }
@@ -556,7 +559,7 @@
 
 /* ── Model cards v2 ── */
 .ci-model-card {
-  border-radius: 10px;
+  border-radius: 8px;
   background: rgba(13,17,23,0.5); border: 1px solid rgba(48,54,61,0.4);
   transition: all 0.3s; position: relative; overflow: hidden;
   cursor: pointer;
@@ -585,17 +588,17 @@
 .ci-model-card.model-gemma::before { background: var(--ci-model-blue); }
 .ci-model-card.model-ctcae::before { background: var(--ci-pink); }
 
-/* Card primary section (3-row) */
+/* Card primary section (compact 2-row) */
 .ci-model-primary {
-  padding: 10px 14px; display: flex; flex-direction: column; gap: 4px;
+  padding: 6px 10px; display: flex; flex-direction: column; gap: 2px;
 }
 
 /* Row 1: status dot + model name + latency badge */
 .ci-model-row1 {
-  display: flex; align-items: center; gap: 8px;
+  display: flex; align-items: center; gap: 6px;
 }
 .ci-model-status-dot {
-  width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0;
+  width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
   background: rgba(255,255,255,0.15); transition: all 0.3s;
 }
 .ci-model-card.idle .ci-model-status-dot { background: rgba(255,255,255,0.15); }
@@ -607,15 +610,15 @@
   50% { opacity: 0.3; box-shadow: none; }
 }
 .ci-model-name {
-  font: 700 0.82em 'JetBrains Mono', monospace; color: var(--text-secondary);
+  font: 700 0.76em 'JetBrains Mono', monospace; color: var(--text-secondary);
   flex: 1; min-width: 0;
 }
 .ci-model-name .ci-model-role {
-  font-weight: 500; color: var(--text-muted); margin-left: 6px; font-size: 0.9em;
+  font-weight: 500; color: var(--text-muted); margin-left: 5px; font-size: 0.88em;
 }
 .ci-model-latency {
-  font: 600 0.72em 'JetBrains Mono', monospace;
-  padding: 2px 7px; border-radius: 4px;
+  font: 600 0.68em 'JetBrains Mono', monospace;
+  padding: 1px 6px; border-radius: 4px;
   background: rgba(255,255,255,0.04); border: 1px solid rgba(48,54,61,0.3);
   color: var(--text-muted); flex-shrink: 0;
   transition: all 0.3s;
@@ -624,11 +627,11 @@
 
 /* Row 2: finding text + severity badge */
 .ci-model-row2 {
-  display: flex; align-items: center; gap: 8px;
-  min-height: 20px;
+  display: flex; align-items: center; gap: 6px;
+  min-height: 16px;
 }
 .ci-model-finding {
-  font: 500 0.78em 'JetBrains Mono', monospace; color: var(--text-muted);
+  font: 500 0.72em 'JetBrains Mono', monospace; color: var(--text-muted);
   flex: 1; min-width: 0;
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   transition: color 0.3s;
@@ -639,8 +642,8 @@
 .ci-model-finding.finding-ok { color: var(--ci-green); }
 .ci-grade-badge {
   display: inline-flex; align-items: center; justify-content: center;
-  padding: 1px 7px; border-radius: 4px; flex-shrink: 0;
-  font: 700 0.78em 'JetBrains Mono', monospace;
+  padding: 1px 6px; border-radius: 4px; flex-shrink: 0;
+  font: 700 0.72em 'JetBrains Mono', monospace;
   transition: all 0.3s;
 }
 .ci-grade-badge.grade-normal { background: rgba(63,185,80,0.12); color: var(--ci-green); border: 1px solid rgba(63,185,80,0.2); }
@@ -655,19 +658,17 @@
   background: rgba(180,142,250,0.1); color: #b48efa; border: 1px solid rgba(180,142,250,0.2);
 }
 
-}
-
 /* Expandable detail panel */
 .ci-model-detail {
   max-height: 0; overflow: hidden;
   transition: max-height 0.3s ease, padding 0.3s ease;
   border-top: 0 solid rgba(48,54,61,0);
-  padding: 0 14px;
-  font: 500 0.75em 'JetBrains Mono', monospace;
-  color: var(--text-muted); line-height: 1.6;
+  padding: 0 10px;
+  font: 500 0.7em 'JetBrains Mono', monospace;
+  color: var(--text-muted); line-height: 1.5;
 }
 .ci-model-card.expanded .ci-model-detail {
-  max-height: 200px; padding: 8px 14px 10px;
+  max-height: 160px; padding: 5px 10px 7px;
   border-top: 1px solid rgba(48,54,61,0.3);
 }
 .ci-model-detail-row {
@@ -679,8 +680,8 @@
 
 /* Expand arrow indicator */
 .ci-model-expand-arrow {
-  position: absolute; top: 10px; right: 10px;
-  font-size: 0.7em; color: var(--text-muted); opacity: 0.4;
+  position: absolute; top: 7px; right: 8px;
+  font-size: 0.65em; color: var(--text-muted); opacity: 0.4;
   transition: all 0.2s;
 }
 .ci-model-card:hover .ci-model-expand-arrow { opacity: 0.8; }
@@ -704,13 +705,14 @@
 /* ── Conversation Panel ── */
 .ci-conv-section {
   background: rgba(22,27,34,0.7); border: 1px solid rgba(48,54,61,0.6);
-  border-radius: 14px; overflow: hidden;
+  border-radius: 12px; overflow: hidden;
   display: flex; flex-direction: column;
-  flex: 1; min-height: 0;
+  min-height: 0; max-height: 880px;
 }
+
 .ci-conv-header {
   display: flex; align-items: center; justify-content: space-between;
-  padding: 10px 16px; background: rgba(13,17,23,0.4);
+  padding: 8px 14px; background: rgba(13,17,23,0.4);
   border-bottom: 1px solid rgba(48,54,61,0.4);
 }
 .ci-conv-title {
@@ -725,6 +727,56 @@
 }
 .ci-feed::-webkit-scrollbar { width: 4px; }
 .ci-feed::-webkit-scrollbar-thumb { background: rgba(52,199,138,0.2); border-radius: 2px; }
+
+/* Chat input */
+.ci-chat-input-area {
+  display: none; padding: 10px 14px;
+  border-top: 1px solid rgba(48,54,61,0.5);
+  background: rgba(13,17,23,0.6);
+}
+.ci-chat-input-area.active { display: block; }
+.ci-chat-input-wrap { display: flex; align-items: center; gap: 8px; }
+.ci-chat-input {
+  flex: 1; padding: 10px 14px;
+  background: rgba(22,27,34,0.8);
+  border: 1px solid rgba(48,54,61,0.6);
+  border-radius: 10px; color: var(--text-primary);
+  font: 400 0.88em 'Inter', -apple-system, sans-serif;
+  outline: none; transition: border-color 0.25s, box-shadow 0.25s;
+  line-height: 1.5;
+}
+.ci-chat-input::placeholder { color: var(--text-muted); opacity: 0.5; }
+.ci-chat-input:focus {
+  border-color: var(--ci-accent-border);
+  box-shadow: 0 0 0 2px rgba(52,199,138,0.1);
+}
+.ci-chat-input:disabled { opacity: 0.4; cursor: not-allowed; }
+.ci-chat-send {
+  width: 38px; height: 38px; border-radius: 10px;
+  background: linear-gradient(135deg, #22c55e, #16a34a);
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: all 0.25s cubic-bezier(0.16,1,0.3,1);
+  flex-shrink: 0; box-shadow: 0 2px 8px rgba(34,197,94,0.2);
+}
+.ci-chat-send:hover { transform: translateY(-1px); box-shadow: 0 4px 14px rgba(34,197,94,0.35); }
+.ci-chat-send:active { transform: scale(0.95); }
+.ci-chat-send:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
+.ci-chat-send svg { width: 18px; height: 18px; stroke: #fff; fill: none; }
+
+/* Typing indicator */
+.ci-typing { display: inline-flex; align-items: center; gap: 4px; padding: 4px 0; }
+.ci-typing-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--ci-accent); opacity: 0.4;
+  animation: ciTypingBounce 1.4s ease-in-out infinite;
+}
+.ci-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.ci-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+@keyframes ciTypingBounce {
+  0%, 60%, 100% { opacity: 0.4; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-4px); }
+}
 
 /* Day divider */
 .ci-day-div { display: flex; align-items: center; gap: 10px; margin: 14px 0 10px; }
@@ -822,53 +874,8 @@
   color: var(--accent-cyan); font-weight: 600; margin: 1px 2px;
 }
 
-/* Assessment card */
-.ci-assessment {
-  margin: 8px 0; padding: 10px 12px; border-radius: 10px;
-  background: rgba(63,185,80,0.05); border: 1px solid rgba(63,185,80,0.15);
-  animation: ciFadeIn 0.4s ease forwards; opacity: 0;
-}
-.ci-assessment.high { background: rgba(248,81,73,0.06); border-color: rgba(248,81,73,0.2); }
-.ci-assessment.moderate { background: rgba(210,153,34,0.06); border-color: rgba(210,153,34,0.2); }
-.ci-assessment-title {
-  font: 700 0.82em 'JetBrains Mono', monospace; margin-bottom: 4px;
-  display: flex; align-items: center; gap: 6px;
-}
-.ci-assessment.high .ci-assessment-title { color: var(--ci-red); }
-.ci-assessment.moderate .ci-assessment-title { color: var(--ci-orange); }
-.ci-assessment:not(.high):not(.moderate) .ci-assessment-title { color: var(--ci-green); }
-.ci-ae-list { list-style: none; padding: 0; margin: 0; }
-.ci-ae-list li {
-  font-size: 0.82em; color: var(--text-secondary); padding: 2px 0;
-  display: flex; align-items: center; gap: 5px;
-}
-.ci-ae-grade {
-  display: inline-block; padding: 1px 5px; border-radius: 4px;
-  font: 700 0.88em 'JetBrains Mono', monospace;
-}
-.ci-ae-grade.g1 { background: rgba(63,185,80,0.15); color: var(--ci-green); }
-.ci-ae-grade.g2 { background: rgba(210,153,34,0.15); color: var(--ci-orange); }
-.ci-ae-grade.g3, .ci-ae-grade.g4 { background: rgba(248,81,73,0.15); color: var(--ci-red); }
 
-/* GT reveal */
-.ci-gt-reveal {
-  margin: 6px 0 12px; padding: 8px 12px; border-radius: 8px;
-  background: rgba(88,166,255,0.04); border: 1px solid rgba(88,166,255,0.1);
-  animation: ciFadeIn 0.4s ease forwards; opacity: 0;
-}
-.ci-gt-title {
-  font: 600 0.78em 'JetBrains Mono', monospace;
-  color: var(--ci-blue); margin-bottom: 4px; text-transform: uppercase;
-}
-.ci-gt-ae {
-  display: inline-flex; align-items: center; gap: 4px;
-  padding: 2px 8px; border-radius: 6px; margin: 2px 3px 2px 0;
-  font-size: 0.82em; font-weight: 600;
-  background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.15);
-  color: var(--text-secondary);
-}
-.ci-gt-ae.detected { background: rgba(63,185,80,0.1); border-color: rgba(63,185,80,0.2); color: var(--ci-green); }
-.ci-gt-ae.missed { background: rgba(248,81,73,0.08); border-color: rgba(248,81,73,0.15); color: var(--ci-red); }
+
 
 /* ═══════════════════════════════════════════════
    SESSION END (minimal)
@@ -880,11 +887,16 @@
 /* ═══════════════════════════════════════════════
    RESPONSIVE
    ═══════════════════════════════════════════════ */
+@media (max-width: 1200px) {
+  .ci-main.active { grid-template-columns: 280px 1fr 260px; }
+}
 @media (max-width: 1100px) {
   .ci-main.active { grid-template-columns: 1fr; }
   .ci-left { flex-direction: row; flex-wrap: wrap; justify-content: center; }
   .ci-phone-extras { width: 100%; max-width: 400px; }
-  .ci-dashboard { max-height: none; }
+  .ci-vitals-row { grid-template-columns: 1fr 1fr 1fr; }
+  .ci-pipeline-section { max-height: none; }
+  .ci-conv-section { max-height: none; min-height: 400px; }
 }
 @media (max-width: 900px) {
   .ci-wrap { padding: 5em 14px 3em; }
@@ -899,6 +911,8 @@
   .ci-patients-grid { grid-template-columns: 1fr; }
   .ci-phone { width: 240px; height: 480px; border-radius: 32px; }
   .ci-phone-extras { width: 240px; }
+  .ci-vitals-row { grid-template-columns: 1fr 1fr; }
+  .ci-mood-label { width: 60px; font-size: 0.68em; }
 }
 </style>
 {% endblock %}
@@ -1018,33 +1032,6 @@
   </div>
 </div>
 
-<!-- ════════════════════════════════════════════════
-     LIVE BAR
-     ════════════════════════════════════════════════ -->
-<div class="ci-live-bar" id="ciLiveBar">
-  <div class="ci-live-ind" id="ciLiveInd">
-    <span class="ci-live-dot"></span>
-    <span id="ciLiveLabel">LIVE</span>
-  </div>
-  <div class="ci-live-meta">
-    <div class="ci-live-day" id="ciLiveDay">Day --</div>
-    <div class="ci-live-elapsed" id="ciLiveElapsed">00:00</div>
-  </div>
-  <div class="ci-live-ctrls">
-    <button class="ci-tts-toggle on" id="ciTtsBtn" onclick="ciToggleTts()" title="Toggle TTS">
-      <svg id="ciTtsIconOn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-        <path d="M15.54 8.46a5 5 0 010 7.07"/>
-        <path d="M19.07 4.93a10 10 0 010 14.14"/>
-      </svg>
-      <svg id="ciTtsIconOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
-        <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/>
-        <line x1="23" y1="9" x2="17" y2="15"/>
-        <line x1="17" y1="9" x2="23" y2="15"/>
-      </svg>
-    </button>
-  </div>
-</div>
 
 <!-- ════════════════════════════════════════════════
      PHASE 2: PHONE + AI DASHBOARD
@@ -1075,8 +1062,6 @@
         <!-- Camera view -->
         <div class="ci-phone-camera">
           <img id="ciPhoneImg" src="" alt="Patient view">
-          <div class="ci-phone-day-tag" id="ciPhoneDayTag">Day --</div>
-          <div class="ci-phone-ae-tag" id="ciPhoneAeTag"></div>
         </div>
 
         <!-- Controls -->
@@ -1106,171 +1091,184 @@
       <div class="ci-extras-card">
         <div class="ci-extras-title">Patient Mood</div>
         <div class="ci-mood-row" id="ciMoodRow">
-          <span class="ci-mood-chip low">Waiting...</span>
+          <div class="ci-mood-item" data-mood="anxiety"><span class="ci-mood-label">anxiety</span><div class="ci-mood-bar-wrap"><div class="ci-mood-bar" style="width:0%"></div></div><span class="ci-mood-val">--</span></div>
+          <div class="ci-mood-item" data-mood="depression"><span class="ci-mood-label">depression</span><div class="ci-mood-bar-wrap"><div class="ci-mood-bar" style="width:0%"></div></div><span class="ci-mood-val">--</span></div>
+          <div class="ci-mood-item" data-mood="fatigue"><span class="ci-mood-label">fatigue</span><div class="ci-mood-bar-wrap"><div class="ci-mood-bar" style="width:0%"></div></div><span class="ci-mood-val">--</span></div>
+          <div class="ci-mood-item" data-mood="irritability"><span class="ci-mood-label">irritability</span><div class="ci-mood-bar-wrap"><div class="ci-mood-bar" style="width:0%"></div></div><span class="ci-mood-val">--</span></div>
+          <div class="ci-mood-item" data-mood="hopefulness"><span class="ci-mood-label">hopefulness</span><div class="ci-mood-bar-wrap"><div class="ci-mood-bar" style="width:0%"></div></div><span class="ci-mood-val">--</span></div>
+          <div class="ci-mood-item" data-mood="defensiveness"><span class="ci-mood-label">defensiveness</span><div class="ci-mood-bar-wrap"><div class="ci-mood-bar" style="width:0%"></div></div><span class="ci-mood-val">--</span></div>
+          <div class="ci-mood-item" data-mood="trust"><span class="ci-mood-label">trust</span><div class="ci-mood-bar-wrap"><div class="ci-mood-bar" style="width:0%"></div></div><span class="ci-mood-val">--</span></div>
         </div>
       </div>
       <!-- Vitals -->
       <div class="ci-extras-card">
         <div class="ci-extras-title">Vitals</div>
         <div class="ci-vitals-row" id="ciVitalsRow">
-          <span class="ci-vital-chip">--</span>
-        </div>
-      </div>
-      <!-- Mini Timeline -->
-      <div class="ci-extras-card">
-        <div class="ci-extras-title">Timeline</div>
-        <div class="ci-mini-tl" id="ciMiniTl">
-          <div style="font-size:0.75em;color:var(--text-muted);">Events appear here...</div>
+          <div class="ci-vital-card"><div class="ci-vital-icon icon-bp">&uarr;</div><div class="ci-vital-info"><div class="ci-vital-name">SBP</div><div class="ci-vital-value">-- <span class="ci-vital-unit">mmHg</span></div></div></div>
+          <div class="ci-vital-card"><div class="ci-vital-icon icon-bp">&darr;</div><div class="ci-vital-info"><div class="ci-vital-name">DBP</div><div class="ci-vital-value">-- <span class="ci-vital-unit">mmHg</span></div></div></div>
+          <div class="ci-vital-card"><div class="ci-vital-icon icon-hr">&hearts;</div><div class="ci-vital-info"><div class="ci-vital-name">HR</div><div class="ci-vital-value">-- <span class="ci-vital-unit">bpm</span></div></div></div>
+          <div class="ci-vital-card"><div class="ci-vital-icon icon-bt">&#8451;</div><div class="ci-vital-info"><div class="ci-vital-name">BT</div><div class="ci-vital-value">-- <span class="ci-vital-unit">&deg;C</span></div></div></div>
+          <div class="ci-vital-card"><div class="ci-vital-icon icon-rr">&#8767;</div><div class="ci-vital-info"><div class="ci-vital-name">RR</div><div class="ci-vital-value">-- <span class="ci-vital-unit">/min</span></div></div></div>
+          <div class="ci-vital-card"><div class="ci-vital-icon icon-spo2">&#9679;</div><div class="ci-vital-info"><div class="ci-vital-name">SpO2</div><div class="ci-vital-value">-- <span class="ci-vital-unit">%</span></div></div></div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- ── Right: AI Dashboard ── -->
-  <div class="ci-dashboard">
-
-    <!-- AI Inference Pipeline -->
-    <div class="ci-pipeline-section">
-      <div class="ci-pipeline-header">
+  <!-- ── Center: Conversation ── -->
+  <div class="ci-conv-section">
+    <div class="ci-conv-header">
+      <div class="ci-conv-title">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
         </svg>
-        AI Inference Pipeline
+        Conversation
       </div>
-      <div class="ci-pipeline-body">
-
-        <!-- Pipeline Summary Bar -->
-        <div class="ci-pipeline-summary" id="ciPipelineSummary">
-          <span class="ci-pipe-stat">Models <span class="ci-pipe-stat-val" id="ciPipeModels">0/5</span></span>
-          <span class="ci-pipe-sep"></span>
-          <span class="ci-pipe-stat">AEs <span class="ci-pipe-stat-val" id="ciPipeAEs">0</span></span>
-          <span class="ci-pipe-sep"></span>
-          <span class="ci-pipe-stat">Max Grade <span class="ci-pipe-stat-val" id="ciPipeGrade">--</span></span>
-          <div class="ci-pipe-icons">
-            <span class="ci-pipe-mini pm-idle" id="ciPmHear" title="HeAR">H</span>
-            <span class="ci-pipe-mini pm-idle" id="ciPmMedasr" title="MedASR">A</span>
-            <span class="ci-pipe-mini pm-idle" id="ciPmSiglip" title="MedSigLIP">S</span>
-            <span class="ci-pipe-mini pm-idle" id="ciPmGemma" title="MedGemma">G</span>
-            <span class="ci-pipe-mini pm-idle" id="ciPmCtcae" title="CTCAE">C</span>
-          </div>
-        </div>
-
-        <!-- 1. HeAR — Audio Biomarker -->
-        <div class="ci-model-card model-hear idle" id="ciCardHear">
-          <div class="ci-model-primary">
-            <div class="ci-model-row1">
-              <span class="ci-model-status-dot"></span>
-              <span class="ci-model-name">HeAR <span class="ci-model-role">Audio Biomarker</span></span>
-              <span class="ci-model-latency" id="ciLatHear">--</span>
-            </div>
-            <div class="ci-model-row2">
-              <span class="ci-model-finding" id="ciFindHear">Waiting for audio...</span>
-            </div>
-          </div>
-
-        </div>
-
-        <!-- 2. MedASR — Medical Transcription -->
-        <div class="ci-model-card model-medasr idle" id="ciCardMedasr" onclick="this.classList.toggle('expanded')">
-          <span class="ci-model-expand-arrow">&#9662;</span>
-          <div class="ci-model-primary">
-            <div class="ci-model-row1">
-              <span class="ci-model-status-dot"></span>
-              <span class="ci-model-name">MedASR <span class="ci-model-role">Medical Transcription</span></span>
-              <span class="ci-model-latency" id="ciLatMedasr">--</span>
-            </div>
-            <div class="ci-model-row2">
-              <span class="ci-model-finding" id="ciFindMedasr">Waiting for speech...</span>
-              <span class="ci-grade-badge grade-words" id="ciBadgeMedasr" style="display:none">0 words</span>
-            </div>
-          </div>
-          <div class="ci-model-detail" id="ciDetailMedasr">
-            <div class="ci-model-detail-row"><span class="ci-model-detail-label">Full transcript</span></div>
-            <div style="color:var(--text-secondary);font-style:italic;line-height:1.5;margin-top:2px" id="ciDetMedasrFull">--</div>
-          </div>
-        </div>
-
-        <!-- 3. MedSigLIP — Visual Similarity -->
-        <div class="ci-model-card model-siglip idle" id="ciCardSiglip" onclick="this.classList.toggle('expanded')">
-          <span class="ci-model-expand-arrow">&#9662;</span>
-          <div class="ci-model-primary">
-            <div class="ci-model-row1">
-              <span class="ci-model-status-dot"></span>
-              <span class="ci-model-name">MedSigLIP <span class="ci-model-role">Visual Similarity</span></span>
-              <span class="ci-model-latency" id="ciLatSiglip">--</span>
-            </div>
-            <div class="ci-model-row2">
-              <span class="ci-model-finding" id="ciFindSiglip">Waiting for image...</span>
-              <span class="ci-grade-badge" id="ciBadgeSiglip" style="display:none"></span>
-            </div>
-          </div>
-          <div class="ci-model-detail" id="ciDetailSiglip">
-            <div class="ci-model-detail-row"><span class="ci-model-detail-label">Top predictions</span></div>
-            <div id="ciDetSiglipTopK" style="margin-top:2px">--</div>
-          </div>
-        </div>
-
-        <!-- 4. MedGemma — AE Detection -->
-        <div class="ci-model-card model-gemma idle" id="ciCardGemma" onclick="this.classList.toggle('expanded')">
-          <span class="ci-model-expand-arrow">&#9662;</span>
-          <div class="ci-model-primary">
-            <div class="ci-model-row1">
-              <span class="ci-model-status-dot"></span>
-              <span class="ci-model-name">MedGemma <span class="ci-model-role">AE Detection</span></span>
-              <span class="ci-model-latency" id="ciLatGemma">--</span>
-            </div>
-            <div class="ci-model-row2">
-              <span class="ci-model-finding" id="ciFindGemma">Waiting for conversation...</span>
-              <span class="ci-grade-badge grade-questions" id="ciBadgeGemma" style="display:none"></span>
-            </div>
-          </div>
-          <div class="ci-model-detail" id="ciDetailGemma">
-            <div class="ci-model-detail-row"><span class="ci-model-detail-label">Targeting AEs</span><span class="ci-model-detail-val" id="ciDetGemmaTargets">--</span></div>
-            <div class="ci-model-detail-row"><span class="ci-model-detail-label">Concerns</span></div>
-            <div id="ciDetGemmaConcerns" style="color:var(--ci-orange);margin-top:2px">--</div>
-          </div>
-        </div>
-
-        <!-- 5. CTCAE — Severity Grading (MedGemma Vision vLLM) -->
-        <div class="ci-model-card model-ctcae idle" id="ciCardCtcae" onclick="this.classList.toggle('expanded')">
-          <span class="ci-model-expand-arrow">&#9662;</span>
-          <div class="ci-model-primary">
-            <div class="ci-model-row1">
-              <span class="ci-model-status-dot"></span>
-              <span class="ci-model-name">CTCAE <span class="ci-model-role">v5.0 Severity Grading</span></span>
-              <span class="ci-model-latency" id="ciLatCtcae">--</span>
-            </div>
-            <div class="ci-model-row2">
-              <span class="ci-model-finding" id="ciFindCtcae">Waiting for assessment...</span>
-              <span class="ci-grade-badge" id="ciBadgeCtcae" style="display:none"></span>
-            </div>
-          </div>
-          <div class="ci-model-detail" id="ciDetailCtcae">
-            <div class="ci-model-detail-row"><span class="ci-model-detail-label">AE term</span><span class="ci-model-detail-val" id="ciDetCtcaeAe">--</span></div>
-            <div class="ci-model-detail-row"><span class="ci-model-detail-label">CTCAE definition</span></div>
-            <div id="ciDetCtcaeDef" style="color:var(--text-secondary);margin-top:2px;line-height:1.5">--</div>
-          </div>
-        </div>
-
-      </div>
+      <div class="ci-conv-progress" id="ciConvProgress">Waiting...</div>
     </div>
-
-    <!-- Conversation -->
-    <div class="ci-conv-section">
-      <div class="ci-conv-header">
-        <div class="ci-conv-title">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+    <div class="ci-feed" id="ciFeed"></div>
+    <div class="ci-chat-input-area" id="ciChatArea">
+      <div class="ci-chat-input-wrap">
+        <input type="text" class="ci-chat-input" id="ciChatInput"
+               placeholder="Type a message as the patient..."
+               autocomplete="off" />
+        <button class="ci-chat-send" id="ciChatSend" onclick="ciSendChat()" title="Send">
+          <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="22" y1="2" x2="11" y2="13"/>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"/>
           </svg>
-          Conversation
-        </div>
-        <div class="ci-conv-progress" id="ciConvProgress">Waiting...</div>
+        </button>
       </div>
-      <div class="ci-feed" id="ciFeed"></div>
     </div>
-
   </div>
+
+  <!-- ── Right: AI Inference Pipeline ── -->
+  <div class="ci-pipeline-section">
+    <div class="ci-pipeline-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="12" r="3"/>
+        <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
+      </svg>
+      AI Inference Pipeline
+    </div>
+    <div class="ci-pipeline-body">
+
+      <!-- Pipeline Summary Bar -->
+      <div class="ci-pipeline-summary" id="ciPipelineSummary">
+        <span class="ci-pipe-stat">Models <span class="ci-pipe-stat-val" id="ciPipeModels">0/5</span></span>
+        <span class="ci-pipe-sep"></span>
+        <span class="ci-pipe-stat">AEs <span class="ci-pipe-stat-val" id="ciPipeAEs">0</span></span>
+        <span class="ci-pipe-sep"></span>
+        <span class="ci-pipe-stat">Max Grade <span class="ci-pipe-stat-val" id="ciPipeGrade">--</span></span>
+        <div class="ci-pipe-icons">
+          <span class="ci-pipe-mini pm-idle" id="ciPmHear" title="HeAR">H</span>
+          <span class="ci-pipe-mini pm-idle" id="ciPmMedasr" title="MedASR">A</span>
+          <span class="ci-pipe-mini pm-idle" id="ciPmSiglip" title="MedSigLIP">S</span>
+          <span class="ci-pipe-mini pm-idle" id="ciPmGemma" title="MedGemma">G</span>
+          <span class="ci-pipe-mini pm-idle" id="ciPmCtcae" title="CTCAE">C</span>
+        </div>
+      </div>
+
+      <!-- 1. HeAR — Audio Biomarker -->
+      <div class="ci-model-card model-hear idle" id="ciCardHear">
+        <div class="ci-model-primary">
+          <div class="ci-model-row1">
+            <span class="ci-model-status-dot"></span>
+            <span class="ci-model-name">HeAR <span class="ci-model-role">Audio Biomarker</span></span>
+            <span class="ci-model-latency" id="ciLatHear">--</span>
+          </div>
+          <div class="ci-model-row2">
+            <span class="ci-model-finding" id="ciFindHear">Waiting for audio...</span>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- 2. MedASR — Medical Transcription -->
+      <div class="ci-model-card model-medasr idle" id="ciCardMedasr" onclick="this.classList.toggle('expanded')">
+        <span class="ci-model-expand-arrow">&#9662;</span>
+        <div class="ci-model-primary">
+          <div class="ci-model-row1">
+            <span class="ci-model-status-dot"></span>
+            <span class="ci-model-name">MedASR <span class="ci-model-role">Medical Transcription</span></span>
+            <span class="ci-model-latency" id="ciLatMedasr">--</span>
+          </div>
+          <div class="ci-model-row2">
+            <span class="ci-model-finding" id="ciFindMedasr">Waiting for speech...</span>
+            <span class="ci-grade-badge grade-words" id="ciBadgeMedasr" style="display:none">0 words</span>
+          </div>
+        </div>
+        <div class="ci-model-detail" id="ciDetailMedasr">
+          <div class="ci-model-detail-row"><span class="ci-model-detail-label">Full transcript</span></div>
+          <div style="color:var(--text-secondary);font-style:italic;line-height:1.5;margin-top:2px" id="ciDetMedasrFull">--</div>
+        </div>
+      </div>
+
+      <!-- 3. MedSigLIP — Visual Similarity -->
+      <div class="ci-model-card model-siglip idle" id="ciCardSiglip" onclick="this.classList.toggle('expanded')">
+        <span class="ci-model-expand-arrow">&#9662;</span>
+        <div class="ci-model-primary">
+          <div class="ci-model-row1">
+            <span class="ci-model-status-dot"></span>
+            <span class="ci-model-name">MedSigLIP <span class="ci-model-role">Visual Similarity</span></span>
+            <span class="ci-model-latency" id="ciLatSiglip">--</span>
+          </div>
+          <div class="ci-model-row2">
+            <span class="ci-model-finding" id="ciFindSiglip">Waiting for image...</span>
+            <span class="ci-grade-badge" id="ciBadgeSiglip" style="display:none"></span>
+          </div>
+        </div>
+        <div class="ci-model-detail" id="ciDetailSiglip">
+          <div class="ci-model-detail-row"><span class="ci-model-detail-label">Top predictions</span></div>
+          <div id="ciDetSiglipTopK" style="margin-top:2px">--</div>
+        </div>
+      </div>
+
+      <!-- 4. MedGemma — AE Detection -->
+      <div class="ci-model-card model-gemma idle" id="ciCardGemma" onclick="this.classList.toggle('expanded')">
+        <span class="ci-model-expand-arrow">&#9662;</span>
+        <div class="ci-model-primary">
+          <div class="ci-model-row1">
+            <span class="ci-model-status-dot"></span>
+            <span class="ci-model-name">MedGemma <span class="ci-model-role">AE Detection</span></span>
+            <span class="ci-model-latency" id="ciLatGemma">--</span>
+          </div>
+          <div class="ci-model-row2">
+            <span class="ci-model-finding" id="ciFindGemma">Waiting for conversation...</span>
+            <span class="ci-grade-badge grade-questions" id="ciBadgeGemma" style="display:none"></span>
+          </div>
+        </div>
+        <div class="ci-model-detail" id="ciDetailGemma">
+          <div class="ci-model-detail-row"><span class="ci-model-detail-label">Targeting AEs</span><span class="ci-model-detail-val" id="ciDetGemmaTargets">--</span></div>
+          <div class="ci-model-detail-row"><span class="ci-model-detail-label">Concerns</span></div>
+          <div id="ciDetGemmaConcerns" style="color:var(--ci-orange);margin-top:2px">--</div>
+        </div>
+      </div>
+
+      <!-- 5. CTCAE — Severity Grading (MedGemma Vision vLLM) -->
+      <div class="ci-model-card model-ctcae idle" id="ciCardCtcae" onclick="this.classList.toggle('expanded')">
+        <span class="ci-model-expand-arrow">&#9662;</span>
+        <div class="ci-model-primary">
+          <div class="ci-model-row1">
+            <span class="ci-model-status-dot"></span>
+            <span class="ci-model-name">CTCAE <span class="ci-model-role">v5.0 Severity Grading</span></span>
+            <span class="ci-model-latency" id="ciLatCtcae">--</span>
+          </div>
+          <div class="ci-model-row2">
+            <span class="ci-model-finding" id="ciFindCtcae">Waiting for assessment...</span>
+            <span class="ci-grade-badge" id="ciBadgeCtcae" style="display:none"></span>
+          </div>
+        </div>
+        <div class="ci-model-detail" id="ciDetailCtcae">
+          <div class="ci-model-detail-row"><span class="ci-model-detail-label">AE term</span><span class="ci-model-detail-val" id="ciDetCtcaeAe">--</span></div>
+          <div class="ci-model-detail-row"><span class="ci-model-detail-label">Assessment</span><span class="ci-model-detail-val" id="ciDetCtcaeAssess">--</span></div>
+          <div id="ciDetCtcaeList" style="margin-top:4px"></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
 </div>
 
 <!-- ════════════════════════════════════════════════
@@ -1342,11 +1340,8 @@ function ciStartCall() {
   var feed = document.getElementById('ciFeed');
   var summary = document.getElementById('ciSummary');
   var setup = document.getElementById('ciSetup');
-  var liveBar = document.getElementById('ciLiveBar');
 
   main.classList.add('active');
-  liveBar.classList.add('active');
-  liveBar.classList.remove('ended');
   feed.innerHTML = '';
   summary.classList.remove('active');
   setup.style.display = 'none';
@@ -1363,16 +1358,19 @@ function ciStartCall() {
   var card = document.querySelector('.ci-pt-card[data-pid="'+selectedPid+'"]');
   var faceIdx = card ? card.dataset.face : '0';
   document.getElementById('ciPhoneImg').src = MEDIA + '/image/normal_' + faceIdx + '.png';
-  document.getElementById('ciPhoneDayTag').textContent = 'Day --';
   document.getElementById('ciPhoneNurseStatus').textContent = 'Connected';
   document.getElementById('ciConvProgress').textContent = 'Starting...';
-  document.getElementById('ciLiveLabel').textContent = 'LIVE';
-  document.getElementById('ciLiveDay').textContent = 'Day --';
 
-  // Reset extras
-  document.getElementById('ciMoodRow').innerHTML = '<span class="ci-mood-chip low">Connecting...</span>';
-  document.getElementById('ciVitalsRow').innerHTML = '<span class="ci-vital-chip">--</span>';
-  document.getElementById('ciMiniTl').innerHTML = '<div style="font-size:0.75em;color:var(--text-muted);">Events appear here...</div>';
+
+  // Reset extras — keep structure, reset values to --
+  document.querySelectorAll('.ci-mood-bar').forEach(function(b) { b.style.width = '0%'; });
+  document.querySelectorAll('.ci-mood-val').forEach(function(v) { v.textContent = '--'; });
+  document.querySelectorAll('.ci-vital-value').forEach(function(v) {
+    var unit = v.querySelector('.ci-vital-unit');
+    v.textContent = '-- ';
+    if (unit) v.appendChild(unit);
+  });
+  document.querySelectorAll('.ci-vital-card').forEach(function(c) { c.className = 'ci-vital-card'; });
 
   // Elapsed timer
   callStart = Date.now();
@@ -1418,11 +1416,7 @@ function ciEndCall() { ciOnFinished(); }
    Elapsed Timer
    ═══════════════════════════════════════════════ */
 function ciUpdateElapsed() {
-  if (!callStart) return;
-  var el = Math.floor((Date.now() - callStart) / 1000);
-  var m = Math.floor(el / 60).toString().padStart(2, '0');
-  var s = (el % 60).toString().padStart(2, '0');
-  document.getElementById('ciLiveElapsed').textContent = m + ':' + s;
+  /* elapsed display removed — timer kept for internal tracking */
 }
 function ciTimestamp() {
   if (!callStart) return '00:00';
@@ -1474,7 +1468,8 @@ function ciResetModels() {
   document.getElementById('ciDetGemmaTargets').textContent = '--';
   document.getElementById('ciDetGemmaConcerns').textContent = '--';
   document.getElementById('ciDetCtcaeAe').textContent = '--';
-  document.getElementById('ciDetCtcaeDef').textContent = '--';
+  document.getElementById('ciDetCtcaeAssess').textContent = '--';
+  document.getElementById('ciDetCtcaeList').innerHTML = '';
 
   // Reset pipeline summary
   ciUpdatePipelineSummary();
@@ -1691,7 +1686,8 @@ function ciUpdateCtcae(aeData) {
   var badgeEl = document.getElementById('ciBadgeCtcae');
   var latEl = document.getElementById('ciLatCtcae');
   var aeEl = document.getElementById('ciDetCtcaeAe');
-  var defEl = document.getElementById('ciDetCtcaeDef');
+  var assessEl = document.getElementById('ciDetCtcaeAssess');
+  var listEl = document.getElementById('ciDetCtcaeList');
 
   if (!aeData || (!aeData.grade && aeData.grade !== 0)) {
     findEl.textContent = 'No grading available';
@@ -1722,27 +1718,76 @@ function ciUpdateCtcae(aeData) {
 
   // Detail
   aeEl.textContent = aeName + ' (Grade ' + grade + ')';
-  if (aeData.definition) {
-    defEl.textContent = aeData.definition;
+  if (assessEl) assessEl.textContent = '--';
+}
+
+/* Update CTCAE card with full nurse assessment */
+function ciUpdateCtcaeAssessment(concern, action, aes, latMs) {
+  ciSetModelState('ciCardCtcae', 'done');
+  var findEl = document.getElementById('ciFindCtcae');
+  var badgeEl = document.getElementById('ciBadgeCtcae');
+  var latEl = document.getElementById('ciLatCtcae');
+  var aeEl = document.getElementById('ciDetCtcaeAe');
+  var assessEl = document.getElementById('ciDetCtcaeAssess');
+  var listEl = document.getElementById('ciDetCtcaeList');
+
+  // Find highest grade AE for the primary display
+  var maxGrade = 0; var primaryAe = '';
+  aes.forEach(function(ae) {
+    var g = parseInt(ae.grade || ae.estimated_grade || 0) || 0;
+    if (g > maxGrade) { maxGrade = g; primaryAe = (ae.ae_term || ae.suspected_ae || 'unknown').replace(/_/g, ' '); }
+  });
+
+  if (maxGrade > 0 && primaryAe) {
+    findEl.textContent = primaryAe;
+    findEl.className = 'ci-model-finding' + (maxGrade >= 3 ? ' finding-danger' : maxGrade >= 2 ? ' finding-alert' : '');
+    var gCls = maxGrade >= 3 ? 'grade-g3' : maxGrade >= 2 ? 'grade-g2' : maxGrade >= 1 ? 'grade-g1' : 'grade-normal';
+    badgeEl.textContent = 'G' + maxGrade;
+    badgeEl.className = 'ci-grade-badge ' + gCls;
+    badgeEl.style.display = '';
   } else {
-    defEl.textContent = 'CTCAE v5.0 Grade ' + grade + ' -- ' + aeName;
+    findEl.textContent = 'No AEs detected';
+    findEl.className = 'ci-model-finding finding-ok';
+    badgeEl.style.display = 'none';
   }
+
+  // Latency
+  if (latMs) { latEl.textContent = latMs + 'ms'; latEl.classList.add('has-val'); }
+
+  // Pipeline tracking
+  if (maxGrade > pipelineMaxGrade) pipelineMaxGrade = maxGrade;
+  ciUpdatePipelineSummary();
+
+  // Detail — assessment level + action
+  var lvlLabel = concern.charAt(0).toUpperCase() + concern.slice(1);
+  var actionLabel = action ? ' | ' + action.replace(/_/g, ' ') : '';
+  var assessCls = concern === 'high' || concern === 'emergency' ? 'color:var(--ci-red)' : concern === 'moderate' ? 'color:var(--ci-orange)' : 'color:var(--ci-green)';
+  assessEl.innerHTML = '<span style="' + assessCls + ';font-weight:600">' + lvlLabel + actionLabel + '</span>';
+
+  // AE term line
+  if (primaryAe) {
+    aeEl.textContent = primaryAe + ' (Grade ' + maxGrade + ')';
+  } else {
+    aeEl.textContent = 'None';
+  }
+
+  // Full AE list
+  var html = '';
+  aes.forEach(function(ae) {
+    var g = ae.grade || ae.estimated_grade || '?';
+    var name = (ae.ae_term || ae.suspected_ae || 'unknown').replace(/_/g, ' ');
+    var src = ae.source ? ' [' + ae.source + ']' : '';
+    var gStyle = g >= 3 ? 'color:var(--ci-red)' : g >= 2 ? 'color:var(--ci-orange)' : 'color:var(--ci-green)';
+    html += '<div style="font-size:0.82em;color:var(--text-secondary);padding:2px 0">' +
+      '<span style="' + gStyle + ';font-weight:700">G' + g + '</span> ' + name + src + '</div>';
+  });
+  listEl.innerHTML = html;
 }
 
 /* ═══════════════════════════════════════════════
    Mini Timeline
    ═══════════════════════════════════════════════ */
-function ciAddMiniTl(dotCls, text) {
-  var tl = document.getElementById('ciMiniTl');
-  var ph = tl.querySelector('div:not(.ci-mini-tl-item)');
-  if (ph) ph.remove();
-  var item = document.createElement('div');
-  item.className = 'ci-mini-tl-item';
-  item.innerHTML = '<span class="ci-mini-tl-dot ' + dotCls + '"></span><span class="ci-mini-tl-text">' + text + '</span>';
-  tl.appendChild(item);
-  tl.scrollTop = tl.scrollHeight;
-  sessionEvents.push({type: dotCls, text: text, time: ciTimestamp()});
-}
+function ciAddMiniTl() { /* removed — timeline no longer displayed */ }
 
 /* ═══════════════════════════════════════════════
    Audio Playback (WAV files)
@@ -1796,18 +1841,12 @@ function ciHandleEvent(ev) {
         ciUpdateMedasr(null);
       }
 
-      // Update phone AE tag
-      var aeTag = document.getElementById('ciPhoneAeTag');
       if (findings.length > 0 && findings[0].ae_term !== 'normal') {
-        aeTag.textContent = findings.map(function(f) { return f.ae_term.replace(/_/g,' ') + ' G' + f.grade; }).join(', ');
-        aeTag.classList.add('visible');
         findings.forEach(function(f) {
           if (f.ae_term !== 'normal') {
             ciAddMiniTl('dot-ae', 'Visual: ' + f.ae_term.replace(/_/g,' ') + ' G' + f.grade);
           }
         });
-      } else {
-        aeTag.classList.remove('visible');
       }
       break;
     }
@@ -1823,14 +1862,10 @@ function ciHandleEvent(ev) {
     case 'day_start': {
       dayCount++;
       lastCtx = null;
-      document.getElementById('ciLiveDay').textContent = 'Video Call';
       document.getElementById('ciConvProgress').textContent = 'Video Call';
-      document.getElementById('ciPhoneDayTag').textContent = 'Video Call';
-
       if (ev.image) {
         document.getElementById('ciPhoneImg').src = MEDIA + '/image/' + ev.image;
       }
-      document.getElementById('ciPhoneAeTag').classList.remove('visible');
 
       // Divider in conversation
       var dayDiv = document.createElement('div');
@@ -1850,7 +1885,6 @@ function ciHandleEvent(ev) {
 
     case 'patient_greet':
       ciAppendMsg(feed, 'patient', ev.text, ev.mood ? 'Mood: ' + ev.mood : '');
-      ciSpeak(ev.text, 'patient', ev.audio_url);
       break;
 
     case 'nurse_context': {
@@ -1861,26 +1895,57 @@ function ciHandleEvent(ev) {
         ciUpdateMedasr({ text: ev.medical_transcript, latency_ms: ev.medasr_latency_ms || 0 });
       }
 
-      // Update mood display
+      // Update mood display (bar chart)
       var mood = ev.mood || {};
       var moodKeys = Object.keys(mood);
       if (moodKeys.length > 0) {
         var moodHtml = '';
         moodKeys.forEach(function(k) {
           var v = Math.round(mood[k] * 100);
-          var cls = v >= 60 ? 'high' : v >= 30 ? 'mid' : 'low';
-          moodHtml += '<span class="ci-mood-chip ' + cls + '">' + k.replace(/_/g,' ') + ': ' + v + '%</span>';
+          var moodName = k.replace(/_/g, ' ');
+          moodHtml += '<div class="ci-mood-item" data-mood="' + k + '">' +
+            '<span class="ci-mood-label">' + moodName + '</span>' +
+            '<div class="ci-mood-bar-wrap"><div class="ci-mood-bar" style="width:' + v + '%"></div></div>' +
+            '<span class="ci-mood-val">' + v + '%</span>' +
+            '</div>';
         });
         document.getElementById('ciMoodRow').innerHTML = moodHtml;
       }
 
-      // Update vitals display
+      // Update vitals display (card grid)
       var vitals = ev.current_vitals || {};
       var vKeys = Object.keys(vitals);
       if (vKeys.length > 0) {
         var vHtml = '';
+        var vitalMeta = {
+          'SBP':  {icon: '\u2191', cls: 'icon-bp', unit: 'mmHg', warnLo: 90, warnHi: 130, dangerHi: 140},
+          'DBP':  {icon: '\u2193', cls: 'icon-bp', unit: 'mmHg', warnLo: 60, warnHi: 85, dangerHi: 90},
+          'HR':   {icon: '\u2665', cls: 'icon-hr', unit: 'bpm', warnLo: 55, warnHi: 95, dangerHi: 110},
+          'BT':   {icon: '\u2103', cls: 'icon-bt', unit: '\u00b0C', warnLo: 36.0, warnHi: 37.5, dangerHi: 38.0},
+          'RR':   {icon: '\u223f', cls: 'icon-rr', unit: '/min', warnLo: 12, warnHi: 20, dangerHi: 24},
+          'SpO2': {icon: '\u25cf', cls: 'icon-spo2', unit: '%', warnLo: 94, warnHi: 999, dangerHi: 999}
+        };
         vKeys.forEach(function(k) {
-          vHtml += '<span class="ci-vital-chip">' + k + ': ' + vitals[k] + '</span>';
+          var val = vitals[k];
+          var meta = vitalMeta[k] || {icon: '\u2022', cls: 'icon-default', unit: '', warnLo: -9999, warnHi: 9999, dangerHi: 9999};
+          var numVal = parseFloat(val);
+          var cardCls = 'ci-vital-card';
+          if (!isNaN(numVal)) {
+            if (k === 'SpO2') {
+              if (numVal < 90) cardCls += ' vital-danger';
+              else if (numVal < meta.warnLo) cardCls += ' vital-warn';
+            } else {
+              if (numVal >= meta.dangerHi || numVal < meta.warnLo) cardCls += ' vital-danger';
+              else if (numVal >= meta.warnHi) cardCls += ' vital-warn';
+            }
+          }
+          vHtml += '<div class="' + cardCls + '">' +
+            '<div class="ci-vital-icon ' + meta.cls + '">' + meta.icon + '</div>' +
+            '<div class="ci-vital-info">' +
+              '<div class="ci-vital-name">' + k + '</div>' +
+              '<div class="ci-vital-value">' + val + ' <span class="ci-vital-unit">' + meta.unit + '</span></div>' +
+            '</div>' +
+            '</div>';
         });
         document.getElementById('ciVitalsRow').innerHTML = vHtml;
       }
@@ -1888,8 +1953,26 @@ function ciHandleEvent(ev) {
     }
 
     case 'nurse_turn': {
-      ciAppendMsg(feed, 'nurse', ev.text, 'Turn ' + ev.turn);
-      ciSpeak(ev.text, 'nurse', ev.audio_url);
+      // Extract natural language from JSON if backend sent raw structured response
+      var nurseText = ev.text || '';
+      if (nurseText.trim().charAt(0) === '{') {
+        try {
+          var parsed = JSON.parse(nurseText);
+          var parts = [];
+          if (parsed.acknowledgment) parts.push(parsed.acknowledgment);
+          if (parsed.visual_followup) parts.push(parsed.visual_followup);
+          if (parsed.audio_followup) parts.push(parsed.audio_followup);
+          if (parsed.questions && parsed.questions.length > 0) {
+            parsed.questions.forEach(function(q) {
+              var qt = typeof q === 'string' ? q : (q.question || '');
+              if (qt) parts.push(qt);
+            });
+          }
+          if (parts.length > 0) nurseText = parts.join(' ');
+        } catch(e) { /* not JSON, use as-is */ }
+      }
+      ciAppendMsg(feed, 'nurse', nurseText, 'Turn ' + ev.turn);
+      ciSpeak(nurseText, 'nurse', ev.audio_url);
 
       // Update MedGemma card with nurse questions/concerns
       var questions = ev.questions || [];
@@ -1947,7 +2030,6 @@ function ciHandleEvent(ev) {
       var extra = ev.emotion || '';
       if (ev.revealed) extra += (extra ? ' | ' : '') + 'NEW info revealed';
       ciAppendMsg(feed, 'patient', ev.text, extra);
-      ciSpeak(ev.text, 'patient');
       if (ev.revealed) {
         ciAddMiniTl('dot-ok', 'Patient revealed new info');
       }
@@ -1956,51 +2038,21 @@ function ciHandleEvent(ev) {
 
     case 'assessment': {
       var lvl = ev.concern || 'low';
-      var cls = lvl === 'high' || lvl === 'emergency' ? 'high' : lvl === 'moderate' ? 'moderate' : '';
-      var div = document.createElement('div');
-      div.className = 'ci-assessment ' + cls;
-
-      var aeHtml = '<ul class="ci-ae-list">';
       var detected = ev.detected_aes || [];
       totalDetected += detected.length;
-      if (detected.length === 0) {
-        aeHtml += '<li style="color:var(--text-muted);">No AEs detected</li>';
-      } else {
-        detected.forEach(function(ae) {
-          var g = ae.grade || ae.estimated_grade || '?';
-          var gCls = g >= 3 ? 'g3' : g >= 2 ? 'g2' : 'g1';
-          var aeName = ae.ae_term || ae.suspected_ae || 'unknown';
-          var src = ae.source ? ' [' + ae.source + ']' : '';
-          aeHtml += '<li><span class="ci-ae-grade ' + gCls + '">G' + g + '</span> ' +
-            aeName.replace(/_/g,' ') + src +
-            (ae.confidence ? ' (' + Math.round(ae.confidence*100) + '%)' : '') + '</li>';
-          detectedAEs.push({name: aeName, grade: g, concern: lvl});
-          if (g !== '?' && g > 0) {
-            ciAddMiniTl('dot-ae', aeName.replace(/_/g,' ') + ' G' + g);
-          }
 
-          // Update CTCAE card with grading info
-          if (g !== '?' && g > 0) {
-            ciUpdateCtcae({ grade: g, ae_term: aeName, confidence: ae.confidence || null });
-          }
-        });
-      }
-      aeHtml += '</ul>';
+      // Track detected AEs internally
+      detected.forEach(function(ae) {
+        var g = ae.grade || ae.estimated_grade || '?';
+        var aeName = ae.ae_term || ae.suspected_ae || 'unknown';
+        detectedAEs.push({name: aeName, grade: g, concern: lvl});
+      });
 
-      if (ev.latency_ms) {
-        aeHtml += '<div style="font-size:0.75em;color:var(--text-muted);margin-top:4px">Care AI latency: ' + ev.latency_ms + 'ms</div>';
-      }
-
-      div.innerHTML =
-        '<div class="ci-assessment-title">Nurse Assessment -- ' +
-        lvl.charAt(0).toUpperCase() + lvl.slice(1) +
-        (ev.action ? ' | ' + ev.action.replace(/_/g, ' ') : '') +
-        '</div>' + aeHtml;
-      feed.appendChild(div);
+      // Push all assessment data to CTCAE pipeline card
+      ciUpdateCtcaeAssessment(lvl, ev.action || '', detected, ev.latency_ms || 0);
 
       if (ev.action) {
         actionsList.push({action: ev.action.replace(/_/g, ' '), concern: lvl, day: 'Day ' + dayCount});
-        ciAddMiniTl('dot-ok', ev.action.replace(/_/g, ' '));
       }
       break;
     }
@@ -2009,23 +2061,11 @@ function ciHandleEvent(ev) {
       var gtAes = ev.gt_aes || [];
       var det = (ev.detected_aes || []).map(function(a) { return (a.ae_term || a.suspected_ae || '').toLowerCase(); });
       totalGT += gtAes.length;
-
-      if (gtAes.length > 0) {
-        var gtDiv = document.createElement('div');
-        gtDiv.className = 'ci-gt-reveal';
-        var badges = '';
-        gtAes.forEach(function(a) {
-          var name = (a.ae || '').toLowerCase();
-          var wasDetected = det.some(function(d) { return d.includes(name) || name.includes(d); });
-          if (wasDetected) totalMatched++;
-          var c = wasDetected ? 'detected' : 'missed';
-          var icon = wasDetected ? '&#10003;' : '&#10007;';
-          badges += '<span class="ci-gt-ae ' + c + '">' + icon + ' ' + a.ae + ' G' + a.grade + '</span>';
-          if (!wasDetected) ciAddMiniTl('dot-ae', 'Missed: ' + a.ae.replace(/_/g,' ') + ' G' + a.grade);
-        });
-        gtDiv.innerHTML = '<div class="ci-gt-title">Ground Truth</div>' + badges;
-        feed.appendChild(gtDiv);
-      }
+      gtAes.forEach(function(a) {
+        var name = (a.ae || '').toLowerCase();
+        var wasDetected = det.some(function(d) { return d.includes(name) || name.includes(d); });
+        if (wasDetected) totalMatched++;
+      });
       break;
     }
 
@@ -2126,17 +2166,6 @@ function ciProcessTts() {
   utt.onerror = function() { ttsPlaying = false; ciProcessTts(); };
   synth.speak(utt);
 }
-function ciToggleTts() {
-  ttsEnabled = !ttsEnabled;
-  var btn = document.getElementById('ciTtsBtn');
-  btn.classList.toggle('on', ttsEnabled);
-  document.getElementById('ciTtsIconOn').style.display = ttsEnabled ? '' : 'none';
-  document.getElementById('ciTtsIconOff').style.display = ttsEnabled ? 'none' : '';
-  if (!ttsEnabled) {
-    synth.cancel();
-    if (currentAudioEl) { currentAudioEl.pause(); currentAudioEl = null; }
-  }
-}
 
 /* ═══════════════════════════════════════════════
    Finished
@@ -2149,21 +2178,19 @@ function ciOnFinished() {
   btn.classList.remove('running'); btn.disabled = false;
   document.getElementById('ciBtnEnd').classList.remove('visible');
 
-  var liveBar = document.getElementById('ciLiveBar');
-  liveBar.classList.add('ended');
-  document.getElementById('ciLiveLabel').textContent = 'ENDED';
   document.getElementById('ciPhoneNurseStatus').textContent = 'Call ended';
 
   document.getElementById('ciSummary').classList.add('active');
   ciAddMiniTl('dot-ok', 'Session ended');
+
 }
 
 function ciReset() {
   document.getElementById('ciMain').classList.remove('active');
-  document.getElementById('ciLiveBar').classList.remove('active');
   document.getElementById('ciSummary').classList.remove('active');
   document.getElementById('ciSetup').style.display = 'block';
-  document.getElementById('ciLiveBar').classList.remove('ended');
+
 }
+
 </script>
 {% endblock %}

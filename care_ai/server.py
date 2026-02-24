@@ -50,9 +50,9 @@ log = logging.getLogger("care-ai-api")
 CARE_AI_DIR = Path(__file__).resolve().parent
 
 GPU_ID = int(os.getenv("CARE_AI_GPU", "0"))
-MEDGEMMA_PATH = os.getenv("MEDGEMMA_MODEL", "google/medgemma-4b-it")
-MEDGEMMA_ADAPTER = os.getenv("MEDGEMMA_ADAPTER", "")
-MEDGEMMA_TOKENIZER = os.getenv("MEDGEMMA_TOKENIZER", "")
+VLLM_BASE_URL = os.getenv("VLLM_BASE_URL", "http://clara-medgemma4b-base:8000/v1")
+VLLM_MODEL_ID = os.getenv("VLLM_MODEL_ID", "medgemma-1.5-4b-it")
+VLLM_API_KEY = os.getenv("VLLM_API_KEY", "EMPTY")
 SIGLIP_HEAD = os.getenv("SIGLIP_HEAD", str(CARE_AI_DIR / "models" / "siglip_head.pt"))
 
 DEFAULT_RULE_SET = os.getenv(
@@ -241,12 +241,11 @@ async def startup():
         log.warning("MedASR failed to load — medical transcription disabled: %s", exc)
         medasr = None
 
-    log.info("Loading MedGemma nurse from %s (GPU %d)", MEDGEMMA_PATH, GPU_ID)
+    log.info("Initializing NurseEngine via vLLM: %s (model=%s)", VLLM_BASE_URL, VLLM_MODEL_ID)
     nurse = NurseEngine(
-        model_path=MEDGEMMA_PATH,
-        gpu_id=GPU_ID,
-        adapter_path=MEDGEMMA_ADAPTER or None,
-        tokenizer_path=MEDGEMMA_TOKENIZER or None,
+        vllm_base_url=VLLM_BASE_URL,
+        vllm_model_id=VLLM_MODEL_ID,
+        vllm_api_key=VLLM_API_KEY,
     )
 
     if Path(DEFAULT_RULE_SET).exists():

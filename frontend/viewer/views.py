@@ -1659,7 +1659,7 @@ def api_care_agent_run(request):
                 "patient_text": patient_text,
                 "drug_name": drug_name,
                 "indication": indication,
-                "skip_tts": True,
+                "skip_tts": False,
             }
             if image_b64:
                 consult_payload["image_b64"] = image_b64
@@ -1783,11 +1783,13 @@ def api_care_agent_run(request):
             # Build nurse audio URL if TTS was returned
             nurse_audio_url = None
             if nurse_audio_b64:
-                # Save nurse audio to a temp file for serving
+                import base64 as _b64
                 nurse_wav_name = f"nurse_{face_idx}.wav"
-                nurse_wav_path = data_dir / "audio" / "nurse_1" / nurse_wav_name
-                if nurse_wav_path.exists():
-                    nurse_audio_url = f"/api/care-agent/media/audio/{nurse_wav_name}"
+                nurse_audio_dir = data_dir / "audio" / "nurse_1"
+                nurse_audio_dir.mkdir(parents=True, exist_ok=True)
+                nurse_wav_path = nurse_audio_dir / nurse_wav_name
+                nurse_wav_path.write_bytes(_b64.b64decode(nurse_audio_b64))
+                nurse_audio_url = f"/api/care-agent/media/audio/{nurse_wav_name}"
 
             q.put(json.dumps({
                 "type": "nurse_turn", "turn": 1,
@@ -1796,6 +1798,7 @@ def api_care_agent_run(request):
                 "concerns": nurse_concerns,
                 "audio_url": nurse_audio_url,
                 "approach_style": nurse_structured.get("approach_style", "empathetic"),
+                "session_id": session_id,
             }))
 
             # Note: /v1/chat follow-up is available via session_id if needed
@@ -1912,6 +1915,63 @@ def api_care_agent_media(request, media_type: str, filename: str):
         return HttpResponse("Not found", status=404)
 
     return FileResponse(open(fpath, "rb"), content_type=content_type)
+
+
+@csrf_exempt
+@require_POST
+def api_care_agent_chat(request):
+    """Proxy follow-up chat to Care AI /v1/chat endpoint."""
+    import requests as _requests
+
+    body = json.loads(request.body)
+    session_id = body.get("session_id", "")
+    message = body.get("message", "")
+
+    if not session_id or not message:
+        return JsonResponse({"error": "session_id and message are required"}, status=400)
+
+    CARE_AI_URL = os.environ.get("CARE_AI_API_URL", "http://clara-care-ai:8300")
+
+    try:
+        resp = _requests.post(
+            f"{CARE_AI_URL}/v1/chat",
+            json={
+                "session_id": session_id,
+                "message": message,
+                "skip_tts": body.get("skip_tts", False),
+            },
+            timeout=60,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+        # If TTS audio returned, save to file and provide URL
+        audio_url = None
+        if data.get("audio_base64"):
+            import base64
+            data_dir = Path(settings.BASE_DIR).parent / "data" / "multimodal" / "audio" / "nurse_1"
+            data_dir.mkdir(parents=True, exist_ok=True)
+            audio_filename = f"chat_{session_id[:8]}_{int(time.time())}.wav"
+            audio_path = data_dir / audio_filename
+            audio_path.write_bytes(base64.b64decode(data["audio_base64"]))
+            audio_url = f"/api/care-agent/media/audio/{audio_filename}"
+
+        return JsonResponse({
+            "nurse_text": data.get("nurse_text", ""),
+            "nurse_structured": data.get("nurse_structured", {}),
+            "audio_url": audio_url,
+            "latency_ms": data.get("latency_ms", {}),
+        })
+    except _requests.exceptions.HTTPError as exc:
+        status = exc.response.status_code if exc.response is not None else 502
+        detail = ""
+        try:
+            detail = exc.response.json().get("detail", str(exc))
+        except Exception:
+            detail = str(exc)
+        return JsonResponse({"error": detail}, status=status)
+    except Exception as exc:
+        return JsonResponse({"error": f"Care AI chat error: {exc}"}, status=502)
 
 
 # ═══════════════════════════════════════════════════════════════

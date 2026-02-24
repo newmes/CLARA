@@ -1,7 +1,7 @@
-"""MedGemma Nurse Engine — generates nurse responses for the Care AI API.
+"""MedGemma Nurse Engine — generates nurse responses via vLLM OpenAI API.
 
-Loads a fine-tuned MedGemma model (or base) and produces T2 nurse responses
-given visual assessment + patient text + drug context + audio assessment.
+Calls an external vLLM server (OpenAI-compatible) for MedGemma inference
+instead of loading the model locally.
 """
 
 from __future__ import annotations
@@ -11,8 +11,7 @@ import logging
 import re
 from pathlib import Path
 
-import torch
-from transformers import AutoModelForCausalLM, AutoTokenizer
+import requests as _requests
 
 log = logging.getLogger("care-ai-api.nurse")
 
@@ -67,28 +66,25 @@ def _extract_drug_ae_profile(rule_set: dict) -> list[dict]:
 
 
 class NurseEngine:
-    """MedGemma-based nurse response generator."""
+    """MedGemma nurse response generator via vLLM OpenAI API."""
 
     def __init__(
         self,
-        model_path: str,
-        gpu_id: int = 0,
-        adapter_path: str | None = None,
-        tokenizer_path: str | None = None,
+        vllm_base_url: str = "http://clara-medgemma4b-base:8000/v1",
+        vllm_model_id: str = "medgemma-1.5-4b-it",
+        vllm_api_key: str = "EMPTY",
+        **kwargs,
     ):
-        self.device = f"cuda:{gpu_id}" if torch.cuda.is_available() else "cpu"
-        tok_src = tokenizer_path or model_path
-        self.tokenizer = AutoTokenizer.from_pretrained(tok_src)
-        self.model = AutoModelForCausalLM.from_pretrained(
-            model_path,
-            torch_dtype=torch.bfloat16,
-            device_map={"": self.device},
-        )
-        if adapter_path:
-            from peft import PeftModel
-            self.model = PeftModel.from_pretrained(self.model, adapter_path)
-            self.model = self.model.merge_and_unload()
-        self.model.eval()
+        self.vllm_base_url = vllm_base_url.rstrip("/")
+        self.vllm_model_id = vllm_model_id
+        self.vllm_api_key = vllm_api_key
+        log.info("NurseEngine using vLLM: %s (model=%s)", self.vllm_base_url, self.vllm_model_id)
+
+        self._session = _requests.Session()
+        self._session.headers.update({
+            "Authorization": f"Bearer {self.vllm_api_key}",
+            "Content-Type": "application/json",
+        })
 
         self._drug_profiles: dict[str, list[dict]] = {}
 
@@ -104,6 +100,44 @@ class NurseEngine:
             "ae_profile": profile,
         }
         return self._drug_profiles[drug_name]
+
+    @staticmethod
+    def _strip_thinking(text: str) -> str:
+        """Remove MedGemma thinking tokens (<unused94>thought ... <unused94>)."""
+        original_len = len(text)
+        # Case 1: closed thinking block — <unused94>thought ... <unused94>
+        text = re.sub(r'<unused\d+>thought.*?<unused\d+>\s*', '', text, flags=re.DOTALL)
+        # Case 2: unclosed thinking (truncated) — <unused94>thought ... EOF
+        text = re.sub(r'<unused\d+>thought.*', '', text, flags=re.DOTALL)
+        # Strip markdown code fences: ```json ... ```
+        text = re.sub(r'```(?:json)?\s*', '', text)
+        text = text.strip()
+        if len(text) != original_len:
+            log.info("Stripped thinking/fences (%d → %d chars)", original_len, len(text))
+        return text
+
+    def _call_vllm(self, messages: list[dict], max_tokens: int = 512) -> str:
+        """Call vLLM OpenAI-compatible chat completions API."""
+        payload = {
+            "model": self.vllm_model_id,
+            "messages": messages,
+            "max_tokens": max_tokens,
+            "temperature": 0.7,
+            "top_p": 0.9,
+            "response_format": {"type": "json_object"},
+        }
+        resp = self._session.post(
+            f"{self.vllm_base_url}/chat/completions",
+            json=payload,
+            timeout=60,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+        usage = data.get("usage", {})
+        log.info("vLLM tokens: prompt=%s, completion=%s",
+                 usage.get("prompt_tokens"), usage.get("completion_tokens"))
+        content = data["choices"][0]["message"]["content"]
+        return self._strip_thinking(content)
 
     def build_system_prompt(
         self,
@@ -250,26 +284,12 @@ class NurseEngine:
         )
 
         messages = [
-            {"role": "system", "content": sys_prompt},
-            {"role": "user", "content": usr_prompt},
+            {"role": "user", "content": sys_prompt + "\n\n" + usr_prompt},
         ]
-        text = self.tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-        inputs = self.tokenizer(text, return_tensors="pt").to(self.device)
 
-        with torch.inference_mode():
-            outputs = self.model.generate(
-                **inputs,
-                max_new_tokens=512,
-                do_sample=True,
-                temperature=0.7,
-                top_p=0.9,
-            )
-
-        gen_ids = outputs[0][inputs["input_ids"].shape[1]:]
-        raw = self.tokenizer.decode(gen_ids, skip_special_tokens=True).strip()
+        raw = self._call_vllm(messages)
 
         log.info("=== NurseEngine generate_response ===")
-        log.info("Input tokens: %d, Output tokens: %d", inputs["input_ids"].shape[1], len(gen_ids))
         log.info("Raw output:\n%s", raw[:1000])
 
         try:
@@ -296,27 +316,11 @@ class NurseEngine:
         Returns:
             Parsed dict response from MedGemma.
         """
-        chat_messages = [{"role": "system", "content": system_prompt}] + messages
+        chat_messages = [{"role": "user", "content": system_prompt}] + messages
 
-        text = self.tokenizer.apply_chat_template(
-            chat_messages, tokenize=False, add_generation_prompt=True,
-        )
-        inputs = self.tokenizer(text, return_tensors="pt").to(self.device)
-
-        with torch.inference_mode():
-            outputs = self.model.generate(
-                **inputs,
-                max_new_tokens=512,
-                do_sample=True,
-                temperature=0.7,
-                top_p=0.9,
-            )
-
-        gen_ids = outputs[0][inputs["input_ids"].shape[1]:]
-        raw = self.tokenizer.decode(gen_ids, skip_special_tokens=True).strip()
+        raw = self._call_vllm(chat_messages)
 
         log.info("=== NurseEngine generate_chat_response ===")
-        log.info("Input tokens: %d, Output tokens: %d", inputs["input_ids"].shape[1], len(gen_ids))
         log.info("Raw output:\n%s", raw[:1000])
 
         try:
@@ -353,6 +357,10 @@ class NurseEngine:
         ack = response.get("acknowledgment", "")
         if ack:
             parts.append(ack)
+
+        visual = response.get("visual_followup")
+        if visual:
+            parts.append(visual)
 
         # Only the first question — keep it short for TTS
         questions = response.get("questions", [])
