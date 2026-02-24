@@ -17,8 +17,8 @@
     content: '';
     position: absolute; inset: 0;
     background-image:
-      linear-gradient(rgba(57,210,192,0.02) 1px, transparent 1px),
-      linear-gradient(90deg, rgba(57,210,192,0.02) 1px, transparent 1px);
+      linear-gradient(rgba(122,162,247,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(122,162,247,0.02) 1px, transparent 1px);
     background-size: 60px 60px;
     mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, black 20%, transparent 80%);
     -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, black 20%, transparent 80%);
@@ -26,7 +26,7 @@
   .demo-bg .orb {
     position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.05;
   }
-  .demo-bg .orb-1 { width: 400px; height: 400px; top: 5%; left: 5%; background: var(--accent-cyan); }
+  .demo-bg .orb-1 { width: 400px; height: 400px; top: 5%; left: 5%; background: var(--accent-blue); }
   .demo-bg .orb-2 { width: 350px; height: 350px; bottom: 10%; right: 10%; background: var(--accent-blue); }
 
   .demo-wrap {
@@ -42,14 +42,14 @@
     color: var(--text-muted); font-size: 0.88em; font-weight: 600;
     text-decoration: none; margin-bottom: 1.5em; transition: all 0.2s;
   }
-  .demo-back:hover { color: var(--accent-cyan); text-decoration: none; }
+  .demo-back:hover { color: var(--accent-blue); text-decoration: none; }
   .demo-back svg { width: 14px; height: 14px; transition: transform 0.2s; }
   .demo-back:hover svg { transform: translateX(-3px); }
   .demo-title {
     font-size: 2em; font-weight: 800; letter-spacing: 1px; margin-bottom: 0.3em;
-    background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-blue) 100%);
+    background: linear-gradient(135deg, var(--accent-blue) 0%, #a5c4ff 100%);
     -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
-    filter: drop-shadow(0 0 16px rgba(57,210,192,0.2));
+    filter: drop-shadow(0 0 16px rgba(122,162,247,0.2));
   }
   .demo-subtitle {
     color: var(--text-muted); font-size: 0.9em; max-width: 640px; margin: 0 auto; line-height: 1.6;
@@ -68,7 +68,7 @@
   }
   .chart-panel::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+    background: linear-gradient(90deg, var(--accent-blue), #a5c4ff);
   }
   .chart-header {
     display: flex; align-items: center; justify-content: space-between;
@@ -76,7 +76,7 @@
   }
   .chart-title {
     font-size: 0.88em; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 1px; color: var(--accent-cyan);
+    letter-spacing: 1px; color: #7aa2f7;
     display: flex; align-items: center; gap: 8px;
   }
   .chart-title svg { width: 14px; height: 14px; }
@@ -119,7 +119,7 @@
     white-space: nowrap;
   }
   .day-slider-val {
-    font: 700 0.95em 'JetBrains Mono', monospace; color: var(--accent-cyan);
+    font: 700 0.95em 'JetBrains Mono', monospace; color: #7aa2f7;
     min-width: 58px; text-align: right;
   }
   .day-slider-wrap input[type="range"] { flex: 1; }
@@ -136,12 +136,12 @@
   }
   .info-card::before {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--accent-cyan), rgba(57,210,192,0.3));
+    background: linear-gradient(90deg, #7aa2f7, rgba(122,162,247,0.3));
   }
   .info-card-header {
     padding: 12px 16px; border-bottom: 1px solid var(--border);
     font-size: 0.82em; font-weight: 700; text-transform: uppercase;
-    letter-spacing: 1px; color: var(--accent-cyan);
+    letter-spacing: 1px; color: #7aa2f7;
     display: flex; align-items: center; gap: 6px;
   }
   .info-card-header svg { width: 12px; height: 12px; }
@@ -174,7 +174,7 @@
     font-size: 0.92em; font-weight: 700; color: var(--text-muted);
     text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px;
   }
-  .math-highlight { color: var(--accent-cyan); font-weight: 600; }
+  .math-highlight { color: #7aa2f7; font-weight: 600; }
 
   /* ── Stats Row ── */
   .side-stats {
@@ -185,7 +185,7 @@
     padding: 10px; text-align: center;
   }
   .side-stat .ss-val {
-    font: 700 1.1em 'JetBrains Mono', monospace; color: var(--accent-cyan);
+    font: 700 1.1em 'JetBrains Mono', monospace; color: #7aa2f7;
   }
   .side-stat .ss-label {
     font-size: 0.88em; font-weight: 600; text-transform: uppercase;
@@ -204,8 +204,8 @@
     transition: all 0.2s; font-family: inherit;
   }
   .mode-btn.active {
-    background: rgba(57,210,192,0.12); color: var(--accent-cyan);
-    box-shadow: 0 0 8px rgba(57,210,192,0.1);
+    background: rgba(122,162,247,0.12); color: #7aa2f7;
+    box-shadow: 0 0 8px rgba(122,162,247,0.1);
   }
   .mode-btn:hover:not(.active) { color: var(--text-secondary); }
 
@@ -233,13 +233,13 @@
   }
   .cts-tab-link:hover {
     color: var(--text-secondary);
-    background: rgba(57,210,192,0.06);
+    background: rgba(122,162,247,0.06);
     text-decoration: none;
   }
   .cts-tab-link.active {
-    color: var(--accent-cyan);
-    background: rgba(57,210,192,0.1);
-    border: 1px solid rgba(57,210,192,0.2);
+    color: #7aa2f7;
+    background: rgba(122,162,247,0.1);
+    border: 1px solid rgba(122,162,247,0.2);
   }
   .cts-tab-link .cts-tab-dot {
     width: 6px; height: 6px; border-radius: 50%;
@@ -615,14 +615,14 @@ function drawChart() {
   ctx.beginPath();
   ctx.moveTo(dayX, pad.top);
   ctx.lineTo(dayX, H - pad.bottom);
-  ctx.strokeStyle = 'rgba(57,210,192,0.6)';
+  ctx.strokeStyle = 'rgba(122,162,247,0.6)';
   ctx.lineWidth = 1.5;
   ctx.setLineDash([4, 3]);
   ctx.stroke();
   ctx.setLineDash([]);
 
   /* Day label */
-  ctx.fillStyle = 'rgba(57,210,192,0.9)';
+  ctx.fillStyle = 'rgba(122,162,247,0.9)';
   ctx.font = 'bold 11px JetBrains Mono, monospace';
   ctx.textAlign = 'center';
   ctx.fillText('Day ' + currentDay, dayX, pad.top - 6);
@@ -643,7 +643,7 @@ function drawChart() {
   }
 
   /* Cycle indicators at bottom */
-  ctx.fillStyle = 'rgba(57,210,192,0.15)';
+  ctx.fillStyle = 'rgba(122,162,247,0.15)';
   ctx.font = '9px Inter, sans-serif';
   ctx.textAlign = 'center';
   const cycleStarts = [1, 22, 43, 64];
@@ -651,7 +651,7 @@ function drawChart() {
     const x = pad.left + ((start - 1) / (MAX_DAY - 1)) * cw;
     const endDay = Math.min(start + 20, MAX_DAY);
     const xEnd = pad.left + ((endDay - 1) / (MAX_DAY - 1)) * cw;
-    ctx.fillStyle = i % 2 === 0 ? 'rgba(57,210,192,0.03)' : 'rgba(88,166,255,0.03)';
+    ctx.fillStyle = i % 2 === 0 ? 'rgba(122,162,247,0.03)' : 'rgba(88,166,255,0.03)';
     ctx.fillRect(x, pad.top, xEnd - x, ch);
     ctx.fillStyle = 'rgba(156,163,175,0.3)';
     ctx.fillText(`C${i + 1}`, (x + xEnd) / 2, H - pad.bottom + 30);
