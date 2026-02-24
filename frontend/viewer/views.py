@@ -680,7 +680,7 @@ def simulation_list(request):
 
 def demo_anti_hallucination(request):
     """Anti-Hallucination technology demo page."""
-    return render(request, "demo/anti_hallucination.html")
+    return render(request, "demo/data_analysis_agent.html")
 
 
 def demo_medgemma(request):
@@ -1567,7 +1567,7 @@ def _load_virtual_patients():
 def demo_care_agent(request):
     """Care Agent demo page — Tab 1: MedGemma Vision, Tab 2: Care Agent Live."""
     config = _load_virtual_patients()
-    return render(request, "demo/care_agent.html", {"vpatients": config.get("patients", [])})
+    return render(request, "demo/data_collection_agent.html", {"vpatients": config.get("patients", [])})
 
 
 @csrf_exempt

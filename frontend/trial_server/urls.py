@@ -10,14 +10,14 @@ urlpatterns = [
     path('simulations/', views.simulation_list, name='simulation_list'),
 
     # Demo pages
-    path('demo/anti-hallucination/',
-         views.demo_anti_hallucination, name='demo_anti_hallucination'),
+    path('demo/data-analysis-agent/',
+         views.demo_anti_hallucination, name='demo_data_analysis_agent'),
     path('demo/care-agent/',
          views.demo_care_agent, name='demo_care_agent'),
     path('demo/care-agent/vision/',
          views.demo_medgemma, name='demo_medgemma'),
-    path('demo/care-agent/live/',
-         views.demo_care_agent, name='demo_care_agent_live'),
+    path('demo/data-collection-agent/',
+         views.demo_care_agent, name='demo_data_collection_agent'),
     path('demo/hazard/',
          views.demo_hazard, name='demo_hazard'),
     path('demo/patient-init/',
