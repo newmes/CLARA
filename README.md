@@ -12,7 +12,7 @@
 [![HAI-DEF](https://img.shields.io/badge/HAI--DEF-MedGemma-FF6F00?logo=google&logoColor=white)](https://developers.google.com/health-ai-developer-foundations)
 [![Kaggle](https://img.shields.io/badge/MedGemma_Impact-Challenge_2026-20BEFF?logo=kaggle&logoColor=white)](https://www.kaggle.com/competitions/med-gemma-impact-challenge)
 
-[Quick Start](#quick-start) · [Notebooks](#notebooks) · [Results](#results) · [How It Works](#how-it-works) · [Deployment](#docker-deployment)
+[Quick Start](#quick-start) · [HAI-DEF Models](#hai-def-models) · [Notebooks](#notebooks) · [Results](#results) · [Technical Details](#technical-details)
 
 </div>
 
@@ -90,17 +90,23 @@ Each HAI-DEF model serves a distinct clinical role within CLARA:
 | <img src="docs/assets/gemini.png" width="16" /> [**Gemini 2.0 Flash**](https://ai.google.dev/) | Simulation orchestrator — rule discovery, patient generation, narration | API-based; no local GPU needed |
 | <img src="docs/assets/gemma.png" width="16" /> **MedGemma 4B + RLFR** | DAA — whenever a SAE occurs, autonomously generates reports in FDA MedWatch and E2B XML format | Hallucination rate 37.3% → 6.7% |
 
-### Multimodal Detection Channels
+---
 
-```
-Channel              Examples                    Detection Method
-────────────────────────────────────────────────────────────────
-lab                  neutropenia, anemia          Blood test (hospital only)
-patient_reported     nausea, pain, fatigue        Patient self-report (mood-dependent)
-video_detectable     rash, alopecia, edema        MedSigLIP vision analysis
-audio_detectable     cough, dyspnea              HeAR audio classification
-physical_exam        neuropathy, hepatomegaly     Doctor examination (hospital only)
-```
+## Notebooks
+
+CLARA ships with **5 Jupyter notebooks** demonstrating each component:
+
+| # | Notebook | What It Covers | GPU |
+|---|----------|---------------|-----|
+| 1 | `medgemma_anti-hallucination` | RLFR fine-tuning — hallucination probe training and RL optimization | ~10 GB |
+| 2 | `medgemma+medsiglip+HeAR_SAE-detection` | Multimodal AE detection — vision (MedSigLIP) + audio (HeAR) pipelines | ~20 GB |
+| 3 | `simulate-clinical-trial` | End-to-end trial simulation — rule discovery, patient generation, daily loop | None (API) |
+| 4 | `application_voice_call` | CLARA Call voice call demo — MedASR + TTS + nurse conversation | ~10 GB |
+| 5 | `application_SAE_report_generation` | FDA MedWatch 3500A + E2B XML report generation from CRF data | ~10 GB |
+
+All models and data **download automatically** from HuggingFace on first run:
+- Models: [AlphaRaven/medgemma-ae-detection](https://huggingface.co/AlphaRaven/medgemma-ae-detection), [AlphaRaven/medgemma-4b-antihallu](https://huggingface.co/AlphaRaven/medgemma-4b-antihallu)
+- Data: [AlphaRaven/clinical-trial-engine-data](https://huggingface.co/datasets/AlphaRaven/clinical-trial-engine-data)
 
 ---
 
@@ -144,28 +150,30 @@ Hospital ──── 13 days ──── Hospital        Hospital ── 3 day
 
 ## How It Works
 
-> **Why Simulation?** Real-world daily multimodal longitudinal datasets do not yet exist at scale. So we built one. We constructed a rule-based simulation engine grounded in real clinical datasets and published drug safety profiles, validated against 7 known drug profiles.
+> **Why Simulation?** Real-world daily multimodal longitudinal datasets do not yet exist at scale. So we built one — a rule-based simulation engine grounded in real clinical datasets and published drug safety profiles, validated against 7 known drug profiles.
 
 CLARA operates through **three mechanisms**:
 
-### 1. Data-Driven Ruleset Generation
+**1. Data-Driven Ruleset Generation** — Synthesizes historical clinical trial data from **10+ biomedical databases** (DailyMed, ClinicalTrials.gov, Project Data Sphere, PubMed, DrugBank, OnSIDES, etc.) to automatically build simulation rulesets covering AE incidence distributions, demographics, efficacy endpoints, and dose modification protocols.
 
-CLARA synthesizes historical clinical trial data from **10+ biomedical databases** — DailyMed, ClinicalTrials.gov, Project Data Sphere, PubMed, DrugBank, OnSIDES, and more — to automatically build a comprehensive simulation ruleset covering AE incidence distributions, demographics, efficacy endpoints, and dose modification protocols.
+**2. Realistic Daily Simulation with Information Asymmetry** — The simulation maintains two strict data layers: a **Ground Truth (GT)** layer computing each patient's actual daily status, and a **Hospital Record (HR)** layer updated only at clinic visits (typically every 2 weeks). All treatment decisions are made from HR only — never from GT. This gap mirrors real-world blind spots.
 
-### 2. Realistic Daily Simulation with Information Asymmetry
+**3. Data Collection Agent — CLARA Call** — Patients complete a short, ~60-second daily check-in. Voice becomes structured context, audio enables cough classification, and video is converted into feature maps for server-side classification. These signals are fused through MedGemma for longitudinal multimodal reasoning, producing structured clinical variables that medical teams can act on.
 
-The simulation maintains two strict data layers:
+---
 
-| Layer | What It Knows | Updated When |
-|-------|--------------|--------------|
-| **Ground Truth (GT)** | Patient's actual daily state — every AE, every lab value | Every day (hazard function) |
-| **Hospital Record (HR)** | Only what the hospital has observed | Clinic visits only (typically every 2 weeks) |
+## Technical Details
 
-All treatment decisions (dose hold, reduce, withdraw) are made from HR only — never from GT. This gap mirrors real-world blind spots.
+### DCA: Data Collection Agent
 
-### 3. Data Collection Agent — CLARA Call
+The DCA conducts daily CLARA Call check-ins following a **4-turn protocol**:
 
-Patients complete a short, ~60-second daily check-in via the CLARA Call. It feels like a natural conversation. Behind the scenes, MedGemma enables multimodal understanding — extracting structured clinical signals from voice, audio, and video.
+```
+Turn 1: Patient describes how they feel        (speech → MedASR transcription)
+Turn 2: Nurse asks targeted follow-up questions (MedGemma conversation)
+Turn 3: Patient shows affected area on camera   (image → MedSigLIP classification)
+Turn 4: Nurse summarizes and refers if needed   (MedGemma → early visit recommendation)
+```
 
 **Multimodal Pipeline:**
 
@@ -178,195 +186,34 @@ Video → On-device Feature Map               (MedSigLIP vision analysis)
 Signal Fusion → MedGemma Reasoning → Structured Clinical Variables
 ```
 
-**4-Turn Protocol:**
+Multimodal detection channels cover five categories:
 
 ```
-Turn 1: Patient describes how they feel        (speech → MedASR transcription)
-Turn 2: Nurse asks targeted follow-up questions (MedGemma conversation)
-Turn 3: Patient shows affected area on camera   (image → MedSigLIP classification)
-Turn 4: Nurse summarizes and refers if needed   (MedGemma → early visit recommendation)
+Channel              Examples                    Detection Method
+────────────────────────────────────────────────────────────────
+lab                  neutropenia, anemia          Blood test (hospital only)
+patient_reported     nausea, pain, fatigue        Patient self-report (mood-dependent)
+video_detectable     rash, alopecia, edema        MedSigLIP vision analysis
+audio_detectable     cough, dyspnea              HeAR audio classification
+physical_exam        neuropathy, hepatomegaly     Doctor examination (hospital only)
 ```
 
-CLARA's contribution is not daily collection alone — it is daily multimodal capture and **longitudinal reasoning across time**. This transforms raw interaction into structured clinical signals that medical teams can act on.
+### DAA: Data Analysis Agent
 
-A **7-dimension mood model** governs each patient's reporting behavior. The agent adapts its strategy accordingly — probing, requesting visual inspection, or escalating tone as needed.
+The DAA transforms daily signals into continuous patient timelines with AE/SAE flagging, auto-generated briefings, and report generation.
 
-### 10-Step Daily Pipeline
+We discovered that MedGemma 1.5 4B is vulnerable to hallucinations due to its multi-modal attribution. CLARA uses **Reinforcement Learning Feature Reward (RLFR)**:
 
-Each patient goes through this pipeline every simulated day:
+1. Train a binary hallucination detection probe on MedGemma's hidden states
+2. Freeze the probe
+3. Use probe confidence as the reward signal for RL fine-tuning
 
-| Step | Name | Description |
-|------|------|-------------|
-| 1 | Stochastic AE Onset | Hazard function determines new adverse events |
-| 2 | AE Grade Transition | Active AEs worsen or improve based on cumulative toxicity |
-| 3 | Tumor & RECIST Evaluation | Tumor response on scheduled scan days |
-| 4 | Dose Modification | Hold/reduce/withdraw — hospital visit days only, HR-based |
-| 5 | Lab Data Simulation | CBC, metabolic panel, liver/kidney function |
-| 6 | Vitals Simulation | BP, heart rate, temperature, SpO2 |
-| 7 | CDASH/CRF Mapping | Daily records mapped to CDISC clinical trial format |
-| 8 | AE Cascade Update | Secondary AE chains triggered by primary events |
-| 9 | Dynamic ECOG PS | Performance status adjusted by AE burden |
-| 10 | Mortality Assessment | Life-threatening event evaluation |
+This reduced the hallucination rate from **37.3% to 6.7%** on MedHallu Hard while *improving* MMLU medical scores from 60.7% to 64.3%. In medical settings, grounded and stable outputs are not optional — they are essential.
 
-### Design Principles
-
-| Principle | Why |
-|-----------|-----|
-| **LLM sets probabilities, code rolls dice** | Prevents mode collapse; guarantees statistical distributions |
-| **Ground Truth vs. Hospital Record** | Dose decisions use observed data only — never omniscient GT |
-| **Drug-agnostic** | Change the drug name → system auto-discovers rules from 10+ databases |
-| **No fate table** | Daily hazard functions replace pre-determined event timelines |
-| **CLARA Call detects, doctors decide** | CLARA Call flags and refers; only physicians modify treatment |
-| **Seed-reproducible** | Same seed → identical simulation for scientific rigor |
-
----
-
-## Notebooks
-
-CLARA ships with **5 Jupyter notebooks** demonstrating each component:
-
-| # | Notebook | What It Covers | GPU |
-|---|----------|---------------|-----|
-| 1 | `medgemma_anti-hallucination` | RLFR fine-tuning — hallucination probe training and RL optimization | ~10 GB |
-| 2 | `medgemma+medsiglip+HeAR_SAE-detection` | Multimodal AE detection — vision (MedSigLIP) + audio (HeAR) pipelines | ~20 GB |
-| 3 | `simulate-clinical-trial` | End-to-end trial simulation — rule discovery, patient generation, daily loop | None (API) |
-| 4 | `application_voice_call` | CLARA Call voice call demo — MedASR + TTS + nurse conversation | ~10 GB |
-| 5 | `application_SAE_report_generation` | FDA MedWatch 3500A + E2B XML report generation from CRF data | ~10 GB |
-
-All models and data **download automatically** from HuggingFace on first run:
-- Models: [AlphaRaven/medgemma-ae-detection](https://huggingface.co/AlphaRaven/medgemma-ae-detection), [AlphaRaven/medgemma-4b-antihallu](https://huggingface.co/AlphaRaven/medgemma-4b-antihallu)
-- Data: [AlphaRaven/clinical-trial-engine-data](https://huggingface.co/datasets/AlphaRaven/clinical-trial-engine-data)
-
----
-
-## Quick Start
-
-### Prerequisites
-
-- Python 3.10+
-- NVIDIA GPU with 10–20 GB VRAM (for notebooks; simulation CLI uses Gemini API only)
-- [Google Gemini API key](https://ai.google.dev/)
-
-### Installation
-
-```bash
-git clone https://github.com/newmes/CLARA.git
-cd CLARA
-
-python -m venv .venv
-source .venv/bin/activate
-
-pip install -r requirements.txt
-pip install -e .
-```
-
-### HuggingFace Login (for gated models)
-
-Request access to [google/medgemma-4b-it](https://huggingface.co/google/medgemma-4b-it) and [google/medsiglip-448](https://huggingface.co/google/medsiglip-448), then:
-
-```bash
-python -c "from huggingface_hub import login; login()"
-```
-
-### Environment
-
-```bash
-cp .env.example .env
-# Set GOOGLE_API_KEY (required for NB3, NB5 and CLI simulation)
-```
-
-### Run Notebooks
-
-```bash
-jupyter lab notebooks/
-# Run sequentially: 1 → 5
-```
-
-### Run Simulation (CLI)
-
-```bash
-# Default: Padcev + Pembrolizumab, 1 patient, 21 days
-python src/run_simulation_v2.py
-
-# A/B comparison: 50 patients, 84 days (4 cycles)
-python src/run_simulation_v2.py --patients 50 --days 84 --seed 42 --mode both
-
-# Drug-agnostic: any drug works
-python src/run_simulation_v2.py --drug "Ozempic" --indication "type 2 diabetes" --patients 5
-```
-
----
-
-## Docker Deployment
-
-CLARA deploys as a multi-service Docker stack with GPU acceleration:
-
-```bash
-docker compose up -d
-```
-
-| Service | Port | GPU | Purpose |
-|---------|------|-----|---------|
-| `django` | 19001 | — | Web interface (trial viewer, CRF tables, SAE reports) |
-| `medgemma4b-base` | 38004 | GPU 2 | CLARA Call nurse backend (vLLM) |
-| `medgemma4b-antihallu-ft` | 38002 | GPU 3 | Doc Agent + anti-hallucination (vLLM + LoRA) |
-| `antihallu-server` | 38003 | GPU 2 | Hallucination fact-checking API |
-| `data-collection-agent` | 38005 | GPU 3 | Multimodal detection (SigLIP + HeAR + MedASR + TTS) |
-
----
-
-## Project Structure
-
-```
-CLARA/
-├── notebooks/                     5 demo notebooks (anti-hallu → SAE reports)
-│
-├── src/
-│   ├── engine/                    Probability engine (LLM-independent)
-│   │   ├── hazard.py              Daily AE onset/grade hazard functions
-│   │   ├── observation.py         Ground Truth ↔ Hospital Record model
-│   │   ├── sampler.py             Seed-reproducible random sampling
-│   │   ├── mood.py                7-dimension patient psychology
-│   │   └── prob_engine.py         LLM → rand → LLM orchestration
-│   │
-│   ├── agents/                    LLM agents (Gemini-powered)
-│   │   ├── rule_agent.py          Phase 0: drug rule discovery
-│   │   ├── patient_agent.py       Phase 1: virtual cohort generation
-│   │   ├── daily_agent.py         Phase 2: daily simulation
-│   │   └── care_agent.py          CLARA Call: 4-turn video calls
-│   │
-│   ├── multimodal_v2/             Multimodal AE detection pipeline
-│   ├── cough_detection/           HeAR-based cough classification
-│   ├── orchestrator_v2.py         3-Phase simulation orchestrator
-│   └── run_simulation_v2.py       CLI entry point
-│
-├── dca_server/                    CLARA Call Nurse API (FastAPI)
-│   ├── server.py                  Endpoints: classify, cough, transcribe, nurse
-│   ├── nurse_engine.py            Medical conversation engine
-│   ├── siglip_classifier.py       SigLIP vision classifier head
-│   └── cough_classifier.py        Cough audio classifier
-│
-├── frontend/                      Django web interface
-│   ├── viewer/                    Trial viewer, patient state, CRF tables
-│   └── templates/                 Interactive simulation visualization
-│
-├── models/                        Fine-tuned checkpoints
-│   ├── medgemma-4b-ft-antihallu/  RLFR anti-hallucination (hallu 37.3% → 6.7%)
-│   └── medgemma-4b-ft-ctcae/      Skin AE classifier (W-F1 = 90%)
-│
-├── data/                          Simulation outputs
-│   ├── rule_set.json              Default Padcev+Pembro rule set
-│   └── runs/                      Per-experiment results (JSONL)
-│
-└── docker-compose.yaml            Multi-GPU service orchestration
-```
-
----
-
-## Technical Details
+### Simulation Pipeline
 
 <details>
-<summary><b>Hazard Function Mathematics</b></summary>
+<summary><b>Hazard Function</b></summary>
 
 <br/>
 
@@ -428,20 +275,63 @@ Persona-specific baselines are set at patient generation. Events (new AE, good s
 
 </details>
 
-<details>
-<summary><b>RLFR Anti-Hallucination Training</b></summary>
+---
 
-<br/>
+## Quick Start
 
-We discovered that MedGemma 1.5 4B is vulnerable to hallucinations due to its multi-modal attribution. CLARA uses **Reinforcement Learning Feature Reward (RLFR)**:
+### Prerequisites
 
-1. Train a binary hallucination detection probe on MedGemma's hidden states
-2. Freeze the probe
-3. Use probe confidence as the reward signal for RL fine-tuning
+- Python 3.10+
+- NVIDIA GPU with 10–20 GB VRAM (for notebooks; simulation CLI uses Gemini API only)
+- [Google Gemini API key](https://ai.google.dev/)
 
-This reduced the hallucination rate from **37.3% to 6.7%** on MedHallu Hard while *improving* MMLU medical scores from 60.7% to 64.3%.
+### Installation
 
-</details>
+```bash
+git clone https://github.com/newmes/CLARA.git
+cd CLARA
+
+python -m venv .venv
+source .venv/bin/activate
+
+pip install -r requirements.txt
+pip install -e .
+```
+
+### HuggingFace Login (for gated models)
+
+Request access to [google/medgemma-4b-it](https://huggingface.co/google/medgemma-4b-it) and [google/medsiglip-448](https://huggingface.co/google/medsiglip-448), then:
+
+```bash
+python -c "from huggingface_hub import login; login()"
+```
+
+### Environment
+
+```bash
+cp .env.example .env
+# Set GOOGLE_API_KEY (required for NB3, NB5 and CLI simulation)
+```
+
+### Run Notebooks
+
+```bash
+jupyter lab notebooks/
+# Run sequentially: 1 → 5
+```
+
+### Run Simulation (CLI)
+
+```bash
+# Default: Padcev + Pembrolizumab, 1 patient, 21 days
+python src/run_simulation_v2.py
+
+# A/B comparison: 50 patients, 84 days (4 cycles)
+python src/run_simulation_v2.py --patients 50 --days 84 --seed 42 --mode both
+
+# Drug-agnostic: any drug works
+python src/run_simulation_v2.py --drug "Ozempic" --indication "type 2 diabetes" --patients 5
+```
 
 ---
 
@@ -479,7 +369,3 @@ This reduced the hallucination rate from **37.3% to 6.7%** on MedHallu Hard whil
   <br/>
   Submitted to the <a href="https://www.kaggle.com/competitions/med-gemma-impact-challenge">MedGemma Impact Challenge</a> on Kaggle.
 </p>
-
-## License
-
-[Apache 2.0](LICENSE)
