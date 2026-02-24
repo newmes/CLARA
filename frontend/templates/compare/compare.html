@@ -137,6 +137,7 @@
     .card-grid { grid-template-columns: repeat(2, 1fr); }
   }
 </style>
+<link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
 {% endblock %}
 
 {% block nav_items %}
@@ -160,8 +161,8 @@
     <a href="{% url 'doc_hub' run_id %}" class="tab-link">SAE Reports</a>
     <a href="{% url 'compare_dashboard' run_id %}" class="tab-link active">A/B Comparison</a>
   </div>
-</div>
-<div class="cmp-wrap">
+
+<div class="cmp-wrap" style="max-width:1200px; margin:0 auto; padding:0;">
   <div class="cmp-title">A/B Comparison Dashboard</div>
   <p class="cmp-sub">
     <strong>{{ drug_name }}</strong> — {{ indication }}<br>
@@ -257,6 +258,22 @@ Chart.defaults.color = '#8b949e';
 Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
 Chart.defaults.font.family = "'JetBrains Mono', monospace";
 Chart.defaults.font.size = 11;
+
+// ── Chart click → chatbot ref (chart-level summary) ──
+function chartClickHandler(chartTitle) {
+  return function(evt, elements, chart) {
+    if (typeof chatbot === 'undefined') return;
+    // Build chart-level summary with all data points
+    var summary = [];
+    chart.data.datasets.forEach(function(ds) {
+      var pairs = chart.data.labels.map(function(lbl, i) {
+        return lbl + '=' + ds.data[i];
+      });
+      summary.push((ds.label || 'data') + ': ' + pairs.join(', '));
+    });
+    chatbot.addRef('Chart: ' + chartTitle + ' (' + summary.join(' | ') + ')');
+  };
+}
 
 // ── Helper ──
 function delta(care, nat, lowerIsBetter) {
@@ -357,7 +374,8 @@ function renderDelayChart() {
         { label: 'Care AI', data: aiData, backgroundColor: 'rgba(57,210,192,0.6)', borderRadius: 3 },
       ]
     },
-    options: { responsive: true, plugins: { legend: { position: 'top' } },
+    options: { responsive: true, onClick: chartClickHandler('Detection Delay'),
+      plugins: { legend: { position: 'top' } },
       scales: { y: { title: { display: true, text: 'days' }, beginAtZero: true } } }
   });
 }
@@ -376,7 +394,8 @@ function renderBurdenChart() {
         { label: 'Care AI', data: aiData, backgroundColor: 'rgba(57,210,192,0.6)', borderRadius: 3 },
       ]
     },
-    options: { responsive: true, plugins: { legend: { position: 'top' } },
+    options: { responsive: true, onClick: chartClickHandler('AE Burden'),
+      plugins: { legend: { position: 'top' } },
       scales: { y: { title: { display: true, text: 'grade × days' }, beginAtZero: true } } }
   });
 }
@@ -395,7 +414,8 @@ function renderG3Chart() {
         { label: 'Care AI', data: aiData, backgroundColor: 'rgba(254,202,87,0.5)', borderRadius: 3 },
       ]
     },
-    options: { responsive: true, plugins: { legend: { position: 'top' } },
+    options: { responsive: true, onClick: chartClickHandler('G3+ AE Days'),
+      plugins: { legend: { position: 'top' } },
       scales: { y: { title: { display: true, text: 'G3+ AE-days' }, beginAtZero: true } } }
   });
 }
@@ -420,7 +440,8 @@ function renderEcogChart() {
         { label: 'Care AI', data: aiData, backgroundColor: 'rgba(57,210,192,0.6)', borderRadius: 3 },
       ]
     },
-    options: { responsive: true, plugins: { legend: { position: 'top' } },
+    options: { responsive: true, onClick: chartClickHandler('ECOG Change'),
+      plugins: { legend: { position: 'top' } },
       scales: { y: { title: { display: true, text: 'ECOG Δ' } } } }
   });
 }
@@ -438,7 +459,15 @@ function renderActionsChart() {
       labels: labels,
       datasets: [{ data: data, backgroundColor: colors.slice(0, labels.length), borderWidth: 0 }]
     },
-    options: { responsive: true, plugins: { legend: { position: 'right' } } }
+    options: { responsive: true,
+      onClick: function(evt, elements, chart) {
+        if (typeof chatbot === 'undefined') return;
+        var pairs = chart.data.labels.map(function(lbl, i) {
+          return lbl + '=' + chart.data.datasets[0].data[i];
+        });
+        chatbot.addRef('Chart: Interventions (' + pairs.join(', ') + ')');
+      },
+      plugins: { legend: { position: 'right' } } }
   });
 }
 
@@ -524,4 +553,80 @@ renderStats();
 renderPatientTable();
 </script>
 {% endif %}
+
+{% include "includes/chatbot_panel.html" with chat_title="A/B Agent" chat_subtitle="medgemma-4b" %}
+
+<script src="{% static 'js/chatbot.js' %}"></script>
+<script>
+chatbot.init({
+  runId: "{{ run_id }}",
+  endpoint: '/api/doc/{{ run_id }}/chat/',
+  pageType: 'compare',
+  suggestions: [
+    'Did Care AI reduce AE burden?',
+    'Which metrics are statistically significant?',
+    'Detection delay comparison?',
+    'Summarize the A/B results'
+  ],
+  getPageContext: function() { return {}; },
+  clickToRef: function(e) {
+    // Skip navigation/control elements
+    if (e.target.closest('.tab-bar') || e.target.closest('.tab-link') ||
+        e.target.closest('a') || e.target.closest('select') ||
+        e.target.closest('button:not(.metric-card)')) {
+      return null;
+    }
+    // Summary cards grid → all cards at once
+    var cardGrid = e.target.closest('.card-grid');
+    if (cardGrid) {
+      var cards = cardGrid.querySelectorAll('.metric-card');
+      var parts = [];
+      cards.forEach(function(c) {
+        var lbl = (c.querySelector('.label') || {}).textContent || '';
+        var nat = (c.querySelector('.val.nat') || {}).textContent || '';
+        var ai = (c.querySelector('.val.ai') || {}).textContent || '';
+        if (lbl) parts.push(lbl.trim() + ': Nat=' + nat.trim() + ', AI=' + ai.trim());
+      });
+      return 'Summary Cards (' + cards.length + ' metrics: ' + parts.join('; ') + ')';
+    }
+    // Chart box → chart title
+    var chartBox = e.target.closest('.chart-box');
+    if (chartBox) {
+      var h6 = chartBox.querySelector('h6');
+      return h6 ? 'Chart: ' + h6.textContent.trim() : null;
+    }
+    // Stats box → entire statistical tests section
+    var statBox = e.target.closest('#statsBox');
+    if (statBox) {
+      var tests = [];
+      statBox.querySelectorAll('.stat-row').forEach(function(r) {
+        var sl = (r.querySelector('.stat-label') || {}).textContent || '';
+        var sv = (r.querySelector('.stat-val') || {}).textContent || '';
+        if (sl) tests.push(sl.trim() + ': ' + sv.trim());
+      });
+      return 'Statistical Tests (' + tests.length + ' tests: ' + tests.join('; ') + ')';
+    }
+    // Care AI stats box
+    var careBox = e.target.closest('.stats-box');
+    if (careBox) {
+      var rows = [];
+      careBox.querySelectorAll('.stat-row').forEach(function(r) {
+        var sl = (r.querySelector('.stat-label') || {}).textContent || '';
+        var sv = (r.querySelector('.stat-val') || {}).textContent || '';
+        if (sl) rows.push(sl.trim() + '=' + sv.trim());
+      });
+      var title = (careBox.querySelector('h6') || {}).textContent || 'Stats';
+      return title.trim() + ' (' + rows.join('; ') + ')';
+    }
+    // Patient table → entire table summary
+    var ptable = e.target.closest('.ptable');
+    if (ptable) {
+      var rowCount = ptable.querySelectorAll('tbody tr').length;
+      return 'Per-Patient Table (' + rowCount + ' rows)';
+    }
+    return null;
+  }
+});
+</script>
+</div><!-- /doc-container -->
 {% endblock %}

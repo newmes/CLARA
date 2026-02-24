@@ -745,34 +745,108 @@
   .tc-stat-arrow { color: var(--text-muted); font-size: 1.2em; }
   .tc-stat-label { color: var(--text-muted); font-size: 0.9em; }
 
-  /* Card CTA button */
+  /* Card CTA button — inherits --card-color from .tech-card.accent-* */
+  /* ── Try Demo Button: Liquid Border + Morphing Text ── */
   .tc-btn {
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    padding: 9px 20px;
-    border-radius: 8px;
+    padding: 10px 22px;
+    border-radius: 10px;
     font-size: 0.78em;
     font-weight: 700;
-    letter-spacing: 0.3px;
+    letter-spacing: 0.4px;
     text-decoration: none;
-    transition: all 0.25s;
-    border: 1px solid var(--border);
-    background: var(--bg-elevated);
-    color: var(--text-muted);
     cursor: pointer;
     width: fit-content;
     margin-top: auto;
+    position: relative;
+    border: none;
+    background: color-mix(in srgb, var(--card-color) 4%, transparent);
+    color: color-mix(in srgb, var(--card-color) 80%, #fff);
+    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    z-index: 0;
+    overflow: hidden;
   }
-  .tc-btn svg { width: 12px; height: 12px; transition: transform 0.25s; }
+  /* Liquid border: spinning gradient disc masked to 1px border */
+  .tc-btn::before {
+    content: '';
+    position: absolute;
+    /* oversized square to cover corners during rotation */
+    top: 50%; left: 50%;
+    width: 200%; height: 200%;
+    transform: translate(-50%, -50%);
+    background: conic-gradient(
+      transparent 0%,
+      transparent 30%,
+      var(--card-color) 40%,
+      transparent 50%,
+      transparent 100%
+    );
+    animation: liquidSpin 3.5s linear infinite;
+    opacity: 0.55;
+    transition: opacity 0.3s;
+    z-index: -2;
+  }
+  /* Inner fill to mask out center, leaving only border glow */
+  .tc-btn::after {
+    content: '';
+    position: absolute;
+    inset: 1px;
+    border-radius: 9px;
+    background: var(--bg-card, rgba(13,17,23,0.95));
+    z-index: -1;
+  }
+  @keyframes liquidSpin {
+    to { transform: translate(-50%, -50%) rotate(360deg); }
+  }
+  .tc-btn:hover::before {
+    opacity: 1;
+    animation-duration: 1.8s;
+  }
+  .tc-btn:hover::after {
+    background: color-mix(in srgb, var(--card-color) 8%, var(--bg-card, rgba(13,17,23,0.95)));
+  }
+  /* Morphing text */
+  .tc-btn .btn-label,
+  .tc-btn .btn-hover-label {
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    white-space: nowrap;
+  }
+  .tc-btn .btn-hover-label {
+    position: absolute;
+    left: 22px;
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  .tc-btn:hover .btn-label {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  .tc-btn:hover .btn-hover-label {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  .tc-btn svg {
+    width: 13px;
+    height: 13px;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity: 0.7;
+    flex-shrink: 0;
+    position: relative;
+    z-index: 1;
+  }
   .tc-btn:hover {
-    border-color: rgba(57,210,192,0.3);
-    color: var(--accent-cyan);
-    background: rgba(57,210,192,0.06);
+    color: var(--card-color);
     text-decoration: none;
-    transform: translateX(2px);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 20px color-mix(in srgb, var(--card-color) 15%, transparent);
   }
-  .tc-btn:hover svg { transform: translateX(3px); }
+  .tc-btn:hover svg { transform: translateX(3px); opacity: 1; }
+  .tc-btn:active {
+    transform: translateY(0);
+    transition-duration: 0.1s;
+  }
 
   /* =================================================================
      Anti-Hallucination — Comparison Preview
@@ -1138,8 +1212,113 @@
     color: var(--accent-cyan);
     background: rgba(57,210,192,0.08);
   }
+  /* Accent overrides per card */
+  .accent-blue .cts-inner-tab:hover {
+    border-color: rgba(88,166,255,0.3); background: rgba(88,166,255,0.04);
+  }
+  .accent-blue .cts-inner-tab.active {
+    border-color: rgba(88,166,255,0.5); color: var(--accent-blue); background: rgba(88,166,255,0.08);
+  }
+  .accent-purple .cts-inner-tab:hover {
+    border-color: rgba(188,140,255,0.3); background: rgba(188,140,255,0.04);
+  }
+  .accent-purple .cts-inner-tab.active {
+    border-color: rgba(188,140,255,0.5); color: var(--accent-purple); background: rgba(188,140,255,0.08);
+  }
   .cts-tab-pane { display: none; }
   .cts-tab-pane.active { display: block; }
+
+  /* ── Chatbot mini preview (Card 1, tab B) ── */
+  .cb-mini-preview {
+    background: rgba(0,0,0,0.35); border: 1px solid rgba(48,54,61,0.5);
+    border-radius: 12px; padding: 16px; font-size: 0.78em;
+  }
+  .cb-mini-header {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
+    padding-bottom: 10px; border-bottom: 1px solid rgba(48,54,61,0.4);
+  }
+  .cb-mini-header svg { width: 16px; height: 16px; opacity: 0.5; }
+  .cb-mini-header span { color: var(--text-secondary); font-weight: 600; letter-spacing: 0.3px; }
+  .cb-mini-msg {
+    display: flex; gap: 8px; margin-bottom: 10px;
+  }
+  .cb-mini-avatar {
+    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 0.7em; font-weight: 700;
+  }
+  .cb-mini-avatar.user { background: rgba(88,166,255,0.15); color: var(--accent-blue); }
+  .cb-mini-avatar.ai { background: rgba(57,210,192,0.15); color: var(--accent-cyan); }
+  .cb-mini-bubble {
+    padding: 8px 12px; border-radius: 10px; line-height: 1.5;
+    color: var(--text-secondary);
+  }
+  .cb-mini-bubble.user-bubble { background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.15); }
+  .cb-mini-bubble.ai-bubble { background: rgba(57,210,192,0.06); border: 1px solid rgba(57,210,192,0.12); }
+  .cb-mini-actions {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px;
+    padding-top: 10px; border-top: 1px solid rgba(48,54,61,0.4);
+  }
+  .cb-mini-action {
+    padding: 4px 10px; border-radius: 6px; font-size: 0.85em; font-weight: 600;
+    border: 1px solid rgba(48,54,61,0.5); color: var(--text-muted);
+    background: transparent; letter-spacing: 0.2px;
+  }
+
+  /* ── Voice Call mini preview (Card 2, tab B) ── */
+  .vc-mini-preview {
+    background: rgba(0,0,0,0.35); border: 1px solid rgba(48,54,61,0.5);
+    border-radius: 12px; padding: 16px; font-size: 0.78em;
+  }
+  .vc-mini-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid rgba(48,54,61,0.4);
+  }
+  .vc-mini-header-left { display: flex; align-items: center; gap: 8px; }
+  .vc-mini-header-left svg { width: 16px; height: 16px; opacity: 0.5; }
+  .vc-mini-header-left span { color: var(--text-secondary); font-weight: 600; }
+  .vc-mini-live {
+    padding: 3px 10px; border-radius: 20px; font-size: 0.8em; font-weight: 700;
+    background: rgba(63,185,80,0.12); color: var(--accent-green);
+    border: 1px solid rgba(63,185,80,0.3); letter-spacing: 0.5px;
+    animation: vcPulse 2s ease-in-out infinite;
+  }
+  @keyframes vcPulse {
+    0%, 100% { opacity: 1; } 50% { opacity: 0.6; }
+  }
+  .vc-mini-turns { display: flex; flex-direction: column; gap: 8px; }
+  .vc-mini-turn {
+    display: flex; align-items: center; gap: 10px;
+    padding: 6px 10px; border-radius: 8px;
+    background: rgba(48,54,61,0.2);
+  }
+  .vc-mini-turn-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.5px;
+    text-transform: uppercase; width: 52px; flex-shrink: 0;
+  }
+  .vc-mini-turn-label.patient { color: var(--accent-purple); }
+  .vc-mini-turn-label.nurse { color: var(--accent-cyan); }
+  .vc-mini-turn-text { color: var(--text-muted); line-height: 1.4; }
+  .vc-mini-wave {
+    display: flex; align-items: center; gap: 2px; height: 20px; margin: 8px 0;
+    justify-content: center;
+  }
+  .vc-mini-wave-bar {
+    width: 3px; border-radius: 2px; background: rgba(188,140,255,0.4);
+    animation: vcWave 1.2s ease-in-out infinite;
+  }
+  @keyframes vcWave {
+    0%, 100% { height: 4px; } 50% { height: 18px; }
+  }
+  .vc-mini-mood-row {
+    display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px;
+    padding-top: 10px; border-top: 1px solid rgba(48,54,61,0.4);
+  }
+  .vc-mini-mood {
+    padding: 3px 8px; border-radius: 6px; font-size: 0.8em; font-weight: 600;
+    border: 1px solid rgba(188,140,255,0.2); color: rgba(188,140,255,0.7);
+    background: rgba(188,140,255,0.04);
+  }
 
   /* Rule Set mini preview */
   .rs-mini-grid {
@@ -1390,7 +1569,7 @@
       <div class="stat-unit">AE Detection Rate</div>
     </div>
     <div class="stat-block">
-      <div class="stat-number" data-target="20" data-suffix="">0</div>
+      <div class="stat-number" data-target="15" data-suffix="">0</div>
       <div class="stat-unit">AntiHallu Trap Prompts</div>
     </div>
   </div>
@@ -1405,7 +1584,7 @@
       <span class="sl-line"></span>
     </div>
 
-    <!-- Card 1: Data Analysis Agent (Anti-hallucination MedGemma + Data Analysis) -->
+    <!-- Card 1: Data Analysis Agent (tabbed: Anti-hallucination + Chatbot & Report) -->
     <div class="tech-card accent-blue reveal reveal-d1">
       <div class="tc-layout">
         <div class="tc-left">
@@ -1414,56 +1593,105 @@
               <img src="{% static 'assets/ui/gemma.png' %}" alt="MedGemma" style="width:20px;height:20px;object-fit:contain;">
             </div>
             <div class="tc-title">Data Analysis Agent</div>
-            <span class="tc-badge">Anti-hallucination MedGemma + Chatbot &amp; Report</span>
           </div>
-          <div class="tc-desc">
-            Conversational clinical data analysis powered by DAPO-trained MedGemma-4B.
-            The <strong>Anti-hallucination MedGemma</strong> ensures factual accuracy &mdash; refusing to fabricate
-            drug names, dosages, or mechanisms &mdash; while the <strong>Data Analysis (Chatbot &amp; Report)</strong>
-            enables interactive exploration of simulation results, CRF tables, and statistical analyses.
+
+          <div class="cts-inner-tabs">
+            <button class="cts-inner-tab active" onclick="switchDaTab('antihallu', this)">Anti-hallucination MedGemma</button>
+            <button class="cts-inner-tab" onclick="switchDaTab('chatbot', this)">Chatbot &amp; Report</button>
           </div>
-          <div class="tc-stat">
-            <span class="tc-stat-val del">Baseline hallucinates</span>
-            <span class="tc-stat-arrow">&#8594;</span>
-            <span class="tc-stat-val good">AntiHallu refuses</span>
-            <span class="tc-stat-label">DAPO reinforcement learning</span>
+
+          <!-- Tab: Anti-hallucination MedGemma -->
+          <div class="cts-tab-pane active" id="daAntihallu">
+            <div class="tc-desc">
+              RLFR-defended <strong>Anti-hallucination MedGemma</strong> ensures factual accuracy &mdash;
+              refusing to fabricate drug names, dosages, or mechanisms.
+              Tested across 5 trap categories with 15 adversarial prompts.
+            </div>
+            <div class="tc-stat">
+              <span class="tc-stat-val del">Baseline hallucinates</span>
+              <span class="tc-stat-arrow">&#8594;</span>
+              <span class="tc-stat-val good">RLFR refuses</span>
+              <span class="tc-stat-label">5 trap categories &middot; 15 test prompts</span>
+            </div>
+            <a href="{% url 'demo_anti_hallucination' %}" class="tc-btn">
+              <span class="btn-label">Try Demo</span><span class="btn-hover-label">Test It</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
           </div>
-          <a href="{% url 'demo_anti_hallucination' %}" class="tc-btn">
-            Try Demo
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-    </a>
-  </div>
+
+          <!-- Tab: Chatbot & Report -->
+          <div class="cts-tab-pane" id="daChatbot">
+            <div class="tc-desc">
+              Interactive <strong>AI chatbot</strong> for clinical trial data exploration &mdash;
+              analyze AE incidence, CRF tables, and statistical results.
+              Generate <strong>MedWatch 3500A</strong> SAE reports and export CRF data as Excel.
+            </div>
+            <div class="tc-stat">
+              <span class="tc-stat-val good" style="opacity:1;">Conversational analysis</span>
+              <span class="tc-stat-label">CRF &middot; SAE reports &middot; A/B comparison</span>
+            </div>
+            <a href="{% url 'demo_anti_hallucination' %}" class="tc-btn">
+              <span class="btn-label">Try Demo</span><span class="btn-hover-label">Chat Now</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
+        </div>
         <div class="tc-right">
-          <div class="ah-comparison-preview">
-            <div class="ah-preview-prompt">
-              <span class="ah-preview-prompt-icon">&#10070;</span>
-              "What is the plasma half-life of Dravimotide?"
-  </div>
-            <div class="ah-preview-cards">
-              <div class="ah-preview-card ah-preview-baseline">
-                <div class="ah-preview-label"><span class="ah-preview-dot baseline"></span>Baseline</div>
-                <div class="ah-preview-text">Dravimotide has a plasma half-life of approximately 14.2 hours following oral administration...</div>
-                <div class="ah-preview-badge ah-preview-badge-red">HALLUCINATED</div>
-</div>
-              <div class="ah-preview-card ah-preview-defended">
-                <div class="ah-preview-label"><span class="ah-preview-dot defended"></span>AntiHallu</div>
-                <div class="ah-preview-text">I cannot find verified information about "Dravimotide" in medical databases. This may not be a real drug...</div>
-                <div class="ah-preview-badge ah-preview-badge-green">SAFE</div>
+          <!-- Anti-hallucination visual (shown when antihallu tab active) -->
+          <div id="daAntihalluRight">
+            <div class="ah-comparison-preview">
+              <div class="ah-preview-prompt">
+                <span class="ah-preview-prompt-icon">&#10070;</span>
+                "What is the plasma half-life of Dravimotide?"
+              </div>
+              <div class="ah-preview-cards">
+                <div class="ah-preview-card ah-preview-baseline">
+                  <div class="ah-preview-label"><span class="ah-preview-dot baseline"></span>Baseline</div>
+                  <div class="ah-preview-text">Dravimotide has a plasma half-life of approximately 14.2 hours following oral administration...</div>
+                  <div class="ah-preview-badge ah-preview-badge-red">HALLUCINATED</div>
+                </div>
+                <div class="ah-preview-card ah-preview-defended">
+                  <div class="ah-preview-label"><span class="ah-preview-dot defended"></span>AntiHallu</div>
+                  <div class="ah-preview-text">I cannot find verified information about "Dravimotide" in medical databases. This may not be a real drug...</div>
+                  <div class="ah-preview-badge ah-preview-badge-green">SAFE</div>
+                </div>
+              </div>
+              <div class="ah-preview-meta">
+                <span>15 trap prompts</span>
+                <span class="ah-preview-sep">&middot;</span>
+                <span>5 categories</span>
+                <span class="ah-preview-sep">&middot;</span>
+                <span>RLFR</span>
               </div>
             </div>
-            <div class="ah-preview-meta">
-              <span>20 trap prompts</span>
-              <span class="ah-preview-sep">&middot;</span>
-              <span>4 categories</span>
-              <span class="ah-preview-sep">&middot;</span>
-              <span>DAPO RL</span>
+          </div>
+          <!-- Chatbot visual (shown when chatbot tab active) -->
+          <div id="daChatbotRight" style="display:none;">
+            <div class="cb-mini-preview">
+              <div class="cb-mini-header">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                <span>Data Analysis Chat</span>
+              </div>
+              <div class="cb-mini-msg">
+                <div class="cb-mini-avatar user">U</div>
+                <div class="cb-mini-bubble user-bubble">Summarize AE incidence rates for this trial</div>
+              </div>
+              <div class="cb-mini-msg">
+                <div class="cb-mini-avatar ai">AI</div>
+                <div class="cb-mini-bubble ai-bubble">Across 50 patients over 84 days, the most frequent AEs were <strong>nausea</strong> (68%), <strong>fatigue</strong> (54%), and <strong>rash</strong> (42%). Grade 3+ events occurred in 12% of patients...</div>
+              </div>
+              <div class="cb-mini-actions">
+                <span class="cb-mini-action">SAE Report</span>
+                <span class="cb-mini-action">CRF Excel</span>
+                <span class="cb-mini-action">Compare A/B</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Card 2: Data Collection Agent (SAE Detection + Voice Call Live) -->
+    <!-- Card 2: Data Collection Agent (tabbed: SAE Detection + Voice Call Live) -->
     <div class="tech-card accent-purple reveal reveal-d2">
       <div class="tc-layout">
         <div class="tc-left">
@@ -1472,97 +1700,174 @@
               <img src="{% static 'assets/ui/gemma.png' %}" alt="Data Collection Agent" style="width:34px;height:34px;object-fit:contain;">
             </div>
             <div class="tc-title">Data Collection Agent</div>
-            <span class="tc-badge">SAE Detection + Voice Call Live</span>
           </div>
-          <div class="tc-desc">
-            Multi-model data collection pipeline: <strong>SAE Detection</strong> (MedGemma + MedSigLIP + HeAR)
-            captures and grades visual/audio AEs from patient data, while <strong>Voice Call Live</strong>
-            conducts real-time voice interactions to collect non-visual symptom data through empathetic
-            multi-turn conversations &mdash; bridging the gap between hospital visits.
+
+          <div class="cts-inner-tabs">
+            <button class="cts-inner-tab active" onclick="switchDcTab('sae', this)">SAE Detection</button>
+            <button class="cts-inner-tab" onclick="switchDcTab('voice', this)">Voice Call Live</button>
           </div>
-          <div class="tc-stat">
-            <span class="tc-stat-val del">4.8%</span>
-            <span class="tc-stat-arrow">&#8594;</span>
-            <span class="tc-stat-val good">90.5%</span>
-            <span class="tc-stat-label">accuracy after LoRA finetuning</span>
+
+          <!-- Tab: SAE Detection -->
+          <div class="cts-tab-pane active" id="dcSae">
+            <div class="tc-desc">
+              Multi-model SAE detection: <strong>MedGemma 4B-IT</strong> (visual AE grading via LoRA),
+              <strong>MedSigLIP</strong> (medical image similarity), and <strong>HeAR</strong> (audio biomarker analysis)
+              aligned with <strong>CTCAE grading standards</strong> across 21 classes.
+            </div>
+            <div class="tc-stat">
+              <span class="tc-stat-val del">4.8%</span>
+              <span class="tc-stat-arrow">&#8594;</span>
+              <span class="tc-stat-val good">90.5%</span>
+              <span class="tc-stat-label">21 CTCAE classes &middot; LoRA finetuned</span>
+            </div>
+            <a href="{% url 'demo_medgemma' %}" class="tc-btn">
+              <span class="btn-label">Try Demo</span><span class="btn-hover-label">Detect AE</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
           </div>
-          <a href="{% url 'demo_care_agent' %}" class="tc-btn">
-            Try Demo
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </a>
+
+          <!-- Tab: Voice Call Live -->
+          <div class="cts-tab-pane" id="dcVoice">
+            <div class="tc-desc">
+              Real-time <strong>voice interactions</strong> to detect adverse events early through
+              <strong>auditory and conversational cues</strong>. 4-turn patient-nurse dialogue
+              with <strong>7-dimensional mood-aware</strong> patient modeling.
+            </div>
+            <div class="tc-stat">
+              <span class="tc-stat-val good" style="opacity:1;">94.2%</span>
+              <span class="tc-stat-label">AE detection &middot; 4-turn voice &middot; 7-dim mood</span>
+            </div>
+            <a href="{% url 'demo_care_agent' %}" class="tc-btn">
+              <span class="btn-label">Try Demo</span><span class="btn-hover-label">Call Now</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
         </div>
         <div class="tc-right">
-          <div class="mm-pipeline">
-            <div class="mm-pipeline-label">Input</div>
-            <div class="mg-input-group">
-              <div class="mg-input-row">
-                <div class="mg-photo-box">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
-                  <span>Day 0 Photo</span>
+          <!-- SAE Detection visual (shown when sae tab active) -->
+          <div id="dcSaeRight">
+            <div class="mm-pipeline">
+              <div class="mm-pipeline-label">Input</div>
+              <div class="mg-input-group">
+                <div class="mg-input-row">
+                  <div class="mg-photo-box">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
+                    <span>Day 0 Photo</span>
+                  </div>
+                  <div class="mg-photo-box has-ae">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="17" cy="5" r="3" fill="rgba(188,140,255,0.3)" stroke="currentColor"/></svg>
+                    <span>Day 21 Photo</span>
+                  </div>
                 </div>
-                <div class="mg-photo-box has-ae">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="17" cy="5" r="3" fill="rgba(188,140,255,0.3)" stroke="currentColor"/></svg>
-                  <span>Day 21 Photo</span>
+                <div class="mg-prompt-box">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:12px;height:12px;flex-shrink:0;opacity:0.5;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                  <span>Identify new AEs and classify their grades.</span>
                 </div>
               </div>
-              <div class="mg-prompt-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:12px;height:12px;flex-shrink:0;opacity:0.5;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                <span>Identify new AEs and classify their grades.</span>
+              <div class="mg-flow-down">&#x25BC;</div>
+              <div class="mm-pipeline-label">Model</div>
+              <div class="mg-model-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                MedGemma + MedSigLIP + HeAR
+              </div>
+              <div class="mg-flow-down">&#x25BC;</div>
+              <div class="mm-pipeline-label">Output</div>
+              <div class="mg-output-box">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+                AE Type + Grade + Reasoning
+              </div>
+              <div class="mm-pipeline-label" style="margin-top:6px;">Finetuned vs Zero-shot</div>
+              <div class="mm-metrics-list">
+                <div class="mm-metric-row">
+                  <span class="mm-metric-name">Accuracy</span>
+                  <div class="mm-metric-vals">
+                    <span class="mm-metric-val">90.5%</span>
+                    <span class="mm-metric-gain">+85.7%p</span>
+                  </div>
+                </div>
+                <div class="mm-metric-row">
+                  <span class="mm-metric-name">Weighted F1</span>
+                  <div class="mm-metric-vals">
+                    <span class="mm-metric-val">90.0%</span>
+                    <span class="mm-metric-gain">+89.2%p</span>
+                  </div>
+                </div>
+                <div class="mm-metric-row">
+                  <span class="mm-metric-name">Macro Precision</span>
+                  <div class="mm-metric-vals">
+                    <span class="mm-metric-val">92.9%</span>
+                    <span class="mm-metric-gain">+92.5%p</span>
+                  </div>
+                </div>
+                <div class="mm-metric-row">
+                  <span class="mm-metric-name">Macro Recall</span>
+                  <div class="mm-metric-vals">
+                    <span class="mm-metric-val">90.5%</span>
+                    <span class="mm-metric-gain">+85.7%p</span>
+                  </div>
+                </div>
+              </div>
+              <div class="mm-fine-tune-tag">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                LoRA r=8, &alpha;=16 &middot; 7 AE types + Normal &middot; bf16
               </div>
             </div>
-            <div class="mg-flow-down">&#x25BC;</div>
-            <div class="mm-pipeline-label">Model</div>
-            <div class="mg-model-box">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              MedGemma + MedSigLIP + HeAR
-            </div>
-            <div class="mg-flow-down">&#x25BC;</div>
-            <div class="mm-pipeline-label">Output</div>
-            <div class="mg-output-box">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-              AE Type + Grade + Reasoning
-            </div>
-            <div class="mm-pipeline-label" style="margin-top:6px;">Finetuned vs Zero-shot</div>
-            <div class="mm-metrics-list">
-              <div class="mm-metric-row">
-                <span class="mm-metric-name">Accuracy</span>
-                <div class="mm-metric-vals">
-                  <span class="mm-metric-val">90.5%</span>
-                  <span class="mm-metric-gain">+85.7%p</span>
+          </div>
+          <!-- Voice Call Live visual (shown when voice tab active) -->
+          <div id="dcVoiceRight" style="display:none;">
+            <div class="vc-mini-preview">
+              <div class="vc-mini-header">
+                <div class="vc-mini-header-left">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+                  <span>Voice Call Live</span>
+                </div>
+                <span class="vc-mini-live">LIVE</span>
+              </div>
+              <div class="vc-mini-wave">
+                <div class="vc-mini-wave-bar" style="height:6px;animation-delay:0s;"></div>
+                <div class="vc-mini-wave-bar" style="height:12px;animation-delay:0.1s;"></div>
+                <div class="vc-mini-wave-bar" style="height:18px;animation-delay:0.2s;"></div>
+                <div class="vc-mini-wave-bar" style="height:10px;animation-delay:0.3s;"></div>
+                <div class="vc-mini-wave-bar" style="height:16px;animation-delay:0.15s;"></div>
+                <div class="vc-mini-wave-bar" style="height:8px;animation-delay:0.25s;"></div>
+                <div class="vc-mini-wave-bar" style="height:14px;animation-delay:0.05s;"></div>
+                <div class="vc-mini-wave-bar" style="height:6px;animation-delay:0.35s;"></div>
+                <div class="vc-mini-wave-bar" style="height:18px;animation-delay:0.12s;"></div>
+                <div class="vc-mini-wave-bar" style="height:10px;animation-delay:0.22s;"></div>
+                <div class="vc-mini-wave-bar" style="height:14px;animation-delay:0.08s;"></div>
+                <div class="vc-mini-wave-bar" style="height:8px;animation-delay:0.28s;"></div>
+              </div>
+              <div class="vc-mini-turns">
+                <div class="vc-mini-turn">
+                  <span class="vc-mini-turn-label patient">T1</span>
+                  <span class="vc-mini-turn-text">"I've been feeling more tired than usual..."</span>
+                </div>
+                <div class="vc-mini-turn">
+                  <span class="vc-mini-turn-label nurse">T2</span>
+                  <span class="vc-mini-turn-text">Visual assessment: mild rash detected on forearms</span>
+                </div>
+                <div class="vc-mini-turn">
+                  <span class="vc-mini-turn-label patient">T3</span>
+                  <span class="vc-mini-turn-text">"The itching started about three days ago..."</span>
+                </div>
+                <div class="vc-mini-turn">
+                  <span class="vc-mini-turn-label nurse">T4</span>
+                  <span class="vc-mini-turn-text">Recommend early visit &mdash; Grade 2 rash + pruritus</span>
                 </div>
               </div>
-              <div class="mm-metric-row">
-                <span class="mm-metric-name">Weighted F1</span>
-                <div class="mm-metric-vals">
-                  <span class="mm-metric-val">90.0%</span>
-                  <span class="mm-metric-gain">+89.2%p</span>
-                </div>
+              <div class="vc-mini-mood-row">
+                <span class="vc-mini-mood">anxiety 0.6</span>
+                <span class="vc-mini-mood">trust 0.8</span>
+                <span class="vc-mini-mood">fatigue 0.7</span>
+                <span class="vc-mini-mood">hopefulness 0.5</span>
               </div>
-              <div class="mm-metric-row">
-                <span class="mm-metric-name">Macro Precision</span>
-                <div class="mm-metric-vals">
-                  <span class="mm-metric-val">92.9%</span>
-                  <span class="mm-metric-gain">+92.5%p</span>
-                </div>
-              </div>
-              <div class="mm-metric-row">
-                <span class="mm-metric-name">Macro Recall</span>
-                <div class="mm-metric-vals">
-                  <span class="mm-metric-val">90.5%</span>
-                  <span class="mm-metric-gain">+85.7%p</span>
-                </div>
-              </div>
-            </div>
-            <div class="mm-fine-tune-tag">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-              LoRA r=8, &alpha;=16 &middot; 7 AE types + Normal &middot; bf16
             </div>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- Card 3: Clinical Trial Simulation (tabbed: Hazard Engine + Rule Set Generation) -->
+    <!-- Card 3: Simulation Engine (tabbed: Hazard Engine + Rule Set Generation) -->
     <div class="tech-card accent-cyan reveal reveal-d3">
       <div class="tc-layout">
         <div class="tc-left">
@@ -1572,8 +1877,7 @@
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
               </svg>
             </div>
-            <div class="tc-title">Clinical Trial Simulation</div>
-            <span class="tc-badge">Engine</span>
+            <div class="tc-title">Simulation Engine</div>
           </div>
 
           <div class="cts-inner-tabs">
@@ -1595,7 +1899,7 @@
               <span class="tc-stat-label">computed per AE type, per patient</span>
             </div>
             <a href="{% url 'demo_hazard' %}" class="tc-btn">
-              Try Demo
+              <span class="btn-label">Try Demo</span><span class="btn-hover-label">Run It</span>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </a>
           </div>
@@ -1615,7 +1919,7 @@
               <span class="tc-stat-label">LLM + evidence databases vs ground truth</span>
             </div>
             <a href="{% url 'demo_ruleset_generation' %}" class="tc-btn">
-              Try Demo
+              <span class="btn-label">Try Demo</span><span class="btn-hover-label">Generate</span>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </a>
           </div>
@@ -1768,15 +2072,44 @@
     });
   }
 
-  /* ─── 5a. Clinical Trial Simulation — inner tab switcher ─── */
-  window.switchCtsTab = function(tab, btn) {
-    document.querySelectorAll('.cts-inner-tab').forEach(function(t) { t.classList.remove('active'); });
-    document.querySelectorAll('.cts-tab-pane').forEach(function(p) { p.classList.remove('active'); });
+  /* ─── 5a. Generic card inner-tab switcher ─── */
+  function switchCardTab(btn, paneIds, rightIds) {
+    var card = btn.closest('.tech-card');
+    card.querySelectorAll('.cts-inner-tab').forEach(function(t) { t.classList.remove('active'); });
+    card.querySelectorAll('.cts-tab-pane').forEach(function(p) { p.classList.remove('active'); });
     btn.classList.add('active');
-    var leftPane = tab === 'hazard' ? 'ctsHazard' : 'ctsRuleset';
-    document.getElementById(leftPane).classList.add('active');
-    document.getElementById('ctsHazardRight').style.display = tab === 'hazard' ? 'block' : 'none';
-    document.getElementById('ctsRulesetRight').style.display = tab === 'ruleset' ? 'block' : 'none';
+    var idx = Array.from(btn.parentNode.children).indexOf(btn);
+    paneIds.forEach(function(id, i) {
+      document.getElementById(id).classList[i === idx ? 'add' : 'remove']('active');
+    });
+    rightIds.forEach(function(id, i) {
+      document.getElementById(id).style.display = i === idx ? 'block' : 'none';
+    });
+  }
+
+  /* Card 1: Data Analysis Agent */
+  window.switchDaTab = function(tab, btn) {
+    var idx = tab === 'antihallu' ? 0 : 1;
+    switchCardTab(btn,
+      ['daAntihallu', 'daChatbot'],
+      ['daAntihalluRight', 'daChatbotRight']
+    );
+  };
+
+  /* Card 2: Data Collection Agent */
+  window.switchDcTab = function(tab, btn) {
+    switchCardTab(btn,
+      ['dcSae', 'dcVoice'],
+      ['dcSaeRight', 'dcVoiceRight']
+    );
+  };
+
+  /* Card 3: Simulation Engine */
+  window.switchCtsTab = function(tab, btn) {
+    switchCardTab(btn,
+      ['ctsHazard', 'ctsRuleset'],
+      ['ctsHazardRight', 'ctsRulesetRight']
+    );
   };
 
   /* ─── 5. Hazard Mini Canvas — 3 decorative curves ─── */

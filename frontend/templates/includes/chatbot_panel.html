@@ -1,0 +1,35 @@
+{% load static %}
+<!-- ═══ Chat FAB ═══ -->
+<button class="chat-fab" id="chatToggle" onclick="chatbot.toggle()" title="{{ chat_title|default:'Analysis Agent' }}">
+  <span class="fab-icon">
+    <img src="{% static 'assets/ui/gemma.png' %}" width="34" height="34" alt="MedGemma">
+  </span>
+</button>
+
+<!-- ═══ Chat Panel ═══ -->
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-resize-handle" id="chatResizeHandle"></div>
+  <div class="chat-panel-header">
+    <div class="chat-panel-hdr-left">
+      <div class="chat-panel-title">{{ chat_title|default:"Analysis Agent" }}</div>
+      <div class="chat-panel-subtitle">{{ chat_subtitle|default:"medgemma-4b" }}</div>
+    </div>
+    <button class="chat-panel-close" onclick="chatbot.toggle()" title="Close">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="chat-welcome" id="chatWelcome">
+      <img class="chat-welcome-icon" src="{% static 'assets/ui/gemma.png' %}" alt="MedGemma">
+      <div class="chat-welcome-text">Powered by MedGemma</div>
+    </div>
+  </div>
+  <div class="chat-suggestions" id="chatSuggestions"></div>
+  <div class="chat-refs" id="chatRefs" style="display:none"></div>
+  <div class="chat-input-area">
+    <textarea class="chat-input" id="chatInput" placeholder="Ask a question..." rows="1"></textarea>
+    <button class="chat-send" id="chatSend" onclick="chatbot.send()" title="Send message">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+    </button>
+  </div>
+</div>

@@ -142,15 +142,42 @@
 .shift-legend-dot.severe { background:#f87171; }
 .shift-axis-label { font-size:.72em; color:var(--text-muted); margin-bottom:6px; text-align:center; letter-spacing:.3px; }
 
-/* ── Mode selector ── */
-.mode-bar { display:flex; gap:6px; margin-bottom:1em; }
-.mode-btn {
-  padding:6px 16px; border-radius:6px; font-size:.85em; font-weight:600;
-  border:1px solid var(--border); background:var(--bg-secondary);
-  color:var(--text-secondary); cursor:pointer; transition:all .15s;
+/* ── Mode Pill Toggle ── */
+.mode-pill {
+  display: inline-flex; border-radius: 8px; overflow: hidden;
+  border: 1px solid var(--border); background: rgba(13,17,23,0.7);
+  padding: 2px; gap: 2px; margin-bottom: 1em;
 }
-.mode-btn:hover { border-color:var(--accent-cyan); color:var(--text-primary); }
-.mode-btn.active { background:rgba(57,210,192,.12); border-color:var(--accent-cyan); color:var(--accent-cyan); }
+.mp-btn {
+  padding: 7px 16px; border: none; cursor: pointer;
+  font: 700 0.88em 'JetBrains Mono', monospace;
+  background: transparent; color: var(--text-muted);
+  transition: all 0.25s ease; line-height: 1.2; white-space: nowrap;
+  display: flex; align-items: center; gap: 6px;
+  border-radius: 6px; letter-spacing: 0.5px;
+}
+.mp-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+.mp-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--text-muted); opacity: 0.3;
+  transition: all 0.3s ease; flex-shrink: 0;
+}
+.mp-natural.active {
+  background: rgba(63,185,80,0.15); color: #3fb950;
+  box-shadow: 0 0 12px rgba(63,185,80,0.15);
+}
+.mp-natural.active .mp-dot {
+  background: #3fb950; opacity: 1;
+  box-shadow: 0 0 6px rgba(63,185,80,0.8);
+}
+.mp-care-ai.active {
+  background: rgba(57,210,192,0.15); color: #39d2c0;
+  box-shadow: 0 0 12px rgba(57,210,192,0.15);
+}
+.mp-care-ai.active .mp-dot {
+  background: #39d2c0; opacity: 1;
+  box-shadow: 0 0 6px rgba(57,210,192,0.8);
+}
 
 /* ── Loading ── */
 .loading-overlay {
@@ -207,12 +234,16 @@
     </div>
   </div>
 
-  <!-- Mode selector -->
-  <div class="mode-bar">
+  <!-- Mode Pill -->
+  {% if available_modes|length > 1 %}
+  <div class="mode-pill">
     {% for m in available_modes %}
-    <button class="mode-btn{% if forloop.first %} active{% endif %}" data-mode="{{ m }}">{{ m|title }}</button>
+    <button class="mp-btn {% if m == 'natural' %}mp-natural{% elif m == 'care_ai' %}mp-care-ai{% endif %}{% if forloop.first %} active{% endif %}" data-mode="{{ m }}" onclick="switchStatsMode('{{ m }}')">
+      <span class="mp-dot"></span>{% if m == "natural" %}Natural{% elif m == "care_ai" %}Care AI{% else %}{{ m|title }}{% endif %}
+    </button>
     {% endfor %}
   </div>
+  {% endif %}
 
   <!-- Section tabs -->
   <div class="section-tabs">
@@ -353,14 +384,14 @@ document.querySelectorAll('.sec-tab').forEach(b => {
 });
 
 // ── Mode switching ──
-document.querySelectorAll('.mode-btn').forEach(b => {
-  b.addEventListener('click', () => {
-    document.querySelectorAll('.mode-btn').forEach(t => t.classList.remove('active'));
-    b.classList.add('active');
-    currentMode = b.dataset.mode;
-    loadData();
+function switchStatsMode(mode) {
+  currentMode = mode;
+  document.querySelectorAll('.mp-btn[data-mode]').forEach(function(b) {
+    b.classList.toggle('active', b.dataset.mode === mode);
   });
-});
+  loadData();
+}
+window.switchStatsMode = switchStatsMode;
 
 // ── Data loading ──
 function loadData() {
@@ -967,7 +998,7 @@ chatbot.init({
     return { mode: currentMode, tab: activeTab ? activeTab.dataset.sec : '' };
   },
   clickToRef: function(e) {
-    if (e.target.closest('.sec-tab') || e.target.closest('.mode-btn') ||
+    if (e.target.closest('.sec-tab') || e.target.closest('.mode-opt') || e.target.closest('.mode-banner') ||
         e.target.closest('select') || e.target.closest('.tab-bar') ||
         e.target.closest('.tab-link') || e.target.closest('button:not(.kpi-card)') ||
         e.target.closest('a')) {

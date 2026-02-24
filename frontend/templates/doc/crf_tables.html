@@ -44,6 +44,42 @@
     background: rgba(57,210,192,0.12); border-color: var(--accent-cyan);
     color: var(--accent-cyan);
   }
+  /* ── Mode Pill Toggle ── */
+  .mode-pill {
+    display: inline-flex; border-radius: 8px; overflow: hidden;
+    border: 1px solid var(--border); background: rgba(13,17,23,0.7);
+    padding: 2px; gap: 2px;
+  }
+  .mp-btn {
+    padding: 7px 16px; border: none; cursor: pointer;
+    font: 700 0.88em 'JetBrains Mono', monospace;
+    background: transparent; color: var(--text-muted);
+    transition: all 0.25s ease; line-height: 1.2; white-space: nowrap;
+    display: flex; align-items: center; gap: 6px;
+    border-radius: 6px; letter-spacing: 0.5px;
+  }
+  .mp-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+  .mp-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text-muted); opacity: 0.3;
+    transition: all 0.3s ease; flex-shrink: 0;
+  }
+  .mp-natural.active {
+    background: rgba(63,185,80,0.15); color: #3fb950;
+    box-shadow: 0 0 12px rgba(63,185,80,0.15);
+  }
+  .mp-natural.active .mp-dot {
+    background: #3fb950; opacity: 1;
+    box-shadow: 0 0 6px rgba(63,185,80,0.8);
+  }
+  .mp-care-ai.active {
+    background: rgba(57,210,192,0.15); color: #39d2c0;
+    box-shadow: 0 0 12px rgba(57,210,192,0.15);
+  }
+  .mp-care-ai.active .mp-dot {
+    background: #39d2c0; opacity: 1;
+    box-shadow: 0 0 6px rgba(57,210,192,0.8);
+  }
   .ctrl-select {
     padding: 5px 12px; border-radius: var(--radius-sm); font-size: 0.9em;
     border: 1px solid var(--border); background: var(--bg-secondary);
@@ -420,11 +456,10 @@
 
   <!-- Control bar -->
   <div class="crf-controls">
-    <div class="ctrl-group">
-      <span class="ctrl-label">Mode</span>
+    <div class="mode-pill" id="mode-pill">
       {% for m in available_modes %}
-      <button class="ctrl-btn{% if forloop.first %} active{% endif %}" data-mode="{{ m }}" onclick="switchMode('{{ m }}')">
-        {% if m == "natural" %}Natural{% elif m == "care_ai" %}Care AI{% else %}{{ m }}{% endif %}
+      <button class="mp-btn {% if m == 'natural' %}mp-natural{% elif m == 'care_ai' %}mp-care-ai{% endif %}{% if forloop.first %} active{% endif %}" data-mode="{{ m }}" onclick="switchMode('{{ m }}')">
+        <span class="mp-dot"></span>{% if m == "natural" %}Natural{% elif m == "care_ai" %}Care AI{% else %}{{ m }}{% endif %}
       </button>
       {% endfor %}
     </div>
@@ -675,7 +710,9 @@
     currentMode = mode;
     currentPage = 1;
     resetSort();
-    document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+    document.querySelectorAll('.mp-btn[data-mode]').forEach(function(b) {
+      b.classList.toggle('active', b.dataset.mode === mode);
+    });
     loadDomainData();
   };
 

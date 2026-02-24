@@ -234,6 +234,43 @@
     text-shadow: 0 0 8px rgba(88,166,255,0.3);
   }
 
+  /* ── Mode Pill Toggle ── */
+  .mode-pill {
+    display: inline-flex; border-radius: 8px; overflow: hidden;
+    border: 1px solid var(--border); background: rgba(13,17,23,0.7);
+    padding: 2px; gap: 2px;
+  }
+  .mp-btn {
+    padding: 7px 16px; border: none; cursor: pointer;
+    font: 700 0.88em 'JetBrains Mono', monospace;
+    background: transparent; color: var(--text-muted);
+    transition: all 0.25s ease; line-height: 1.2; white-space: nowrap;
+    display: flex; align-items: center; gap: 6px;
+    border-radius: 6px; letter-spacing: 0.5px;
+  }
+  .mp-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
+  .mp-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--text-muted); opacity: 0.3;
+    transition: all 0.3s ease; flex-shrink: 0;
+  }
+  .mp-natural.active {
+    background: rgba(63,185,80,0.15); color: #3fb950;
+    box-shadow: 0 0 12px rgba(63,185,80,0.15);
+  }
+  .mp-natural.active .mp-dot {
+    background: #3fb950; opacity: 1;
+    box-shadow: 0 0 6px rgba(63,185,80,0.8);
+  }
+  .mp-care-ai.active {
+    background: rgba(57,210,192,0.15); color: #39d2c0;
+    box-shadow: 0 0 12px rgba(57,210,192,0.15);
+  }
+  .mp-care-ai.active .mp-dot {
+    background: #39d2c0; opacity: 1;
+    box-shadow: 0 0 6px rgba(57,210,192,0.8);
+  }
+
   /* ── Alert Toggle ── */
   .hud-alert-btn {
     width: 30px; height: 28px; border: 1px solid var(--border); border-radius: 4px;
@@ -1054,17 +1091,15 @@
     <!-- Mode Toggle -->
     {% if available_modes|length > 1 %}
     <div class="hud-section">
-      <div class="pill-group" id="mode-toggle">
-        <button {% if mode == 'natural' %}class="active-green"{% endif %} data-mode="natural" title="Natural course">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4-4 8-7 8-12a8 8 0 10-16 0c0 5 4 8 8 12z"/><circle cx="12" cy="10" r="3"/></svg>
-          Natural
+      <div class="mode-pill" id="mode-toggle" data-mode="{{ mode }}">
+        <button class="mp-btn mp-natural{% if mode == 'natural' %} active{% endif %}" data-mode="natural" title="Natural course">
+          <span class="mp-dot"></span>Natural
         </button>
-        <button {% if mode == 'care_ai' %}class="active-blue"{% endif %} data-mode="care_ai" title="Care AI monitoring">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M19 10v1a7 7 0 01-14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/></svg>
-          Care AI
+        <button class="mp-btn mp-care-ai{% if mode == 'care_ai' %} active{% endif %}" data-mode="care_ai" title="Care AI monitoring">
+          <span class="mp-dot"></span>Care AI
         </button>
-  </div>
-</div>
+      </div>
+    </div>
     {% endif %}
 
     <!-- Record View Toggle -->
@@ -2091,11 +2126,9 @@
   }
 
   // ── Mode Toggle ──
-  document.querySelectorAll('#mode-toggle button').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-      const b = e.target.closest('button');
-      if (!b) return;
-      const newMode = b.dataset.mode;
+  document.querySelectorAll('#mode-toggle .mp-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const newMode = btn.dataset.mode;
       if (newMode === currentMode) return;
       currentMode = newMode;
       const url = new URL(window.location);

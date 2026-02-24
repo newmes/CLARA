@@ -33,6 +33,14 @@ def set_caller(agent_name: str | None = None):
     _thread_local.caller_context = agent_name
 
 
+def set_api_key(api_key: str):
+    """외부에서 API 키를 주입한다. 기존 싱글톤 클라이언트를 재생성한다."""
+    global _client
+    with _client_lock:
+        _client = genai.Client(api_key=api_key)
+    os.environ["GOOGLE_API_KEY"] = api_key
+
+
 def _get_client() -> genai.Client:
     """Gemini Client 싱글톤을 반환한다 (스레드 안전)."""
     global _client

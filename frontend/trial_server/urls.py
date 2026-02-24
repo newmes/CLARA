@@ -121,12 +121,12 @@ urlpatterns = [
     # Statistical Analysis (CSR)
     path("doc/<str:run_id>/stats/",
          views.statistical_analysis, name="statistical_analysis"),
+    path("api/stats/chat/",
+         views.api_stats_chat_demo, name="api_stats_chat_demo"),
     path("api/stats/<str:run_id>/",
          views.api_stats_data, name="api_stats_data"),
     path("api/stats/<str:run_id>/chat/",
          views.api_stats_chat, name="api_stats_chat"),
-    path("api/stats/chat/",
-         views.api_stats_chat_demo, name="api_stats_chat_demo"),
 
     # Unified Doc Chat API (stats / crf / sae)
     path("api/doc/<str:run_id>/chat/",
@@ -149,4 +149,12 @@ urlpatterns = [
          views.api_ruleset_generate, name='api_ruleset_generate'),
     path('api/ruleset/generate/status/<str:job_id>/',
          views.api_ruleset_generate_status, name='api_ruleset_generate_status'),
+
+    # Demo API — auto-select latest run (no run_id needed)
+    path('api/demo/saes/',
+         views.api_demo_saes, name='api_demo_saes'),
+    path('api/demo/generate/',
+         views.api_demo_generate, name='api_demo_generate'),
+    path('api/demo/reports/',
+         views.api_demo_reports, name='api_demo_reports'),
 ]

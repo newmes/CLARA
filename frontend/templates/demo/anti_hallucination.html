@@ -52,7 +52,10 @@
   padding: 0 32px 4em;
   position: relative;
   z-index: 1;
+  transition: max-width 0.3s ease;
 }
+/* Widen container when chatbot tab is active for split panel */
+.ah-main.da-wide { max-width: 1440px; }
 
 /* -- Scroll-triggered reveal -- */
 .ah-reveal {
@@ -965,353 +968,729 @@
 .ah-tab-pane { display: none; }
 .ah-tab-pane.active { display: block; }
 
+
 /* =================================================================
-   CHATBOT TAB — Chat & Report (v2 redesign)
+   CHATBOT TAB -- IDE Split Panel (v3 redesign)
    All classes prefixed with da-
    ================================================================= */
 
-/* -- Layout wrapper: chat area + optional report drawer -- */
-.da-chat-layout {
+/* -- IDE split layout: left panel + right chat -- */
+.da-split-layout {
   display: flex;
-  height: calc(100vh - 420px);
-  min-height: 480px;
+  height: calc(100vh - 350px);
+  min-height: 520px;
   gap: 0;
   position: relative;
 }
 
-/* -- Left Sidebar -- */
-.da-sidebar {
-  width: 260px;
-  flex-shrink: 0;
-  background: rgba(18,22,28,0.85);
-  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(48,54,61,0.6);
-  border-right: none;
-  border-radius: 18px 0 0 18px;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
+/* -- Vertical resize handle between panels -- */
+.da-split-handle {
+  width: 5px; flex-shrink: 0;
+  cursor: col-resize;
+  background: rgba(48,54,61,0.3);
   position: relative;
-  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
-}
-.da-sidebar::before {
-  content: '';
-  position: absolute; top: 0; left: 0; bottom: 0; width: 2px;
-  background: linear-gradient(180deg, #7aa2f7 0%, rgba(122,162,247,0.08) 100%);
-  opacity: 0.5;
-}
-.da-sidebar.collapsed {
-  width: 0;
-  opacity: 0;
-  border: none;
-  overflow: hidden;
-}
-.da-sidebar-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 14px 16px;
-  border-bottom: 1px solid rgba(48,54,61,0.4);
-  flex-shrink: 0;
-}
-.da-sidebar-title {
-  font: 700 0.68em 'JetBrains Mono', monospace;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1.2px;
-}
-.da-sidebar-toggle {
-  width: 28px; height: 28px; border-radius: 6px;
-  border: 1px solid rgba(48,54,61,0.5);
-  background: rgba(22,27,34,0.6);
-  color: var(--text-muted);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer; transition: all 0.2s;
-  flex-shrink: 0;
-}
-.da-sidebar-toggle:hover {
-  border-color: rgba(122,162,247,0.3);
-  color: #7aa2f7;
-  background: rgba(122,162,247,0.06);
-}
-.da-sidebar-toggle svg { width: 14px; height: 14px; }
-
-.da-sidebar-body {
-  flex: 1; overflow-y: auto;
-  padding: 16px;
-}
-.da-sidebar-body::-webkit-scrollbar { width: 3px; }
-.da-sidebar-body::-webkit-scrollbar-track { background: transparent; }
-.da-sidebar-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
-
-/* Sidebar section label */
-.da-sidebar-section {
-  font: 700 0.6em 'JetBrains Mono', monospace;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 1.5px;
-  margin-bottom: 10px;
-  margin-top: 4px;
-}
-.da-sidebar-section:not(:first-child) {
-  margin-top: 20px;
-  padding-top: 16px;
-  border-top: 1px solid rgba(48,54,61,0.3);
-}
-
-/* Data source cards */
-.da-source-card {
-  display: flex; align-items: flex-start; gap: 10px;
-  padding: 10px 12px;
-  border-radius: 10px;
-  border: 1px solid rgba(48,54,61,0.35);
-  background: rgba(0,0,0,0.12);
-  margin-bottom: 8px;
-  cursor: pointer;
-  transition: all 0.25s;
-}
-.da-source-card:hover {
-  border-color: rgba(122,162,247,0.25);
-  background: rgba(122,162,247,0.04);
-  transform: translateX(2px);
-}
-.da-source-card.active {
-  border-color: rgba(122,162,247,0.35);
-  background: rgba(122,162,247,0.06);
-}
-.da-source-icon {
-  width: 28px; height: 28px; border-radius: 7px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  font-size: 14px;
-  background: rgba(122,162,247,0.06);
-  border: 1px solid rgba(122,162,247,0.1);
-}
-.da-source-info { flex: 1; min-width: 0; }
-.da-source-name {
-  font: 600 0.75em 'Inter', sans-serif;
-  color: var(--text-secondary);
-  margin-bottom: 2px;
-}
-.da-source-desc {
-  font: 400 0.62em 'JetBrains Mono', monospace;
-  color: var(--text-muted);
-  line-height: 1.5;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-/* Quick action buttons */
-.da-action-btn {
-  display: flex; align-items: center; gap: 8px;
-  width: 100%;
-  padding: 9px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(48,54,61,0.35);
-  background: rgba(0,0,0,0.1);
-  font: 500 0.68em 'Inter', sans-serif;
-  color: var(--text-muted);
-  cursor: pointer;
-  transition: all 0.25s;
-  margin-bottom: 6px;
-  text-align: left;
-}
-.da-action-btn:hover {
-  border-color: rgba(122,162,247,0.25);
-  color: #7aa2f7;
-  background: rgba(122,162,247,0.04);
-  transform: translateX(2px);
-}
-.da-action-btn svg {
-  width: 14px; height: 14px;
-  flex-shrink: 0;
-  opacity: 0.5;
-}
-.da-action-btn:hover svg { opacity: 0.9; }
-
-/* -- Sidebar collapsed toggle (visible when sidebar is collapsed) -- */
-.da-sidebar-open-btn {
-  display: none;
-  width: 32px; height: 32px; border-radius: 8px;
-  border: 1px solid rgba(48,54,61,0.5);
-  background: rgba(22,27,34,0.8);
-  color: var(--text-muted);
-  align-items: center; justify-content: center;
-  cursor: pointer; transition: all 0.2s;
-  position: absolute;
-  top: 16px; left: 16px;
   z-index: 5;
+  transition: background 0.2s;
 }
-.da-sidebar-open-btn:hover {
-  border-color: rgba(122,162,247,0.3);
-  color: #7aa2f7;
+.da-split-handle:hover,
+.da-split-handle.da-dragging {
+  background: rgba(122,162,247,0.4);
 }
-.da-sidebar-open-btn svg { width: 16px; height: 16px; }
-.da-sidebar.collapsed ~ .da-chat-container .da-sidebar-open-btn {
-  display: flex;
+.da-split-handle::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 3px; height: 32px;
+  border-radius: 2px;
+  background: rgba(122,162,247,0.25);
+  transition: background 0.2s;
 }
+.da-split-handle:hover::after { background: rgba(122,162,247,0.6); }
 
-/* -- Main chat container -- */
-.da-chat-container {
+/* ================================================================
+   LEFT PANEL — Data Explorer
+   ================================================================ */
+.da-left-panel {
+  flex: 0 0 57%;
+  min-width: 340px;
   background: rgba(22,27,34,0.75);
   backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
   border: 1px solid rgba(48,54,61,0.6);
-  border-radius: 0 18px 18px 0;
-  overflow: hidden;
+  border-radius: 18px 0 0 18px;
   display: flex; flex-direction: column;
-  flex: 1;
-  min-width: 0;
+  overflow: hidden;
   position: relative;
 }
-.da-sidebar.collapsed ~ .da-chat-container {
-  border-radius: 18px;
-}
-.da-chat-container::before {
+.da-left-panel::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, #7aa2f7 0%, rgba(122,162,247,0.15) 100%);
-  opacity: 0.6;
+  background: linear-gradient(90deg, #7aa2f7 0%, #5d8fef 50%, rgba(122,162,247,0.15) 100%);
+  opacity: 0.6; z-index: 2;
+}
+
+/* -- Top bar: patient selector + stat badges -- */
+.da-topbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba(48,54,61,0.5);
+  flex-shrink: 0;
+  background: rgba(0,0,0,0.08);
+}
+.da-topbar-label {
+  font: 700 0.62em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+.da-patient-select {
+  padding: 7px 28px 7px 10px;
+  background: rgba(22,27,34,0.6);
+  border: 1px solid rgba(48,54,61,0.5);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font: 600 0.8em 'JetBrains Mono', monospace;
+  outline: none;
+  appearance: none; -webkit-appearance: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236e7681' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  min-width: 130px;
+}
+.da-patient-select:focus { border-color: rgba(122,162,247,0.4); }
+.da-patient-select option { background: #161b22; color: var(--text-primary); }
+
+/* Stat badges row */
+.da-stat-badges {
+  display: flex; align-items: center; gap: 8px;
+  flex: 1; justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.da-stat-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 6px;
+  font: 600 0.62em 'JetBrains Mono', monospace;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.da-stat-badge.da-badge-ae {
+  background: rgba(122,162,247,0.08);
+  border: 1px solid rgba(122,162,247,0.2);
+  color: #7aa2f7;
+}
+.da-stat-badge.da-badge-lab {
+  background: rgba(224,175,104,0.08);
+  border: 1px solid rgba(224,175,104,0.2);
+  color: #e0af68;
+}
+.da-stat-badge.da-badge-sae {
+  background: rgba(247,118,142,0.08);
+  border: 1px solid rgba(247,118,142,0.2);
+  color: #f7768e;
+}
+
+/* -- Sub-tabs: CRF / SAE List / Report / PDF -- */
+.da-subtab-bar {
+  display: flex; gap: 2px;
+  padding: 0 14px;
+  border-bottom: 1px solid rgba(48,54,61,0.4);
+  flex-shrink: 0;
+  background: rgba(0,0,0,0.04);
+}
+.da-subtab {
+  padding: 9px 16px;
+  border: none; background: transparent;
+  font: 600 0.7em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.da-subtab::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 8px; right: 8px;
+  height: 2px; border-radius: 2px 2px 0 0;
+  background: transparent;
+  transition: background 0.2s;
+}
+.da-subtab:hover {
+  color: var(--text-secondary);
+  background: rgba(122,162,247,0.04);
+}
+.da-subtab.da-active {
+  color: #7aa2f7;
+  background: rgba(122,162,247,0.06);
+}
+.da-subtab.da-active::after {
+  background: #7aa2f7;
+}
+.da-subtab-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 16px; height: 16px; border-radius: 4px;
+  font-size: 0.85em; margin-left: 5px;
+  padding: 0 4px;
+  background: rgba(48,54,61,0.3);
+  color: var(--text-muted);
+}
+.da-subtab.da-active .da-subtab-count {
+  background: rgba(122,162,247,0.2);
+  color: #7aa2f7;
+}
+
+/* -- Sub-tab content panes -- */
+.da-subtab-pane {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+}
+.da-subtab-pane.da-active { display: block; }
+.da-subtab-pane::-webkit-scrollbar { width: 4px; }
+.da-subtab-pane::-webkit-scrollbar-track { background: transparent; }
+.da-subtab-pane::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+
+/* CRF sub-tab: domain selector row */
+.da-crf-domain-bar {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.da-crf-domain-btn {
+  padding: 5px 12px; border-radius: 6px;
+  border: 1px solid rgba(48,54,61,0.4);
+  background: rgba(0,0,0,0.12);
+  font: 600 0.65em 'JetBrains Mono', monospace;
+  color: var(--text-muted); cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase; letter-spacing: 0.4px;
+}
+.da-crf-domain-btn:hover {
+  border-color: rgba(122,162,247,0.3);
+  color: #7aa2f7;
+  background: rgba(122,162,247,0.04);
+}
+.da-crf-domain-btn.da-active {
+  border-color: rgba(122,162,247,0.4);
+  color: #7aa2f7;
+  background: rgba(122,162,247,0.1);
+}
+
+/* CRF data table */
+.da-crf-table-wrap {
+  background: rgba(0,0,0,0.1);
+  border: 1px solid rgba(48,54,61,0.35);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.da-crf-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 0.78em; line-height: 1.6;
+}
+.da-crf-table th {
+  text-align: left;
+  padding: 8px 12px;
+  background: rgba(122,162,247,0.06);
+  border-bottom: 1px solid rgba(48,54,61,0.5);
+  font: 600 0.85em 'JetBrains Mono', monospace;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: sticky; top: 0; z-index: 1;
+}
+.da-crf-table td {
+  padding: 7px 12px;
+  border-bottom: 1px solid rgba(48,54,61,0.2);
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+.da-crf-table tr:hover td {
+  background: rgba(122,162,247,0.03);
+}
+.da-crf-table tr:last-child td { border-bottom: none; }
+
+/* SAE list items */
+.da-sae-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(48,54,61,0.35);
+  border-radius: 10px;
+  background: rgba(0,0,0,0.08);
+  margin-bottom: 8px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.da-sae-item:hover {
+  border-color: rgba(247,118,142,0.25);
+  background: rgba(247,118,142,0.03);
+}
+.da-sae-item:last-child { margin-bottom: 0; }
+.da-sae-item-info { flex: 1; min-width: 0; }
+.da-sae-item-term {
+  font: 600 0.85em 'Inter', sans-serif;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+.da-sae-item-meta {
+  font: 400 0.68em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+}
+.da-grade-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 28px; height: 24px; border-radius: 6px;
+  font: 700 0.7em 'JetBrains Mono', monospace;
+  flex-shrink: 0; padding: 0 6px;
+}
+.da-grade-badge.g1 { background: rgba(158,206,106,0.12); color: #9ece6a; border: 1px solid rgba(158,206,106,0.25); }
+.da-grade-badge.g2 { background: rgba(224,175,104,0.12); color: #e0af68; border: 1px solid rgba(224,175,104,0.25); }
+.da-grade-badge.g3 { background: rgba(247,118,142,0.12); color: #f7768e; border: 1px solid rgba(247,118,142,0.25); }
+.da-grade-badge.g4 { background: rgba(248,81,73,0.15); color: #f85149; border: 1px solid rgba(248,81,73,0.3); }
+.da-grade-badge.g5 { background: rgba(248,81,73,0.2); color: #ff4040; border: 1px solid rgba(248,81,73,0.4); }
+.da-sae-gen-btn {
+  padding: 5px 12px; border-radius: 6px;
+  border: 1px solid rgba(158,206,106,0.25);
+  background: rgba(158,206,106,0.06);
+  font: 600 0.65em 'JetBrains Mono', monospace;
+  color: #9ece6a; cursor: pointer;
+  transition: all 0.2s; flex-shrink: 0;
+}
+.da-sae-gen-btn:hover {
+  background: rgba(158,206,106,0.14);
+  border-color: rgba(158,206,106,0.4);
+}
+
+/* Report / PDF preview pane */
+.da-report-content {
+  font: 400 0.85em 'Inter', sans-serif;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+.da-report-content h3 {
+  color: var(--text-primary);
+  font-size: 1em;
+  margin: 16px 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(48,54,61,0.3);
+}
+.da-report-content .da-report-field {
+  display: flex; gap: 12px; margin: 4px 0;
+}
+.da-report-content .da-report-field-label {
+  font: 600 0.88em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  min-width: 130px; flex-shrink: 0;
+}
+.da-report-content .da-report-field-value { color: var(--text-secondary); }
+.da-report-content table {
+  border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 0.9em;
+}
+.da-report-content th, .da-report-content td {
+  border: 1px solid rgba(48,54,61,0.5); padding: 8px 12px; text-align: left;
+}
+.da-report-content th {
+  background: rgba(122,162,247,0.06); font-weight: 600; color: var(--text-secondary);
+}
+
+/* PDF embed */
+.da-pdf-embed {
+  width: 100%; height: 100%; border: none; border-radius: 8px;
+  background: rgba(0,0,0,0.15);
+}
+
+/* Empty state */
+.da-empty-state {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 48px 24px; text-align: center; gap: 12px;
+}
+.da-empty-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(48,54,61,0.2);
+  border: 1px solid rgba(48,54,61,0.3);
+}
+.da-empty-icon svg { width: 24px; height: 24px; color: var(--text-muted); opacity: 0.4; }
+.da-empty-text {
+  font: 500 0.82em 'Inter', sans-serif;
+  color: var(--text-muted); opacity: 0.6;
+  line-height: 1.6;
+}
+.da-empty-sub {
+  font: 400 0.7em 'JetBrains Mono', monospace;
+  color: var(--text-muted); opacity: 0.4;
+}
+
+/* -- No data / loading states -- */
+.da-loading-spinner {
+  display: flex; align-items: center; justify-content: center;
+  padding: 32px; gap: 10px;
+}
+.da-loading-spinner::before {
+  content: '';
+  width: 20px; height: 20px;
+  border: 2px solid rgba(122,162,247,0.2);
+  border-top-color: #7aa2f7; border-radius: 50%;
+  animation: ahSpin 0.8s linear infinite;
+}
+.da-loading-text {
+  font: 500 0.78em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+}
+
+/* ================================================================
+   RIGHT PANEL — Chat
+   ================================================================ */
+.da-right-panel {
+  flex: 0 0 43%;
+  min-width: 300px;
+  background: rgba(22,27,34,0.75);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(48,54,61,0.6);
+  border-left: none;
+  border-radius: 0 18px 18px 0;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+.da-right-panel::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, rgba(122,162,247,0.15) 0%, #5d8fef 50%, #7aa2f7 100%);
+  opacity: 0.6; z-index: 2;
 }
 
 /* -- Chat header -- */
 .da-chat-header {
-  display: flex; align-items: center; gap: 12px;
-  padding: 14px 24px;
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 18px;
   border-bottom: 1px solid rgba(48,54,61,0.5);
   flex-shrink: 0;
 }
 .da-chat-header-icon {
-  width: 36px; height: 36px; border-radius: 10px;
+  width: 32px; height: 32px; border-radius: 9px;
   display: flex; align-items: center; justify-content: center;
   background: rgba(122,162,247,0.08);
   border: 1px solid rgba(122,162,247,0.15);
   flex-shrink: 0;
 }
-.da-chat-header-icon img { width: 24px; height: 24px; object-fit: contain; }
+.da-chat-header-icon img { width: 20px; height: 20px; object-fit: contain; }
 .da-chat-header-text { flex: 1; }
 .da-chat-header-title {
-  font: 700 0.9em 'Inter', sans-serif;
+  font: 700 0.85em 'Inter', sans-serif;
   color: var(--text-primary);
+  display: flex; align-items: center; gap: 6px;
 }
 .da-chat-header-sub {
-  font: 500 0.68em 'JetBrains Mono', monospace;
+  font: 500 0.62em 'JetBrains Mono', monospace;
   color: var(--text-muted);
-  margin-top: 2px;
+  margin-top: 1px;
 }
 
 /* -- Chat messages area -- */
 .da-chat-messages {
   flex: 1; overflow-y: auto;
-  padding: 20px 24px;
-  display: flex; flex-direction: column; gap: 16px;
+  padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 14px;
 }
 .da-chat-messages::-webkit-scrollbar { width: 4px; }
 .da-chat-messages::-webkit-scrollbar-track { background: transparent; }
 .da-chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
 
-/* -- Welcome screen: 2x2 quick-start grid -- */
+/* -- Welcome state in chat -- */
 .da-chat-welcome {
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  flex: 1; gap: 20px;
-  text-align: center; padding: 32px 16px;
-}
-.da-chat-welcome-header {
-  display: flex; flex-direction: column;
-  align-items: center; gap: 10px;
+  flex: 1; gap: 16px; text-align: center;
+  padding: 24px 12px;
 }
 .da-chat-welcome-icon {
-  width: 52px; height: 52px; border-radius: 14px;
+  width: 44px; height: 44px; border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
   background: rgba(122,162,247,0.06);
   border: 1px solid rgba(122,162,247,0.12);
 }
-.da-chat-welcome-icon img { width: 32px; height: 32px; opacity: 0.7; }
+.da-chat-welcome-icon img { width: 28px; height: 28px; opacity: 0.7; }
 .da-chat-welcome-title {
-  font: 700 1.15em 'Inter', sans-serif;
+  font: 700 1em 'Inter', sans-serif;
   color: var(--text-primary);
 }
 .da-chat-welcome-desc {
-  font-size: 0.82em; color: var(--text-muted);
-  line-height: 1.7; max-width: 460px;
+  font-size: 0.78em; color: var(--text-muted);
+  line-height: 1.7; max-width: 360px;
 }
 
-/* Quick-start cards grid */
-.da-welcome-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  max-width: 480px;
-  width: 100%;
+/* -- Suggestion pills in chat -- */
+.da-suggestions {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  justify-content: center; max-width: 400px;
 }
-.da-welcome-card {
-  display: flex; align-items: flex-start; gap: 12px;
-  padding: 14px 16px;
-  border-radius: 12px;
-  border: 1px solid rgba(48,54,61,0.45);
-  background: rgba(0,0,0,0.12);
-  cursor: pointer;
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  text-align: left;
-}
-.da-welcome-card:hover {
-  border-color: rgba(122,162,247,0.3);
-  background: rgba(122,162,247,0.04);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-}
-.da-welcome-card-icon {
-  width: 34px; height: 34px; border-radius: 9px;
-  display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0;
-  font-size: 16px;
-  background: rgba(122,162,247,0.06);
-  border: 1px solid rgba(122,162,247,0.1);
-}
-.da-welcome-card-text { flex: 1; min-width: 0; }
-.da-welcome-card-name {
-  font: 600 0.78em 'Inter', sans-serif;
-  color: var(--text-secondary);
-  margin-bottom: 3px;
-}
-.da-welcome-card-desc {
-  font: 400 0.66em 'JetBrains Mono', monospace;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-
-/* -- Suggestions row -- */
-.da-chat-suggestions {
-  display: flex; flex-wrap: wrap; gap: 8px;
-  padding: 0 24px 12px; flex-shrink: 0;
-}
-.da-chat-suggestion {
-  padding: 8px 16px; border-radius: 20px;
+.da-suggestion-pill {
+  padding: 6px 12px; border-radius: 18px;
   border: 1px solid rgba(48,54,61,0.5);
   background: rgba(22,27,34,0.4);
-  font: 500 0.72em 'JetBrains Mono', monospace;
+  font: 500 0.68em 'JetBrains Mono', monospace;
   color: var(--text-muted); cursor: pointer;
   transition: all 0.25s;
 }
-.da-chat-suggestion:hover {
+.da-suggestion-pill:hover {
   border-color: rgba(122,162,247,0.3);
   color: #7aa2f7;
   background: rgba(122,162,247,0.06);
   transform: translateY(-1px);
 }
 
-/* -- Input area -- */
+/* -- Message bubbles -- */
+.da-msg { display: flex; gap: 10px; max-width: 92%; animation: daMsgIn 0.3s ease; }
+.da-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+@keyframes daMsgIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.da-msg-bubble {
+  padding: 12px 16px; border-radius: 14px;
+  font-size: 0.84em; line-height: 1.75;
+  position: relative;
+}
+.da-msg.user .da-msg-bubble {
+  background: rgba(122,162,247,0.15);
+  border: 1px solid rgba(122,162,247,0.25);
+  color: var(--text-primary);
+  border-bottom-right-radius: 4px;
+}
+.da-msg.assistant .da-msg-bubble {
+  background: rgba(22,27,34,0.6);
+  border: 1px solid rgba(48,54,61,0.5);
+  color: var(--text-secondary);
+  border-bottom-left-radius: 4px;
+}
+
+/* Markdown in assistant messages */
+.da-msg.assistant .da-msg-bubble code {
+  background: rgba(0,0,0,0.3); padding: 2px 6px;
+  border-radius: 4px; font-family: 'JetBrains Mono', monospace;
+  font-size: 0.88em;
+}
+.da-msg.assistant .da-msg-bubble pre {
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(48,54,61,0.4);
+  border-radius: 8px;
+  padding: 10px 12px; margin: 8px 0; overflow-x: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em; line-height: 1.6;
+}
+.da-msg.assistant .da-msg-bubble pre code { background: transparent; padding: 0; }
+.da-msg.assistant .da-msg-bubble table {
+  border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 0.9em;
+}
+.da-msg.assistant .da-msg-bubble th,
+.da-msg.assistant .da-msg-bubble td {
+  border: 1px solid rgba(48,54,61,0.5);
+  padding: 5px 8px; text-align: left;
+}
+.da-msg.assistant .da-msg-bubble th {
+  background: rgba(122,162,247,0.06);
+  font-weight: 600; color: var(--text-secondary); font-size: 0.92em;
+}
+.da-msg.assistant .da-msg-bubble td { color: var(--text-muted); }
+.da-msg.assistant .da-msg-bubble ul,
+.da-msg.assistant .da-msg-bubble ol { padding-left: 1.4em; margin: 6px 0; }
+.da-msg.assistant .da-msg-bubble li { margin-bottom: 3px; line-height: 1.65; }
+.da-msg.assistant .da-msg-bubble h1,
+.da-msg.assistant .da-msg-bubble h2,
+.da-msg.assistant .da-msg-bubble h3 {
+  color: var(--text-primary); margin: 10px 0 5px; line-height: 1.3;
+}
+.da-msg.assistant .da-msg-bubble h1 { font-size: 1.1em; }
+.da-msg.assistant .da-msg-bubble h2 { font-size: 1em; }
+.da-msg.assistant .da-msg-bubble h3 { font-size: 0.92em; }
+.da-msg.assistant .da-msg-bubble blockquote {
+  border-left: 3px solid rgba(122,162,247,0.3);
+  padding-left: 10px; margin: 8px 0;
+  color: var(--text-muted); font-style: italic;
+}
+.da-msg.assistant .da-msg-bubble hr {
+  border: none; border-top: 1px solid rgba(48,54,61,0.4); margin: 8px 0;
+}
+
+/* "View in left panel" link */
+.da-panel-link {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 8px;
+  padding: 4px 10px; border-radius: 6px;
+  border: 1px solid rgba(122,162,247,0.2);
+  background: rgba(122,162,247,0.06);
+  font: 600 0.72em 'JetBrains Mono', monospace;
+  color: #7aa2f7; cursor: pointer;
+  transition: all 0.2s;
+}
+.da-panel-link:hover {
+  background: rgba(122,162,247,0.12);
+  border-color: rgba(122,162,247,0.4);
+}
+.da-panel-link svg { width: 12px; height: 12px; }
+
+/* Copy button on assistant messages */
+.da-msg-copy {
+  position: absolute; top: 6px; right: 6px;
+  width: 26px; height: 26px; border-radius: 6px;
+  border: 1px solid rgba(48,54,61,0.4);
+  background: rgba(22,27,34,0.7);
+  color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s; opacity: 0;
+}
+.da-msg.assistant:hover .da-msg-copy { opacity: 1; }
+.da-msg-copy:hover {
+  border-color: rgba(122,162,247,0.3); color: #7aa2f7;
+  background: rgba(122,162,247,0.08);
+}
+.da-msg-copy.copied {
+  border-color: rgba(63,185,80,0.3); color: #3fb950;
+  background: rgba(63,185,80,0.08);
+}
+.da-msg-copy svg { width: 13px; height: 13px; }
+
+/* Source citation */
+.da-msg-source {
+  display: flex; align-items: center; gap: 5px;
+  margin-top: 8px; padding-top: 6px;
+  border-top: 1px solid rgba(48,54,61,0.3);
+  font: 500 0.66em 'JetBrains Mono', monospace;
+  color: var(--text-muted); opacity: 0.7;
+}
+.da-msg-source svg { width: 11px; height: 11px; flex-shrink: 0; opacity: 0.6; }
+
+/* -- Report card (inline in chat) -- */
+.da-report-card {
+  width: 100%; max-width: 380px;
+  padding: 14px 16px; border-radius: 12px;
+  border: 1px solid rgba(158,206,106,0.25);
+  background: rgba(158,206,106,0.04);
+  animation: daMsgIn 0.3s ease;
+}
+.da-report-card-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+}
+.da-report-card-check {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(158,206,106,0.15);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.da-report-card-check svg { width: 13px; height: 13px; color: #9ece6a; }
+.da-report-card-status {
+  font: 700 0.68em 'JetBrains Mono', monospace;
+  color: #9ece6a; text-transform: uppercase; letter-spacing: 0.8px;
+}
+.da-report-card-title {
+  font: 600 0.82em 'Inter', sans-serif;
+  color: var(--text-primary); margin-bottom: 3px;
+}
+.da-report-card-meta {
+  font: 400 0.68em 'JetBrains Mono', monospace;
+  color: var(--text-muted); line-height: 1.6; margin-bottom: 10px;
+}
+.da-report-card-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.da-report-card-btn {
+  padding: 5px 12px; border-radius: 6px;
+  font: 600 0.65em 'JetBrains Mono', monospace;
+  cursor: pointer; transition: all 0.2s;
+  border: 1px solid;
+  display: flex; align-items: center; gap: 4px;
+  text-decoration: none;
+}
+.da-report-card-btn svg { width: 11px; height: 11px; }
+.da-report-card-btn.da-btn-panel {
+  background: rgba(122,162,247,0.1); border-color: rgba(122,162,247,0.25); color: #7aa2f7;
+}
+.da-report-card-btn.da-btn-panel:hover {
+  background: rgba(122,162,247,0.18); border-color: rgba(122,162,247,0.4);
+}
+.da-report-card-btn.da-btn-pdf {
+  background: rgba(158,206,106,0.1); border-color: rgba(158,206,106,0.25); color: #9ece6a;
+}
+.da-report-card-btn.da-btn-pdf:hover {
+  background: rgba(158,206,106,0.18); border-color: rgba(158,206,106,0.4);
+}
+.da-report-card-btn.da-btn-xml {
+  background: rgba(224,175,104,0.1); border-color: rgba(224,175,104,0.25); color: #e0af68;
+}
+.da-report-card-btn.da-btn-xml:hover {
+  background: rgba(224,175,104,0.18); border-color: rgba(224,175,104,0.4);
+}
+
+/* -- Report progress card -- */
+.da-report-progress {
+  width: 100%; max-width: 380px;
+  padding: 14px 16px; border-radius: 12px;
+  border: 1px solid rgba(122,162,247,0.2);
+  background: rgba(122,162,247,0.03);
+  animation: daMsgIn 0.3s ease;
+}
+.da-report-progress-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+}
+.da-report-progress-spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(122,162,247,0.2);
+  border-top-color: #7aa2f7; border-radius: 50%;
+  animation: ahSpin 0.8s linear infinite; flex-shrink: 0;
+}
+.da-report-progress-text {
+  font: 600 0.68em 'JetBrains Mono', monospace;
+  color: #7aa2f7; text-transform: uppercase; letter-spacing: 0.8px;
+}
+.da-report-progress-bar {
+  width: 100%; height: 3px; border-radius: 2px;
+  background: rgba(122,162,247,0.1); overflow: hidden;
+}
+.da-report-progress-fill {
+  height: 100%; width: 0%; border-radius: 2px;
+  background: linear-gradient(90deg, #7aa2f7, #5d8fef);
+  transition: width 0.5s ease;
+}
+.da-report-progress-detail {
+  font: 400 0.64em 'JetBrains Mono', monospace;
+  color: var(--text-muted); margin-top: 6px;
+}
+
+/* -- Typing indicator -- */
+.da-typing-indicator {
+  display: flex; gap: 4px; padding: 10px 14px;
+  background: rgba(22,27,34,0.6);
+  border: 1px solid rgba(48,54,61,0.5);
+  border-radius: 14px; border-bottom-left-radius: 4px;
+  width: fit-content;
+}
+.da-typing-indicator span {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--text-muted); opacity: 0.4;
+  animation: daTyping 1.2s ease-in-out infinite;
+}
+.da-typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.da-typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes daTyping {
+  0%, 60%, 100% { opacity: 0.4; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-4px); }
+}
+
+/* -- Chat input area -- */
 .da-chat-input-area {
-  display: flex; flex-direction: column; gap: 8px;
-  padding: 14px 24px 16px;
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 12px 18px 14px;
   border-top: 1px solid rgba(48,54,61,0.5);
   background: rgba(0,0,0,0.15);
   flex-shrink: 0;
 }
 .da-chat-input-context {
-  display: flex; align-items: center; gap: 6px;
-  font: 500 0.6em 'JetBrains Mono', monospace;
-  color: var(--text-muted);
-  opacity: 0.7;
+  display: flex; align-items: center; gap: 5px;
+  font: 500 0.58em 'JetBrains Mono', monospace;
+  color: var(--text-muted); opacity: 0.7;
 }
 .da-chat-input-context-dot {
   width: 5px; height: 5px; border-radius: 50%;
@@ -1319,24 +1698,24 @@
   box-shadow: 0 0 6px rgba(63,185,80,0.4);
 }
 .da-chat-input-row {
-  display: flex; align-items: flex-end; gap: 10px;
+  display: flex; align-items: flex-end; gap: 8px;
 }
 .da-chat-input {
   flex: 1; resize: none; border: none; outline: none;
   background: rgba(22,27,34,0.6);
   border: 1px solid rgba(48,54,61,0.5);
-  border-radius: 12px;
-  padding: 12px 16px;
-  font: 400 0.88em 'Inter', sans-serif;
+  border-radius: 10px;
+  padding: 10px 14px;
+  font: 400 0.84em 'Inter', sans-serif;
   color: var(--text-primary);
-  min-height: 48px; max-height: 140px;
+  min-height: 42px; max-height: 120px;
   transition: border-color 0.25s;
   line-height: 1.5;
 }
 .da-chat-input::placeholder { color: var(--text-muted); opacity: 0.6; }
 .da-chat-input:focus { border-color: rgba(122,162,247,0.3); }
 .da-chat-send {
-  width: 48px; height: 48px; border-radius: 12px;
+  width: 42px; height: 42px; border-radius: 10px;
   border: 1px solid rgba(48,54,61,0.5);
   background: rgba(122,162,247,0.1);
   color: #7aa2f7;
@@ -1348,178 +1727,49 @@
   border-color: rgba(122,162,247,0.3);
   transform: translateY(-1px);
 }
-.da-chat-send svg { width: 18px; height: 18px; }
+.da-chat-send svg { width: 16px; height: 16px; }
 
-/* -- Message bubbles -- */
-.da-msg { display: flex; gap: 10px; max-width: 82%; }
-.da-msg.user { align-self: flex-end; flex-direction: row-reverse; }
-.da-msg-bubble {
-  padding: 14px 18px; border-radius: 14px;
-  font-size: 0.88em; line-height: 1.75;
-  position: relative;
-}
-.da-msg.user .da-msg-bubble {
-  background: rgba(122,162,247,0.1);
-  border: 1px solid rgba(122,162,247,0.2);
-  color: var(--text-primary);
-  border-bottom-right-radius: 4px;
-}
-.da-msg.assistant .da-msg-bubble {
-  background: rgba(22,27,34,0.6);
-  border: 1px solid rgba(48,54,61,0.5);
-  color: var(--text-secondary);
-  border-bottom-left-radius: 4px;
-}
-
-/* Markdown rendering in assistant messages */
-.da-msg.assistant .da-msg-bubble code {
-  background: rgba(0,0,0,0.3); padding: 2px 6px;
-  border-radius: 4px; font-family: 'JetBrains Mono', monospace;
-  font-size: 0.88em;
-}
-.da-msg.assistant .da-msg-bubble pre {
-  background: rgba(0,0,0,0.25);
-  border: 1px solid rgba(48,54,61,0.4);
-  border-radius: 8px;
-  padding: 12px 14px;
-  margin: 8px 0;
-  overflow-x: auto;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 0.85em;
-  line-height: 1.6;
-}
-.da-msg.assistant .da-msg-bubble pre code {
-  background: transparent; padding: 0;
-  border-radius: 0;
-}
-.da-msg.assistant .da-msg-bubble table {
-  border-collapse: collapse;
-  width: 100%;
-  margin: 8px 0;
-  font-size: 0.9em;
-}
-.da-msg.assistant .da-msg-bubble th,
-.da-msg.assistant .da-msg-bubble td {
-  border: 1px solid rgba(48,54,61,0.5);
-  padding: 6px 10px;
-  text-align: left;
-}
-.da-msg.assistant .da-msg-bubble th {
-  background: rgba(122,162,247,0.06);
-  font-weight: 600;
-  color: var(--text-secondary);
-  font-size: 0.92em;
-}
-.da-msg.assistant .da-msg-bubble td {
-  color: var(--text-muted);
-}
-.da-msg.assistant .da-msg-bubble ul,
-.da-msg.assistant .da-msg-bubble ol {
-  padding-left: 1.4em;
-  margin: 6px 0;
-}
-.da-msg.assistant .da-msg-bubble li {
-  margin-bottom: 3px;
-  line-height: 1.65;
-}
-.da-msg.assistant .da-msg-bubble h1,
-.da-msg.assistant .da-msg-bubble h2,
-.da-msg.assistant .da-msg-bubble h3 {
-  color: var(--text-primary);
-  margin: 12px 0 6px;
-  line-height: 1.3;
-}
-.da-msg.assistant .da-msg-bubble h1 { font-size: 1.15em; }
-.da-msg.assistant .da-msg-bubble h2 { font-size: 1.05em; }
-.da-msg.assistant .da-msg-bubble h3 { font-size: 0.95em; }
-.da-msg.assistant .da-msg-bubble blockquote {
-  border-left: 3px solid rgba(122,162,247,0.3);
-  padding-left: 12px;
-  margin: 8px 0;
-  color: var(--text-muted);
-  font-style: italic;
-}
-.da-msg.assistant .da-msg-bubble hr {
-  border: none;
-  border-top: 1px solid rgba(48,54,61,0.4);
-  margin: 10px 0;
-}
-
-/* Copy button on assistant messages */
-.da-msg-copy {
-  position: absolute;
-  top: 8px; right: 8px;
-  width: 28px; height: 28px;
-  border-radius: 6px;
-  border: 1px solid rgba(48,54,61,0.4);
-  background: rgba(22,27,34,0.7);
-  color: var(--text-muted);
-  display: flex; align-items: center; justify-content: center;
-  cursor: pointer;
-  transition: all 0.2s;
-  opacity: 0;
-}
-.da-msg.assistant:hover .da-msg-copy {
-  opacity: 1;
-}
-.da-msg-copy:hover {
-  border-color: rgba(122,162,247,0.3);
-  color: #7aa2f7;
-  background: rgba(122,162,247,0.08);
-}
-.da-msg-copy.copied {
-  border-color: rgba(63,185,80,0.3);
-  color: #3fb950;
-  background: rgba(63,185,80,0.08);
-}
-.da-msg-copy svg { width: 14px; height: 14px; }
-
-/* Source citation at bottom of assistant messages */
-.da-msg-source {
-  display: flex; align-items: center; gap: 6px;
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid rgba(48,54,61,0.3);
-  font: 500 0.7em 'JetBrains Mono', monospace;
-  color: var(--text-muted);
-  opacity: 0.7;
-}
-.da-msg-source svg {
-  width: 12px; height: 12px;
-  flex-shrink: 0;
-  opacity: 0.6;
-}
-
-/* -- Typing indicator -- */
-.da-typing-indicator {
-  display: flex; gap: 4px; padding: 12px 16px;
-  background: rgba(22,27,34,0.6);
-  border: 1px solid rgba(48,54,61,0.5);
-  border-radius: 14px; border-bottom-left-radius: 4px;
-  width: fit-content;
-}
-.da-typing-indicator span {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--text-muted); opacity: 0.4;
-  animation: daTyping 1.2s ease-in-out infinite;
-}
-.da-typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
-.da-typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
-@keyframes daTyping {
-  0%, 60%, 100% { opacity: 0.4; transform: translateY(0); }
-  30% { opacity: 1; transform: translateY(-4px); }
+@keyframes daSlideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 /* =================================================================
    RESPONSIVE
    ================================================================= */
-@media (max-width: 900px) {
+@media (max-width: 1024px) {
   .ah-comparison { grid-template-columns: 1fr; }
   .ah-vs-divider { display: none; }
   .ah-stats-row { grid-template-columns: repeat(2, 1fr); }
   .ah-hero-title { font-size: 2.2em; }
+  /* Tablet: stack panels vertically */
+  .da-split-layout {
+    flex-direction: column;
+    height: auto;
+  }
+  .da-left-panel {
+    flex: none; width: 100%;
+    min-width: 0;
+    border-radius: 18px 18px 0 0;
+    max-height: 50vh;
+  }
+  .da-split-handle {
+    width: 100%; height: 5px;
+    cursor: row-resize;
+  }
+  .da-split-handle::after {
+    width: 32px; height: 3px;
+  }
+  .da-right-panel {
+    flex: none; width: 100%;
+    min-width: 0;
+    border-radius: 0 0 18px 18px;
+    border-left: 1px solid rgba(48,54,61,0.6);
+    border-top: none;
+    min-height: 400px;
+  }
 }
-@media (max-width: 600px) {
+@media (max-width: 768px) {
   .ah-main { padding: 0 16px 3em; }
   .ah-hero { padding: 2.5em 0 1.5em; }
   .ah-hero-title { font-size: 1.8em; }
@@ -1533,20 +1783,16 @@
   .ah-pills-row { gap: 6px; }
   .ah-pill { font-size: 0.68em; padding: 6px 10px; }
   .ah-tab-link { padding: 8px 16px; font-size: 0.72em; }
-  .da-chat-layout { height: calc(100vh - 360px); min-height: 320px; }
-  .da-sidebar { display: none; }
-  .da-sidebar.collapsed ~ .da-chat-container,
-  .da-chat-container { border-radius: 18px; }
-  .da-sidebar-open-btn { display: none !important; }
-  .da-chat-messages { padding: 16px; }
-  .da-chat-input-area { padding: 10px 16px 12px; }
-  .da-chat-suggestions { padding: 0 16px 8px; }
-  .da-welcome-grid { grid-template-columns: 1fr; max-width: 280px; }
-  .da-welcome-card { padding: 10px 12px; }
-}
-@media (max-width: 900px) and (min-width: 601px) {
-  .da-sidebar { width: 200px; }
-  .da-chat-layout { height: calc(100vh - 400px); }
+  .da-split-layout { min-height: 0; }
+  .da-left-panel { max-height: 45vh; }
+  .da-right-panel { min-height: 350px; }
+  .da-topbar { flex-wrap: wrap; gap: 8px; padding: 10px 14px; }
+  .da-stat-badges { justify-content: flex-start; }
+  .da-subtab { padding: 7px 10px; font-size: 0.62em; }
+  .da-chat-messages { padding: 12px 14px; }
+  .da-chat-input-area { padding: 10px 14px 12px; }
+  .da-suggestions { gap: 4px; }
+  .da-suggestion-pill { font-size: 0.62em; padding: 5px 10px; }
 }
 </style>
 {% endblock %}
@@ -1770,165 +2016,131 @@
 </div><!-- /tabAntihallu -->
 
 <!-- ============================================================
-     TAB 2: DATA CHATBOT
+     TAB 2: DATA CHATBOT — IDE Split Panel
      ============================================================ -->
 <div class="ah-tab-pane" id="tabChatbot">
-  <div class="da-chat-layout">
+  <div class="da-split-layout" id="daSplitLayout">
 
-    <!-- Left Sidebar: Data Context -->
-    <div class="da-sidebar" id="daSidebar">
-      <div class="da-sidebar-header">
-        <span class="da-sidebar-title">Context</span>
-        <button class="da-sidebar-toggle" onclick="toggleDaSidebar()" title="Collapse sidebar">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
-        </button>
+    <!-- ==================== LEFT PANEL: Data Explorer ==================== -->
+    <div class="da-left-panel" id="daLeftPanel">
+
+      <!-- Top Bar: Patient selector + stat badges -->
+      <div class="da-topbar">
+        <span class="da-topbar-label">Patient:</span>
+        <select class="da-patient-select" id="daPatientSelect" onchange="daOnPatientChange()">
+          <option value="">Loading...</option>
+        </select>
+        <div class="da-stat-badges" id="daStatBadges">
+          <span class="da-stat-badge da-badge-ae" id="daBadgeAe">AEs: --</span>
+          <span class="da-stat-badge da-badge-lab" id="daBadgeLab">Labs: --</span>
+          <span class="da-stat-badge da-badge-sae" id="daBadgeSae">SAE: --</span>
+        </div>
       </div>
-      <div class="da-sidebar-body">
-        <!-- Data Sources -->
-        <div class="da-sidebar-section">Data Sources</div>
 
-        <div class="da-source-card active" data-source="crf" onclick="daSidebarSourceClick(this, 'crf')">
-          <div class="da-source-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          </div>
-          <div class="da-source-info">
-            <div class="da-source-name">CRF Tables</div>
-            <div class="da-source-desc">DM, AE, CM, VS, LB domains</div>
-          </div>
-        </div>
-
-        <div class="da-source-card" data-source="ae" onclick="daSidebarSourceClick(this, 'ae')">
-          <div class="da-source-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-          </div>
-          <div class="da-source-info">
-            <div class="da-source-name">AE Reports</div>
-            <div class="da-source-desc">Adverse event analysis data</div>
-          </div>
-        </div>
-
-        <div class="da-source-card" data-source="stats" onclick="daSidebarSourceClick(this, 'stats')">
-          <div class="da-source-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-          </div>
-          <div class="da-source-info">
-            <div class="da-source-name">Statistical Analysis</div>
-            <div class="da-source-desc">Hypothesis tests, p-values</div>
-          </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <div class="da-sidebar-section">Quick Actions</div>
-
-        <button class="da-action-btn" onclick="daChatAsk('Generate a comprehensive AE summary report including incidence rates, severity distribution, and dose-limiting events')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          Generate AE Summary Report
-        </button>
-
-        <button class="da-action-btn" onclick="daChatAsk('Compare Natural vs Care AI treatment arms: AE detection times, dose modification rates, and patient outcomes')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-          Compare Treatment Arms
-        </button>
-
-        <button class="da-action-btn" onclick="daChatAsk('Export key statistical results: patient demographics summary, AE frequency table, and efficacy endpoints with confidence intervals')">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Export Statistics
-        </button>
+      <!-- Sub-tabs -->
+      <div class="da-subtab-bar" id="daSubtabBar">
+        <button class="da-subtab da-active" data-pane="crf" onclick="daSwitchSubtab('crf', this)">CRF</button>
+        <button class="da-subtab" data-pane="saelist" onclick="daSwitchSubtab('saelist', this)">SAE List <span class="da-subtab-count" id="daSaeCount">0</span></button>
+        <button class="da-subtab" data-pane="report" onclick="daSwitchSubtab('report', this)">Report</button>
+        <button class="da-subtab" data-pane="pdf" onclick="daSwitchSubtab('pdf', this)">PDF</button>
       </div>
-    </div>
 
-    <!-- Main Chat Container -->
-    <div class="da-chat-container">
+      <!-- CRF Pane -->
+      <div class="da-subtab-pane da-active" id="daPane_crf">
+        <div class="da-crf-domain-bar" id="daCrfDomainBar">
+          <button class="da-crf-domain-btn da-active" data-domain="DM" onclick="daSwitchCrfDomain('DM', this)">DM</button>
+          <button class="da-crf-domain-btn" data-domain="AE" onclick="daSwitchCrfDomain('AE', this)">AE</button>
+          <button class="da-crf-domain-btn" data-domain="LB" onclick="daSwitchCrfDomain('LB', this)">LB</button>
+          <button class="da-crf-domain-btn" data-domain="VS" onclick="daSwitchCrfDomain('VS', this)">VS</button>
+          <button class="da-crf-domain-btn" data-domain="EC" onclick="daSwitchCrfDomain('EC', this)">EC</button>
+          <button class="da-crf-domain-btn" data-domain="CM" onclick="daSwitchCrfDomain('CM', this)">CM</button>
+        </div>
+        <div id="daCrfContent">
+          <div class="da-loading-spinner"><span class="da-loading-text">Loading CRF data...</span></div>
+        </div>
+      </div>
 
-      <!-- Sidebar re-open button (visible when sidebar collapsed) -->
-      <button class="da-sidebar-open-btn" id="daSidebarOpenBtn" onclick="toggleDaSidebar()" title="Open sidebar">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
-      </button>
+      <!-- SAE List Pane -->
+      <div class="da-subtab-pane" id="daPane_saelist">
+        <div id="daSaeListContent">
+          <div class="da-loading-spinner"><span class="da-loading-text">Loading SAE data...</span></div>
+        </div>
+      </div>
 
+      <!-- Report Pane -->
+      <div class="da-subtab-pane" id="daPane_report">
+        <div id="daReportContent">
+          <div class="da-empty-state">
+            <div class="da-empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="da-empty-text">No report generated yet.</div>
+            <div class="da-empty-sub">Generate an SAE report from the SAE List tab or via chat.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PDF Pane -->
+      <div class="da-subtab-pane" id="daPane_pdf">
+        <div id="daPdfContent">
+          <div class="da-empty-state">
+            <div class="da-empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="da-empty-text">No PDF available.</div>
+            <div class="da-empty-sub">Generate an SAE report first to preview its PDF here.</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /da-left-panel -->
+
+    <!-- Resize Handle -->
+    <div class="da-split-handle" id="daSplitHandle"></div>
+
+    <!-- ==================== RIGHT PANEL: Chat ==================== -->
+    <div class="da-right-panel" id="daRightPanel">
+
+      <!-- Chat Header -->
       <div class="da-chat-header">
         <div class="da-chat-header-icon">
           <img src="{% static 'assets/ui/gemma.png' %}" alt="MedGemma">
         </div>
         <div class="da-chat-header-text">
-          <div class="da-chat-header-title">Data Analysis (Chatbot &amp; Report)</div>
-          <div class="da-chat-header-sub">MedGemma &middot; Anti-hallucination Protected</div>
+          <div class="da-chat-header-title">Chat</div>
+          <div class="da-chat-header-sub">MedGemma &middot; Anti-hallucination</div>
         </div>
       </div>
 
+      <!-- Chat Messages -->
       <div class="da-chat-messages" id="daChatMessages">
-        <!-- Rich Welcome Screen -->
         <div class="da-chat-welcome" id="daChatWelcome">
-          <div class="da-chat-welcome-header">
-            <div class="da-chat-welcome-icon">
-              <img src="{% static 'assets/ui/gemma.png' %}" alt="MedGemma">
-            </div>
-            <div class="da-chat-welcome-title">Data Analysis Agent</div>
-            <div class="da-chat-welcome-desc">
-              Explore clinical trial simulation data with AI-powered analysis.
-              Ask questions, generate reports, or start with a quick action below.
-            </div>
+          <div class="da-chat-welcome-icon">
+            <img src="{% static 'assets/ui/gemma.png' %}" alt="MedGemma">
           </div>
-
-          <!-- 2x2 Quick-start cards -->
-          <div class="da-welcome-grid">
-            <div class="da-welcome-card" onclick="daChatAsk('Analyze adverse event incidence rates across all patients, grouped by severity grade and system organ class')">
-              <div class="da-welcome-card-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              </div>
-              <div class="da-welcome-card-text">
-                <div class="da-welcome-card-name">AE Analysis</div>
-                <div class="da-welcome-card-desc">Incidence rates, severity, organ class</div>
-              </div>
-            </div>
-
-            <div class="da-welcome-card" onclick="daChatAsk('Summarize CRF data: demographics, baseline characteristics, treatment exposure, and key lab values')">
-              <div class="da-welcome-card-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-              </div>
-              <div class="da-welcome-card-text">
-                <div class="da-welcome-card-name">CRF Summary</div>
-                <div class="da-welcome-card-desc">Demographics, labs, treatment data</div>
-              </div>
-            </div>
-
-            <div class="da-welcome-card" onclick="daChatAsk('Generate a statistical report with hypothesis testing results, confidence intervals, and p-values for key efficacy endpoints')">
-              <div class="da-welcome-card-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-              </div>
-              <div class="da-welcome-card-text">
-                <div class="da-welcome-card-name">Statistical Report</div>
-                <div class="da-welcome-card-desc">Hypothesis tests, p-values, CI</div>
-              </div>
-            </div>
-
-            <div class="da-welcome-card" onclick="daChatAsk('Show me an overview of all available simulation data: number of patients, days simulated, treatment arms, and key metrics')">
-              <div class="da-welcome-card-icon">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-              </div>
-              <div class="da-welcome-card-text">
-                <div class="da-welcome-card-name">Data Explorer</div>
-                <div class="da-welcome-card-desc">Browse patients, arms, metrics</div>
-              </div>
-            </div>
+          <div class="da-chat-welcome-title">Data Analysis Agent</div>
+          <div class="da-chat-welcome-desc">
+            Ask about patient data, request reports, or analyze CRF tables.
+            AI responses can update the left panel.
+          </div>
+          <div class="da-suggestions" id="daSuggestions">
+            <button class="da-suggestion-pill" onclick="daChatAsk('Analyze this patient\'s AE profile')">Analyze AE profile</button>
+            <button class="da-suggestion-pill" onclick="daChatAsk('What are the most common Grade 3+ adverse events?')">Grade 3+ AEs</button>
+            <button class="da-suggestion-pill" onclick="daChatAsk('Generate SAE report for this patient')">Generate SAE report</button>
+            <button class="da-suggestion-pill" onclick="daChatAsk('Compare A/B treatment outcomes')">Compare A/B</button>
           </div>
         </div>
       </div>
 
-      <div class="da-chat-suggestions" id="daChatSuggestions">
-        <button class="da-chat-suggestion" onclick="daChatAsk(this.textContent)">Summarize AE incidence rates</button>
-        <button class="da-chat-suggestion" onclick="daChatAsk(this.textContent)">Compare Care AI vs Natural outcomes</button>
-        <button class="da-chat-suggestion" onclick="daChatAsk(this.textContent)">Explain the hazard function</button>
-        <button class="da-chat-suggestion" onclick="daChatAsk(this.textContent)">Which AEs are dose-limiting?</button>
-      </div>
-
+      <!-- Chat Input -->
       <div class="da-chat-input-area">
         <div class="da-chat-input-context" id="daChatContext">
           <span class="da-chat-input-context-dot"></span>
-          <span>3 data sources loaded: CRF Tables, AE Reports, Statistical Analysis</span>
+          <span id="daChatContextText">Loading data sources...</span>
         </div>
         <div class="da-chat-input-row">
           <textarea class="da-chat-input" id="daChatInput"
-                   placeholder="Ask about simulation data, CRF tables, AE statistics..."
+                   placeholder="Ask about patient data or request a report..."
                    rows="1"
                    onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();daChatSend();}"></textarea>
           <button class="da-chat-send" onclick="daChatSend()" title="Send message">
@@ -1936,12 +2148,14 @@
           </button>
         </div>
       </div>
-    </div>
 
-  </div>
+    </div><!-- /da-right-panel -->
+
+  </div><!-- /da-split-layout -->
 </div><!-- /tabChatbot -->
 
 </div>
+
 
 <script>
 /* =================================================================
@@ -2346,59 +2560,426 @@ window.switchDaTab = function(tab, btn) {
   var paneId = tab === 'antihallu' ? 'tabAntihallu' : 'tabChatbot';
   document.getElementById(paneId).classList.add('active');
 
-  /* Focus chat input when switching to chatbot tab */
+  /* Toggle wide layout for split panel */
+  var main = document.querySelector('.ah-main');
+  if (main) main.classList.toggle('da-wide', tab === 'chatbot');
+
+  /* Focus chat input and refresh data when switching to chatbot tab */
   if (tab === 'chatbot') {
     setTimeout(function() {
       var input = document.getElementById('daChatInput');
       if (input) input.focus({ preventScroll: true });
+      /* Refresh current sub-tab data */
+      if (daCurrentPatient) daRefreshSubtab();
     }, 100);
   }
 };
 
 /* =================================================================
-   DATA CHATBOT — Enhanced inline chat interface
+   DATA CHATBOT — IDE Split Panel (v3)
    ================================================================= */
 var daChatHistory = [];
+var daReportsList = [];
+var daSaeData = null;
+var daCurrentPatient = null;
+var daPatientMap = {};   /* { patient_id: [sae, ...] } */
+var daRunId = null;
+var daCurrentCrfDomain = 'DM';
+var daCurrentSubtab = 'crf';
 
-/* -- Sidebar toggle -- */
-function toggleDaSidebar() {
-  var sidebar = document.getElementById('daSidebar');
-  var openBtn = document.getElementById('daSidebarOpenBtn');
-  if (!sidebar) return;
-  sidebar.classList.toggle('collapsed');
-  if (openBtn) {
-    openBtn.style.display = sidebar.classList.contains('collapsed') ? 'flex' : 'none';
+/* ================================================================
+   INIT: Load patient data on page ready
+   ================================================================ */
+document.addEventListener('DOMContentLoaded', function() {
+  daLoadPatientData();
+  daSetupTextareaResize();
+  daSetupSplitResize();
+});
+
+/* -- Load patient/SAE data from API -- */
+function daLoadPatientData() {
+  fetch('/api/demo/saes/?mode=natural')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.error) {
+        daShowNoData(data.error);
+        return;
+      }
+      daSaeData = data;
+      daRunId = data.run_id || null;
+      daPatientMap = {};
+      (data.saes || []).forEach(function(s) {
+        if (!daPatientMap[s.patient_id]) daPatientMap[s.patient_id] = [];
+        daPatientMap[s.patient_id].push(s);
+      });
+
+      /* Populate patient dropdown */
+      var sel = document.getElementById('daPatientSelect');
+      var pids = Object.keys(daPatientMap).sort();
+      if (pids.length === 0) {
+        sel.innerHTML = '<option value="">No patients</option>';
+        daShowNoData('No simulation data found');
+        return;
+      }
+      sel.innerHTML = '';
+      pids.forEach(function(pid) {
+        var opt = document.createElement('option');
+        opt.value = pid;
+        opt.textContent = pid;
+        sel.appendChild(opt);
+      });
+
+      /* Select first patient */
+      daCurrentPatient = pids[0];
+      sel.value = daCurrentPatient;
+      daOnPatientChange();
+
+      /* Update context label */
+      var ctxText = document.getElementById('daChatContextText');
+      if (ctxText) ctxText.textContent = pids.length + ' patients loaded' + (daRunId ? ' | ' + daRunId : '');
+    })
+    .catch(function(err) {
+      daShowNoData('Failed to load data');
+    });
+
+  /* Also load existing reports */
+  daLoadExistingReports();
+}
+
+function daShowNoData(msg) {
+  var content = document.getElementById('daCrfContent');
+  if (content) {
+    content.innerHTML = '<div class="da-empty-state">'
+      + '<div class="da-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>'
+      + '<div class="da-empty-text">' + (msg || 'No simulation data') + '</div>'
+      + '<div class="da-empty-sub">Run a simulation first to see data here.</div>'
+      + '</div>';
   }
 }
 
-/* -- Sidebar source click -- */
-function daSidebarSourceClick(el, source) {
-  /* Visual toggle (multi-select style) */
-  el.classList.toggle('active');
-  /* Update context indicator */
-  updateDaContextIndicator();
+/* ================================================================
+   PATIENT CHANGE HANDLER
+   ================================================================ */
+function daOnPatientChange() {
+  var sel = document.getElementById('daPatientSelect');
+  daCurrentPatient = sel.value;
+  if (!daCurrentPatient) return;
+
+  /* Update stat badges */
+  var saes = daPatientMap[daCurrentPatient] || [];
+  var saeCount = saes.filter(function(s) { return s.serious || s.grade >= 3; }).length;
+  var aeCount = saes.length;
+  /* count abnormal labs (approx: grade >= 2 might affect labs) */
+  var labCount = saes.filter(function(s) {
+    var t = (s.ae_term || '').toLowerCase();
+    return t.indexOf('neutrop') >= 0 || t.indexOf('thrombocyt') >= 0 || t.indexOf('anemia') >= 0 ||
+           t.indexOf('leukop') >= 0 || t.indexOf('lymphop') >= 0 || t.indexOf('creatinine') >= 0;
+  }).length;
+
+  document.getElementById('daBadgeAe').textContent = 'AEs: ' + aeCount;
+  document.getElementById('daBadgeLab').textContent = 'Labs: ' + labCount + (labCount > 0 ? '\u2193' : '');
+  document.getElementById('daBadgeSae').textContent = 'SAE: ' + saeCount;
+  document.getElementById('daSaeCount').textContent = saeCount;
+
+  /* Reload current sub-tab content */
+  daRefreshSubtab();
+
+  /* Update chat suggestions */
+  daUpdateSuggestions();
 }
 
-function updateDaContextIndicator() {
-  var sources = document.querySelectorAll('.da-source-card.active');
-  var ctx = document.getElementById('daChatContext');
-  if (!ctx) return;
-  var names = [];
-  sources.forEach(function(s) {
-    var n = s.querySelector('.da-source-name');
-    if (n) names.push(n.textContent);
+/* ================================================================
+   SUB-TABS
+   ================================================================ */
+function daSwitchSubtab(pane, btn) {
+  daCurrentSubtab = pane;
+  document.querySelectorAll('.da-subtab').forEach(function(t) { t.classList.remove('da-active'); });
+  document.querySelectorAll('.da-subtab-pane').forEach(function(p) { p.classList.remove('da-active'); });
+  btn.classList.add('da-active');
+  var paneEl = document.getElementById('daPane_' + pane);
+  if (paneEl) paneEl.classList.add('da-active');
+  daRefreshSubtab();
+}
+
+function daRefreshSubtab() {
+  if (daCurrentSubtab === 'crf') daLoadCrfData();
+  else if (daCurrentSubtab === 'saelist') daLoadSaeList();
+}
+
+/* -- Switch to sub-tab programmatically (used by chat integration) -- */
+function daActivateSubtab(pane) {
+  var btn = document.querySelector('.da-subtab[data-pane="' + pane + '"]');
+  if (btn) daSwitchSubtab(pane, btn);
+}
+
+/* ================================================================
+   CRF DATA
+   ================================================================ */
+function daSwitchCrfDomain(domain, btn) {
+  daCurrentCrfDomain = domain;
+  document.querySelectorAll('.da-crf-domain-btn').forEach(function(b) { b.classList.remove('da-active'); });
+  btn.classList.add('da-active');
+  daLoadCrfData();
+}
+
+function daLoadCrfData() {
+  if (!daCurrentPatient || !daRunId) return;
+  var content = document.getElementById('daCrfContent');
+  content.innerHTML = '<div class="da-loading-spinner"><span class="da-loading-text">Loading ' + daCurrentCrfDomain + ' data...</span></div>';
+
+  var url = '/api/crf/' + daRunId + '/' + daCurrentCrfDomain.toLowerCase() + '/?source=simulation&mode=natural&per_page=50&patient=' + daCurrentPatient;
+  fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.error) {
+        content.innerHTML = '<div class="da-empty-state"><div class="da-empty-text">' + data.error + '</div></div>';
+        return;
+      }
+      var rows = data.data || data.rows || [];
+      var rawCols = data.columns || [];
+      /* Normalize columns: may be strings or {key, label} objects */
+      var cols = rawCols.map(function(c) {
+        if (typeof c === 'object' && c !== null) return { key: c.key || c.field || '', label: c.label || c.key || '' };
+        return { key: c, label: c };
+      });
+      if (rows.length === 0 && cols.length === 0) {
+        if (rows.length > 0) cols = Object.keys(rows[0]).map(function(k) { return { key: k, label: k }; });
+      }
+      if (rows.length === 0) {
+        content.innerHTML = '<div class="da-empty-state"><div class="da-empty-text">No ' + daCurrentCrfDomain + ' data for ' + daCurrentPatient + '</div></div>';
+        return;
+      }
+      if (cols.length === 0 && rows.length > 0) cols = Object.keys(rows[0]).map(function(k) { return { key: k, label: k }; });
+
+      var html = '<div class="da-crf-table-wrap"><table class="da-crf-table"><thead><tr>';
+      cols.forEach(function(c) { html += '<th>' + c.label + '</th>'; });
+      html += '</tr></thead><tbody>';
+      rows.forEach(function(row) {
+        html += '<tr>';
+        cols.forEach(function(c) {
+          var val = row[c.key];
+          if (val === null || val === undefined) val = '';
+          html += '<td>' + String(val) + '</td>';
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table></div>';
+      content.innerHTML = html;
+    })
+    .catch(function(err) {
+      content.innerHTML = '<div class="da-empty-state"><div class="da-empty-text">Error loading CRF data</div><div class="da-empty-sub">' + (err.message || '') + '</div></div>';
+    });
+}
+
+/* ================================================================
+   SAE LIST
+   ================================================================ */
+function daLoadSaeList() {
+  var content = document.getElementById('daSaeListContent');
+  if (!daCurrentPatient || !daSaeData) {
+    content.innerHTML = '<div class="da-empty-state"><div class="da-empty-text">No SAE data available.</div></div>';
+    return;
+  }
+  var saes = (daSaeData.saes || []).filter(function(s) { return s.patient_id === daCurrentPatient; });
+  if (saes.length === 0) {
+    content.innerHTML = '<div class="da-empty-state"><div class="da-empty-text">No SAEs for ' + daCurrentPatient + '</div></div>';
+    return;
+  }
+
+  var html = '';
+  saes.forEach(function(s, idx) {
+    var grade = s.grade || 0;
+    var gCls = 'g' + Math.min(grade, 5);
+    html += '<div class="da-sae-item" onclick="daSelectSae(' + idx + ')">'
+      + '<div class="da-sae-item-info">'
+      + '<div class="da-sae-item-term">' + (s.ae_term || 'Unknown') + '</div>'
+      + '<div class="da-sae-item-meta">Onset Day ' + (s.onset_day || '?') + (s.serious ? ' | Serious' : '') + '</div>'
+      + '</div>'
+      + '<div class="da-grade-badge ' + gCls + '">G' + grade + '</div>'
+      + '<button class="da-sae-gen-btn" onclick="event.stopPropagation();daGenerateReportFor(' + idx + ')" title="Generate MedWatch 3500A">Report</button>'
+      + '</div>';
   });
-  var dotEl = ctx.querySelector('.da-chat-input-context-dot');
-  if (names.length === 0) {
-    ctx.querySelector('span:last-child').textContent = 'No data sources selected';
-    if (dotEl) { dotEl.style.background = '#8b949e'; dotEl.style.boxShadow = 'none'; }
-  } else {
-    ctx.querySelector('span:last-child').textContent = names.length + ' data source' + (names.length > 1 ? 's' : '') + ' loaded: ' + names.join(', ');
-    if (dotEl) { dotEl.style.background = '#3fb950'; dotEl.style.boxShadow = '0 0 6px rgba(63,185,80,0.4)'; }
-  }
+  content.innerHTML = html;
 }
 
-/* -- Chat send / ask -- */
+function daSelectSae(idx) {
+  var saes = (daSaeData.saes || []).filter(function(s) { return s.patient_id === daCurrentPatient; });
+  if (!saes[idx]) return;
+  var s = saes[idx];
+  daChatAsk('Tell me about the adverse event "' + s.ae_term + '" for patient ' + daCurrentPatient + ' (Grade ' + s.grade + ', onset day ' + s.onset_day + ')');
+}
+
+function daGenerateReportFor(idx) {
+  var saes = (daSaeData.saes || []).filter(function(s) { return s.patient_id === daCurrentPatient; });
+  if (!saes[idx]) return;
+  var s = saes[idx];
+  daGenerateReport(daCurrentPatient, s.ae_term, s.onset_day);
+}
+
+/* ================================================================
+   REPORT GENERATION
+   ================================================================ */
+function daGenerateReport(pid, aeTerm, onsetDay) {
+  if (!pid) pid = daCurrentPatient;
+  if (!pid || !aeTerm) return;
+
+  /* Hide welcome */
+  var welcome = document.getElementById('daChatWelcome');
+  if (welcome) welcome.style.display = 'none';
+
+  /* Show progress card in chat */
+  var progressId = 'daProgress_' + Date.now();
+  var progressHtml = '<div class="da-report-progress" id="' + progressId + '">'
+    + '<div class="da-report-progress-header">'
+    + '<div class="da-report-progress-spinner"></div>'
+    + '<div class="da-report-progress-text">Generating Report</div>'
+    + '</div>'
+    + '<div class="da-report-progress-bar"><div class="da-report-progress-fill" id="' + progressId + '_fill"></div></div>'
+    + '<div class="da-report-progress-detail">MedWatch 3500A for ' + pid + ' - ' + aeTerm + '...</div>'
+    + '</div>';
+  var messages = document.getElementById('daChatMessages');
+  messages.insertAdjacentHTML('beforeend', progressHtml);
+  scrollDaChat();
+
+  /* Animate progress bar */
+  var fillEl = document.getElementById(progressId + '_fill');
+  var progressPct = 0;
+  var progressTimer = setInterval(function() {
+    progressPct = Math.min(progressPct + Math.random() * 8, 90);
+    if (fillEl) fillEl.style.width = progressPct + '%';
+  }, 500);
+
+  fetch('/api/demo/generate/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      patient_id: pid,
+      ae_term: aeTerm,
+      ae_day: onsetDay,
+      mode: 'natural'
+    }),
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    clearInterval(progressTimer);
+    var progressEl = document.getElementById(progressId);
+    if (progressEl) progressEl.remove();
+
+    if (data.error) {
+      daChatAppend('assistant', 'Error generating report: ' + data.error);
+      return;
+    }
+
+    var pdfUrl = data.pdf_url || '';
+    var xmlUrl = data.xml_url || '';
+    var meddra = data.meddra || {};
+
+    /* Add to reports list */
+    daReportsList.push({
+      patient_id: pid,
+      ae_term: aeTerm,
+      meddra: meddra,
+      pdf_path: pdfUrl,
+      xml_path: xmlUrl,
+      data: data,
+      created_at: new Date().toISOString()
+    });
+
+    /* Show report card in chat with panel link */
+    daShowReportCard(pid, aeTerm, meddra, pdfUrl, xmlUrl, data);
+
+    /* Update left panel: show report */
+    daRenderReportInPanel(data, pid, aeTerm, meddra);
+    daActivateSubtab('report');
+
+    /* If PDF available, load it */
+    if (pdfUrl) daRenderPdfInPanel(pdfUrl);
+  })
+  .catch(function(err) {
+    clearInterval(progressTimer);
+    var progressEl = document.getElementById(progressId);
+    if (progressEl) progressEl.remove();
+    daChatAppend('assistant', 'Error: ' + (err.message || 'Report generation failed'));
+  });
+}
+
+/* -- Show report card in chat -- */
+function daShowReportCard(pid, aeTerm, meddra, pdfUrl, xmlUrl, fullData) {
+  var messages = document.getElementById('daChatMessages');
+  var card = document.createElement('div');
+  card.className = 'da-report-card';
+  var meddraCode = (meddra && meddra.pt_code) ? meddra.pt_code : '';
+  var meddraText = meddraCode ? '\nMedDRA: ' + meddraCode : '';
+  var gradeText = fullData.grade ? ', Grade ' + fullData.grade : '';
+
+  card.innerHTML = '<div class="da-report-card-header">'
+    + '<div class="da-report-card-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>'
+    + '<div class="da-report-card-status">Report Ready</div>'
+    + '</div>'
+    + '<div class="da-report-card-title">MedWatch 3500A - ' + pid + '</div>'
+    + '<div class="da-report-card-meta">' + aeTerm + gradeText + meddraText + '</div>'
+    + '<div class="da-report-card-actions">'
+    + '<button class="da-report-card-btn da-btn-panel" onclick="daActivateSubtab(\'report\')">'
+    + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> View in Panel</button>'
+    + (pdfUrl ? '<button class="da-report-card-btn da-btn-pdf" onclick="daActivateSubtab(\'pdf\')">'
+    + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> PDF</button>' : '')
+    + (xmlUrl ? '<button class="da-report-card-btn da-btn-xml" onclick="window.open(\'' + xmlUrl + '\')">'
+    + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> XML</button>' : '')
+    + '</div>';
+
+  messages.appendChild(card);
+  scrollDaChat();
+}
+
+/* -- Render report in left panel -- */
+function daRenderReportInPanel(data, pid, aeTerm, meddra) {
+  var container = document.getElementById('daReportContent');
+  var medwatch = data.medwatch_data || data;
+  var html = '<div class="da-report-content">';
+
+  html += '<h3>Patient Information</h3>';
+  html += '<div class="da-report-field"><span class="da-report-field-label">Patient ID</span><span class="da-report-field-value">' + (pid || '') + '</span></div>';
+  html += '<div class="da-report-field"><span class="da-report-field-label">AE Term</span><span class="da-report-field-value">' + (aeTerm || '') + '</span></div>';
+  if (meddra && meddra.pt_code) {
+    html += '<div class="da-report-field"><span class="da-report-field-label">MedDRA PT Code</span><span class="da-report-field-value">' + meddra.pt_code + '</span></div>';
+    html += '<div class="da-report-field"><span class="da-report-field-label">MedDRA PT Term</span><span class="da-report-field-value">' + (meddra.pt_term || '') + '</span></div>';
+    if (meddra.soc_term) {
+      html += '<div class="da-report-field"><span class="da-report-field-label">SOC</span><span class="da-report-field-value">' + meddra.soc_term + '</span></div>';
+    }
+    html += '<div class="da-report-field"><span class="da-report-field-label">Confidence</span><span class="da-report-field-value">' + ((meddra.confidence || 0) * 100).toFixed(0) + '%</span></div>';
+  }
+
+  if (medwatch.section_a || medwatch.section_b || medwatch.section_c) {
+    ['section_a', 'section_b', 'section_c'].forEach(function(secKey) {
+      var sec = medwatch[secKey];
+      if (!sec) return;
+      var titles = { section_a: 'Section A: Patient Information', section_b: 'Section B: Adverse Event', section_c: 'Section C: Suspect Product' };
+      html += '<h3>' + titles[secKey] + '</h3>';
+      Object.keys(sec).forEach(function(k) {
+        var val = sec[k];
+        if (val && typeof val !== 'object') {
+          html += '<div class="da-report-field"><span class="da-report-field-label">' + k.replace(/_/g, ' ') + '</span><span class="da-report-field-value">' + val + '</span></div>';
+        }
+      });
+    });
+  } else {
+    html += '<h3>Report Data</h3>';
+    html += '<pre style="white-space:pre-wrap;word-break:break-word;font-size:0.82em;color:var(--text-muted);">' + JSON.stringify(data, null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+/* -- Render PDF in left panel -- */
+function daRenderPdfInPanel(pdfUrl) {
+  var container = document.getElementById('daPdfContent');
+  container.innerHTML = '<iframe class="da-pdf-embed" src="' + pdfUrl + '" style="min-height:calc(100vh - 500px);"></iframe>';
+}
+
+/* ================================================================
+   CHAT
+   ================================================================ */
 function daChatAsk(text) {
   /* Switch to chatbot tab if not already active */
   var pane = document.getElementById('tabChatbot');
@@ -2415,11 +2996,9 @@ function daChatSend() {
   var message = input.value.trim();
   if (!message) return;
 
-  /* Hide welcome + suggestions on first message */
+  /* Hide welcome on first message */
   var welcome = document.getElementById('daChatWelcome');
   if (welcome) welcome.style.display = 'none';
-  var suggestions = document.getElementById('daChatSuggestions');
-  if (suggestions) suggestions.style.display = 'none';
 
   /* Add user message */
   daChatAppend('user', message);
@@ -2434,6 +3013,27 @@ function daChatSend() {
   typing.innerHTML = '<span></span><span></span><span></span>';
   document.getElementById('daChatMessages').appendChild(typing);
   scrollDaChat();
+
+  /* Detect report generation request */
+  var lower = message.toLowerCase();
+  if ((lower.indexOf('generate') >= 0 || lower.indexOf('create') >= 0) &&
+      (lower.indexOf('report') >= 0 || lower.indexOf('sae') >= 0 || lower.indexOf('medwatch') >= 0)) {
+    /* Auto-generate report for current patient's first SAE */
+    var saes = (daSaeData && daSaeData.saes || []).filter(function(s) { return s.patient_id === daCurrentPatient; });
+    if (saes.length > 0) {
+      var t = document.getElementById('daTyping');
+      if (t) t.remove();
+      daChatAppend('assistant', 'Generating MedWatch 3500A report for ' + daCurrentPatient + ' - ' + saes[0].ae_term + '...');
+      daChatHistory.push({ role: 'assistant', content: 'Generating report...' });
+      daGenerateReport(daCurrentPatient, saes[0].ae_term, saes[0].onset_day);
+      return;
+    }
+  }
+
+  /* Detect CRF request -> switch left panel */
+  if (lower.indexOf('crf') >= 0 || lower.indexOf('demograph') >= 0) {
+    daActivateSubtab('crf');
+  }
 
   /* Call API */
   fetch('/api/stats/chat/', {
@@ -2457,13 +3057,13 @@ function daChatSend() {
   });
 }
 
-/* -- Infer source citation from message content -- */
+/* -- Infer source citation -- */
 function inferDaSource(msg) {
   var lower = msg.toLowerCase();
   if (lower.indexOf('ae') >= 0 || lower.indexOf('adverse') >= 0 || lower.indexOf('safety') >= 0) return 'AE Reports';
   if (lower.indexOf('crf') >= 0 || lower.indexOf('demograph') >= 0 || lower.indexOf('lab') >= 0 || lower.indexOf('vital') >= 0) return 'CRF Tables';
-  if (lower.indexOf('statistic') >= 0 || lower.indexOf('p-value') >= 0 || lower.indexOf('confidence') >= 0 || lower.indexOf('hypothesis') >= 0) return 'Statistical Analysis';
-  if (lower.indexOf('compare') >= 0 || lower.indexOf('arm') >= 0 || lower.indexOf('care ai') >= 0 || lower.indexOf('natural') >= 0) return 'AE Reports, Statistical Analysis';
+  if (lower.indexOf('statistic') >= 0 || lower.indexOf('p-value') >= 0 || lower.indexOf('confidence') >= 0) return 'Statistical Analysis';
+  if (lower.indexOf('compare') >= 0 || lower.indexOf('care ai') >= 0 || lower.indexOf('natural') >= 0) return 'AE Reports, Statistical Analysis';
   return 'Simulation Data';
 }
 
@@ -2512,7 +3112,7 @@ function daChatAppend(role, text, source) {
   scrollDaChat();
 }
 
-/* -- Format user messages (simple, no markdown) -- */
+/* -- Format user messages -- */
 function formatDaChatUser(text) {
   return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
 }
@@ -2520,84 +3120,45 @@ function formatDaChatUser(text) {
 /* -- Format assistant messages (rich markdown) -- */
 function formatDaChat(text) {
   var s = text;
-  /* Escape HTML entities first */
   s = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-
-  /* Code blocks (``` ... ```) - must be before inline code */
   s = s.replace(/```(\w*)\n?([\s\S]*?)```/g, function(m, lang, code) {
     return '<pre><code>' + code.trim() + '</code></pre>';
   });
-
-  /* Tables: detect lines with | separators */
   s = s.replace(/((?:^|\n)\|.+\|(?:\n\|[-: |]+\|)?(?:\n\|.+\|)+)/g, function(tableBlock) {
     var rows = tableBlock.trim().split('\n').filter(function(r) { return r.trim(); });
-    var html = '<table>';
-    var headerDone = false;
+    var html = '<table>'; var headerDone = false;
     for (var ri = 0; ri < rows.length; ri++) {
       var row = rows[ri].trim();
-      /* Skip separator rows like |---|---| */
       if (/^\|[\s\-:|]+\|$/.test(row)) { headerDone = true; continue; }
       var cells = row.split('|').filter(function(c, i, arr) { return i > 0 && i < arr.length - 1; });
       var tag = (!headerDone && ri === 0) ? 'th' : 'td';
-      html += '<tr>';
-      cells.forEach(function(c) { html += '<' + tag + '>' + c.trim() + '</' + tag + '>'; });
-      html += '</tr>';
+      html += '<tr>'; cells.forEach(function(c) { html += '<' + tag + '>' + c.trim() + '</' + tag + '>'; }); html += '</tr>';
       if (tag === 'th') headerDone = true;
     }
-    html += '</table>';
-    return html;
+    html += '</table>'; return html;
   });
-
-  /* Headers */
   s = s.replace(/^### (.+)$/gm, '<h3>$1</h3>');
   s = s.replace(/^## (.+)$/gm, '<h2>$1</h2>');
   s = s.replace(/^# (.+)$/gm, '<h1>$1</h1>');
-
-  /* Blockquotes */
   s = s.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
-
-  /* Horizontal rules */
   s = s.replace(/^---$/gm, '<hr>');
-
-  /* Unordered lists */
   s = s.replace(/((?:^|\n)(?:- .+\n?)+)/g, function(block) {
-    var items = block.trim().split('\n');
-    var html = '<ul>';
-    items.forEach(function(item) {
-      var content = item.replace(/^- /, '').trim();
-      if (content) html += '<li>' + content + '</li>';
-    });
-    html += '</ul>';
-    return html;
+    var items = block.trim().split('\n'); var html = '<ul>';
+    items.forEach(function(item) { var c = item.replace(/^- /, '').trim(); if (c) html += '<li>' + c + '</li>'; });
+    return html + '</ul>';
   });
-
-  /* Ordered lists */
   s = s.replace(/((?:^|\n)(?:\d+\. .+\n?)+)/g, function(block) {
-    var items = block.trim().split('\n');
-    var html = '<ol>';
-    items.forEach(function(item) {
-      var content = item.replace(/^\d+\. /, '').trim();
-      if (content) html += '<li>' + content + '</li>';
-    });
-    html += '</ol>';
-    return html;
+    var items = block.trim().split('\n'); var html = '<ol>';
+    items.forEach(function(item) { var c = item.replace(/^\d+\. /, '').trim(); if (c) html += '<li>' + c + '</li>'; });
+    return html + '</ol>';
   });
-
-  /* Bold and italic */
   s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
   s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
   s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
-
-  /* Inline code (after code blocks) */
   s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
-
-  /* Remaining newlines to <br> (but not inside block elements) */
   s = s.replace(/\n/g, '<br>');
-
-  /* Clean up double <br> around block elements */
   s = s.replace(/<br><(h[1-3]|ul|ol|table|pre|blockquote|hr)/g, '<$1');
   s = s.replace(/<\/(h[1-3]|ul|ol|table|pre|blockquote)><br>/g, '</$1>');
-
   return s;
 }
 
@@ -2606,15 +3167,114 @@ function scrollDaChat() {
   setTimeout(function() { el.scrollTop = el.scrollHeight; }, 50);
 }
 
-/* Auto-resize textarea */
-document.addEventListener('DOMContentLoaded', function() {
+/* -- Update chat suggestions based on selected patient -- */
+function daUpdateSuggestions() {
+  var container = document.getElementById('daSuggestions');
+  if (!container) return;
+  var pid = daCurrentPatient || 'this patient';
+  var saes = daPatientMap[daCurrentPatient] || [];
+  var firstAe = saes.length > 0 ? saes[0].ae_term : 'adverse events';
+
+  container.innerHTML = '';
+  var suggestions = [
+    { text: 'Analyze ' + pid + ' AE profile', query: 'Analyze the AE profile for patient ' + pid },
+    { text: 'Grade 3+ AEs for ' + pid, query: 'What Grade 3+ AEs does ' + pid + ' have?' },
+  ];
+  if (saes.length > 0) {
+    suggestions.push({ text: 'Report: ' + firstAe, query: 'Generate SAE report for ' + pid });
+  }
+  suggestions.push({ text: 'Compare A/B outcomes', query: 'Compare AE outcomes between Natural and Care AI modes' });
+
+  suggestions.forEach(function(s) {
+    var btn = document.createElement('button');
+    btn.className = 'da-suggestion-pill';
+    btn.textContent = s.text;
+    btn.addEventListener('click', function() { daChatAsk(s.query); });
+    container.appendChild(btn);
+  });
+}
+
+/* -- Load existing reports on page init -- */
+function daLoadExistingReports() {
+  fetch('/api/demo/reports/')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.reports && data.reports.length > 0) {
+        data.reports.forEach(function(r) {
+          daReportsList.push({
+            patient_id: r.patient_id,
+            ae_term: r.ae_term,
+            meddra: {},
+            pdf_path: r.pdf_path || '',
+            xml_path: r.xml_path || '',
+            data: r,
+            created_at: r.created_at || ''
+          });
+        });
+        /* If we have reports, show last one in panel */
+        if (daReportsList.length > 0) {
+          var last = daReportsList[daReportsList.length - 1];
+          daRenderReportInPanel(last.data, last.patient_id, last.ae_term, last.meddra);
+          if (last.pdf_path) daRenderPdfInPanel(last.pdf_path);
+        }
+      }
+    })
+    .catch(function() { /* silently fail */ });
+}
+
+/* ================================================================
+   SPLIT PANEL RESIZE
+   ================================================================ */
+function daSetupSplitResize() {
+  var handle = document.getElementById('daSplitHandle');
+  var left = document.getElementById('daLeftPanel');
+  var right = document.getElementById('daRightPanel');
+  var layout = document.getElementById('daSplitLayout');
+  if (!handle || !left || !right || !layout) return;
+
+  var dragging = false;
+  var startX, startLeftW;
+
+  handle.addEventListener('mousedown', function(e) {
+    e.preventDefault();
+    dragging = true;
+    startX = e.clientX;
+    startLeftW = left.offsetWidth;
+    handle.classList.add('da-dragging');
+    document.addEventListener('mousemove', onDrag);
+    document.addEventListener('mouseup', onUp);
+  });
+
+  function onDrag(e) {
+    if (!dragging) return;
+    var layoutW = layout.offsetWidth;
+    var delta = e.clientX - startX;
+    var newLeftW = startLeftW + delta;
+    var minLeft = 300, minRight = 280;
+    var maxLeft = layoutW - minRight - 5;
+    newLeftW = Math.max(minLeft, Math.min(maxLeft, newLeftW));
+    var pct = (newLeftW / layoutW * 100).toFixed(2);
+    left.style.flex = '0 0 ' + pct + '%';
+    right.style.flex = '0 0 ' + (100 - parseFloat(pct) - 0.5).toFixed(2) + '%';
+  }
+
+  function onUp() {
+    dragging = false;
+    handle.classList.remove('da-dragging');
+    document.removeEventListener('mousemove', onDrag);
+    document.removeEventListener('mouseup', onUp);
+  }
+}
+
+/* -- Textarea auto-resize -- */
+function daSetupTextareaResize() {
   var ta = document.getElementById('daChatInput');
   if (ta) {
     ta.addEventListener('input', function() {
       this.style.height = 'auto';
-      this.style.height = Math.min(this.scrollHeight, 140) + 'px';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
     });
   }
-});
+}
 </script>
 {% endblock %}
