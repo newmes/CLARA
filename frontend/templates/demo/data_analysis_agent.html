@@ -2206,7 +2206,7 @@ function renderExamples(categories) {
       var tab = document.createElement('button');
       tab.className = 'ah-cat-tab' + (idx === 0 ? ' active' : '');
       tab.dataset.idx = idx;
-      tab.innerHTML = cat.name + '<span class="ah-tab-count">' + cat.questions.length + '</span>';
+      tab.innerHTML = _esc(cat.name) + '<span class="ah-tab-count">' + cat.questions.length + '</span>';
 
       /* Apply unified theme color */
       var col = '#bc8cff';
@@ -2570,6 +2570,7 @@ var daReportsList = [];
 var daSaeData = null;
 var daCurrentPatient = null;
 var daPatientMap = {};   /* { patient_id: [sae, ...] } */
+function _esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 var daRunId = null;
 var daCurrentCrfDomain = 'DM';
 var daCurrentSubtab = 'crf';
@@ -2719,7 +2720,7 @@ function daLoadCrfData() {
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (data.error) {
-        content.innerHTML = '<div class="da-empty-state"><div class="da-empty-text">' + data.error + '</div></div>';
+        content.innerHTML = '<div class="da-empty-state"><div class="da-empty-text">' + _esc(data.error) + '</div></div>';
         return;
       }
       var rows = data.data || data.rows || [];
@@ -2739,14 +2740,14 @@ function daLoadCrfData() {
       if (cols.length === 0 && rows.length > 0) cols = Object.keys(rows[0]).map(function(k) { return { key: k, label: k }; });
 
       var html = '<div class="da-crf-table-wrap"><table class="da-crf-table"><thead><tr>';
-      cols.forEach(function(c) { html += '<th>' + c.label + '</th>'; });
+      cols.forEach(function(c) { html += '<th>' + _esc(c.label) + '</th>'; });
       html += '</tr></thead><tbody>';
       rows.forEach(function(row) {
         html += '<tr>';
         cols.forEach(function(c) {
           var val = row[c.key];
           if (val === null || val === undefined) val = '';
-          html += '<td>' + String(val) + '</td>';
+          html += '<td>' + _esc(val) + '</td>';
         });
         html += '</tr>';
       });
@@ -2754,7 +2755,7 @@ function daLoadCrfData() {
       content.innerHTML = html;
     })
     .catch(function(err) {
-      content.innerHTML = '<div class="da-empty-state"><div class="da-empty-text">Error loading CRF data</div><div class="da-empty-sub">' + (err.message || '') + '</div></div>';
+      content.innerHTML = '<div class="da-empty-state"><div class="da-empty-text">Error loading CRF data</div><div class="da-empty-sub">' + _esc(err.message || '') + '</div></div>';
     });
 }
 
@@ -2779,8 +2780,8 @@ function daLoadSaeList() {
     var gCls = 'g' + Math.min(grade, 5);
     html += '<div class="da-sae-item" onclick="daSelectSae(' + idx + ')">'
       + '<div class="da-sae-item-info">'
-      + '<div class="da-sae-item-term">' + (s.ae_term || 'Unknown') + '</div>'
-      + '<div class="da-sae-item-meta">Onset Day ' + (s.onset_day || '?') + (s.serious ? ' | Serious' : '') + '</div>'
+      + '<div class="da-sae-item-term">' + _esc(s.ae_term || 'Unknown') + '</div>'
+      + '<div class="da-sae-item-meta">Onset Day ' + _esc(s.onset_day || '?') + (s.serious ? ' | Serious' : '') + '</div>'
       + '</div>'
       + '<div class="da-grade-badge ' + gCls + '">G' + grade + '</div>'
       + '<button class="da-sae-gen-btn" onclick="event.stopPropagation();daGenerateReportFor(' + idx + ')" title="Generate MedWatch 3500A">Report</button>'
@@ -2928,10 +2929,10 @@ function daRenderReportInPanel(data, pid, aeTerm, meddra) {
   html += '<div class="da-report-field"><span class="da-report-field-label">Patient ID</span><span class="da-report-field-value">' + (pid || '') + '</span></div>';
   html += '<div class="da-report-field"><span class="da-report-field-label">AE Term</span><span class="da-report-field-value">' + (aeTerm || '') + '</span></div>';
   if (meddra && meddra.pt_code) {
-    html += '<div class="da-report-field"><span class="da-report-field-label">MedDRA PT Code</span><span class="da-report-field-value">' + meddra.pt_code + '</span></div>';
-    html += '<div class="da-report-field"><span class="da-report-field-label">MedDRA PT Term</span><span class="da-report-field-value">' + (meddra.pt_term || '') + '</span></div>';
+    html += '<div class="da-report-field"><span class="da-report-field-label">MedDRA PT Code</span><span class="da-report-field-value">' + _esc(meddra.pt_code) + '</span></div>';
+    html += '<div class="da-report-field"><span class="da-report-field-label">MedDRA PT Term</span><span class="da-report-field-value">' + _esc(meddra.pt_term || '') + '</span></div>';
     if (meddra.soc_term) {
-      html += '<div class="da-report-field"><span class="da-report-field-label">SOC</span><span class="da-report-field-value">' + meddra.soc_term + '</span></div>';
+      html += '<div class="da-report-field"><span class="da-report-field-label">SOC</span><span class="da-report-field-value">' + _esc(meddra.soc_term) + '</span></div>';
     }
     html += '<div class="da-report-field"><span class="da-report-field-label">Confidence</span><span class="da-report-field-value">' + ((meddra.confidence || 0) * 100).toFixed(0) + '%</span></div>';
   }
@@ -2945,7 +2946,7 @@ function daRenderReportInPanel(data, pid, aeTerm, meddra) {
       Object.keys(sec).forEach(function(k) {
         var val = sec[k];
         if (val && typeof val !== 'object') {
-          html += '<div class="da-report-field"><span class="da-report-field-label">' + k.replace(/_/g, ' ') + '</span><span class="da-report-field-value">' + val + '</span></div>';
+          html += '<div class="da-report-field"><span class="da-report-field-label">' + _esc(k.replace(/_/g, ' ')) + '</span><span class="da-report-field-value">' + _esc(val) + '</span></div>';
         }
       });
     });

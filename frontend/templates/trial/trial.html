@@ -1340,6 +1340,7 @@
 <script src="{% static 'js/trial_map.js' %}?v=5"></script>
 <script>
 (function() {
+  function _esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   const RUN_ID = "{{ run_id }}";
   setSpriteOffset(RUN_ID);
   const LAB_RANGES = JSON.parse('{{ lab_ranges_json|escapejs }}' || '{}');
@@ -1833,7 +1834,7 @@
         }
       }
       const svg = EVENT_ICONS[e.type] || EVENT_ICON_DEFAULT;
-      return `<div class="event-item event-${e.severity}"><span class="ev-icon">${svg}</span><span class="ev-text">${e.text}${reportLink}</span></div>`;
+      return `<div class="event-item event-${_esc(e.severity)}"><span class="ev-icon">${svg}</span><span class="ev-text">${_esc(e.text)}${reportLink}</span></div>`;
     }).join('');
   }
 
@@ -2216,7 +2217,7 @@
         const g = ae.grade || ae._grade || '?';
         const term = ae.term || ae.ae || ae.AETERM || '?';
         const days = ae.days_active || ae._days_active || '?';
-        return `<li><span class="grade grade-${g}">G${g}</span> <span>${term}</span> <span class="ae-dur">${days}d</span></li>`;
+        return `<li><span class="grade grade-${_esc(g)}">G${_esc(g)}</span> <span>${_esc(term)}</span> <span class="ae-dur">${_esc(days)}d</span></li>`;
       }).join('');
     } else {
       aeList.innerHTML = `<li style="color:var(--text-muted)">No active AEs</li>`;
@@ -2325,16 +2326,16 @@
     }
     const awCls = awareness.includes('DISTRESS') ? 'aw-distressed' : awareness.includes('CONCERN') ? 'aw-concerned' : awareness.includes('NOTIC') ? 'aw-noticed' : 'aw-unaware';
     if (symptoms.length > 0) {
-      let html = `<div class="subj-awareness ${awCls}">${awareness}</div>`;
+      let html = `<div class="subj-awareness ${awCls}">${_esc(awareness)}</div>`;
       symptoms.forEach(s => {
         const sym = typeof s === 'string' ? s : s.symptom;
         const expr = typeof s === 'object' ? s.verbal_expression : null;
-        html += `<div class="subj-symptom">• ${sym}</div>`;
-        if (expr) html += `<div class="subj-quote">"${expr}"</div>`;
+        html += `<div class="subj-symptom">• ${_esc(sym)}</div>`;
+        if (expr) html += `<div class="subj-quote">"${_esc(expr)}"</div>`;
       });
       subjEl.innerHTML = html;
     } else {
-      subjEl.innerHTML = `<div class="subj-awareness ${awCls}">${awareness}</div><em style="color:var(--text-muted); font-size:0.92em">No symptoms perceived</em>`;
+      subjEl.innerHTML = `<div class="subj-awareness ${awCls}">${_esc(awareness)}</div><em style="color:var(--text-muted); font-size:0.92em">No symptoms perceived</em>`;
     }
 
     // ── Status chips ──
