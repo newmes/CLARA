@@ -70,6 +70,8 @@ CLARA consists of two MedGemma-based agents. We transitioned them from simulatio
 </tr>
 </table>
 
+> **Try the app:** The DCA is available as a standalone mobile application — see [CLARA Call](https://github.com/newmes/CLARA_Call).
+
 ---
 
 ## HAI-DEF Models
