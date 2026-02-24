@@ -38,11 +38,11 @@ services:
       HF_HUB_OFFLINE: "1"
       TRANSFORMERS_OFFLINE: "1"
     volumes:
-      - /data2/huggingface/hub/models--google--medgemma-1.5-4b-it:/model_repo:ro
+      - /home/samuel/.cache/huggingface/hub/models--google--medgemma-1.5-4b-it:/model_cache:ro
     shm_size: "4g"
     command:
       - "--model"
-      - "/model_repo/snapshots/e9792da5fb8ee651083d345ec4bce07c3c9f1641"
+      - "/model_cache/snapshots/e9792da5fb8ee651083d345ec4bce07c3c9f1641"
       - "--served-model-name"
       - "medgemma-1.5-4b-it"
       - "--dtype"
@@ -54,7 +54,7 @@ services:
       - "--port"
       - "8000"
       - "--gpu-memory-utilization"
-      - "0.4"
+      - "0.6"
       - "--trust-remote-code"
     deploy:
       resources:
@@ -84,18 +84,17 @@ services:
       HF_HUB_OFFLINE: "1"
       TRANSFORMERS_OFFLINE: "1"
     volumes:
-      - ./models/medgemma-4b-ft-antihallu:/model
-      - ./models/lora-ctcae:/lora-ctcae:ro
-      - /data2/huggingface/hub/models--google--medgemma-1.5-4b-it/blobs/1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c:/model/tokenizer.model:ro
-      - /data2/huggingface/hub/models--google--medgemma-1.5-4b-it/blobs/7d4046bf0505a327dd5a0abbb427ecd4fc82f99c2ceaa170bc61ecde12809b0c:/model/tokenizer.json:ro
-      - /data2/huggingface/hub/models--google--medgemma-4b-it/blobs/72c9f6bc082907666631052305438b5e7db2a8e2:/model/tokenizer_config.json:ro
-      - /data2/huggingface/hub/models--google--medgemma-1.5-4b-it/blobs/1a6193244714d3d78be48666cb02cdbfac62ad86:/model/special_tokens_map.json:ro
-      - /data2/huggingface/hub/models--google--medgemma-1.5-4b-it/blobs/e17bde03d42feda32d1abfca6d3b598b9a020df7:/model/added_tokens.json:ro
-      - /data2/huggingface/hub/models--google--medgemma-1.5-4b-it/blobs/cbd4f0cd77e39566f11921f9995bb3a4d008a83e:/model/preprocessor_config.json:ro
+      - /home/samuel/.cache/huggingface/hub/models--AlphaRaven--medgemma-4b-antihallu:/model_cache:ro
+      - /home/samuel/.cache/huggingface/hub/models--google--medgemma-1.5-4b-it/blobs/1299c11d7cf632ef3b4e11937501358ada021bbdf7c47638d13c0ee982f2e79c:/model_cache/snapshots/66102b70ed9074a1dddf19d1bca6f8942cb2a9c6/tokenizer.model:ro
+      - /home/samuel/.cache/huggingface/hub/models--google--medgemma-1.5-4b-it/blobs/7d4046bf0505a327dd5a0abbb427ecd4fc82f99c2ceaa170bc61ecde12809b0c:/model_cache/snapshots/66102b70ed9074a1dddf19d1bca6f8942cb2a9c6/tokenizer.json:ro
+      - /home/samuel/.cache/huggingface/hub/models--google--medgemma-4b-it/blobs/72c9f6bc082907666631052305438b5e7db2a8e2:/model_cache/snapshots/66102b70ed9074a1dddf19d1bca6f8942cb2a9c6/tokenizer_config.json:ro
+      - /home/samuel/.cache/huggingface/hub/models--google--medgemma-1.5-4b-it/blobs/1a6193244714d3d78be48666cb02cdbfac62ad86:/model_cache/snapshots/66102b70ed9074a1dddf19d1bca6f8942cb2a9c6/special_tokens_map.json:ro
+      - /home/samuel/.cache/huggingface/hub/models--google--medgemma-1.5-4b-it/blobs/e17bde03d42feda32d1abfca6d3b598b9a020df7:/model_cache/snapshots/66102b70ed9074a1dddf19d1bca6f8942cb2a9c6/added_tokens.json:ro
+      - /home/samuel/.cache/huggingface/hub/models--google--medgemma-1.5-4b-it/blobs/cbd4f0cd77e39566f11921f9995bb3a4d008a83e:/model_cache/snapshots/66102b70ed9074a1dddf19d1bca6f8942cb2a9c6/preprocessor_config.json:ro
     shm_size: "4g"
     command:
       - "--model"
-      - "/model"
+      - "/model_cache/snapshots/66102b70ed9074a1dddf19d1bca6f8942cb2a9c6"
       - "--served-model-name"
       - "medgemma-4b-antihallu"
       - "--dtype"
@@ -107,17 +106,8 @@ services:
       - "--port"
       - "8000"
       - "--gpu-memory-utilization"
-      - "0.45"
+      - "0.6"
       - "--trust-remote-code"
-      - "--enable-lora"
-      - "--lora-modules"
-      - "medgemma-4b-ctcae=/lora-ctcae"
-      - "--max-lora-rank"
-      - "8"
-      - "--max-loras"
-      - "1"
-      - "--max-cpu-loras"
-      - "1"
     deploy:
       resources:
         reservations:
@@ -147,18 +137,18 @@ services:
     environment:
       HF_HUB_OFFLINE: "1"
       TRANSFORMERS_OFFLINE: "1"
-      GRPO_MODEL_PATH: "/model_dapo"
+      GRPO_MODEL_PATH: "/model_dapo_cache/snapshots/66102b70ed9074a1dddf19d1bca6f8942cb2a9c6"
       DAPO_SYSTEM_PROMPT: "You are a helpful medical AI assistant. If you are not sure about something, say so. Do not make up information. Always recommend consulting a healthcare professional."
     volumes:
-      - /data2/huggingface:/hf_cache:ro
-      - ./models/medgemma-4b-ft-antihallu:/model_dapo:ro
+      - /home/samuel/.cache/huggingface:/hf_cache:ro
+      - /home/samuel/.cache/huggingface/hub/models--AlphaRaven--medgemma-4b-antihallu:/model_dapo_cache:ro
     shm_size: "4g"
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
-              device_ids: ["${GPU_ANTIHALLU:-2}"]
+              device_ids: ["${GPU_ANTIHALLU:-1}"]
               capabilities: [gpu]
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')\""]
@@ -192,16 +182,16 @@ services:
       HF_TOKEN: "${HF_TOKEN}"
       MEDASR_MODEL_PATH: "/hf_cache/hub/models--google--medasr/snapshots/7383e5e461baa820bdf9060652fe51b333bafba5"
     volumes:
-      - /data2/huggingface:/hf_cache
-      - /data2/huggingface/hub/models--google--medgemma-4b-it:/model_repo:ro
-      - /data2/workspace/ClinicalTrialEngine/data:/data:ro
+      - /home/samuel/.cache/huggingface:/hf_cache
+      - /home/samuel/.cache/huggingface/hub/models--google--medgemma-4b-it:/model_repo:ro
+      - /home/samuel/CLARA/data:/data:ro
     shm_size: "4g"
     deploy:
       resources:
         reservations:
           devices:
             - driver: nvidia
-              device_ids: ["${GPU_CARE_AI:-3}"]
+              device_ids: ["${GPU_CARE_AI:-1}"]
               capabilities: [gpu]
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8300/v1/health')\" || exit 1"]

@@ -320,19 +320,74 @@ python src/run_simulation_v2.py --drug "Ozempic" --indication "type 2 diabetes" 
 
 ## Docker Deployment
 
-CLARA deploys as a multi-service Docker stack with GPU acceleration:
+CLARA deploys as a multi-service Docker stack with GPU acceleration.
+
+### Prerequisites
+
+1. **Docker network** — create the external network before starting:
+   ```bash
+   docker network create vital-net
+   ```
+
+2. **`.env` file** — create at the project root:
+   ```bash
+   GOOGLE_API_KEY=<your-google-api-key>
+   HF_TOKEN=<your-huggingface-token>
+   ```
+
+3. **Model weights** — the following must be available locally:
+   - `google/medgemma-1.5-4b-it` (HF cache)
+   - `google/medgemma-4b-it` (HF cache)
+   - `AlphaRaven/medgemma-4b-antihallu` (HF cache)
+   - `google/medasr` — **gated repo**, requires [access request](https://huggingface.co/google/medasr). Without it, the data-collection-agent starts but audio transcription (MedASR) is unavailable.
+
+4. **SigLIP classification head** — required by data-collection-agent:
+   ```bash
+   mkdir -p dca_server/models
+   # Download from HuggingFace dataset:
+   python -c "
+   from huggingface_hub import hf_hub_download
+   hf_hub_download(
+       repo_id='AlphaRaven/clinical-trial-engine-data',
+       filename='siglip_ft_head/best_model_wf1.pt',
+       repo_type='dataset',
+       local_dir='/tmp/cte_data'
+   )
+   " && cp /tmp/cte_data/siglip_ft_head/best_model_wf1.pt dca_server/models/siglip_head.pt
+   ```
+   Source: [AlphaRaven/clinical-trial-engine-data](https://huggingface.co/datasets/AlphaRaven/clinical-trial-engine-data/blob/main/siglip_ft_head/best_model_wf1.pt)
+
+### Volume Path Configuration
+
+`docker-compose.yaml` volume paths must match your local HuggingFace cache location. The default config assumes `/data2/huggingface/hub/...`. If your cache is elsewhere (e.g., `~/.cache/huggingface/hub/`), update all volume mounts accordingly.
+
+> **Important: HF cache symlink issue** — HuggingFace stores model files as content-addressed blobs, with snapshot directories containing relative symlinks (`../../blobs/...`). When mounting into Docker, you must mount the **entire model directory** (e.g., `models--google--medgemma-1.5-4b-it/`) so that relative symlinks resolve correctly inside the container. Mounting only the snapshot subdirectory will result in broken symlinks.
+
+### GPU Memory
+
+vLLM `latest` (v0.15+) requires more GPU overhead for torch.compile and multimodal encoder profiling than older versions. If you see `No available memory for the cache blocks` errors, increase `--gpu-memory-utilization` (recommended: `0.6` for 24GB GPUs).
+
+### Starting Services
 
 ```bash
-docker compose up -d
+# Django frontend only
+docker compose up -d django
+
+# All GPU services
+docker compose --profile medgemma4b-base --profile medgemma4b-antihallu --profile antihallu --profile data-collection-agent up -d
 ```
 
-| Service | Port | GPU | Purpose |
-|---------|------|-----|---------|
+### Service Map
+
+| Service | Port | Default GPU | Purpose |
+|---------|------|-------------|---------|
 | `django` | 19001 | — | Web interface (trial viewer, CRF tables, SAE reports) |
-| `medgemma4b-base` | 38004 | GPU 2 | Care AI nurse backend (vLLM) |
-| `medgemma4b-antihallu-ft` | 38002 | GPU 3 | Doc Agent + anti-hallucination (vLLM + LoRA) |
-| `antihallu-server` | 38003 | GPU 2 | Hallucination fact-checking API |
-| `data-collection-agent` | 38005 | GPU 3 | Multimodal detection (SigLIP + HeAR + MedASR + TTS) |
+| `medgemma4b-base` | 38004 | GPU 2 | Care AI nurse backend (vLLM, medgemma-1.5-4b-it) |
+| `medgemma4b-antihallu-ft` | 38002 | GPU 3 | Anti-hallucination model (vLLM, medgemma-4b-antihallu) |
+| `antihallu-server` | 38003 | GPU 1 | Hallucination detection API (original vs RLFR side-by-side) |
+| `data-collection-agent` | 38005 | GPU 1 | Multimodal detection (SigLIP + HeAR + MedASR + TTS) |
+
+> **Note:** `antihallu-server` loads **two** full models (original + RLFR fine-tuned) on a single GPU (~16GB total). It must not share a GPU with vLLM services. GPU assignments can be overridden via environment variables: `GPU_MEDGEMMA4B`, `GPU_ANTIHALLU`, `GPU_CARE_AI`.
 
 ---
 
