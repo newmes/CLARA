@@ -23,6 +23,7 @@ from django.views.decorators.http import require_POST, require_GET
 
 DATA_DIR = settings.DATA_DIR
 MAP_ASSETS_DIR = Path(settings.BASE_DIR) / "static_dirs" / "assets" / "map"
+PINNED_RUN_ID = "20260224_061414_Etoposide___Cisplatin_100pt_126d"
 
 
 def _get_runs():
@@ -653,7 +654,7 @@ def _patient_summary(profile: dict, day_data: dict | None,
 def landing(request):
     """Landing page: pure technology showcase + demo map preview."""
     # Fixed to the 100-patient Etoposide + Cisplatin run for a visually rich map
-    demo_run_id = "20260224_061414_Etoposide___Cisplatin_100pt_126d"
+    demo_run_id = PINNED_RUN_ID
     # Verify the run exists, fall back to dynamic selection if not
     run_path = _get_run_path(demo_run_id)
     if not run_path.exists() or not (run_path / "simulations").exists():
@@ -867,7 +868,7 @@ def demo_daily_sim(request):
 def demo_validate_sim(request):
     """Validate Simulation — rule-set vs simulation statistical comparison."""
     import json as _json
-    run_id = "20260224_061414_Etoposide___Cisplatin_100pt_126d"
+    run_id = PINNED_RUN_ID
     run_dir = DATA_DIR / "runs" / run_id
     ctx = {"run_id": run_id}
     val_path = run_dir / "validation" / "ruleset_validation_natural_v4.json"
@@ -4354,12 +4355,18 @@ def api_stats_chat(request, run_id: str):
 
 @csrf_exempt
 def api_stats_chat_demo(request):
-    """Demo chat API — auto-selects the latest run with computed stats."""
+    """Demo chat API — uses pinned run, falling back to latest with stats."""
+    pinned_dir = DATA_DIR / "runs" / PINNED_RUN_ID
+    if pinned_dir.is_dir():
+        for mode in ("natural", "care_ai"):
+            if (pinned_dir / "validation" / f"csr_stats_{mode}.json").exists():
+                return api_stats_chat(request, PINNED_RUN_ID)
+
     runs_dir = DATA_DIR / "runs"
     if not runs_dir.exists():
         return JsonResponse({"error": "No simulation runs found. Please run a simulation first."}, status=404)
 
-    # Find latest run that has validation stats
+    # Fallback: find latest run that has validation stats
     for d in sorted(runs_dir.iterdir(), reverse=True):
         if d.is_dir():
             for mode in ("natural", "care_ai"):
@@ -5355,7 +5362,10 @@ def api_ruleset_generate_status(request, job_id):
 
 
 def _get_latest_run_id() -> str | None:
-    """Return the run_id of the latest completed run (sorted reverse by name)."""
+    """Return the run_id of the pinned demo run, falling back to latest."""
+    pinned = DATA_DIR / "runs" / PINNED_RUN_ID
+    if pinned.is_dir() and (pinned / "simulations").exists():
+        return PINNED_RUN_ID
     runs_dir = DATA_DIR / "runs"
     if not runs_dir.exists():
         return None
