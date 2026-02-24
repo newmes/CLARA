@@ -1580,6 +1580,7 @@ def api_care_agent_run(request):
 
     body = json.loads(request.body)
     patient_id = body.get("patient_id", "")
+    user_api_key = body.get("api_key", "").strip()
 
     config = _load_virtual_patients()
     vpt = None
@@ -1801,9 +1802,7 @@ def api_care_agent_run(request):
             consult_elapsed = 0
             try:
                 t0 = _time.time()
-                resp = _requests.post(
-                    f"{CARE_AI_URL}/v1/nurse",
-                    json={
+                nurse_payload = {
                         "patient_text": patient_text,
                         "visual_assessment": visual_assessment,
                         "audio_assessment": audio_assessment,
@@ -1811,7 +1810,12 @@ def api_care_agent_run(request):
                         "drug_name": drug_name,
                         "indication": indication,
                         "skip_tts": False,
-                    },
+                    }
+                if user_api_key:
+                    nurse_payload["api_key"] = user_api_key
+                resp = _requests.post(
+                    f"{CARE_AI_URL}/v1/nurse",
+                    json=nurse_payload,
                     timeout=120,
                 )
                 resp.raise_for_status()
@@ -1973,6 +1977,7 @@ def api_care_agent_chat(request):
     body = json.loads(request.body)
     session_id = body.get("session_id", "")
     message = body.get("message", "")
+    user_api_key = body.get("api_key", "").strip()
 
     if not session_id or not message:
         return JsonResponse({"error": "session_id and message are required"}, status=400)
@@ -1980,13 +1985,16 @@ def api_care_agent_chat(request):
     CARE_AI_URL = os.environ.get("CARE_AI_API_URL", "http://clara-care-ai:8300")
 
     try:
-        resp = _requests.post(
-            f"{CARE_AI_URL}/v1/chat",
-            json={
+        chat_payload = {
                 "session_id": session_id,
                 "message": message,
                 "skip_tts": body.get("skip_tts", False),
-            },
+            }
+        if user_api_key:
+            chat_payload["api_key"] = user_api_key
+        resp = _requests.post(
+            f"{CARE_AI_URL}/v1/chat",
+            json=chat_payload,
             timeout=60,
         )
         resp.raise_for_status()

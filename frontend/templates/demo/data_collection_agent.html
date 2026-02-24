@@ -251,6 +251,65 @@
 .ci-btn.running .btn-label { display: none; }
 @keyframes ciSpin { to { transform: rotate(360deg); } }
 
+/* ── API Key Input ── */
+.ci-apikey-section { margin-top: 20px; }
+.ci-apikey-label {
+  display: block; font: 600 0.82em 'JetBrains Mono', monospace;
+  color: var(--text-muted); margin-bottom: 6px; letter-spacing: 0.5px;
+}
+.ci-apikey-wrapper {
+  position: relative; display: flex; align-items: center; max-width: 480px; margin: 0 auto;
+}
+.ci-apikey-wrapper input {
+  width: 100%; padding: 10px 40px 10px 14px;
+  background: rgba(13,17,23,0.6); border: 1px solid rgba(48,54,61,0.5);
+  border-radius: 10px; color: var(--text-primary);
+  font: 400 0.88em 'JetBrains Mono', monospace;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.ci-apikey-wrapper input::placeholder { color: var(--text-muted); opacity: 0.5; }
+.ci-apikey-wrapper input:focus {
+  outline: none; border-color: var(--ci-accent);
+  box-shadow: 0 0 0 3px rgba(52,199,138,0.1);
+}
+.ci-apikey-toggle {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; padding: 2px;
+  color: var(--text-muted); transition: color 0.2s; line-height: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.ci-apikey-toggle:hover { color: var(--ci-accent); }
+.ci-apikey-toggle svg { width: 16px; height: 16px; }
+.ci-apikey-section.has-error input {
+  border-color: rgba(248,81,73,0.6) !important;
+  box-shadow: 0 0 0 3px rgba(248,81,73,0.1) !important;
+}
+.ci-apikey-section.has-error .ci-field-error { display: flex; }
+.ci-field-error {
+  display: none; align-items: center; gap: 5px; justify-content: center;
+  font: 500 0.82em 'JetBrains Mono', monospace;
+  color: var(--ci-red); margin-top: 4px; letter-spacing: 0.3px;
+}
+.ci-field-error svg { width: 12px; height: 12px; flex-shrink: 0; }
+@keyframes ciShake {
+  0%, 100% { transform: translateX(0); }
+  10%, 50%, 90% { transform: translateX(-4px); }
+  30%, 70% { transform: translateX(4px); }
+}
+.ci-shake { animation: ciShake 0.4s ease-in-out; }
+.ci-apikey-info {
+  display: flex; align-items: center; gap: 8px; justify-content: center;
+  margin-top: 8px; padding: 6px 12px;
+  font: 400 0.8em 'JetBrains Mono', monospace;
+  color: var(--text-muted); opacity: 0.7;
+}
+.ci-apikey-info svg { flex-shrink: 0; width: 13px; height: 13px; color: #d29922; }
+.ci-apikey-info a {
+  color: var(--ci-accent); text-decoration: none;
+  border-bottom: 1px solid rgba(52,199,138,0.3); transition: border-color 0.2s;
+}
+.ci-apikey-info a:hover { border-bottom-color: rgba(52,199,138,0.6); }
+
 
 /* ═══════════════════════════════════════════════
    MAIN LAYOUT: Phone | Conversation
@@ -930,6 +989,39 @@
     {% endfor %}
   </div>
 
+  <!-- API Key Input -->
+  <div class="ci-apikey-section" id="ciApiKeyGroup">
+    <label class="ci-apikey-label">Google API Key</label>
+    <div class="ci-apikey-wrapper">
+      <input type="password" id="ciApiKey" placeholder="Enter your Google API key" autocomplete="off"
+             onfocus="ciClearKeyError()">
+      <button type="button" class="ci-apikey-toggle" onclick="ciToggleKeyVis()" title="Toggle visibility" aria-label="Toggle API key visibility">
+        <svg id="ciEyeOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+          <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+          <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/>
+          <line x1="1" y1="1" x2="23" y2="23"/>
+        </svg>
+        <svg id="ciEyeOn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+          <circle cx="12" cy="12" r="3"/>
+        </svg>
+      </button>
+    </div>
+    <span class="ci-field-error" id="ciApiKeyError">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      API key is required
+    </span>
+    <div class="ci-apikey-info">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+        <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+      </svg>
+      <span>API key is sent to Google only, not stored.
+        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Get a free key</a></span>
+    </div>
+  </div>
+
   <div class="ci-call-controls">
     <button class="ci-btn ci-btn-start" id="ciBtnRun" onclick="ciStartCall()" disabled>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1103,6 +1195,30 @@ var totalMatched = 0;
 var callStart = null;
 var elTimer = null;
 var callActive = false;
+
+/* ── API Key helpers ── */
+function ciToggleKeyVis() {
+  var input = document.getElementById('ciApiKey');
+  var eyeOff = document.getElementById('ciEyeOff');
+  var eyeOn = document.getElementById('ciEyeOn');
+  if (input.type === 'password') {
+    input.type = 'text'; eyeOff.style.display = 'none'; eyeOn.style.display = 'block';
+  } else {
+    input.type = 'password'; eyeOff.style.display = 'block'; eyeOn.style.display = 'none';
+  }
+}
+function ciClearKeyError() {
+  var g = document.getElementById('ciApiKeyGroup');
+  if (g) { g.classList.remove('has-error', 'ci-shake'); }
+}
+function ciShowKeyError() {
+  var g = document.getElementById('ciApiKeyGroup');
+  g.classList.add('has-error');
+  g.classList.remove('ci-shake');
+  void g.offsetWidth;
+  g.classList.add('ci-shake');
+  document.getElementById('ciApiKey').focus();
+}
 var sessionEvents = [];
 var detectedAEs = [];
 var actionsList = [];
@@ -1137,6 +1253,10 @@ function ciSelectPatient(pid) {
    ═══════════════════════════════════════════════ */
 function ciStartCall() {
   if (!selectedPid) return;
+
+  var apiKey = document.getElementById('ciApiKey').value.trim();
+  if (!apiKey) { ciShowKeyError(); return; }
+  ciClearKeyError();
 
   var btn = document.getElementById('ciBtnRun');
   btn.classList.add('running'); btn.disabled = true;
@@ -1197,7 +1317,7 @@ function ciStartCall() {
   fetch('/api/care-agent/run/', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({patient_id: selectedPid})
+    body: JSON.stringify({patient_id: selectedPid, api_key: apiKey})
   }).then(function(response) {
     var reader = response.body.getReader();
     var decoder = new TextDecoder();
@@ -1810,7 +1930,7 @@ function ciSendChat() {
   fetch('/api/care-agent/chat/', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({ session_id: ciSessionId, message: message, skip_tts: !ttsEnabled })
+    body: JSON.stringify({ session_id: ciSessionId, message: message, skip_tts: !ttsEnabled, api_key: (document.getElementById('ciApiKey') || {}).value || '' })
   })
   .then(function(resp) { return resp.json(); })
   .then(function(data) {
