@@ -21,7 +21,7 @@ services:
       MEDGEMMA4B_BASE_VLLM_BASE_URL: "http://clara-medgemma4b-base:8000/v1"
       MEDGEMMA4B_BASE_MODEL_ID: "medgemma-1.5-4b-it"
       GOOGLE_API_KEY: "${GOOGLE_API_KEY}"
-      CARE_AI_API_URL: "http://clara-care-ai:8300"
+      CARE_AI_API_URL: "http://clara-data-collection-agent:8300"
       PYTHONPATH: "/app"
     networks:
       - vital-net
@@ -169,16 +169,16 @@ services:
     networks:
       - vital-net
 
-  care-ai-server:
+  data-collection-agent:
     build:
       context: .
-      dockerfile: Dockerfile.care-ai
-    container_name: clara-care-ai
+      dockerfile: Dockerfile.data-collection-agent
+    container_name: clara-data-collection-agent
     restart: unless-stopped
     ports:
       - "38005:8300"
     profiles:
-      - care-ai
+      - data-collection-agent
     environment:
       CARE_AI_GPU: "0"
       CARE_AI_PORT: "8300"

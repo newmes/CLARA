@@ -70,13 +70,20 @@ class TTSService:
             wf.writeframes(pcm_data)
         return buf.getvalue()
 
-    def synthesize(self, text: str) -> bytes | None:
+    def _get_client(self, api_key: str | None = None):
+        """Return a genai client: temporary one if api_key given, else the default."""
+        if api_key and HAS_GENAI:
+            return genai.Client(api_key=api_key)
+        return self._client
+
+    def synthesize(self, text: str, *, api_key: str | None = None) -> bytes | None:
         """Convert text to WAV audio bytes (24 kHz). Returns None if TTS is unavailable."""
-        if not self._client or not text.strip():
+        client = self._get_client(api_key)
+        if not client or not text.strip():
             return None
 
         try:
-            response = self._client.models.generate_content(
+            response = client.models.generate_content(
                 model=TTS_MODEL,
                 contents=text,
                 config=types.GenerateContentConfig(
@@ -100,9 +107,9 @@ class TTSService:
             log.warning("Gemini TTS synthesis failed: %s", exc)
             return None
 
-    def synthesize_base64(self, text: str) -> str | None:
+    def synthesize_base64(self, text: str, *, api_key: str | None = None) -> str | None:
         """Convert text to base64-encoded WAV for JSON transport."""
-        audio = self.synthesize(text)
+        audio = self.synthesize(text, api_key=api_key)
         if audio:
             return base64.b64encode(audio).decode("utf-8")
         return None

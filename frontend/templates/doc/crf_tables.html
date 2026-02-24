@@ -27,6 +27,7 @@
     margin-bottom: 1em; padding: 10px 14px;
     background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
   }
+  .crf-controls > * { display: flex; align-items: center; }
   .ctrl-group {
     display: flex; align-items: center; gap: 4px;
   }
@@ -87,9 +88,9 @@
     color: #39d2c0; text-shadow: 0 0 8px rgba(57,210,192,0.5); opacity: 1;
   }
   .ctrl-select {
-    padding: 5px 12px; border-radius: var(--radius-sm); font-size: 0.9em;
+    padding: 0 12px; border-radius: var(--radius-sm); font-size: 0.9em;
     border: 1px solid var(--border); background: var(--bg-secondary);
-    color: var(--text-primary); cursor: pointer;
+    color: var(--text-primary); cursor: pointer; margin: 0; height: 28px;
   }
   .ctrl-select:focus { outline: none; border-color: var(--accent-cyan); }
   .btn-excel {

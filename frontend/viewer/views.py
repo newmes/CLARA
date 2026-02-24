@@ -1598,7 +1598,7 @@ def api_care_agent_run(request):
 
     q = queue.Queue()
 
-    CARE_AI_URL = os.environ.get("CARE_AI_API_URL", "http://clara-care-ai:8300")
+    CARE_AI_URL = os.environ.get("CARE_AI_API_URL", "http://clara-data-collection-agent:8300")
 
     def _run():
         try:
@@ -1982,7 +1982,7 @@ def api_care_agent_chat(request):
     if not session_id or not message:
         return JsonResponse({"error": "session_id and message are required"}, status=400)
 
-    CARE_AI_URL = os.environ.get("CARE_AI_API_URL", "http://clara-care-ai:8300")
+    CARE_AI_URL = os.environ.get("CARE_AI_API_URL", "http://clara-data-collection-agent:8300")
 
     try:
         chat_payload = {

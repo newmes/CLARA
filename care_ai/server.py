@@ -111,6 +111,10 @@ class ConsultRequest(BaseModel):
         False,
         description="If true, skip TTS and return text only (faster).",
     )
+    api_key: str | None = Field(
+        None,
+        description="Gemini API key for TTS. Falls back to server env var if not provided.",
+    )
 
 
 class VisualFinding(BaseModel):
@@ -159,6 +163,7 @@ class ChatRequest(BaseModel):
     session_id: str = Field(..., description="Session ID from /v1/consult response")
     message: str = Field(..., description="Patient follow-up message")
     skip_tts: bool = Field(False, description="If true, skip TTS and return text only")
+    api_key: str | None = Field(None, description="Gemini API key for TTS")
 
 
 class ChatResponse(BaseModel):
@@ -197,6 +202,7 @@ class NurseRequest(BaseModel):
     drug_name: str | None = Field(None, description="Drug name")
     indication: str | None = Field(None, description="Indication")
     skip_tts: bool = Field(False, description="If true, skip TTS")
+    api_key: str | None = Field(None, description="Gemini API key for TTS")
 
 class NurseResponse(BaseModel):
     session_id: str = Field(..., description="Session ID for follow-up chat")
@@ -233,6 +239,13 @@ def _cleanup_sessions() -> None:
     expired = [sid for sid, s in sessions.items() if now - s["last_active"] > SESSION_TTL_SEC]
     for sid in expired:
         del sessions[sid]
+
+
+def _has_api_key(req_api_key: str | None) -> bool:
+    """Check if a Gemini API key is available (from request or environment)."""
+    if req_api_key:
+        return True
+    return bool(os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY"))
 
 
 classifier: SigLIPClassifier | None = None
@@ -327,6 +340,8 @@ async def health():
 
 @app.post("/v1/consult", response_model=ConsultResponse)
 async def consult(req: ConsultRequest):
+    if not _has_api_key(req.api_key):
+        raise HTTPException(status_code=403, detail="Gemini API key required. Provide api_key in request or set GOOGLE_API_KEY env var.")
     if not classifier or not nurse:
         raise HTTPException(status_code=503, detail="Models not loaded yet")
     if not req.siglip_vector and not req.image_b64:
@@ -384,9 +399,9 @@ async def consult(req: ConsultRequest):
     speech_text = nurse.response_to_speech_text(nurse_response)
 
     tts_audio_b64 = None
-    if not req.skip_tts and tts and tts.available:
+    if not req.skip_tts and tts and (tts.available or req.api_key):
         t0 = time.time()
-        tts_audio_b64 = tts.synthesize_base64(speech_text)
+        tts_audio_b64 = tts.synthesize_base64(speech_text, api_key=req.api_key)
         timings["tts_ms"] = round((time.time() - t0) * 1000)
 
     timings["total_ms"] = sum(timings.values())
@@ -432,6 +447,7 @@ async def consult(req: ConsultRequest):
         "created_at": now,
         "last_active": now,
         "drug_name": drug_name,
+        "api_key": req.api_key,
     }
 
     log.info("=== consult response ===")
@@ -501,6 +517,8 @@ async def transcribe(req: TranscribeRequest):
 
 @app.post("/v1/nurse", response_model=NurseResponse)
 async def nurse_endpoint(req: NurseRequest):
+    if not _has_api_key(req.api_key):
+        raise HTTPException(status_code=403, detail="Gemini API key required. Provide api_key in request or set GOOGLE_API_KEY env var.")
     if not nurse:
         raise HTTPException(status_code=503, detail="NurseEngine not loaded")
 
@@ -521,9 +539,9 @@ async def nurse_endpoint(req: NurseRequest):
     speech_text = nurse.response_to_speech_text(nurse_response)
 
     tts_audio_b64 = None
-    if not req.skip_tts and tts and tts.available:
+    if not req.skip_tts and tts and (tts.available or req.api_key):
         t0 = time.time()
-        tts_audio_b64 = tts.synthesize_base64(speech_text)
+        tts_audio_b64 = tts.synthesize_base64(speech_text, api_key=req.api_key)
         timings["tts_ms"] = round((time.time() - t0) * 1000)
 
     # Create session for follow-up chat
@@ -567,6 +585,7 @@ async def nurse_endpoint(req: NurseRequest):
         "created_at": now,
         "last_active": now,
         "drug_name": drug_name,
+        "api_key": req.api_key,
     }
 
     timings["total_ms"] = sum(timings.values())
@@ -586,6 +605,8 @@ async def nurse_endpoint(req: NurseRequest):
 @app.post("/v1/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
     """Follow-up chat within an existing consult session."""
+    if not _has_api_key(req.api_key):
+        raise HTTPException(status_code=403, detail="Gemini API key required. Provide api_key in request or set GOOGLE_API_KEY env var.")
     if not nurse:
         raise HTTPException(status_code=503, detail="Models not loaded yet")
 
@@ -613,10 +634,13 @@ async def chat(req: ChatRequest):
 
     speech_text = nurse.chat_response_to_speech_text(nurse_response)
 
+    # Use api_key from request, or fall back to session-stored key
+    chat_api_key = req.api_key or session.get("api_key")
+
     tts_audio_b64 = None
-    if not req.skip_tts and tts and tts.available:
+    if not req.skip_tts and tts and (tts.available or chat_api_key):
         t0 = time.time()
-        tts_audio_b64 = tts.synthesize_base64(speech_text)
+        tts_audio_b64 = tts.synthesize_base64(speech_text, api_key=chat_api_key)
         timings["tts_ms"] = round((time.time() - t0) * 1000)
 
     timings["total_ms"] = sum(timings.values())

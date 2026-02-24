@@ -525,6 +525,9 @@ def aggregate_ae(
         for record in _iter_jsonl(run_path, pid, mode):
             for ae in record.get("AE", []):
                 key = (pid, ae.get("AETERM"), ae.get("AESTDAT"))
+                cur_grade = ae.get("_grade") or ae.get("AETOXGR") or 0
+                prev_worst = rows_map[key]["_grade"] if key in rows_map else 0
+                worst = max(cur_grade, prev_worst)
                 rows_map[key] = {
                     "patient_id": pid,
                     "AEYN": ae.get("AEYN"),
@@ -533,7 +536,7 @@ def aggregate_ae(
                     "AEONGO": ae.get("AEONGO"),
                     "AEENDAT": ae.get("AEENDAT"),
                     "AESEV": ae.get("AESEV"),
-                    "_grade": ae.get("_grade") or ae.get("AETOXGR"),
+                    "_grade": worst,
                     "AESER": ae.get("AESER"),
                     "AESDTH": ae.get("AESDTH"),
                     "AESLIFE": ae.get("AESLIFE"),
@@ -586,6 +589,9 @@ def _aggregate_ae_hr(
                 onset = ae.get("AESTDAT")
                 key = (pid, ae_term, onset)
                 det = detection_map.get(ae_term, {})
+                cur_grade = ae.get("_grade") or ae.get("AETOXGR") or 0
+                prev_worst = rows_map[key]["_grade"] if key in rows_map else 0
+                worst = max(cur_grade, prev_worst)
                 rows_map[key] = {
                     "patient_id": pid,
                     "AEYN": ae.get("AEYN"),
@@ -594,7 +600,7 @@ def _aggregate_ae_hr(
                     "AEONGO": ae.get("AEONGO"),
                     "AEENDAT": ae.get("AEENDAT"),
                     "AESEV": ae.get("AESEV"),
-                    "_grade": ae.get("_grade") or ae.get("AETOXGR"),
+                    "_grade": worst,
                     "AESER": ae.get("AESER"),
                     "AESDTH": ae.get("AESDTH"),
                     "AESLIFE": ae.get("AESLIFE"),
