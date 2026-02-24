@@ -251,7 +251,7 @@ class MultimodalConfig:
     hf_token: str = field(
         default_factory=lambda: os.environ.get(
             "HF_TOKEN",
-            "REDACTED_HF_TOKEN",
+            "YOUR_HF_KEY",
         )
     )
 
