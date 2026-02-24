@@ -5304,10 +5304,11 @@ def api_ruleset_generate(request):
         _sys.path.insert(0, str(Path(settings.BASE_DIR).parent))
 
         # 사용자 API 키가 있으면 현재 스레드에만 설정 (다른 요청에 영향 없음)
+        _prev_rule_key = os.environ.get("RULE_ENGINE_LLM_API_KEY")
         if user_api_key:
             from src.agents.llm_client import set_api_key
             set_api_key(user_api_key)
-            os.environ.setdefault("RULE_ENGINE_LLM_API_KEY", user_api_key)
+            os.environ["RULE_ENGINE_LLM_API_KEY"] = user_api_key
         else:
             env_path = Path(settings.BASE_DIR).parent / ".env"
             if env_path.exists():
@@ -5360,6 +5361,12 @@ def api_ruleset_generate(request):
                 "progress": f"Failed: {e}",
                 "error": str(e),
             }
+        finally:
+            # 사용자 키 복원 (다른 요청에 유출 방지)
+            if _prev_rule_key is not None:
+                os.environ["RULE_ENGINE_LLM_API_KEY"] = _prev_rule_key
+            elif "RULE_ENGINE_LLM_API_KEY" in os.environ and user_api_key:
+                del os.environ["RULE_ENGINE_LLM_API_KEY"]
 
     import threading
     t = threading.Thread(target=_run, daemon=True)
