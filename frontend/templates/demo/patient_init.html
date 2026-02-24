@@ -14,222 +14,1274 @@
 
 {% block extra_head %}
 <style>
-  :root {
-    --bg-main: #0d1117; --bg-card: #161b22; --bg-elevated: #1c2129;
-    --border: #30363d; --text-primary: #e6edf3; --text-secondary: #8b949e;
-    --text-muted: #6e7681; --accent-cyan: #39d2c0; --accent-blue: #58a6ff;
-    --accent-green: #3fb950; --accent-purple: #bc8cff; --accent-orange: #d29922;
-  }
-  body { background: var(--bg-main); color: var(--text-primary); }
+/* =================================================================
+   Patient Initialization Demo — CLARA Design System (Aurora Theme)
+   ================================================================= */
 
-  .page-wrap { max-width: 1100px; margin: 0 auto; padding: 40px 32px 80px; }
-  .page-title {
-    font: 700 1.6em -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    margin-bottom: 6px;
-  }
-  .page-subtitle { color: var(--text-secondary); font-size: 0.88em; margin-bottom: 32px; }
+/* -- Static Ambient Glow (aurora) -- */
+.pi-aurora-bg {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1; pointer-events: none; overflow: hidden;
+}
+.pi-aurora-bg::before {
+  content: '';
+  position: absolute;
+  top: -10%; left: 5%; right: 5%;
+  height: 55%;
+  background:
+    radial-gradient(ellipse 60% 55% at 20% 0%, rgba(57,210,192,0.06) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 50% at 80% 5%, rgba(88,166,255,0.05) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 35% at 50% 15%, rgba(63,185,80,0.03) 0%, transparent 60%);
+}
+.pi-aurora-bg::after {
+  content: '';
+  position: absolute;
+  bottom: -5%; left: 10%; right: 10%;
+  height: 30%;
+  background:
+    radial-gradient(ellipse 50% 60% at 30% 100%, rgba(57,210,192,0.03) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 70% 100%, rgba(88,166,255,0.03) 0%, transparent 70%);
+}
 
-  .pipeline-steps {
-    display: flex; gap: 12px; margin-bottom: 36px; flex-wrap: wrap;
-  }
-  .pipeline-step {
-    flex: 1; min-width: 140px; padding: 14px 16px;
-    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
-    position: relative;
-  }
-  .pipeline-step.active { border-color: var(--accent-cyan); }
-  .pipeline-step .step-num {
-    font: 700 0.65em 'JetBrains Mono', monospace; color: var(--accent-cyan);
-    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;
-  }
-  .pipeline-step .step-title {
-    font: 600 0.82em -apple-system, sans-serif; color: var(--text-primary); margin-bottom: 4px;
-  }
-  .pipeline-step .step-desc {
-    font-size: 0.72em; color: var(--text-secondary); line-height: 1.5;
-  }
-  .pipeline-arrow {
-    display: flex; align-items: center; color: var(--text-muted); font-size: 1.2em;
-    flex: 0 0 auto;
-  }
+/* -- Dot Grid Background -- */
+.pi-dot-grid {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1; pointer-events: none;
+  background-image: radial-gradient(rgba(57,210,192,0.025) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 70% 40% at 50% 20%, black 10%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 40% at 50% 20%, black 10%, transparent 70%);
+}
 
-  .patient-showcase {
-    display: flex; gap: 32px; align-items: flex-start;
-  }
-  .avatar-section { flex: 0 0 200px; text-align: center; }
-  .avatar-img {
-    width: 128px; height: 128px; image-rendering: pixelated;
-    border: 2px solid var(--accent-cyan);
-    border-radius: 16px; padding: 8px;
-    background: rgba(57,210,192,0.04);
-    box-shadow: 0 0 24px rgba(57,210,192,0.12);
-  }
-  .avatar-label {
-    margin-top: 10px; font: 600 0.75em 'JetBrains Mono', monospace;
-    color: var(--accent-cyan);
-  }
+/* -- Layout Container -- */
+.pi-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px 4em;
+  position: relative;
+  z-index: 1;
+}
 
-  .speech-bubble {
-    flex: 1; position: relative;
-    background: var(--bg-card); border: 1px solid rgba(57,210,192,0.25);
-    border-radius: 16px; padding: 24px;
-    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
-  }
-  .speech-bubble::before {
-    content: ''; position: absolute; left: -12px; top: 40px;
-    width: 0; height: 0;
-    border-top: 12px solid transparent; border-bottom: 12px solid transparent;
-    border-right: 12px solid rgba(57,210,192,0.25);
-  }
-  .speech-bubble::after {
-    content: ''; position: absolute; left: -10px; top: 41px;
-    width: 0; height: 0;
-    border-top: 11px solid transparent; border-bottom: 11px solid transparent;
-    border-right: 11px solid var(--bg-card);
-  }
+/* -- Scroll-triggered reveal -- */
+.pi-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pi-reveal.visible { opacity: 1; transform: translateY(0); }
+.pi-reveal-d1 { transition-delay: 0.1s; }
+.pi-reveal-d2 { transition-delay: 0.2s; }
+.pi-reveal-d3 { transition-delay: 0.3s; }
+.pi-reveal-d4 { transition-delay: 0.4s; }
 
-  .info-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-  }
-  .info-section {
-    background: rgba(57,210,192,0.03); border: 1px solid rgba(48,54,61,0.5);
-    border-radius: 10px; padding: 14px;
-  }
-  .info-section-title {
-    font: 700 0.6em 'JetBrains Mono', monospace; color: var(--accent-cyan);
-    text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px;
-  }
-  .info-row {
-    display: flex; justify-content: space-between; padding: 3px 0;
-    font-size: 0.78em; border-bottom: 1px solid rgba(48,54,61,0.3);
-  }
-  .info-row:last-child { border-bottom: none; }
-  .info-key { color: var(--text-secondary); }
-  .info-val { color: var(--text-primary); font-weight: 600; }
-  .info-val.accent { color: var(--accent-cyan); }
+/* =================================================================
+   HERO SECTION
+   ================================================================= */
+.pi-hero {
+  padding: 4em 0 2.5em;
+  text-align: center;
+  position: relative;
+}
 
-  .persona-card {
-    grid-column: 1 / -1;
-    background: linear-gradient(135deg, rgba(188,140,255,0.05), rgba(57,210,192,0.05));
-    border-color: rgba(188,140,255,0.2);
-  }
-  .persona-type {
-    display: inline-block; padding: 3px 10px; border-radius: 6px;
-    background: rgba(188,140,255,0.12); color: var(--accent-purple);
-    font: 600 0.75em 'JetBrains Mono', monospace; margin-bottom: 8px;
-  }
-  .persona-desc { font-size: 0.76em; color: var(--text-secondary); line-height: 1.6; }
+.pi-hero-overline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 0.82em 'JetBrains Mono', monospace;
+  color: var(--accent-cyan);
+  padding: 5px 16px;
+  border: 1px solid rgba(57,210,192,0.2);
+  border-radius: 24px;
+  background: rgba(57,210,192,0.05);
+  margin-bottom: 1.6em;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+.pi-pulse-pip {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent-cyan);
+  animation: piPipPulse 2s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(57,210,192,0.6);
+}
+@keyframes piPipPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
 
-  .gen-btn {
-    display: inline-flex; align-items: center; gap: 8px;
-    margin-top: 28px; padding: 10px 24px;
-    background: rgba(57,210,192,0.1); border: 1px solid rgba(57,210,192,0.3);
-    border-radius: 10px; color: var(--accent-cyan);
-    font: 600 0.82em -apple-system, sans-serif;
-    cursor: pointer; transition: all 0.2s;
+/* Hero icon */
+.pi-hero-icon {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5em;
+  margin-bottom: 0.8em;
+  opacity: 0;
+  animation: piIconReveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.05s;
+}
+.pi-hero-icon-inner {
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pi-hero-icon-inner:hover {
+  transform: scale(1.08) rotate(2deg);
+}
+.pi-hero-icon-inner svg {
+  filter: drop-shadow(0 0 16px rgba(57,210,192,0.3));
+}
+@keyframes piIconReveal {
+  from { opacity: 0; transform: translateY(-16px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Title */
+.pi-hero-title {
+  font-size: 3em;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.12;
+  margin-bottom: 0.5em;
+  position: relative;
+}
+.pi-hero-title .pi-title-line { display: block; }
+.pi-hero-title .pi-title-line-sub {
+  display: block;
+  font-size: 0.82em;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-top: 0.3em;
+}
+.pi-hero-title .pi-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: piWordReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.pi-word-accent {
+  background: linear-gradient(135deg, var(--accent-cyan) 0%, var(--accent-blue) 50%, var(--accent-green) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 30px rgba(57,210,192,0.25));
+}
+.pi-word-dim {
+  color: var(--text-secondary);
+  -webkit-text-fill-color: var(--text-secondary);
+}
+@keyframes piWordReveal {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Subtitle */
+.pi-hero-subtitle {
+  font-size: 1.05em;
+  color: var(--text-muted);
+  font-weight: 400;
+  max-width: 720px;
+  margin: 0 auto 1.2em;
+  line-height: 1.7;
+  opacity: 0;
+  animation: piFadeUpSoft 0.8s ease forwards 0.8s;
+}
+.pi-hero-subtitle strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+@keyframes piFadeUpSoft {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hero badges */
+.pi-hero-badges {
+  display: flex; gap: 10px; margin-top: 1.2em; flex-wrap: wrap;
+  justify-content: center;
+  opacity: 0;
+  animation: piFadeUpSoft 0.8s ease forwards 1s;
+}
+.pi-hero-badge {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 20px;
+  background: rgba(57,210,192,0.05); border: 1px solid rgba(57,210,192,0.15);
+  font-size: 0.82em; font-family: 'JetBrains Mono', monospace; font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.25s ease;
+}
+.pi-hero-badge:hover {
+  border-color: rgba(57,210,192,0.3);
+  background: rgba(57,210,192,0.08);
+  transform: translateY(-1px);
+}
+.pi-hero-badge .bv { color: var(--accent-cyan); }
+.pi-hero-badge.green { background: rgba(63,185,80,0.05); border-color: rgba(63,185,80,0.15); }
+.pi-hero-badge.green:hover { border-color: rgba(63,185,80,0.3); background: rgba(63,185,80,0.08); }
+.pi-hero-badge.green .bv { color: var(--accent-green); }
+.pi-hero-badge.blue { background: rgba(88,166,255,0.05); border-color: rgba(88,166,255,0.15); }
+.pi-hero-badge.blue:hover { border-color: rgba(88,166,255,0.3); background: rgba(88,166,255,0.08); }
+.pi-hero-badge.blue .bv { color: var(--accent-blue); }
+
+/* =================================================================
+   SECTION SHARED
+   ================================================================= */
+.pi-section-label-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 2em;
+}
+.pi-section-label-row .pi-sl-marker {
+  width: 3px; height: 18px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.pi-sl-marker-cyan {
+  background: linear-gradient(180deg, var(--accent-cyan), rgba(57,210,192,0.4));
+}
+.pi-sl-marker-green {
+  background: linear-gradient(180deg, var(--accent-green), rgba(63,185,80,0.4));
+}
+.pi-sl-marker-blue {
+  background: linear-gradient(180deg, var(--accent-blue), rgba(88,166,255,0.4));
+}
+.pi-sl-marker-purple {
+  background: linear-gradient(180deg, var(--accent-purple), rgba(188,140,255,0.4));
+}
+.pi-section-label-row .pi-sl-text {
+  font-size: 0.88em;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.pi-section-label-row .pi-sl-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* =================================================================
+   GLASSMORPHISM CARD
+   ================================================================= */
+.pi-card {
+  background: rgba(22,27,34,0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(48,54,61,0.6);
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pi-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, var(--accent-cyan), rgba(88,166,255,0.3));
+  opacity: 0.5;
+  transition: opacity 0.35s;
+}
+.pi-card:hover {
+  border-color: rgba(57,210,192,0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.3), 0 0 40px rgba(57,210,192,0.05);
+}
+.pi-card:hover::before { opacity: 1; }
+
+/* Card color variants */
+.pi-card.pi-card--blue::before {
+  background: linear-gradient(90deg, var(--accent-blue), rgba(88,166,255,0.3));
+}
+.pi-card.pi-card--blue:hover { border-color: rgba(88,166,255,0.15); }
+.pi-card.pi-card--green::before {
+  background: linear-gradient(90deg, var(--accent-green), rgba(63,185,80,0.3));
+}
+.pi-card.pi-card--green:hover { border-color: rgba(63,185,80,0.15); }
+.pi-card.pi-card--orange::before {
+  background: linear-gradient(90deg, var(--accent-orange), rgba(210,153,34,0.3));
+}
+.pi-card.pi-card--orange:hover { border-color: rgba(210,153,34,0.15); }
+.pi-card.pi-card--purple::before {
+  background: linear-gradient(90deg, var(--accent-purple), rgba(188,140,255,0.3));
+}
+.pi-card.pi-card--purple:hover {
+  border-color: rgba(188,140,255,0.15);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.3), 0 0 40px rgba(188,140,255,0.05);
+}
+
+/* =================================================================
+   PIPELINE SECTION — Connected animated flow
+   ================================================================= */
+.pi-pipeline {
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+  margin-bottom: 3.5em;
+  position: relative;
+}
+.pi-pipeline-step {
+  flex: 1;
+  padding: 24px 20px;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+}
+.pi-pipeline-step-icon {
+  width: 52px; height: 52px;
+  margin: 0 auto 14px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 14px;
+  position: relative;
+  transition: all 0.3s ease;
+}
+.pi-pipeline-step-icon svg {
+  width: 24px; height: 24px;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+
+/* Step icon color states */
+.pi-pipeline-step[data-step="1"] .pi-pipeline-step-icon {
+  background: rgba(57,210,192,0.08);
+  border: 1px solid rgba(57,210,192,0.2);
+}
+.pi-pipeline-step[data-step="1"] .pi-pipeline-step-icon svg { stroke: var(--accent-cyan); }
+
+.pi-pipeline-step[data-step="2"] .pi-pipeline-step-icon {
+  background: rgba(88,166,255,0.08);
+  border: 1px solid rgba(88,166,255,0.2);
+}
+.pi-pipeline-step[data-step="2"] .pi-pipeline-step-icon svg { stroke: var(--accent-blue); }
+
+.pi-pipeline-step[data-step="3"] .pi-pipeline-step-icon {
+  background: rgba(63,185,80,0.08);
+  border: 1px solid rgba(63,185,80,0.2);
+}
+.pi-pipeline-step[data-step="3"] .pi-pipeline-step-icon svg { stroke: var(--accent-green); }
+
+.pi-pipeline-step[data-step="4"] .pi-pipeline-step-icon {
+  background: rgba(188,140,255,0.08);
+  border: 1px solid rgba(188,140,255,0.2);
+}
+.pi-pipeline-step[data-step="4"] .pi-pipeline-step-icon svg { stroke: var(--accent-purple); }
+
+.pi-pipeline-step:hover .pi-pipeline-step-icon {
+  transform: translateY(-2px);
+}
+
+.pi-pipeline-step-num {
+  font: 700 0.65em 'JetBrains Mono', monospace;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+}
+.pi-pipeline-step[data-step="1"] .pi-pipeline-step-num { color: var(--accent-cyan); }
+.pi-pipeline-step[data-step="2"] .pi-pipeline-step-num { color: var(--accent-blue); }
+.pi-pipeline-step[data-step="3"] .pi-pipeline-step-num { color: var(--accent-green); }
+.pi-pipeline-step[data-step="4"] .pi-pipeline-step-num { color: var(--accent-purple); }
+
+.pi-pipeline-step-title {
+  font-size: 0.92em;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 6px;
+}
+.pi-pipeline-step-desc {
+  font-size: 0.78em;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  max-width: 200px;
+  margin: 0 auto;
+}
+.pi-pipeline-step-tag {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 2px 10px;
+  border-radius: 12px;
+  font: 600 0.68em 'JetBrains Mono', monospace;
+  letter-spacing: 0.3px;
+}
+.pi-pipeline-step[data-step="1"] .pi-pipeline-step-tag {
+  background: rgba(57,210,192,0.08); color: var(--accent-cyan);
+  border: 1px solid rgba(57,210,192,0.15);
+}
+.pi-pipeline-step[data-step="2"] .pi-pipeline-step-tag {
+  background: rgba(88,166,255,0.08); color: var(--accent-blue);
+  border: 1px solid rgba(88,166,255,0.15);
+}
+.pi-pipeline-step[data-step="3"] .pi-pipeline-step-tag {
+  background: rgba(63,185,80,0.08); color: var(--accent-green);
+  border: 1px solid rgba(63,185,80,0.15);
+}
+.pi-pipeline-step[data-step="4"] .pi-pipeline-step-tag {
+  background: rgba(188,140,255,0.08); color: var(--accent-purple);
+  border: 1px solid rgba(188,140,255,0.15);
+}
+
+/* Pipeline connectors */
+.pi-pipeline-connector {
+  flex: 0 0 auto;
+  width: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-top: 36px;
+  position: relative;
+}
+.pi-pipeline-connector-line {
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(57,210,192,0.3), rgba(88,166,255,0.3));
+  position: relative;
+  overflow: hidden;
+  border-radius: 1px;
+}
+.pi-pipeline-connector-line::after {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%; width: 40%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(57,210,192,0.8), transparent);
+  animation: piFlowPulse 2.5s ease-in-out infinite;
+}
+@keyframes piFlowPulse {
+  0%   { left: -40%; }
+  100% { left: 140%; }
+}
+.pi-pipeline-connector-arrow {
+  position: absolute;
+  right: -3px;
+  width: 0; height: 0;
+  border-top: 4px solid transparent;
+  border-bottom: 4px solid transparent;
+  border-left: 6px solid rgba(57,210,192,0.4);
+}
+
+/* =================================================================
+   PATIENT HEADER (Avatar + ID + Basic Info)
+   ================================================================= */
+.pi-patient-header {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 2em;
+  padding: 28px 32px;
+}
+
+.pi-avatar-frame {
+  flex: 0 0 auto;
+  position: relative;
+}
+.pi-avatar-img {
+  width: 120px; height: 120px;
+  image-rendering: pixelated;
+  border-radius: 20px;
+  padding: 10px;
+  background: rgba(57,210,192,0.04);
+  border: 2px solid rgba(57,210,192,0.3);
+  transition: all 0.3s ease;
+}
+.pi-patient-header:hover .pi-avatar-img {
+  border-color: rgba(57,210,192,0.5);
+  box-shadow: 0 0 32px rgba(57,210,192,0.15);
+}
+.pi-avatar-glow {
+  position: absolute;
+  inset: -8px;
+  border-radius: 26px;
+  background: radial-gradient(circle at center, rgba(57,210,192,0.08) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: -1;
+}
+
+.pi-patient-meta { flex: 1; }
+.pi-patient-id {
+  font: 700 0.75em 'JetBrains Mono', monospace;
+  color: var(--accent-cyan);
+  letter-spacing: 1px;
+  margin-bottom: 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.pi-patient-id-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--accent-cyan);
+  animation: piPipPulse 2s ease-in-out infinite;
+}
+.pi-patient-name {
+  font-size: 1.6em;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+.pi-patient-summary {
+  font-size: 0.92em;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.pi-patient-summary strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.pi-patient-quick-stats {
+  flex: 0 0 auto;
+  display: flex;
+  gap: 16px;
+}
+.pi-quick-stat {
+  text-align: center;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.2);
+  border: 1px solid rgba(48,54,61,0.4);
+  min-width: 72px;
+}
+.pi-quick-stat-val {
+  font: 700 1.3em 'JetBrains Mono', monospace;
+  color: var(--accent-cyan);
+  line-height: 1.2;
+}
+.pi-quick-stat-label {
+  font-size: 0.7em;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  margin-top: 2px;
+}
+
+/* =================================================================
+   INFO CARDS — 2x2 GRID
+   ================================================================= */
+.pi-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 2em;
+}
+
+.pi-info-card {
+  padding: 22px 24px;
+}
+.pi-info-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.pi-info-card-icon {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+.pi-info-card-icon svg {
+  width: 18px; height: 18px;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+.pi-info-card-icon.icon-cyan {
+  background: rgba(57,210,192,0.08);
+  border: 1px solid rgba(57,210,192,0.15);
+}
+.pi-info-card-icon.icon-cyan svg { stroke: var(--accent-cyan); }
+.pi-info-card-icon.icon-blue {
+  background: rgba(88,166,255,0.08);
+  border: 1px solid rgba(88,166,255,0.15);
+}
+.pi-info-card-icon.icon-blue svg { stroke: var(--accent-blue); }
+.pi-info-card-icon.icon-green {
+  background: rgba(63,185,80,0.08);
+  border: 1px solid rgba(63,185,80,0.15);
+}
+.pi-info-card-icon.icon-green svg { stroke: var(--accent-green); }
+.pi-info-card-icon.icon-orange {
+  background: rgba(210,153,34,0.08);
+  border: 1px solid rgba(210,153,34,0.15);
+}
+.pi-info-card-icon.icon-orange svg { stroke: var(--accent-orange); }
+
+.pi-info-card-title {
+  font: 700 0.72em 'JetBrains Mono', monospace;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+
+.pi-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 6px 0;
+  border-bottom: 1px solid rgba(48,54,61,0.3);
+  font-size: 0.88em;
+}
+.pi-info-row:last-child { border-bottom: none; }
+.pi-info-key {
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.pi-info-val {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+  color: var(--text-primary);
+  text-align: right;
+}
+.pi-info-val.accent-cyan { color: var(--accent-cyan); }
+.pi-info-val.accent-green { color: var(--accent-green); }
+
+/* =================================================================
+   PERSONA CARD — Full width, purple accent
+   ================================================================= */
+.pi-persona-section {
+  margin-bottom: 2em;
+}
+
+.pi-persona-card {
+  padding: 28px 32px;
+}
+.pi-persona-card::before {
+  background: linear-gradient(90deg, var(--accent-purple), rgba(188,140,255,0.3)) !important;
+}
+
+.pi-persona-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 18px;
+}
+.pi-persona-icon {
+  width: 42px; height: 42px;
+  display: flex; align-items: center; justify-content: center;
+  border-radius: 12px;
+  background: rgba(188,140,255,0.08);
+  border: 1px solid rgba(188,140,255,0.2);
+  flex-shrink: 0;
+}
+.pi-persona-icon svg {
+  width: 20px; height: 20px;
+  stroke: var(--accent-purple);
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  fill: none;
+}
+.pi-persona-title-group { flex: 1; }
+.pi-persona-label {
+  font: 700 0.72em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  margin-bottom: 4px;
+}
+.pi-persona-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, rgba(188,140,255,0.12), rgba(188,140,255,0.06));
+  border: 1px solid rgba(188,140,255,0.25);
+  color: var(--accent-purple);
+  font: 700 0.92em 'JetBrains Mono', monospace;
+  letter-spacing: 0.5px;
+}
+
+.pi-persona-desc {
+  font-size: 0.92em;
+  color: var(--text-secondary);
+  line-height: 1.7;
+  margin-bottom: 20px;
+  padding: 16px 20px;
+  border-left: 3px solid rgba(188,140,255,0.3);
+  background: rgba(188,140,255,0.02);
+  border-radius: 0 10px 10px 0;
+  font-style: italic;
+}
+
+.pi-persona-tags {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pi-persona-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 14px;
+  border-radius: 20px;
+  font: 600 0.78em 'JetBrains Mono', monospace;
+  transition: all 0.25s ease;
+}
+.pi-persona-tag.tag-orange {
+  color: var(--accent-orange);
+  background: rgba(210,153,34,0.06);
+  border: 1px solid rgba(210,153,34,0.18);
+}
+.pi-persona-tag.tag-orange:hover {
+  background: rgba(210,153,34,0.12);
+  border-color: rgba(210,153,34,0.3);
+}
+.pi-persona-tag-icon {
+  width: 4px; height: 4px; border-radius: 50%;
+  flex-shrink: 0;
+}
+.pi-persona-tag.tag-orange .pi-persona-tag-icon {
+  background: var(--accent-orange);
+}
+
+/* =================================================================
+   MOOD DIMENSIONS (7D)
+   ================================================================= */
+.pi-mood-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 2em;
+}
+.pi-mood-item {
+  text-align: center;
+  padding: 16px 8px;
+}
+.pi-mood-bar-wrap {
+  width: 6px;
+  height: 56px;
+  background: rgba(48,54,61,0.4);
+  border-radius: 3px;
+  margin: 0 auto 10px;
+  position: relative;
+  overflow: hidden;
+}
+.pi-mood-bar-fill {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  border-radius: 3px;
+  transition: height 1s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.pi-mood-val {
+  font: 700 0.85em 'JetBrains Mono', monospace;
+  margin-bottom: 4px;
+}
+.pi-mood-label {
+  font-size: 0.68em;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* =================================================================
+   AI NOTICE
+   ================================================================= */
+.pi-ai-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 32px;
+  padding: 14px 20px;
+  border: 1px solid rgba(48,54,61,0.3);
+  border-radius: 12px;
+  font: 400 0.82em/1.6 'JetBrains Mono', 'SF Mono', monospace;
+  color: var(--text-muted);
+  opacity: 0.6;
+  letter-spacing: 0.2px;
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+  text-align: left;
+}
+.pi-ai-notice svg {
+  flex-shrink: 0; width: 16px; height: 16px; opacity: 0.7;
+  margin-top: 1px;
+}
+.pi-ai-notice strong {
+  color: var(--text-secondary); font-weight: 600; opacity: 0.85;
+}
+
+/* =================================================================
+   RESPONSIVE
+   ================================================================= */
+@media (max-width: 900px) {
+  .pi-hero-title { font-size: 2.2em; }
+  .pi-pipeline { flex-direction: column; align-items: stretch; gap: 0; }
+  .pi-pipeline-connector {
+    width: auto; height: 32px;
+    padding: 0; justify-content: center;
   }
-  .gen-btn:hover { background: rgba(57,210,192,0.18); border-color: var(--accent-cyan); }
-  .gen-btn svg { width: 16px; height: 16px; }
+  .pi-pipeline-connector-line {
+    width: 2px; height: 100%;
+  }
+  .pi-pipeline-connector-line::after {
+    width: 100%; height: 40%; left: 0; top: -40%;
+    background: linear-gradient(180deg, transparent, rgba(57,210,192,0.8), transparent);
+    animation: piFlowPulseV 2.5s ease-in-out infinite;
+  }
+  .pi-pipeline-connector-arrow {
+    bottom: -3px; right: auto;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 6px solid rgba(57,210,192,0.4);
+    border-bottom: none;
+  }
+  .pi-info-grid { grid-template-columns: 1fr; }
+  .pi-patient-header { flex-direction: column; text-align: center; padding: 20px; }
+  .pi-patient-quick-stats { justify-content: center; }
+  .pi-mood-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (max-width: 600px) {
+  .pi-main { padding: 0 16px 3em; }
+  .pi-hero { padding: 2.5em 0 1.5em; }
+  .pi-hero-title { font-size: 1.8em; }
+  .pi-hero-badges { gap: 6px; }
+  .pi-hero-badge { font-size: 0.8em; padding: 5px 10px; }
+  .pi-pipeline-step { padding: 16px 12px; }
+  .pi-mood-grid { grid-template-columns: repeat(4, 1fr); gap: 4px; }
+  .pi-persona-card { padding: 20px; }
+}
+@keyframes piFlowPulseV {
+  0%   { top: -40%; }
+  100% { top: 140%; }
+}
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="page-wrap">
-  {% include "demo/_sim_stepper.html" with current_step=2 stepper_part="top" %}
+<!-- Aurora Mesh Gradient BG -->
+<div class="pi-aurora-bg"></div>
 
-  <div class="page-title">Patient Initialization</div>
-  <div class="page-subtitle">
-    LLM&rarr;rand&rarr;LLM pipeline generates a single patient for Etoposide + Cisplatin (ES-SCLC)
+<!-- Dot Grid -->
+<div class="pi-dot-grid"></div>
+
+<div style="max-width:1200px;margin:0 auto;padding:40px 32px 0;">
+{% include "demo/_sim_stepper.html" with current_step=2 stepper_part="top" %}
+</div>
+
+<div class="pi-main">
+
+<!-- ============================================================
+     HERO SECTION
+     ============================================================ -->
+<section class="pi-hero">
+  <div class="pi-hero-overline">
+    <span class="pi-pulse-pip"></span>
+    Phase 1 &middot; Patient Initialization
   </div>
 
-  <!-- Pipeline Steps -->
-  <div class="pipeline-steps">
-    <div class="pipeline-step active">
-      <div class="step-num">Step 1</div>
-      <div class="step-title">Demographics</div>
-      <div class="step-desc">Sample age, sex, race, BMI from rule-set distributions (code-only, no LLM)</div>
-    </div>
-    <div class="pipeline-arrow">&rarr;</div>
-    <div class="pipeline-step active">
-      <div class="step-num">Step 2</div>
-      <div class="step-title">Comorbidities</div>
-      <div class="step-desc">LLM adjusts probabilities based on demographics; Sampler draws conditions</div>
-    </div>
-    <div class="pipeline-arrow">&rarr;</div>
-    <div class="pipeline-step active">
-      <div class="step-num">Step 3</div>
-      <div class="step-title">Baseline</div>
-      <div class="step-desc">LLM generates internally consistent labs, vitals, and disease baseline</div>
-    </div>
-    <div class="pipeline-arrow">&rarr;</div>
-    <div class="pipeline-step active">
-      <div class="step-num">Step 4</div>
-      <div class="step-title">Persona</div>
-      <div class="step-desc">LLM assigns behavioral archetype governing symptom reporting throughout trial</div>
+  <div class="pi-hero-icon">
+    <div class="pi-hero-icon-inner">
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="url(#piGrad)" stroke-width="1.8">
+        <defs>
+          <linearGradient id="piGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" stop-color="#39d2c0"/>
+            <stop offset="100%" stop-color="#58a6ff"/>
+          </linearGradient>
+        </defs>
+        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+        <circle cx="12" cy="7" r="4"/>
+      </svg>
     </div>
   </div>
 
-  <!-- Patient Avatar + Speech Bubble -->
-  <div class="patient-showcase">
-    <div class="avatar-section">
-      <img src="{% static 'assets/characters/patient_01.png' %}" class="avatar-img" id="patientAvatar">
-      <div class="avatar-label">PT-001</div>
+  <h1 class="pi-hero-title">
+    <span class="pi-title-line">
+      <span class="pi-word pi-word-accent" style="animation-delay:0.1s">Patient Generation</span>
+    </span>
+    <span class="pi-title-line-sub">
+      <span class="pi-word pi-word-dim" style="animation-delay:0.26s">LLM</span>
+      <span class="pi-word pi-word-dim" style="animation-delay:0.32s">&rarr;</span>
+      <span class="pi-word pi-word-dim" style="animation-delay:0.38s">rand()</span>
+      <span class="pi-word pi-word-dim" style="animation-delay:0.44s">&rarr;</span>
+      <span class="pi-word pi-word-dim" style="animation-delay:0.50s">LLM</span>
+      <span class="pi-word pi-word-dim" style="animation-delay:0.60s">Pipeline</span>
+    </span>
+  </h1>
+
+  <p class="pi-hero-subtitle">
+    Generate <strong>clinically consistent virtual patients</strong> through a 4-step pipeline.
+    Demographics and comorbidities are sampled from <strong>rule-set distributions</strong>,
+    then LLM synthesizes internally coherent baselines and behavioral personas.
+  </p>
+
+  <div class="pi-hero-badges">
+    <div class="pi-hero-badge"><span class="bv">Gemini</span> 2.0 Flash</div>
+    <div class="pi-hero-badge blue"><span class="bv">Seed</span>-based Reproducible</div>
+    <div class="pi-hero-badge green"><span class="bv">Drug</span>-agnostic</div>
+    <div class="pi-hero-badge"><span class="bv">7D</span> Persona Model</div>
+  </div>
+</section>
+
+
+<!-- ============================================================
+     GENERATION PIPELINE
+     ============================================================ -->
+<div class="pi-section-label-row pi-reveal">
+  <span class="pi-sl-marker pi-sl-marker-cyan"></span>
+  <span class="pi-sl-text">Generation Pipeline</span>
+  <span class="pi-sl-line"></span>
+</div>
+
+<div class="pi-pipeline pi-reveal pi-reveal-d1">
+  <!-- Step 1: Demographics -->
+  <div class="pi-pipeline-step" data-step="1">
+    <div class="pi-pipeline-step-icon">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
     </div>
+    <div class="pi-pipeline-step-num">Step 1</div>
+    <div class="pi-pipeline-step-title">Demographics</div>
+    <div class="pi-pipeline-step-desc">Sample age, sex, race, BMI from rule-set probability distributions</div>
+    <span class="pi-pipeline-step-tag">Code Only</span>
+  </div>
 
-    <div class="speech-bubble">
-      <div class="info-grid" id="patientInfo">
-        <div class="info-section">
-          <div class="info-section-title">Demographics</div>
-          <div class="info-row"><span class="info-key">Age</span><span class="info-val">71</span></div>
-          <div class="info-row"><span class="info-key">Sex</span><span class="info-val">Male</span></div>
-          <div class="info-row"><span class="info-key">Race</span><span class="info-val">Unknown</span></div>
-          <div class="info-row"><span class="info-key">BMI</span><span class="info-val">26.7</span></div>
-          <div class="info-row"><span class="info-key">ECOG PS</span><span class="info-val">1</span></div>
-        </div>
+  <!-- Connector -->
+  <div class="pi-pipeline-connector">
+    <div class="pi-pipeline-connector-line">
+      <div class="pi-pipeline-connector-arrow"></div>
+    </div>
+  </div>
 
-        <div class="info-section">
-          <div class="info-section-title">Disease Baseline</div>
-          <div class="info-row"><span class="info-key">Primary</span><span class="info-val">ES-SCLC</span></div>
-          <div class="info-row"><span class="info-key">Stage</span><span class="info-val">IV</span></div>
-          <div class="info-row"><span class="info-key">Drug</span><span class="info-val accent">Etoposide + Cisplatin</span></div>
-        </div>
+  <!-- Step 2: Comorbidities -->
+  <div class="pi-pipeline-step" data-step="2">
+    <div class="pi-pipeline-step-icon">
+      <svg viewBox="0 0 24 24"><path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg>
+    </div>
+    <div class="pi-pipeline-step-num">Step 2</div>
+    <div class="pi-pipeline-step-title">Comorbidities</div>
+    <div class="pi-pipeline-step-desc">LLM adjusts base probabilities given demographics; sampler draws conditions</div>
+    <span class="pi-pipeline-step-tag">LLM + rand()</span>
+  </div>
 
-        <div class="info-section">
-          <div class="info-section-title">Baseline Labs</div>
-          <div class="info-row"><span class="info-key">Hemoglobin</span><span class="info-val">14.5 g/dL</span></div>
-          <div class="info-row"><span class="info-key">WBC</span><span class="info-val">6.2 &times;10<sup>9</sup>/L</span></div>
-          <div class="info-row"><span class="info-key">Platelets</span><span class="info-val">250 &times;10<sup>9</sup>/L</span></div>
-          <div class="info-row"><span class="info-key">Creatinine</span><span class="info-val">0.9 mg/dL</span></div>
-        </div>
+  <!-- Connector -->
+  <div class="pi-pipeline-connector">
+    <div class="pi-pipeline-connector-line">
+      <div class="pi-pipeline-connector-arrow"></div>
+    </div>
+  </div>
 
-        <div class="info-section">
-          <div class="info-section-title">Baseline Vitals</div>
-          <div class="info-row"><span class="info-key">BP</span><span class="info-val">130/80 mmHg</span></div>
-          <div class="info-row"><span class="info-key">HR</span><span class="info-val">75 bpm</span></div>
-          <div class="info-row"><span class="info-key">Temp</span><span class="info-val">36.8&deg;C</span></div>
-          <div class="info-row"><span class="info-key">SpO2</span><span class="info-val">95%</span></div>
-          <div class="info-row"><span class="info-key">Weight</span><span class="info-val">82.0 kg</span></div>
-        </div>
+  <!-- Step 3: Baseline -->
+  <div class="pi-pipeline-step" data-step="3">
+    <div class="pi-pipeline-step-icon">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+    </div>
+    <div class="pi-pipeline-step-num">Step 3</div>
+    <div class="pi-pipeline-step-title">Baseline</div>
+    <div class="pi-pipeline-step-desc">LLM generates internally consistent labs, vitals, and disease baseline</div>
+    <span class="pi-pipeline-step-tag">LLM</span>
+  </div>
 
-        <div class="info-section persona-card">
-          <div class="info-section-title">Persona &amp; Reporting Behavior</div>
-          <div class="persona-type">minimizer</div>
-          <div class="persona-desc">
-            This 71-year-old gentleman tends to downplay his symptoms, often attributing them to old age or other benign causes.
-            He is generally stoic and prefers to avoid dwelling on health concerns, focusing instead on maintaining his independence.
-            He may underreport symptoms to avoid potential medical interventions.
-          </div>
-          <div style="margin-top:10px;display:flex;gap:12px;flex-wrap:wrap;">
-            <span style="font:0.7em 'JetBrains Mono',monospace;color:var(--accent-orange);padding:2px 8px;background:rgba(210,153,34,0.08);border-radius:4px;">pain: minimizes</span>
-            <span style="font:0.7em 'JetBrains Mono',monospace;color:var(--accent-orange);padding:2px 8px;background:rgba(210,153,34,0.08);border-radius:4px;">fatigue: attributes_to_age</span>
-            <span style="font:0.7em 'JetBrains Mono',monospace;color:var(--accent-orange);padding:2px 8px;background:rgba(210,153,34,0.08);border-radius:4px;">skin: reports_only_if_asked</span>
-          </div>
+  <!-- Connector -->
+  <div class="pi-pipeline-connector">
+    <div class="pi-pipeline-connector-line">
+      <div class="pi-pipeline-connector-arrow"></div>
+    </div>
+  </div>
+
+  <!-- Step 4: Persona -->
+  <div class="pi-pipeline-step" data-step="4">
+    <div class="pi-pipeline-step-icon">
+      <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+    </div>
+    <div class="pi-pipeline-step-num">Step 4</div>
+    <div class="pi-pipeline-step-title">Persona</div>
+    <div class="pi-pipeline-step-desc">Assign behavioral archetype governing symptom reporting behavior</div>
+    <span class="pi-pipeline-step-tag">rand() + LLM</span>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     PATIENT SHOWCASE — Header Card (Avatar + Name + Quick Stats)
+     ============================================================ -->
+<div class="pi-section-label-row pi-reveal">
+  <span class="pi-sl-marker pi-sl-marker-green"></span>
+  <span class="pi-sl-text">Generated Patient</span>
+  <span class="pi-sl-line"></span>
+</div>
+
+<div class="pi-card pi-reveal pi-reveal-d1 pi-patient-header" id="patientHeader">
+  <div class="pi-avatar-frame">
+    <div class="pi-avatar-glow"></div>
+    <img src="{% static 'assets/characters/patient_01.png' %}" class="pi-avatar-img" id="patientAvatar" alt="Patient avatar">
+  </div>
+
+  <div class="pi-patient-meta">
+    <div class="pi-patient-id">
+      <span class="pi-patient-id-dot"></span>
+      PT-001
+    </div>
+    <div class="pi-patient-name">Virtual Patient</div>
+    <div class="pi-patient-summary">
+      <strong>71-year-old Male</strong> &mdash; Extensive-stage Small Cell Lung Cancer (ES-SCLC)
+      <br>Enrolled in <strong>Etoposide + Cisplatin</strong> trial &middot; ECOG PS 1
+    </div>
+  </div>
+
+  <div class="pi-patient-quick-stats">
+    <div class="pi-quick-stat">
+      <div class="pi-quick-stat-val">71</div>
+      <div class="pi-quick-stat-label">Age</div>
+    </div>
+    <div class="pi-quick-stat">
+      <div class="pi-quick-stat-val" style="color:var(--accent-blue);">M</div>
+      <div class="pi-quick-stat-label">Sex</div>
+    </div>
+    <div class="pi-quick-stat">
+      <div class="pi-quick-stat-val" style="color:var(--accent-green);">1</div>
+      <div class="pi-quick-stat-label">ECOG</div>
+    </div>
+    <div class="pi-quick-stat">
+      <div class="pi-quick-stat-val" style="color:var(--accent-orange);">26.7</div>
+      <div class="pi-quick-stat-label">BMI</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     INFO CARDS — 2x2 Grid (Demographics, Disease, Labs, Vitals)
+     ============================================================ -->
+<div class="pi-info-grid">
+  <!-- Demographics Card -->
+  <div class="pi-card pi-reveal pi-reveal-d1 pi-info-card">
+    <div class="pi-info-card-header">
+      <div class="pi-info-card-icon icon-cyan">
+        <svg viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      </div>
+      <div class="pi-info-card-title">Demographics</div>
+    </div>
+    <div class="pi-info-row"><span class="pi-info-key">Age</span><span class="pi-info-val">71</span></div>
+    <div class="pi-info-row"><span class="pi-info-key">Sex</span><span class="pi-info-val">Male</span></div>
+    <div class="pi-info-row"><span class="pi-info-key">Race</span><span class="pi-info-val">Unknown</span></div>
+    <div class="pi-info-row"><span class="pi-info-key">BMI</span><span class="pi-info-val">26.7</span></div>
+    <div class="pi-info-row"><span class="pi-info-key">ECOG PS</span><span class="pi-info-val accent-cyan">1</span></div>
+  </div>
+
+  <!-- Disease Baseline Card -->
+  <div class="pi-card pi-card--blue pi-reveal pi-reveal-d2 pi-info-card">
+    <div class="pi-info-card-header">
+      <div class="pi-info-card-icon icon-blue">
+        <svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+      </div>
+      <div class="pi-info-card-title">Disease Baseline</div>
+    </div>
+    <div class="pi-info-row"><span class="pi-info-key">Primary</span><span class="pi-info-val">ES-SCLC</span></div>
+    <div class="pi-info-row"><span class="pi-info-key">Stage</span><span class="pi-info-val">IV</span></div>
+    <div class="pi-info-row"><span class="pi-info-key">Drug</span><span class="pi-info-val accent-cyan">Etoposide + Cisplatin</span></div>
+  </div>
+
+  <!-- Baseline Labs Card -->
+  <div class="pi-card pi-card--green pi-reveal pi-reveal-d3 pi-info-card">
+    <div class="pi-info-card-header">
+      <div class="pi-info-card-icon icon-green">
+        <svg viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
+      </div>
+      <div class="pi-info-card-title">Baseline Labs</div>
+    </div>
+    <div class="pi-info-row"><span class="pi-info-key">Hemoglobin</span><span class="pi-info-val">14.5 g/dL</span></div>
+    <div class="pi-info-row"><span class="pi-info-key">WBC</span><span class="pi-info-val">6.2 &times;10<sup>9</sup>/L</span></div>
+    <div class="pi-info-row"><span class="pi-info-key">Platelets</span><span class="pi-info-val">250 &times;10<sup>9</sup>/L</span></div>
+    <div class="pi-info-row"><span class="pi-info-key">Creatinine</span><span class="pi-info-val">0.9 mg/dL</span></div>
+  </div>
+
+  <!-- Baseline Vitals Card -->
+  <div class="pi-card pi-card--orange pi-reveal pi-reveal-d4 pi-info-card">
+    <div class="pi-info-card-header">
+      <div class="pi-info-card-icon icon-orange">
+        <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+      </div>
+      <div class="pi-info-card-title">Baseline Vitals</div>
+    </div>
+    <div class="pi-info-row"><span class="pi-info-key">Blood Pressure</span><span class="pi-info-val">130/80 mmHg</span></div>
+    <div class="pi-info-row"><span class="pi-info-key">Heart Rate</span><span class="pi-info-val">75 bpm</span></div>
+    <div class="pi-info-row"><span class="pi-info-key">Temperature</span><span class="pi-info-val">36.8&deg;C</span></div>
+    <div class="pi-info-row"><span class="pi-info-key">SpO2</span><span class="pi-info-val accent-green">95%</span></div>
+    <div class="pi-info-row"><span class="pi-info-key">Weight</span><span class="pi-info-val">82.0 kg</span></div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     PERSONA CARD — Full width, purple accent
+     ============================================================ -->
+<div class="pi-section-label-row pi-reveal">
+  <span class="pi-sl-marker pi-sl-marker-purple"></span>
+  <span class="pi-sl-text">Behavioral Persona</span>
+  <span class="pi-sl-line"></span>
+</div>
+
+<div class="pi-persona-section pi-reveal pi-reveal-d1">
+  <div class="pi-card pi-card--purple pi-persona-card">
+    <div class="pi-persona-header">
+      <div class="pi-persona-icon">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+      </div>
+      <div class="pi-persona-title-group">
+        <div class="pi-persona-label">Persona &amp; Reporting Behavior</div>
+        <div class="pi-persona-type-badge">
+          <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+          minimizer
         </div>
       </div>
     </div>
-  </div>
 
-  {% include "demo/_sim_stepper.html" with current_step=2 stepper_part="bottom" %}
+    <div class="pi-persona-desc">
+      "This 71-year-old gentleman tends to downplay his symptoms, often attributing them to old age or other benign causes.
+      He is generally stoic and prefers to avoid dwelling on health concerns, focusing instead on maintaining his independence.
+      He may underreport symptoms to avoid potential medical interventions."
+    </div>
+
+    <div class="pi-persona-tags">
+      <span class="pi-persona-tag tag-orange">
+        <span class="pi-persona-tag-icon"></span>
+        pain: minimizes
+      </span>
+      <span class="pi-persona-tag tag-orange">
+        <span class="pi-persona-tag-icon"></span>
+        fatigue: attributes_to_age
+      </span>
+      <span class="pi-persona-tag tag-orange">
+        <span class="pi-persona-tag-icon"></span>
+        skin: reports_only_if_asked
+      </span>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     7-DIMENSION MOOD BASELINE
+     ============================================================ -->
+<div class="pi-section-label-row pi-reveal">
+  <span class="pi-sl-marker pi-sl-marker-blue"></span>
+  <span class="pi-sl-text">7D Mood Baseline</span>
+  <span class="pi-sl-line"></span>
+</div>
+
+<div class="pi-card pi-card--blue pi-reveal pi-reveal-d1" style="padding:24px 16px;">
+  <div class="pi-mood-grid" id="piMoodGrid">
+    <div class="pi-mood-item" data-val="0.55" data-color="var(--accent-orange)">
+      <div class="pi-mood-bar-wrap"><div class="pi-mood-bar-fill" style="height:0%;background:var(--accent-orange);"></div></div>
+      <div class="pi-mood-val" style="color:var(--accent-orange);">0.55</div>
+      <div class="pi-mood-label">Anxiety</div>
+    </div>
+    <div class="pi-mood-item" data-val="0.30" data-color="var(--accent-blue)">
+      <div class="pi-mood-bar-wrap"><div class="pi-mood-bar-fill" style="height:0%;background:var(--accent-blue);"></div></div>
+      <div class="pi-mood-val" style="color:var(--accent-blue);">0.30</div>
+      <div class="pi-mood-label">Depression</div>
+    </div>
+    <div class="pi-mood-item" data-val="0.45" data-color="var(--accent-orange)">
+      <div class="pi-mood-bar-wrap"><div class="pi-mood-bar-fill" style="height:0%;background:var(--accent-orange);"></div></div>
+      <div class="pi-mood-val" style="color:var(--accent-orange);">0.45</div>
+      <div class="pi-mood-label">Fatigue</div>
+    </div>
+    <div class="pi-mood-item" data-val="0.25" data-color="var(--accent-green)">
+      <div class="pi-mood-bar-wrap"><div class="pi-mood-bar-fill" style="height:0%;background:var(--accent-green);"></div></div>
+      <div class="pi-mood-val" style="color:var(--accent-green);">0.25</div>
+      <div class="pi-mood-label">Irritability</div>
+    </div>
+    <div class="pi-mood-item" data-val="0.60" data-color="var(--accent-cyan)">
+      <div class="pi-mood-bar-wrap"><div class="pi-mood-bar-fill" style="height:0%;background:var(--accent-cyan);"></div></div>
+      <div class="pi-mood-val" style="color:var(--accent-cyan);">0.60</div>
+      <div class="pi-mood-label">Hopefulness</div>
+    </div>
+    <div class="pi-mood-item" data-val="0.65" data-color="var(--accent-purple)">
+      <div class="pi-mood-bar-wrap"><div class="pi-mood-bar-fill" style="height:0%;background:var(--accent-purple);"></div></div>
+      <div class="pi-mood-val" style="color:var(--accent-purple);">0.65</div>
+      <div class="pi-mood-label">Defensive</div>
+    </div>
+    <div class="pi-mood-item" data-val="0.40" data-color="var(--accent-blue)">
+      <div class="pi-mood-bar-wrap"><div class="pi-mood-bar-fill" style="height:0%;background:var(--accent-blue);"></div></div>
+      <div class="pi-mood-val" style="color:var(--accent-blue);">0.40</div>
+      <div class="pi-mood-label">Trust</div>
+    </div>
+  </div>
+</div>
+
+
+<!-- AI Disclaimer -->
+<div class="pi-ai-notice pi-reveal pi-reveal-d4">
+  <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 1L2 4v4c0 3.5 2.6 6.4 6 7 3.4-.6 6-3.5 6-7V4L8 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+    <circle cx="8" cy="6.5" r="0.8" fill="currentColor"/>
+    <path d="M8 8.5v2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  </svg>
+  Patient data is <strong>AI-generated</strong> using the LLM&rarr;rand()&rarr;LLM pipeline.
+  Demographics, labs, vitals, and persona are synthesized for simulation purposes only.
+  Not derived from real patient records.
+</div>
+
+{% include "demo/_sim_stepper.html" with current_step=2 stepper_part="bottom" %}
 
 </div>
+{% endblock %}
+
+{% block js_content %}
+<script>
+/* =================================================================
+   Patient Initialization — Scroll Reveal + Mood Bar Animation
+   ================================================================= */
+
+document.addEventListener('DOMContentLoaded', function() {
+  initScrollReveal();
+  animateMoodBars();
+});
+
+/* -- Scroll reveal (IntersectionObserver) -- */
+function initScrollReveal() {
+  var els = document.querySelectorAll('.pi-reveal');
+  if (!('IntersectionObserver' in window)) {
+    els.forEach(function(el) { el.classList.add('visible'); });
+    return;
+  }
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  els.forEach(function(el) { obs.observe(el); });
+}
+
+/* -- Mood bar fill animation (triggered when card enters viewport) -- */
+function animateMoodBars() {
+  var grid = document.getElementById('piMoodGrid');
+  if (!grid) return;
+
+  var items = grid.querySelectorAll('.pi-mood-item');
+  var animated = false;
+
+  if (!('IntersectionObserver' in window)) {
+    fillBars(items);
+    return;
+  }
+
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting && !animated) {
+        animated = true;
+        fillBars(items);
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.3 });
+  obs.observe(grid);
+}
+
+function fillBars(items) {
+  items.forEach(function(item, i) {
+    var val = parseFloat(item.dataset.val) || 0;
+    var bar = item.querySelector('.pi-mood-bar-fill');
+    if (bar) {
+      setTimeout(function() {
+        bar.style.height = (val * 100) + '%';
+      }, i * 100);
+    }
+  });
+}
+</script>
 {% endblock %}

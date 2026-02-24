@@ -239,7 +239,7 @@
   <div class="mode-pill">
     {% for m in available_modes %}
     <button class="mp-btn {% if m == 'natural' %}mp-natural{% elif m == 'care_ai' %}mp-care-ai{% endif %}{% if forloop.first %} active{% endif %}" data-mode="{{ m }}" onclick="switchStatsMode('{{ m }}')">
-      <span class="mp-dot"></span>{% if m == "natural" %}Natural{% elif m == "care_ai" %}Care AI{% else %}{{ m|title }}{% endif %}
+      <span class="mp-dot"></span>{% if m == "natural" %}Natural{% elif m == "care_ai" %}<span title="Data Collection Agent">DCA</span>{% else %}{{ m|title }}{% endif %}
     </button>
     {% endfor %}
   </div>

@@ -1095,8 +1095,8 @@
         <button class="mp-btn mp-natural{% if mode == 'natural' %} active{% endif %}" data-mode="natural" title="Natural course">
           <span class="mp-dot"></span>Natural
         </button>
-        <button class="mp-btn mp-care-ai{% if mode == 'care_ai' %} active{% endif %}" data-mode="care_ai" title="Care AI monitoring">
-          <span class="mp-dot"></span>Care AI
+        <button class="mp-btn mp-care-ai{% if mode == 'care_ai' %} active{% endif %}" data-mode="care_ai" title="Data Collection Agent">
+          <span class="mp-dot"></span>DCA
         </button>
       </div>
     </div>
@@ -2038,7 +2038,7 @@
       const c = t.content || {};
       const rowCls = isP ? 'is-patient' : 'is-nurse';
       const avatar = isP ? makePatientAvatar(patientId, sex, race) : AVATAR_NURSE;
-      const name = isP ? 'Patient' : 'Care AI Nurse';
+      const name = isP ? 'Patient' : 'DCA Nurse';
 
       if (!isP && t.turn === 4) {
         // T4: assessment card instead of chat bubble

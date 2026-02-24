@@ -8,7 +8,14 @@
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-  .cmp-wrap { max-width: 1200px; margin: 2em auto; padding: 0 20px; }
+  /* ═══════════════════════════════════════════════════════
+     A/B Comparison Dashboard — Aurora Redesign
+     ═══════════════════════════════════════════════════════ */
+
+  /* ── Layout ── */
+  .cmp-wrap {
+    max-width: 1200px; margin: 0 auto; padding: 0;
+  }
   .cmp-title {
     font-size: 1.6em; font-weight: 800; margin-bottom: 0.1em;
     background: var(--gradient-title);
@@ -18,96 +25,11 @@
   .cmp-sub { color: var(--text-secondary); font-size: 0.95em; margin-bottom: 1.5em; }
   .cmp-sub strong { color: var(--accent-orange); }
 
-  /* ── Summary Cards ── */
-  .card-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 12px; margin-bottom: 1.5em; }
-  .metric-card {
-    background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
-    padding: 16px; position: relative; overflow: hidden;
-    transition: all 0.2s ease;
-  }
-  .metric-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
-  }
-  .metric-card:hover {
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-glow-cyan);
-  }
-  .metric-card .label { font-size: 0.82em; text-transform: uppercase; letter-spacing: 1.2px;
-    color: var(--text-muted); font-weight: 700; margin-bottom: 8px; }
-  .metric-card .values { display: flex; justify-content: space-between; align-items: baseline; }
-  .metric-card .val { font-size: 1.4em; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-  .metric-card .val.nat { color: var(--text-secondary); }
-  .metric-card .val.ai { color: var(--accent-cyan); font-size: 1.5em; }
-  .metric-card .delta {
-    position: absolute; top: 8px; right: 10px;
-    font-size: 0.88em; font-weight: 700; padding: 3px 10px; border-radius: 10px;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .delta.good { background: rgba(57,210,192,0.15); color: var(--accent-green); }
-  .delta.bad { background: rgba(255,100,100,0.15); color: #ff6b6b; }
-  .delta.neutral { background: rgba(150,150,150,0.1); color: var(--text-muted); }
-  .metric-card .sub { font-size: 0.82em; color: var(--text-muted); margin-top: 6px; }
-
-  /* ── Charts ── */
-  .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 1.5em; }
-  .chart-box {
-    background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
-    padding: 16px; position: relative; overflow: hidden;
-  }
-  .chart-box::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
-  }
-  .chart-box h6 {
-    margin: 0 0 12px; font-size: 0.88em; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: 1px; font-weight: 700;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .chart-box h6::before {
-    content: ''; width: 3px; height: 14px; border-radius: 2px; flex-shrink: 0;
-    background: var(--gradient-title);
-  }
-  .chart-box canvas { width: 100% !important; max-height: 320px; }
-
-  /* ── Patient Table ── */
-  .ptable { width: 100%; border-collapse: collapse; font-size: 0.88em; margin-top: 1em;
-    border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
-  .ptable th {
-    text-align: left; padding: 12px 14px; font-weight: 700; font-size: 0.82em;
-    text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted);
-    border-bottom: 2px solid var(--border); background: var(--bg-secondary);
-    position: sticky; top: 0;
-  }
-  .ptable td { padding: 11px 14px; border-bottom: 1px solid rgba(48,54,61,0.5); }
-  .ptable tbody tr { transition: background 0.12s; }
-  .ptable tbody tr:hover td { background: rgba(57,210,192,0.05); }
-  .ptable tbody tr.row-ai { background: rgba(57,210,192,0.03); }
-  .ptable .mono { font-family: 'JetBrains Mono', monospace; }
-  .ptable .mode-nat { color: var(--text-secondary); }
-  .ptable .mode-ai { color: var(--accent-cyan); }
-  .ptable .g3 { color: #ff6b6b; font-weight: 700; }
-
-  /* ── Stats Box ── */
-  .stats-box {
-    background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
-    padding: 16px; margin-bottom: 1.5em; font-size: 0.92em;
-    border-left: 3px solid; border-image: var(--gradient-title) 1;
-  }
-  .stats-box h6 { margin: 0 0 10px; font-size: 0.88em; color: var(--text-muted);
-    text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
-  .stats-box .stat-row { display: flex; justify-content: space-between; padding: 4px 0;
-    border-bottom: 1px solid rgba(255,255,255,0.04); }
-  .stats-box .stat-label { color: var(--text-secondary); }
-  .stats-box .stat-val { font-family: 'JetBrains Mono', monospace; color: var(--text-primary); }
-  .sig { font-weight: 700; }
-  .sig.yes { color: var(--accent-green); text-shadow: 0 0 8px rgba(63,185,80,0.4); }
-  .sig.no { color: var(--text-muted); }
-
-  /* ── Section ── */
+  /* ── Section Divider ── */
   .sec-title {
-    font-size: 0.82em; text-transform: uppercase; letter-spacing: 2px;
-    color: var(--text-muted); font-weight: 700; margin: 1.5em 0 0.8em; padding-bottom: 0;
+    font-size: 0.78em; text-transform: uppercase; letter-spacing: 2.5px;
+    color: var(--text-muted); font-weight: 700;
+    margin: 2.5em 0 1.2em; padding-bottom: 0;
     border-bottom: none;
     display: flex; align-items: center; gap: 12px;
   }
@@ -117,24 +39,490 @@
   }
   .sec-title::after {
     content: ''; flex: 1; height: 1px;
-    background: var(--border);
+    background: linear-gradient(90deg, var(--border), transparent);
   }
 
-  /* ── AE Timeline ── */
-  .timeline-row { display: flex; align-items: center; margin-bottom: 3px; font-size: 0.88em; }
-  .timeline-label { width: 100px; flex-shrink: 0; font-family: 'JetBrains Mono', monospace;
-    color: var(--text-secondary); text-align: right; padding-right: 8px; }
-  .timeline-bar-wrap { flex: 1; height: 14px; position: relative; background: var(--bg-elevated);
-    border-radius: 3px; overflow: hidden; }
-  .timeline-bar { position: absolute; height: 100%; border-radius: 3px; min-width: 2px; }
-  .timeline-bar.g1 { background: #4ecdc4; }
-  .timeline-bar.g2 { background: #feca57; }
-  .timeline-bar.g3 { background: #ff6b6b; }
-  .timeline-bar.g4 { background: #ee5a24; }
+  /* ══════════════════════════════════════
+     1. HERO INSIGHT BANNER
+     ══════════════════════════════════════ */
+  .hero-banner {
+    position: relative; overflow: hidden;
+    background: linear-gradient(135deg, rgba(57,210,192,0.08) 0%, rgba(88,166,255,0.06) 50%, rgba(13,17,23,0.95) 100%);
+    border: 1px solid rgba(57,210,192,0.15);
+    border-radius: 16px;
+    padding: 40px 48px;
+    margin-bottom: 2.5em;
+  }
+  .hero-banner::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    opacity: 0.6; pointer-events: none;
+  }
+  .hero-banner::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue), var(--accent-purple), transparent);
+  }
+  .hero-eyebrow {
+    font-size: 0.72em; text-transform: uppercase; letter-spacing: 3px;
+    color: var(--accent-cyan); font-weight: 700; margin-bottom: 12px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .hero-eyebrow .pulse-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 8px var(--accent-cyan);
+    animation: pulse 2s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(1.4); }
+  }
+  .hero-headline {
+    font-size: 2.2em; font-weight: 800; line-height: 1.15;
+    color: var(--text-primary); margin-bottom: 8px;
+  }
+  .hero-headline .hl-number {
+    background: var(--gradient-title);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text;
+    font-size: 1.1em;
+  }
+  .hero-subline {
+    font-size: 1em; color: var(--text-secondary); line-height: 1.5;
+    max-width: 700px;
+  }
+  .hero-stats {
+    display: flex; gap: 40px; margin-top: 28px; flex-wrap: wrap;
+  }
+  .hero-stat {
+    display: flex; flex-direction: column;
+  }
+  .hero-stat-value {
+    font-size: 1.6em; font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--text-primary);
+  }
+  .hero-stat-value.positive { color: var(--accent-green); }
+  .hero-stat-value.negative { color: #ff6b6b; }
+  .hero-stat-value.cyan { color: var(--accent-cyan); }
+  .hero-stat-label {
+    font-size: 0.75em; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--text-muted); font-weight: 600; margin-top: 2px;
+  }
+  .hero-shield {
+    position: absolute; right: 48px; top: 50%; transform: translateY(-50%);
+    width: 120px; height: 120px; opacity: 0.06;
+  }
 
-  @media (max-width: 800px) {
-    .chart-row { grid-template-columns: 1fr; }
-    .card-grid { grid-template-columns: repeat(2, 1fr); }
+  /* ══════════════════════════════════════
+     2. SIDE-BY-SIDE COMPARISON CARDS
+     ══════════════════════════════════════ */
+  .vs-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px; margin-bottom: 2.5em;
+  }
+  .vs-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    position: relative; overflow: hidden;
+    transition: all 0.25s ease;
+  }
+  .vs-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+    opacity: 0.7;
+  }
+  .vs-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 24px rgba(57,210,192,0.1);
+    border-color: rgba(57,210,192,0.25);
+  }
+  .vs-card-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 16px;
+  }
+  .vs-card-label {
+    font-size: 0.78em; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--text-muted); font-weight: 700;
+  }
+  .vs-delta {
+    font-size: 0.82em; font-weight: 700; padding: 3px 10px; border-radius: 20px;
+    font-family: 'JetBrains Mono', monospace;
+    display: inline-flex; align-items: center; gap: 3px;
+  }
+  .vs-delta.good { background: rgba(63,185,80,0.12); color: var(--accent-green); }
+  .vs-delta.bad { background: rgba(255,100,100,0.12); color: #ff6b6b; }
+  .vs-delta.neutral { background: rgba(150,150,150,0.08); color: var(--text-muted); }
+
+  .vs-body {
+    display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px;
+    align-items: center;
+  }
+  .vs-side { text-align: center; }
+  .vs-side-label {
+    font-size: 0.7em; text-transform: uppercase; letter-spacing: 1.5px;
+    color: var(--text-muted); font-weight: 600; margin-bottom: 6px;
+  }
+  .vs-side-value {
+    font-size: 1.8em; font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    line-height: 1.1;
+  }
+  .vs-side.nat .vs-side-value { color: var(--text-secondary); }
+  .vs-side.ai .vs-side-value { color: var(--accent-cyan); text-shadow: 0 0 20px rgba(57,210,192,0.3); }
+  .vs-divider {
+    width: 1px; height: 48px;
+    background: linear-gradient(180deg, transparent, var(--border), transparent);
+    position: relative;
+  }
+  .vs-divider::after {
+    content: 'vs'; position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+    font-size: 0.65em; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-muted); font-weight: 700;
+    background: var(--bg-card); padding: 4px 0;
+  }
+
+  /* Progress bar beneath card */
+  .vs-bar-track {
+    height: 4px; background: var(--bg-elevated); border-radius: 2px;
+    margin-top: 16px; position: relative; overflow: hidden;
+  }
+  .vs-bar-fill {
+    height: 100%; border-radius: 2px;
+    transition: width 1.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .vs-bar-fill.nat { background: rgba(139,148,158,0.4); }
+  .vs-bar-fill.ai { background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue)); }
+  .vs-bar-pair {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+    margin-top: 14px;
+  }
+  .vs-bar-pair .vs-bar-track { margin-top: 0; }
+
+  .vs-sub {
+    font-size: 0.78em; color: var(--text-muted); margin-top: 10px;
+    text-align: center;
+  }
+
+  /* ══════════════════════════════════════
+     3. IMPROVED CHART CARDS
+     ══════════════════════════════════════ */
+  .chart-grid-2x2 {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    margin-bottom: 2.5em;
+  }
+  .chart-card {
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 24px;
+    position: relative; overflow: hidden;
+    transition: all 0.25s ease;
+  }
+  .chart-card:hover {
+    border-color: rgba(57,210,192,0.2);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+  }
+  .chart-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
+    opacity: 0.6;
+  }
+  .chart-card-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 16px;
+  }
+  .chart-card-title {
+    font-size: 0.82em; text-transform: uppercase; letter-spacing: 1.2px;
+    color: var(--text-muted); font-weight: 700;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .chart-card-title::before {
+    content: ''; width: 3px; height: 14px; border-radius: 2px; flex-shrink: 0;
+    background: var(--gradient-title);
+  }
+  .chart-card-stat {
+    text-align: right;
+  }
+  .chart-card-stat-value {
+    font-size: 1.3em; font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent-cyan);
+  }
+  .chart-card-stat-label {
+    font-size: 0.68em; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-muted); font-weight: 600;
+  }
+  .chart-card canvas { width: 100% !important; max-height: 280px; }
+
+  /* ══════════════════════════════════════
+     4. CARE AI IMPACT PANEL
+     ══════════════════════════════════════ */
+  .impact-panel {
+    background: linear-gradient(135deg, rgba(57,210,192,0.05), rgba(88,166,255,0.03));
+    border: 1px solid rgba(57,210,192,0.15);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 2.5em;
+    position: relative; overflow: hidden;
+  }
+  .impact-panel::before {
+    content: ''; position: absolute; inset: 0;
+    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
+    pointer-events: none;
+  }
+  .impact-panel::after {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue), var(--accent-purple));
+  }
+  .impact-header {
+    display: flex; align-items: center; gap: 16px; margin-bottom: 28px;
+  }
+  .impact-icon {
+    width: 48px; height: 48px; border-radius: 12px;
+    background: linear-gradient(135deg, rgba(57,210,192,0.15), rgba(88,166,255,0.1));
+    border: 1px solid rgba(57,210,192,0.2);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .impact-icon svg { width: 24px; height: 24px; stroke: var(--accent-cyan); fill: none; }
+  .impact-title-text {
+    font-size: 1.1em; font-weight: 700; color: var(--text-primary);
+  }
+  .impact-subtitle {
+    font-size: 0.82em; color: var(--text-secondary);
+  }
+
+  .impact-numbers {
+    display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px;
+    margin-bottom: 28px;
+  }
+  .impact-num-card {
+    background: rgba(13,17,23,0.4);
+    border: 1px solid rgba(48,54,61,0.5);
+    border-radius: 10px; padding: 16px; text-align: center;
+    transition: all 0.2s ease;
+  }
+  .impact-num-card:hover {
+    background: rgba(57,210,192,0.05);
+    border-color: rgba(57,210,192,0.2);
+  }
+  .impact-num-value {
+    font-size: 1.8em; font-weight: 800;
+    font-family: 'JetBrains Mono', monospace;
+    color: var(--accent-cyan);
+    text-shadow: 0 0 16px rgba(57,210,192,0.3);
+  }
+  .impact-num-label {
+    font-size: 0.72em; text-transform: uppercase; letter-spacing: 1.2px;
+    color: var(--text-muted); font-weight: 600; margin-top: 4px;
+    line-height: 1.3;
+  }
+  .impact-chart-area {
+    display: grid; grid-template-columns: 1fr; gap: 0;
+  }
+  .impact-chart-wrap {
+    background: rgba(13,17,23,0.3);
+    border: 1px solid rgba(48,54,61,0.4);
+    border-radius: 10px; padding: 20px;
+  }
+  .impact-chart-wrap canvas { width: 100% !important; max-height: 220px; }
+
+  /* ══════════════════════════════════════
+     5. STATISTICAL EVIDENCE CARDS
+     ══════════════════════════════════════ */
+  .evidence-grid {
+    display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 16px; margin-bottom: 2.5em;
+  }
+  .evidence-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    position: relative; overflow: hidden;
+    transition: all 0.25s ease;
+  }
+  .evidence-card:hover {
+    border-color: rgba(57,210,192,0.2);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+  }
+  .evidence-card-header {
+    display: flex; justify-content: space-between; align-items: center;
+    margin-bottom: 14px;
+  }
+  .evidence-card-title {
+    font-size: 0.82em; font-weight: 700; color: var(--text-secondary);
+    text-transform: capitalize;
+  }
+  .sig-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 0.75em; font-weight: 800; padding: 3px 10px; border-radius: 20px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .sig-badge.sig-high {
+    background: rgba(63,185,80,0.12); color: var(--accent-green);
+  }
+  .sig-badge.sig-mid {
+    background: rgba(210,153,34,0.12); color: var(--accent-orange);
+  }
+  .sig-badge.sig-none {
+    background: rgba(150,150,150,0.08); color: var(--text-muted);
+  }
+  .sig-stars { letter-spacing: 1px; }
+  .evidence-row {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 6px 0; border-bottom: 1px solid rgba(48,54,61,0.3);
+  }
+  .evidence-row:last-child { border-bottom: none; }
+  .evidence-label { font-size: 0.82em; color: var(--text-muted); }
+  .evidence-value {
+    font-size: 0.88em; font-family: 'JetBrains Mono', monospace;
+    color: var(--text-primary); font-weight: 600;
+  }
+  /* CI visual bar */
+  .ci-bar-container {
+    margin-top: 12px; padding-top: 12px;
+    border-top: 1px solid rgba(48,54,61,0.3);
+  }
+  .ci-bar-label {
+    font-size: 0.72em; text-transform: uppercase; letter-spacing: 1px;
+    color: var(--text-muted); margin-bottom: 8px; font-weight: 600;
+  }
+  .ci-bar-track {
+    height: 8px; background: var(--bg-elevated); border-radius: 4px;
+    position: relative; overflow: visible; margin: 0 8px;
+  }
+  .ci-bar-range {
+    position: absolute; height: 100%; border-radius: 4px;
+    background: linear-gradient(90deg, rgba(57,210,192,0.3), rgba(88,166,255,0.3));
+  }
+  .ci-bar-mean {
+    position: absolute; top: -3px; width: 3px; height: 14px; border-radius: 2px;
+    background: var(--accent-cyan);
+    box-shadow: 0 0 6px rgba(57,210,192,0.4);
+    transform: translateX(-50%);
+  }
+  .ci-bar-labels {
+    display: flex; justify-content: space-between; margin-top: 4px;
+    font-size: 0.7em; font-family: 'JetBrains Mono', monospace; color: var(--text-muted);
+  }
+
+  /* ══════════════════════════════════════
+     6. PATIENT COMPARISON TABLE
+     ══════════════════════════════════════ */
+  .table-container {
+    border: 1px solid var(--border); border-radius: 12px;
+    overflow: hidden; margin-bottom: 2.5em;
+    background: var(--bg-card);
+  }
+  .table-scroll {
+    overflow-x: auto; max-height: 600px; overflow-y: auto;
+  }
+  .ptable {
+    width: 100%; border-collapse: collapse; font-size: 0.86em;
+    border: none;
+  }
+  .ptable thead { position: sticky; top: 0; z-index: 5; }
+  .ptable th {
+    text-align: left; padding: 14px 16px; font-weight: 700; font-size: 0.78em;
+    text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted);
+    background: var(--bg-secondary); border-bottom: 2px solid var(--border);
+    white-space: nowrap;
+  }
+  .ptable td {
+    padding: 12px 16px; border-bottom: 1px solid rgba(48,54,61,0.3);
+    vertical-align: middle;
+  }
+  .ptable tbody tr { transition: background 0.12s; }
+  .ptable tbody tr:hover td { background: rgba(57,210,192,0.04); }
+  .ptable tbody tr.row-ai td { background: rgba(57,210,192,0.02); }
+  .ptable tbody tr.row-ai:hover td { background: rgba(57,210,192,0.06); }
+  .ptable tbody tr.row-divider td {
+    border-bottom: 2px solid rgba(48,54,61,0.5);
+  }
+  .ptable .mono {
+    font-family: 'JetBrains Mono', monospace; font-size: 0.95em;
+  }
+
+  /* Mode badges */
+  .mode-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font-size: 0.82em; font-weight: 600; padding: 3px 10px;
+    border-radius: 20px; white-space: nowrap;
+  }
+  .mode-badge.nat {
+    background: rgba(139,148,158,0.1); color: var(--text-secondary);
+  }
+  .mode-badge.ai {
+    background: rgba(57,210,192,0.1); color: var(--accent-cyan);
+  }
+
+  /* Status badges */
+  .status-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 0.82em; font-weight: 600; padding: 3px 10px;
+    border-radius: 20px; white-space: nowrap;
+  }
+  .status-badge.completed { background: rgba(63,185,80,0.1); color: var(--accent-green); }
+  .status-badge.deceased { background: rgba(255,100,100,0.1); color: #ff6b6b; }
+  .status-badge.discontinued { background: rgba(210,153,34,0.1); color: var(--accent-orange); }
+
+  /* Heat map cells */
+  .heat-low { color: var(--accent-green); }
+  .heat-mid { color: var(--accent-orange); }
+  .heat-high { color: #ff6b6b; font-weight: 700; }
+  .heat-zero { color: var(--text-muted); }
+
+  /* Patient ID group header */
+  .pt-id-cell {
+    font-weight: 700; color: var(--text-primary);
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  /* ══════════════════════════════════════
+     ANIMATIONS
+     ══════════════════════════════════════ */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-in {
+    animation: fadeInUp 0.5s ease forwards;
+    opacity: 0;
+  }
+  .animate-in:nth-child(1) { animation-delay: 0.05s; }
+  .animate-in:nth-child(2) { animation-delay: 0.1s; }
+  .animate-in:nth-child(3) { animation-delay: 0.15s; }
+  .animate-in:nth-child(4) { animation-delay: 0.2s; }
+  .animate-in:nth-child(5) { animation-delay: 0.25s; }
+  .animate-in:nth-child(6) { animation-delay: 0.3s; }
+
+  @keyframes countUp {
+    from { opacity: 0; transform: scale(0.8); }
+    to { opacity: 1; transform: scale(1); }
+  }
+
+  /* ══════════════════════════════════════
+     RESPONSIVE
+     ══════════════════════════════════════ */
+  @media (max-width: 1100px) {
+    .chart-grid-2x2 { grid-template-columns: 1fr; }
+    .vs-grid { grid-template-columns: 1fr; }
+    .evidence-grid { grid-template-columns: 1fr; }
+    .impact-numbers { grid-template-columns: repeat(2, 1fr); }
+    .hero-banner { padding: 28px 24px; }
+    .hero-headline { font-size: 1.6em; }
+    .hero-stats { gap: 24px; }
+    .hero-shield { display: none; }
+  }
+  @media (max-width: 600px) {
+    .impact-numbers { grid-template-columns: 1fr 1fr; }
+    .hero-stats { flex-direction: column; gap: 16px; }
+    .vs-body { grid-template-columns: 1fr; gap: 8px; }
+    .vs-divider { width: 100%; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
+    .vs-divider::after { display: none; }
   }
 </style>
 <link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
@@ -166,7 +554,7 @@
   <div class="cmp-title">A/B Comparison Dashboard</div>
   <p class="cmp-sub">
     <strong>{{ drug_name }}</strong> — {{ indication }}<br>
-    Natural (No Care AI) vs Care AI (Daily Video Calls) — Simulation Comparison
+    Natural (No <span title="Data Collection Agent">DCA</span>) vs <span title="Data Collection Agent">DCA</span> (Daily Video Calls) — Simulation Comparison
   </p>
 
   {% if error %}
@@ -186,67 +574,95 @@
   </div>
   {% else %}
 
-  <!-- ═══ SUMMARY CARDS ═══ -->
-  <div class="card-grid" id="cards"></div>
+  <!-- ═══ 1. HERO INSIGHT BANNER ═══ -->
+  <div class="hero-banner" id="heroBanner"></div>
 
-  <!-- ═══ CHARTS ═══ -->
+  <!-- ═══ 2. SIDE-BY-SIDE COMPARISON CARDS ═══ -->
+  <div class="sec-title">Key Metrics</div>
+  <div class="vs-grid" id="cards"></div>
+
+  <!-- ═══ 3. CHARTS ═══ -->
   <div class="sec-title">Charts</div>
-  <div class="chart-row">
-    <div class="chart-box">
-      <h6>AE Detection Delay (days per patient)</h6>
+  <div class="chart-grid-2x2">
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">AE Detection Delay</div>
+        <div class="chart-card-stat" id="chartDelayStat"></div>
+      </div>
       <canvas id="chartDelay"></canvas>
     </div>
-    <div class="chart-box">
-      <h6>AE Burden (grade × days per patient)</h6>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">AE Burden (grade x days)</div>
+        <div class="chart-card-stat" id="chartBurdenStat"></div>
+      </div>
       <canvas id="chartBurden"></canvas>
     </div>
-  </div>
-  <div class="chart-row">
-    <div class="chart-box">
-      <h6>Grade 3+ AE Days per Patient</h6>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">Grade 3+ AE Days</div>
+        <div class="chart-card-stat" id="chartG3Stat"></div>
+      </div>
       <canvas id="chartG3"></canvas>
     </div>
-    <div class="chart-box">
-      <h6>ECOG Change (start → end)</h6>
+    <div class="chart-card">
+      <div class="chart-card-header">
+        <div class="chart-card-title">ECOG Change</div>
+        <div class="chart-card-stat" id="chartEcogStat"></div>
+      </div>
       <canvas id="chartEcog"></canvas>
     </div>
   </div>
 
-  <!-- ═══ CARE AI ACTIVITY ═══ -->
-  <div class="sec-title">Care AI Activity</div>
-  <div class="chart-row">
-    <div class="chart-box">
-      <h6>Intervention Types</h6>
-      <canvas id="chartActions"></canvas>
+  <!-- ═══ 4. CARE AI IMPACT PANEL ═══ -->
+  <div class="sec-title" title="Data Collection Agent">DCA Activity</div>
+  <div class="impact-panel">
+    <div class="impact-header">
+      <div class="impact-icon">
+        <svg viewBox="0 0 24 24" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+        </svg>
+      </div>
+      <div>
+        <div class="impact-title-text" title="Data Collection Agent">DCA Protection Summary</div>
+        <div class="impact-subtitle">Daily video call interventions and early detection metrics</div>
+      </div>
     </div>
-    <div class="stats-box">
-      <h6>Care AI Summary</h6>
-      <div id="careStats"></div>
+    <div class="impact-numbers" id="impactNumbers"></div>
+    <div class="impact-chart-area">
+      <div class="impact-chart-wrap">
+        <canvas id="chartActions"></canvas>
+      </div>
     </div>
   </div>
 
-  <!-- ═══ STATISTICAL TESTS ═══ -->
-  <div class="sec-title">Statistical Tests</div>
-  <div class="stats-box" id="statsBox"></div>
+  <!-- ═══ 5. STATISTICAL EVIDENCE ═══ -->
+  <div class="sec-title">Statistical Evidence</div>
+  <div class="evidence-grid" id="statsBox"></div>
 
-  <!-- ═══ PATIENT TABLE ═══ -->
+  <!-- ═══ 6. PATIENT TABLE ═══ -->
   <div class="sec-title">Per-Patient Comparison</div>
-  <table class="ptable" id="patientTable">
-    <thead>
-      <tr>
-        <th>Patient</th>
-        <th>Mode</th>
-        <th>AEs</th>
-        <th>AE Burden</th>
-        <th>G3+ Days</th>
-        <th>Detect Delay</th>
-        <th>Tx Days</th>
-        <th>ECOG Δ</th>
-        <th>Status</th>
-      </tr>
-    </thead>
-    <tbody id="ptBody"></tbody>
-  </table>
+  <div class="table-container">
+    <div class="table-scroll">
+      <table class="ptable" id="patientTable">
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Mode</th>
+            <th>AEs</th>
+            <th>AE Burden</th>
+            <th>G3+ Days</th>
+            <th>Detect Delay</th>
+            <th>Tx Days</th>
+            <th>ECOG Delta</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="ptBody"></tbody>
+      </table>
+    </div>
+  </div>
+
 </div>
 
 <script>
@@ -255,15 +671,14 @@ const RUN_ID = "{{ run_id }}";
 
 // ── Chart.js defaults ──
 Chart.defaults.color = '#8b949e';
-Chart.defaults.borderColor = 'rgba(255,255,255,0.06)';
+Chart.defaults.borderColor = 'rgba(255,255,255,0.04)';
 Chart.defaults.font.family = "'JetBrains Mono', monospace";
 Chart.defaults.font.size = 11;
 
-// ── Chart click → chatbot ref (chart-level summary) ──
+// ── Chart click -> chatbot ref (chart-level summary) ──
 function chartClickHandler(chartTitle) {
   return function(evt, elements, chart) {
     if (typeof chatbot === 'undefined') return;
-    // Build chart-level summary with all data points
     var summary = [];
     chart.data.datasets.forEach(function(ds) {
       var pairs = chart.data.labels.map(function(lbl, i) {
@@ -275,191 +690,426 @@ function chartClickHandler(chartTitle) {
   };
 }
 
-// ── Helper ──
-function delta(care, nat, lowerIsBetter) {
-  const d = care - nat;
-  const pct = nat !== 0 ? Math.round((d / Math.abs(nat)) * 100) : 0;
-  const sign = d > 0 ? '+' : '';
-  const cls = (lowerIsBetter ? d < 0 : d > 0) ? 'good' : d === 0 ? 'neutral' : 'bad';
-  const icon = cls === 'good' ? (lowerIsBetter ? '\u2193 ' : '\u2191 ') : cls === 'bad' ? (lowerIsBetter ? '\u2191 ' : '\u2193 ') : '';
-  return `<span class="delta ${cls}">${icon}${sign}${pct}%</span>`;
+// ── Helpers ──
+function fmt(v, decimals) {
+  if (v == null) return 'N/A';
+  var d = decimals != null ? decimals : 1;
+  return typeof v === 'number' ? (Number.isInteger(v) ? v.toString() : v.toFixed(d)) : v;
+}
+function pct(care, nat) {
+  if (nat === 0) return 0;
+  return Math.round(((care - nat) / Math.abs(nat)) * 100);
+}
+function deltaObj(care, nat, lowerIsBetter) {
+  var d = care - nat;
+  var p = pct(care, nat);
+  var sign = p > 0 ? '+' : '';
+  var cls = (lowerIsBetter ? d < 0 : d > 0) ? 'good' : d === 0 ? 'neutral' : 'bad';
+  var arrow = cls === 'good' ? (lowerIsBetter ? '\u2193' : '\u2191') : cls === 'bad' ? (lowerIsBetter ? '\u2191' : '\u2193') : '';
+  return { cls: cls, text: arrow + ' ' + sign + p + '%', raw: p };
+}
+function deltaHTML(care, nat, lowerIsBetter) {
+  var o = deltaObj(care, nat, lowerIsBetter);
+  return '<span class="vs-delta ' + o.cls + '">' + o.text + '</span>';
 }
 
-// ═══ SUMMARY CARDS ═══
+// ═══════════════════════════════════════
+// 1. HERO INSIGHT BANNER
+// ═══════════════════════════════════════
+function renderHero() {
+  var el = document.getElementById('heroBanner');
+
+  // Find the most dramatic stat for the headline
+  var delayNat = R.detection_delay.natural_mean;
+  var delayAI = R.detection_delay.care_ai_mean;
+  var burdenNat = R.ae_burden.natural_mean;
+  var burdenAI = R.ae_burden.care_ai_mean;
+  var g3Nat = R.severe_aes.natural_g3plus_mean;
+  var g3AI = R.severe_aes.care_ai_g3plus_mean;
+
+  var delayReduction = delayNat > 0 ? Math.abs(Math.round(((delayAI - delayNat) / delayNat) * 100)) : 0;
+  var burdenReduction = burdenNat > 0 ? Math.abs(Math.round(((burdenAI - burdenNat) / burdenNat) * 100)) : 0;
+  var g3Reduction = g3Nat > 0 ? Math.abs(Math.round(((g3AI - g3Nat) / g3Nat) * 100)) : 0;
+
+  // Pick the best headline
+  var headline, subline;
+  if (delayReduction >= burdenReduction && delayReduction >= g3Reduction && delayReduction > 0 && delayAI <= delayNat) {
+    headline = '<span title="Data Collection Agent">DCA</span> reduced AE detection delay by <span class="hl-number">' + delayReduction + '%</span>';
+    subline = 'Patients using daily AI video calls had adverse events detected ' + fmt(delayNat - delayAI) + ' days faster on average, enabling earlier clinical intervention and better outcomes.';
+  } else if (burdenReduction >= g3Reduction && burdenReduction > 0 && burdenAI <= burdenNat) {
+    headline = '<span title="Data Collection Agent">DCA</span> reduced AE burden by <span class="hl-number">' + burdenReduction + '%</span>';
+    subline = 'The total adverse event burden (grade x days) was significantly lower in the <span title="Data Collection Agent">DCA</span> cohort, demonstrating the value of proactive daily monitoring.';
+  } else if (g3Reduction > 0 && g3AI <= g3Nat) {
+    headline = '<span title="Data Collection Agent">DCA</span> reduced severe AE days by <span class="hl-number">' + g3Reduction + '%</span>';
+    subline = 'Patients experienced fewer Grade 3+ adverse event days with AI-assisted monitoring, reducing the impact of serious toxicities.';
+  } else {
+    headline = '<span title="Data Collection Agent">DCA</span> vs Natural: <span class="hl-number">' + R.cohort_sizes.natural + '</span> patients compared';
+    subline = 'Head-to-head comparison of patient outcomes with and without AI-assisted daily video call monitoring.';
+  }
+
+  el.innerHTML = '<svg class="hero-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' +
+    '<div class="hero-eyebrow"><span class="pulse-dot"></span>A/B Simulation Results</div>' +
+    '<div class="hero-headline">' + headline + '</div>' +
+    '<div class="hero-subline">' + subline + '</div>' +
+    '<div class="hero-stats">' +
+      '<div class="hero-stat"><span class="hero-stat-value cyan">' + R.cohort_sizes.natural + '+' + R.cohort_sizes.care_ai + '</span><span class="hero-stat-label">Patients Compared</span></div>' +
+      '<div class="hero-stat"><span class="hero-stat-value ' + (delayAI < delayNat ? 'positive' : 'negative') + '">' + fmt(delayAI) + 'd vs ' + fmt(delayNat) + 'd</span><span class="hero-stat-label">Detection Delay</span></div>' +
+      '<div class="hero-stat"><span class="hero-stat-value ' + (burdenAI < burdenNat ? 'positive' : 'negative') + '">' + fmt(burdenAI) + ' vs ' + fmt(burdenNat) + '</span><span class="hero-stat-label">AE Burden</span></div>' +
+      '<div class="hero-stat"><span class="hero-stat-value ' + (R.mortality.care_ai_deaths <= R.mortality.natural_deaths ? 'positive' : 'negative') + '">' + R.mortality.care_ai_deaths + ' vs ' + R.mortality.natural_deaths + '</span><span class="hero-stat-label">Mortality</span></div>' +
+    '</div>';
+}
+
+// ═══════════════════════════════════════
+// 2. SUMMARY CARDS (Side-by-Side Versus)
+// ═══════════════════════════════════════
 function renderCards() {
-  const cards = [
+  var cards = [
     {
       label: 'AE Detection Delay',
-      nat: R.detection_delay.natural_mean != null ? R.detection_delay.natural_mean + 'd' : 'N/A',
-      ai: R.detection_delay.care_ai_mean != null ? R.detection_delay.care_ai_mean + 'd' : 'N/A',
+      natVal: R.detection_delay.natural_mean != null ? fmt(R.detection_delay.natural_mean) + 'd' : 'N/A',
+      aiVal: R.detection_delay.care_ai_mean != null ? fmt(R.detection_delay.care_ai_mean) + 'd' : 'N/A',
+      natRaw: R.detection_delay.natural_mean || 0,
+      aiRaw: R.detection_delay.care_ai_mean || 0,
       delta: R.deltas.detection_delay != null
-        ? delta(R.detection_delay.care_ai_mean, R.detection_delay.natural_mean, true)
-        : '<span class="delta neutral">—</span>',
-      sub: `Undetected: Nat=${R.detection_delay.natural_undetected}, AI=${R.detection_delay.care_ai_undetected}`
+        ? deltaHTML(R.detection_delay.care_ai_mean, R.detection_delay.natural_mean, true)
+        : '<span class="vs-delta neutral">&mdash;</span>',
+      sub: 'Undetected: Nat=' + R.detection_delay.natural_undetected + ', AI=' + R.detection_delay.care_ai_undetected,
+      lowerIsBetter: true
     },
     {
-      label: 'AE Burden (grade×days)',
-      nat: R.ae_burden.natural_mean,
-      ai: R.ae_burden.care_ai_mean,
-      delta: delta(R.ae_burden.care_ai_mean, R.ae_burden.natural_mean, true),
-      sub: `Unique AEs: Nat=${R.ae_burden.natural_unique_aes}, AI=${R.ae_burden.care_ai_unique_aes}`
+      label: 'AE Burden (grade x days)',
+      natVal: fmt(R.ae_burden.natural_mean),
+      aiVal: fmt(R.ae_burden.care_ai_mean),
+      natRaw: R.ae_burden.natural_mean,
+      aiRaw: R.ae_burden.care_ai_mean,
+      delta: deltaHTML(R.ae_burden.care_ai_mean, R.ae_burden.natural_mean, true),
+      sub: 'Unique AEs: Nat=' + R.ae_burden.natural_unique_aes + ', AI=' + R.ae_burden.care_ai_unique_aes,
+      lowerIsBetter: true
     },
     {
       label: 'Grade 3+ AE Days',
-      nat: R.severe_aes.natural_g3plus_mean,
-      ai: R.severe_aes.care_ai_g3plus_mean,
-      delta: delta(R.severe_aes.care_ai_g3plus_mean, R.severe_aes.natural_g3plus_mean, true),
-      sub: `G4+: Nat=${R.severe_aes.natural_g4plus_mean}, AI=${R.severe_aes.care_ai_g4plus_mean}`
+      natVal: fmt(R.severe_aes.natural_g3plus_mean),
+      aiVal: fmt(R.severe_aes.care_ai_g3plus_mean),
+      natRaw: R.severe_aes.natural_g3plus_mean,
+      aiRaw: R.severe_aes.care_ai_g3plus_mean,
+      delta: deltaHTML(R.severe_aes.care_ai_g3plus_mean, R.severe_aes.natural_g3plus_mean, true),
+      sub: 'G4+: Nat=' + fmt(R.severe_aes.natural_g4plus_mean) + ', AI=' + fmt(R.severe_aes.care_ai_g4plus_mean),
+      lowerIsBetter: true
     },
     {
       label: 'Treatment Duration',
-      nat: R.treatment_duration.natural_mean + 'd',
-      ai: R.treatment_duration.care_ai_mean + 'd',
-      delta: delta(R.treatment_duration.care_ai_mean, R.treatment_duration.natural_mean, false),
-      sub: `Δ = ${R.deltas.treatment_duration > 0 ? '+' : ''}${R.deltas.treatment_duration}d`
+      natVal: fmt(R.treatment_duration.natural_mean) + 'd',
+      aiVal: fmt(R.treatment_duration.care_ai_mean) + 'd',
+      natRaw: R.treatment_duration.natural_mean,
+      aiRaw: R.treatment_duration.care_ai_mean,
+      delta: deltaHTML(R.treatment_duration.care_ai_mean, R.treatment_duration.natural_mean, false),
+      sub: '\u0394 = ' + (R.deltas.treatment_duration > 0 ? '+' : '') + fmt(R.deltas.treatment_duration) + 'd',
+      lowerIsBetter: false
     },
     {
       label: 'ECOG Change',
-      nat: (R.ecog.natural_mean_delta >= 0 ? '+' : '') + R.ecog.natural_mean_delta,
-      ai: (R.ecog.care_ai_mean_delta >= 0 ? '+' : '') + R.ecog.care_ai_mean_delta,
-      delta: delta(R.ecog.care_ai_mean_delta, R.ecog.natural_mean_delta, true),
-      sub: `End ECOG: Nat=${R.ecog.natural_mean_end}, AI=${R.ecog.care_ai_mean_end}`
+      natVal: (R.ecog.natural_mean_delta >= 0 ? '+' : '') + fmt(R.ecog.natural_mean_delta),
+      aiVal: (R.ecog.care_ai_mean_delta >= 0 ? '+' : '') + fmt(R.ecog.care_ai_mean_delta),
+      natRaw: Math.abs(R.ecog.natural_mean_delta),
+      aiRaw: Math.abs(R.ecog.care_ai_mean_delta),
+      delta: deltaHTML(R.ecog.care_ai_mean_delta, R.ecog.natural_mean_delta, true),
+      sub: 'End ECOG: Nat=' + fmt(R.ecog.natural_mean_end) + ', AI=' + fmt(R.ecog.care_ai_mean_end),
+      lowerIsBetter: true
     },
     {
       label: 'Discontinued',
-      nat: R.discontinuation.natural_count + '/' + R.cohort_sizes.natural,
-      ai: R.discontinuation.care_ai_count + '/' + R.cohort_sizes.care_ai,
-      delta: delta(R.discontinuation.care_ai_pct, R.discontinuation.natural_pct, true),
-      sub: `Mortality: Nat=${R.mortality.natural_deaths}, AI=${R.mortality.care_ai_deaths}`
-    },
+      natVal: R.discontinuation.natural_count + '/' + R.cohort_sizes.natural,
+      aiVal: R.discontinuation.care_ai_count + '/' + R.cohort_sizes.care_ai,
+      natRaw: R.discontinuation.natural_pct,
+      aiRaw: R.discontinuation.care_ai_pct,
+      delta: deltaHTML(R.discontinuation.care_ai_pct, R.discontinuation.natural_pct, true),
+      sub: 'Mortality: Nat=' + R.mortality.natural_deaths + ', AI=' + R.mortality.care_ai_deaths,
+      lowerIsBetter: true
+    }
   ];
 
-  let html = '';
-  for (const c of cards) {
-    html += `<div class="metric-card">
-      ${c.delta}
-      <div class="label">${c.label}</div>
-      <div class="values">
-        <div><span class="val nat">${c.nat}</span><br><span style="font-size:0.8em;color:var(--text-muted)">Natural</span></div>
-        <div><span class="val ai">${c.ai}</span><br><span style="font-size:0.8em;color:var(--text-muted)">Care AI</span></div>
-      </div>
-      <div class="sub">${c.sub}</div>
-    </div>`;
+  var html = '';
+  for (var i = 0; i < cards.length; i++) {
+    var c = cards[i];
+    var maxRaw = Math.max(c.natRaw, c.aiRaw, 0.01);
+    var natPct = Math.round((c.natRaw / maxRaw) * 100);
+    var aiPct = Math.round((c.aiRaw / maxRaw) * 100);
+    html += '<div class="vs-card animate-in">' +
+      '<div class="vs-card-header">' +
+        '<span class="vs-card-label">' + c.label + '</span>' +
+        c.delta +
+      '</div>' +
+      '<div class="vs-body">' +
+        '<div class="vs-side nat">' +
+          '<div class="vs-side-label">Natural</div>' +
+          '<div class="vs-side-value">' + c.natVal + '</div>' +
+        '</div>' +
+        '<div class="vs-divider"></div>' +
+        '<div class="vs-side ai">' +
+          '<div class="vs-side-label" title="Data Collection Agent">DCA</div>' +
+          '<div class="vs-side-value">' + c.aiVal + '</div>' +
+        '</div>' +
+      '</div>' +
+      '<div class="vs-bar-pair">' +
+        '<div class="vs-bar-track"><div class="vs-bar-fill nat" style="width:' + natPct + '%"></div></div>' +
+        '<div class="vs-bar-track"><div class="vs-bar-fill ai" style="width:' + aiPct + '%"></div></div>' +
+      '</div>' +
+      '<div class="vs-sub">' + c.sub + '</div>' +
+    '</div>';
   }
   document.getElementById('cards').innerHTML = html;
 }
 
-// ═══ CHARTS ═══
+// ═══════════════════════════════════════
+// 3. CHARTS
+// ═══════════════════════════════════════
 function pidList() {
-  return R.natural_patients.map(p => p.patient_id);
+  return R.natural_patients.map(function(p) { return p.patient_id; });
+}
+
+// Gradient factory for chart bars
+function createGradient(ctx, colorStart, colorEnd) {
+  var g = ctx.createLinearGradient(0, 0, 0, 300);
+  g.addColorStop(0, colorStart);
+  g.addColorStop(1, colorEnd);
+  return g;
 }
 
 function renderDelayChart() {
-  const pids = pidList();
-  const natData = pids.map(pid => {
-    const m = R.natural_patients.find(p => p.patient_id === pid);
+  var pids = pidList();
+  var natData = pids.map(function(pid) {
+    var m = R.natural_patients.find(function(p) { return p.patient_id === pid; });
     return m && m.mean_detection_delay != null ? m.mean_detection_delay : 0;
   });
-  const aiData = pids.map(pid => {
-    const m = R.care_ai_patients.find(p => p.patient_id === pid);
+  var aiData = pids.map(function(pid) {
+    var m = R.care_ai_patients.find(function(p) { return p.patient_id === pid; });
     return m && m.mean_detection_delay != null ? m.mean_detection_delay : 0;
   });
 
-  new Chart(document.getElementById('chartDelay'), {
+  // Mini stat
+  var natAvg = natData.reduce(function(a, b) { return a + b; }, 0) / (natData.length || 1);
+  var aiAvg = aiData.reduce(function(a, b) { return a + b; }, 0) / (aiData.length || 1);
+  var statEl = document.getElementById('chartDelayStat');
+  statEl.innerHTML = '<div class="chart-card-stat-value">' + fmt(aiAvg) + 'd</div><div class="chart-card-stat-label" title="Data Collection Agent">DCA Mean</div>';
+
+  var canvas = document.getElementById('chartDelay');
+  var ctx = canvas.getContext('2d');
+  new Chart(canvas, {
     type: 'bar',
     data: {
       labels: pids,
       datasets: [
-        { label: 'Natural', data: natData, backgroundColor: 'rgba(139,148,158,0.6)', borderRadius: 3 },
-        { label: 'Care AI', data: aiData, backgroundColor: 'rgba(57,210,192,0.6)', borderRadius: 3 },
+        {
+          label: 'Natural',
+          data: natData,
+          backgroundColor: 'rgba(139,148,158,0.35)',
+          hoverBackgroundColor: 'rgba(139,148,158,0.55)',
+          borderRadius: 4, borderSkipped: false
+        },
+        {
+          label: 'DCA',
+          data: aiData,
+          backgroundColor: createGradient(ctx, 'rgba(57,210,192,0.7)', 'rgba(88,166,255,0.4)'),
+          hoverBackgroundColor: 'rgba(57,210,192,0.8)',
+          borderRadius: 4, borderSkipped: false
+        }
       ]
     },
-    options: { responsive: true, onClick: chartClickHandler('Detection Delay'),
-      plugins: { legend: { position: 'top' } },
-      scales: { y: { title: { display: true, text: 'days' }, beginAtZero: true } } }
+    options: {
+      responsive: true,
+      onClick: chartClickHandler('Detection Delay'),
+      plugins: {
+        legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'rectRounded', padding: 16 } }
+      },
+      scales: {
+        y: { title: { display: true, text: 'days' }, beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' } },
+        x: { grid: { display: false } }
+      }
+    }
   });
 }
 
 function renderBurdenChart() {
-  const pids = pidList();
-  const natData = pids.map(pid => R.natural_patients.find(p => p.patient_id === pid).total_ae_burden);
-  const aiData = pids.map(pid => R.care_ai_patients.find(p => p.patient_id === pid).total_ae_burden);
+  var pids = pidList();
+  var natData = pids.map(function(pid) { return R.natural_patients.find(function(p) { return p.patient_id === pid; }).total_ae_burden; });
+  var aiData = pids.map(function(pid) { return R.care_ai_patients.find(function(p) { return p.patient_id === pid; }).total_ae_burden; });
 
-  new Chart(document.getElementById('chartBurden'), {
+  var natAvg = natData.reduce(function(a, b) { return a + b; }, 0) / (natData.length || 1);
+  var aiAvg = aiData.reduce(function(a, b) { return a + b; }, 0) / (aiData.length || 1);
+  document.getElementById('chartBurdenStat').innerHTML = '<div class="chart-card-stat-value">' + fmt(aiAvg) + '</div><div class="chart-card-stat-label" title="Data Collection Agent">DCA Mean</div>';
+
+  var canvas = document.getElementById('chartBurden');
+  var ctx = canvas.getContext('2d');
+  new Chart(canvas, {
     type: 'bar',
     data: {
       labels: pids,
       datasets: [
-        { label: 'Natural', data: natData, backgroundColor: 'rgba(139,148,158,0.6)', borderRadius: 3 },
-        { label: 'Care AI', data: aiData, backgroundColor: 'rgba(57,210,192,0.6)', borderRadius: 3 },
+        {
+          label: 'Natural',
+          data: natData,
+          backgroundColor: 'rgba(139,148,158,0.35)',
+          hoverBackgroundColor: 'rgba(139,148,158,0.55)',
+          borderRadius: 4, borderSkipped: false
+        },
+        {
+          label: 'DCA',
+          data: aiData,
+          backgroundColor: createGradient(ctx, 'rgba(57,210,192,0.7)', 'rgba(88,166,255,0.4)'),
+          hoverBackgroundColor: 'rgba(57,210,192,0.8)',
+          borderRadius: 4, borderSkipped: false
+        }
       ]
     },
-    options: { responsive: true, onClick: chartClickHandler('AE Burden'),
-      plugins: { legend: { position: 'top' } },
-      scales: { y: { title: { display: true, text: 'grade × days' }, beginAtZero: true } } }
+    options: {
+      responsive: true,
+      onClick: chartClickHandler('AE Burden'),
+      plugins: {
+        legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'rectRounded', padding: 16 } }
+      },
+      scales: {
+        y: { title: { display: true, text: 'grade \u00d7 days' }, beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' } },
+        x: { grid: { display: false } }
+      }
+    }
   });
 }
 
 function renderG3Chart() {
-  const pids = pidList();
-  const natData = pids.map(pid => R.natural_patients.find(p => p.patient_id === pid).grade3plus_ae_days);
-  const aiData = pids.map(pid => R.care_ai_patients.find(p => p.patient_id === pid).grade3plus_ae_days);
+  var pids = pidList();
+  var natData = pids.map(function(pid) { return R.natural_patients.find(function(p) { return p.patient_id === pid; }).grade3plus_ae_days; });
+  var aiData = pids.map(function(pid) { return R.care_ai_patients.find(function(p) { return p.patient_id === pid; }).grade3plus_ae_days; });
 
-  new Chart(document.getElementById('chartG3'), {
+  var natAvg = natData.reduce(function(a, b) { return a + b; }, 0) / (natData.length || 1);
+  var aiAvg = aiData.reduce(function(a, b) { return a + b; }, 0) / (aiData.length || 1);
+  document.getElementById('chartG3Stat').innerHTML = '<div class="chart-card-stat-value">' + fmt(aiAvg) + '</div><div class="chart-card-stat-label" title="Data Collection Agent">DCA Mean</div>';
+
+  var canvas = document.getElementById('chartG3');
+  var ctx = canvas.getContext('2d');
+  new Chart(canvas, {
     type: 'bar',
     data: {
       labels: pids,
       datasets: [
-        { label: 'Natural', data: natData, backgroundColor: 'rgba(255,107,107,0.5)', borderRadius: 3 },
-        { label: 'Care AI', data: aiData, backgroundColor: 'rgba(254,202,87,0.5)', borderRadius: 3 },
+        {
+          label: 'Natural',
+          data: natData,
+          backgroundColor: 'rgba(248,81,73,0.35)',
+          hoverBackgroundColor: 'rgba(248,81,73,0.55)',
+          borderRadius: 4, borderSkipped: false
+        },
+        {
+          label: 'DCA',
+          data: aiData,
+          backgroundColor: createGradient(ctx, 'rgba(210,153,34,0.6)', 'rgba(254,202,87,0.3)'),
+          hoverBackgroundColor: 'rgba(254,202,87,0.7)',
+          borderRadius: 4, borderSkipped: false
+        }
       ]
     },
-    options: { responsive: true, onClick: chartClickHandler('G3+ AE Days'),
-      plugins: { legend: { position: 'top' } },
-      scales: { y: { title: { display: true, text: 'G3+ AE-days' }, beginAtZero: true } } }
+    options: {
+      responsive: true,
+      onClick: chartClickHandler('G3+ AE Days'),
+      plugins: {
+        legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'rectRounded', padding: 16 } }
+      },
+      scales: {
+        y: { title: { display: true, text: 'G3+ AE-days' }, beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' } },
+        x: { grid: { display: false } }
+      }
+    }
   });
 }
 
 function renderEcogChart() {
-  const pids = pidList();
-  const natData = pids.map(pid => {
-    const m = R.natural_patients.find(p => p.patient_id === pid);
+  var pids = pidList();
+  var natData = pids.map(function(pid) {
+    var m = R.natural_patients.find(function(p) { return p.patient_id === pid; });
     return m.ecog_end - m.ecog_start;
   });
-  const aiData = pids.map(pid => {
-    const m = R.care_ai_patients.find(p => p.patient_id === pid);
+  var aiData = pids.map(function(pid) {
+    var m = R.care_ai_patients.find(function(p) { return p.patient_id === pid; });
     return m.ecog_end - m.ecog_start;
   });
 
-  new Chart(document.getElementById('chartEcog'), {
+  var natAvg = natData.reduce(function(a, b) { return a + b; }, 0) / (natData.length || 1);
+  var aiAvg = aiData.reduce(function(a, b) { return a + b; }, 0) / (aiData.length || 1);
+  document.getElementById('chartEcogStat').innerHTML = '<div class="chart-card-stat-value">' + (aiAvg >= 0 ? '+' : '') + fmt(aiAvg) + '</div><div class="chart-card-stat-label" title="Data Collection Agent">DCA Mean \u0394</div>';
+
+  var canvas = document.getElementById('chartEcog');
+  var ctx = canvas.getContext('2d');
+  new Chart(canvas, {
     type: 'bar',
     data: {
       labels: pids,
       datasets: [
-        { label: 'Natural', data: natData, backgroundColor: 'rgba(139,148,158,0.6)', borderRadius: 3 },
-        { label: 'Care AI', data: aiData, backgroundColor: 'rgba(57,210,192,0.6)', borderRadius: 3 },
+        {
+          label: 'Natural',
+          data: natData,
+          backgroundColor: 'rgba(139,148,158,0.35)',
+          hoverBackgroundColor: 'rgba(139,148,158,0.55)',
+          borderRadius: 4, borderSkipped: false
+        },
+        {
+          label: 'DCA',
+          data: aiData,
+          backgroundColor: createGradient(ctx, 'rgba(57,210,192,0.7)', 'rgba(88,166,255,0.4)'),
+          hoverBackgroundColor: 'rgba(57,210,192,0.8)',
+          borderRadius: 4, borderSkipped: false
+        }
       ]
     },
-    options: { responsive: true, onClick: chartClickHandler('ECOG Change'),
-      plugins: { legend: { position: 'top' } },
-      scales: { y: { title: { display: true, text: 'ECOG Δ' } } } }
+    options: {
+      responsive: true,
+      onClick: chartClickHandler('ECOG Change'),
+      plugins: {
+        legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'rectRounded', padding: 16 } }
+      },
+      scales: {
+        y: { title: { display: true, text: 'ECOG \u0394' }, grid: { color: 'rgba(255,255,255,0.03)' } },
+        x: { grid: { display: false } }
+      }
+    }
   });
 }
 
+// ═══════════════════════════════════════
+// 4. CARE AI IMPACT
+// ═══════════════════════════════════════
 function renderActionsChart() {
-  const types = R.care_ai_activity.intervention_type_totals;
-  const labels = Object.keys(types);
-  const data = Object.values(types);
-  const colors = ['rgba(57,210,192,0.7)', 'rgba(254,202,87,0.7)', 'rgba(255,107,107,0.7)',
-                  'rgba(188,140,255,0.7)', 'rgba(88,166,255,0.7)'];
+  var types = R.care_ai_activity.intervention_type_totals;
+  var labels = Object.keys(types).map(function(k) {
+    return k.replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+  });
+  var data = Object.values(types);
 
-  new Chart(document.getElementById('chartActions'), {
-    type: 'doughnut',
+  var canvas = document.getElementById('chartActions');
+  var ctx = canvas.getContext('2d');
+
+  var barColors = [
+    createGradient(ctx, 'rgba(57,210,192,0.8)', 'rgba(57,210,192,0.4)'),
+    createGradient(ctx, 'rgba(88,166,255,0.8)', 'rgba(88,166,255,0.4)'),
+    createGradient(ctx, 'rgba(210,153,34,0.8)', 'rgba(210,153,34,0.4)'),
+    createGradient(ctx, 'rgba(188,140,255,0.8)', 'rgba(188,140,255,0.4)'),
+    createGradient(ctx, 'rgba(247,120,186,0.8)', 'rgba(247,120,186,0.4)')
+  ];
+
+  new Chart(canvas, {
+    type: 'bar',
     data: {
       labels: labels,
-      datasets: [{ data: data, backgroundColor: colors.slice(0, labels.length), borderWidth: 0 }]
+      datasets: [{
+        label: 'Interventions',
+        data: data,
+        backgroundColor: barColors.slice(0, labels.length),
+        borderRadius: 6,
+        borderSkipped: false,
+        barThickness: 32
+      }]
     },
-    options: { responsive: true,
+    options: {
+      indexAxis: 'y',
+      responsive: true,
       onClick: function(evt, elements, chart) {
         if (typeof chatbot === 'undefined') return;
         var pairs = chart.data.labels.map(function(lbl, i) {
@@ -467,81 +1117,182 @@ function renderActionsChart() {
         });
         chatbot.addRef('Chart: Interventions (' + pairs.join(', ') + ')');
       },
-      plugins: { legend: { position: 'right' } } }
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) { return ctx.parsed.x + ' interventions'; }
+          }
+        }
+      },
+      scales: {
+        x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' }, title: { display: true, text: 'Total Count' } },
+        y: { grid: { display: false } }
+      }
+    }
   });
 }
 
-// ═══ CARE AI STATS ═══
 function renderCareStats() {
-  const c = R.care_ai_activity;
-  let html = '';
-  const rows = [
-    ['Mean interventions/patient', c.mean_interventions],
-    ['Mean AE detections/patient', c.mean_detections],
-    ['Mean turns/call', c.mean_turns_per_call],
-    ['Total early terminations', c.total_early_terminations],
-    ['Force-hospital triggers', c.total_force_hospital],
+  var c = R.care_ai_activity;
+  var items = [
+    { value: fmt(c.mean_interventions), label: 'Mean Interventions / Patient' },
+    { value: fmt(c.mean_detections), label: 'Mean AE Detections / Patient' },
+    { value: fmt(c.mean_turns_per_call), label: 'Mean Turns / Call' },
+    { value: c.total_force_hospital, label: 'Force-Hospital Triggers' }
   ];
-  for (const [label, val] of rows) {
-    html += `<div class="stat-row"><span class="stat-label">${label}</span><span class="stat-val">${val}</span></div>`;
+  var html = '';
+  for (var i = 0; i < items.length; i++) {
+    html += '<div class="impact-num-card">' +
+      '<div class="impact-num-value">' + items[i].value + '</div>' +
+      '<div class="impact-num-label">' + items[i].label + '</div>' +
+    '</div>';
   }
-  document.getElementById('careStats').innerHTML = html;
+  document.getElementById('impactNumbers').innerHTML = html;
 }
 
-// ═══ STATISTICAL TESTS ═══
+// ═══════════════════════════════════════
+// 5. STATISTICAL EVIDENCE CARDS
+// ═══════════════════════════════════════
 function renderStats() {
-  const stats = R.statistics;
-  let html = '<h6>Paired Tests & Confidence Intervals</h6>';
-  for (const [key, val] of Object.entries(stats)) {
-    if (val && val.p_value !== undefined) {
-      const sig = val.p_value < 0.001 ? '***' : val.p_value < 0.01 ? '**' : val.p_value < 0.05 ? '*' : 'ns';
-      const cls = sig !== 'ns' ? 'yes' : 'no';
-      html += `<div class="stat-row">
-        <span class="stat-label">${key.replace(/_/g,' ')}</span>
-        <span class="stat-val">W=${val.statistic}, p=${val.p_value} <span class="sig ${cls}">${sig}</span> (n=${val.n})</span>
-      </div>`;
-    } else if (val && val.ci_lower !== undefined) {
-      html += `<div class="stat-row">
-        <span class="stat-label">${key.replace(/_/g,' ')}</span>
-        <span class="stat-val">${val.mean} [${val.ci_lower}, ${val.ci_upper}] ${Math.round((val.confidence||0.95)*100)}% CI</span>
-      </div>`;
+  var stats = R.statistics;
+  var html = '';
+
+  // Helper to build significance badge
+  function sigBadge(p) {
+    if (p < 0.001) return '<span class="sig-badge sig-high"><span class="sig-stars">***</span> p &lt; 0.001</span>';
+    if (p < 0.01) return '<span class="sig-badge sig-high"><span class="sig-stars">**</span> p &lt; 0.01</span>';
+    if (p < 0.05) return '<span class="sig-badge sig-mid"><span class="sig-stars">*</span> p &lt; 0.05</span>';
+    return '<span class="sig-badge sig-none">ns</span>';
+  }
+
+  for (var key in stats) {
+    if (!stats.hasOwnProperty(key)) continue;
+    var val = stats[key];
+    if (!val) continue;
+
+    var title = key.replace(/_/g, ' ').replace(/\b\w/g, function(c) { return c.toUpperCase(); });
+
+    if (val.p_value !== undefined) {
+      // Wilcoxon test card
+      html += '<div class="evidence-card animate-in">' +
+        '<div class="evidence-card-header">' +
+          '<span class="evidence-card-title">' + title + '</span>' +
+          sigBadge(val.p_value) +
+        '</div>' +
+        '<div class="evidence-row"><span class="evidence-label">Test Statistic (W)</span><span class="evidence-value">' + fmt(val.statistic, 2) + '</span></div>' +
+        '<div class="evidence-row"><span class="evidence-label">p-value</span><span class="evidence-value">' + (val.p_value < 0.001 ? '< 0.001' : fmt(val.p_value, 4)) + '</span></div>' +
+        '<div class="evidence-row"><span class="evidence-label">Sample Size (n)</span><span class="evidence-value">' + val.n + '</span></div>' +
+        (val.z != null ? '<div class="evidence-row"><span class="evidence-label">z-score</span><span class="evidence-value">' + fmt(val.z, 3) + '</span></div>' : '') +
+      '</div>';
+    } else if (val.ci_lower !== undefined) {
+      // Confidence interval card
+      var conf = Math.round((val.confidence || 0.95) * 100);
+      // Compute bar positions (scale ci_lower to ci_upper within some range)
+      var range = Math.max(Math.abs(val.ci_lower), Math.abs(val.ci_upper), Math.abs(val.mean), 1);
+      var barMin = 0;
+      var barMax = range * 1.5;
+      var leftPct = Math.max(0, Math.round((val.ci_lower / barMax) * 100));
+      var rightPct = Math.min(100, Math.round((val.ci_upper / barMax) * 100));
+      var meanPct = Math.round((val.mean / barMax) * 100);
+
+      html += '<div class="evidence-card animate-in">' +
+        '<div class="evidence-card-header">' +
+          '<span class="evidence-card-title">' + title + '</span>' +
+          '<span class="sig-badge sig-mid">' + conf + '% CI</span>' +
+        '</div>' +
+        '<div class="evidence-row"><span class="evidence-label">Mean</span><span class="evidence-value">' + fmt(val.mean, 2) + '</span></div>' +
+        '<div class="evidence-row"><span class="evidence-label">CI Lower</span><span class="evidence-value">' + fmt(val.ci_lower, 2) + '</span></div>' +
+        '<div class="evidence-row"><span class="evidence-label">CI Upper</span><span class="evidence-value">' + fmt(val.ci_upper, 2) + '</span></div>' +
+        '<div class="ci-bar-container">' +
+          '<div class="ci-bar-label">' + conf + '% Confidence Interval</div>' +
+          '<div class="ci-bar-track">' +
+            '<div class="ci-bar-range" style="left:' + leftPct + '%;width:' + Math.max(rightPct - leftPct, 2) + '%"></div>' +
+            '<div class="ci-bar-mean" style="left:' + meanPct + '%"></div>' +
+          '</div>' +
+          '<div class="ci-bar-labels"><span>' + fmt(val.ci_lower, 2) + '</span><span>' + fmt(val.ci_upper, 2) + '</span></div>' +
+        '</div>' +
+      '</div>';
     }
   }
   document.getElementById('statsBox').innerHTML = html;
 }
 
-// ═══ PATIENT TABLE ═══
+// ═══════════════════════════════════════
+// 6. PATIENT COMPARISON TABLE
+// ═══════════════════════════════════════
+function heatClass(val, thresholds) {
+  if (val === 0) return 'heat-zero';
+  if (val <= thresholds[0]) return 'heat-low';
+  if (val <= thresholds[1]) return 'heat-mid';
+  return 'heat-high';
+}
+
 function renderPatientTable() {
-  const pids = pidList();
-  let html = '';
-  for (const pid of pids) {
-    const nat = R.natural_patients.find(p => p.patient_id === pid);
-    const ai = R.care_ai_patients.find(p => p.patient_id === pid);
-    for (const [m, mode, cls] of [[nat, 'Natural', 'mode-nat'], [ai, 'Care AI', 'mode-ai']]) {
-      const ecogD = m.ecog_end - m.ecog_start;
-      const delay = m.mean_detection_delay != null ? m.mean_detection_delay + 'd' : '—';
-      const status = m.deceased ? '\u2716 Deceased'
-        : m.discontinued ? 'Disc (D' + m.discontinuation_day + ')'
-        : '\u2713 Completed';
-      const g3cls = m.grade3plus_ae_days > 0 ? ' g3' : '';
-      const rowCls = cls === 'mode-ai' ? ' class="row-ai"' : '';
-      html += `<tr${rowCls}>
-        <td class="mono">${mode === 'Natural' ? pid : ''}</td>
-        <td class="${cls}">${mode}</td>
-        <td class="mono">${m.unique_ae_count}</td>
-        <td class="mono">${m.total_ae_burden}</td>
-        <td class="mono${g3cls}">${m.grade3plus_ae_days}</td>
-        <td class="mono">${delay}</td>
-        <td class="mono">${m.treatment_days}</td>
-        <td class="mono">${ecogD >= 0 ? '+' : ''}${ecogD}</td>
-        <td>${status}</td>
-      </tr>`;
+  var pids = pidList();
+
+  // Compute thresholds for heat mapping
+  var allBurden = [];
+  var allG3 = [];
+  pids.forEach(function(pid) {
+    var nat = R.natural_patients.find(function(p) { return p.patient_id === pid; });
+    var ai = R.care_ai_patients.find(function(p) { return p.patient_id === pid; });
+    allBurden.push(nat.total_ae_burden, ai.total_ae_burden);
+    allG3.push(nat.grade3plus_ae_days, ai.grade3plus_ae_days);
+  });
+  allBurden.sort(function(a, b) { return a - b; });
+  allG3.sort(function(a, b) { return a - b; });
+  var burdenP33 = allBurden[Math.floor(allBurden.length * 0.33)] || 1;
+  var burdenP66 = allBurden[Math.floor(allBurden.length * 0.66)] || 2;
+  var g3P33 = allG3[Math.floor(allG3.length * 0.33)] || 1;
+  var g3P66 = allG3[Math.floor(allG3.length * 0.66)] || 2;
+
+  var html = '';
+  for (var i = 0; i < pids.length; i++) {
+    var pid = pids[i];
+    var nat = R.natural_patients.find(function(p) { return p.patient_id === pid; });
+    var ai = R.care_ai_patients.find(function(p) { return p.patient_id === pid; });
+    var pairs = [[nat, 'Natural', 'nat'], [ai, 'DCA', 'ai']];
+
+    for (var j = 0; j < pairs.length; j++) {
+      var m = pairs[j][0];
+      var mode = pairs[j][1];
+      var cls = pairs[j][2];
+      var ecogD = m.ecog_end - m.ecog_start;
+      var delay = m.mean_detection_delay != null ? fmt(m.mean_detection_delay) + 'd' : '\u2014';
+
+      var statusCls, statusText;
+      if (m.deceased) {
+        statusCls = 'deceased'; statusText = '\u2716 Deceased';
+      } else if (m.discontinued) {
+        statusCls = 'discontinued'; statusText = 'Disc D' + m.discontinuation_day;
+      } else {
+        statusCls = 'completed'; statusText = '\u2713 Completed';
+      }
+
+      var rowCls = cls === 'ai' ? ' row-ai' : '';
+      var dividerCls = (cls === 'ai' && i < pids.length - 1) ? ' row-divider' : '';
+
+      html += '<tr class="' + rowCls + dividerCls + '">' +
+        '<td class="pt-id-cell">' + (mode === 'Natural' ? pid : '') + '</td>' +
+        '<td><span class="mode-badge ' + cls + '">' +
+          (cls === 'ai' ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' : '') +
+          mode + '</span></td>' +
+        '<td class="mono">' + m.unique_ae_count + '</td>' +
+        '<td class="mono ' + heatClass(m.total_ae_burden, [burdenP33, burdenP66]) + '">' + m.total_ae_burden + '</td>' +
+        '<td class="mono ' + heatClass(m.grade3plus_ae_days, [g3P33, g3P66]) + '">' + m.grade3plus_ae_days + '</td>' +
+        '<td class="mono">' + delay + '</td>' +
+        '<td class="mono">' + m.treatment_days + '</td>' +
+        '<td class="mono">' + (ecogD >= 0 ? '+' : '') + ecogD + '</td>' +
+        '<td><span class="status-badge ' + statusCls + '">' + statusText + '</span></td>' +
+      '</tr>';
     }
   }
   document.getElementById('ptBody').innerHTML = html;
 }
 
 // ═══ INIT ═══
+renderHero();
 renderCards();
 renderDelayChart();
 renderBurdenChart();
@@ -563,7 +1314,7 @@ chatbot.init({
   endpoint: '/api/doc/{{ run_id }}/chat/',
   pageType: 'compare',
   suggestions: [
-    'Did Care AI reduce AE burden?',
+    'Did DCA reduce AE burden?',
     'Which metrics are statistically significant?',
     'Detection delay comparison?',
     'Summarize the A/B results'
@@ -573,52 +1324,57 @@ chatbot.init({
     // Skip navigation/control elements
     if (e.target.closest('.tab-bar') || e.target.closest('.tab-link') ||
         e.target.closest('a') || e.target.closest('select') ||
-        e.target.closest('button:not(.metric-card)')) {
+        e.target.closest('button:not(.vs-card)')) {
       return null;
     }
-    // Summary cards grid → all cards at once
-    var cardGrid = e.target.closest('.card-grid');
+    // Hero banner
+    var hero = e.target.closest('.hero-banner');
+    if (hero) {
+      var headline = (hero.querySelector('.hero-headline') || {}).textContent || '';
+      return 'Hero Insight: ' + headline.trim();
+    }
+    // Summary cards grid -> all cards at once
+    var cardGrid = e.target.closest('.vs-grid');
     if (cardGrid) {
-      var cards = cardGrid.querySelectorAll('.metric-card');
+      var cards = cardGrid.querySelectorAll('.vs-card');
       var parts = [];
       cards.forEach(function(c) {
-        var lbl = (c.querySelector('.label') || {}).textContent || '';
-        var nat = (c.querySelector('.val.nat') || {}).textContent || '';
-        var ai = (c.querySelector('.val.ai') || {}).textContent || '';
+        var lbl = (c.querySelector('.vs-card-label') || {}).textContent || '';
+        var nat = (c.querySelector('.vs-side.nat .vs-side-value') || {}).textContent || '';
+        var ai = (c.querySelector('.vs-side.ai .vs-side-value') || {}).textContent || '';
         if (lbl) parts.push(lbl.trim() + ': Nat=' + nat.trim() + ', AI=' + ai.trim());
       });
       return 'Summary Cards (' + cards.length + ' metrics: ' + parts.join('; ') + ')';
     }
-    // Chart box → chart title
-    var chartBox = e.target.closest('.chart-box');
-    if (chartBox) {
-      var h6 = chartBox.querySelector('h6');
+    // Chart card
+    var chartCard = e.target.closest('.chart-card');
+    if (chartCard) {
+      var h6 = chartCard.querySelector('.chart-card-title');
       return h6 ? 'Chart: ' + h6.textContent.trim() : null;
     }
-    // Stats box → entire statistical tests section
-    var statBox = e.target.closest('#statsBox');
-    if (statBox) {
+    // Impact panel
+    var impactPanel = e.target.closest('.impact-panel');
+    if (impactPanel) {
+      var nums = [];
+      impactPanel.querySelectorAll('.impact-num-card').forEach(function(c) {
+        var v = (c.querySelector('.impact-num-value') || {}).textContent || '';
+        var l = (c.querySelector('.impact-num-label') || {}).textContent || '';
+        if (l) nums.push(l.trim() + '=' + v.trim());
+      });
+      return 'DCA Activity (' + nums.join('; ') + ')';
+    }
+    // Evidence cards
+    var evidenceGrid = e.target.closest('.evidence-grid');
+    if (evidenceGrid) {
       var tests = [];
-      statBox.querySelectorAll('.stat-row').forEach(function(r) {
-        var sl = (r.querySelector('.stat-label') || {}).textContent || '';
-        var sv = (r.querySelector('.stat-val') || {}).textContent || '';
-        if (sl) tests.push(sl.trim() + ': ' + sv.trim());
+      evidenceGrid.querySelectorAll('.evidence-card').forEach(function(c) {
+        var title = (c.querySelector('.evidence-card-title') || {}).textContent || '';
+        var badge = (c.querySelector('.sig-badge') || {}).textContent || '';
+        if (title) tests.push(title.trim() + ' ' + badge.trim());
       });
       return 'Statistical Tests (' + tests.length + ' tests: ' + tests.join('; ') + ')';
     }
-    // Care AI stats box
-    var careBox = e.target.closest('.stats-box');
-    if (careBox) {
-      var rows = [];
-      careBox.querySelectorAll('.stat-row').forEach(function(r) {
-        var sl = (r.querySelector('.stat-label') || {}).textContent || '';
-        var sv = (r.querySelector('.stat-val') || {}).textContent || '';
-        if (sl) rows.push(sl.trim() + '=' + sv.trim());
-      });
-      var title = (careBox.querySelector('h6') || {}).textContent || 'Stats';
-      return title.trim() + ' (' + rows.join('; ') + ')';
-    }
-    // Patient table → entire table summary
+    // Patient table
     var ptable = e.target.closest('.ptable');
     if (ptable) {
       var rowCount = ptable.querySelectorAll('tbody tr').length;

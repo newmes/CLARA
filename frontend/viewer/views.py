@@ -1650,6 +1650,15 @@ def api_care_agent_run(request):
                 "gt_grade": ae_grade,
             }))
 
+            # --- SSE: patient_greet (patient text — before inference starts) ---
+            q.put(json.dumps({
+                "type": "patient_greet",
+                "text": patient_text,
+                "audio_url": f"/api/care-agent/media/audio/{audio_file}" if audio_b64 else None,
+                "symptoms": [],
+                "mood": "neutral",
+            }))
+
             # --- SSE: medgemma_start (models starting) ---
             q.put(json.dumps({"type": "medgemma_start"}))
 
@@ -1762,15 +1771,6 @@ def api_care_agent_run(request):
                 "ecog": ecog,
                 "mood": mood_data,
                 "medical_transcript": medical_transcript,
-            }))
-
-            # --- SSE: patient_greet (patient text from file) ---
-            q.put(json.dumps({
-                "type": "patient_greet",
-                "text": patient_text,
-                "audio_url": f"/api/care-agent/media/audio/{audio_file}" if audio_b64 else None,
-                "symptoms": [],
-                "mood": "neutral",
             }))
 
             # --- SSE: nurse_turn (first response from consult) ---
@@ -3896,18 +3896,90 @@ def api_stats_data(request, run_id: str):
 _STATS_CHAT_URL = os.environ.get("CTE_VLLM_BASE_URL", "").rstrip("/")
 _STATS_CHAT_MODEL = os.environ.get("CTE_VLLM_MODEL_ID", "medgemma-4b-antihallu")
 
+
+def _sanitize_messages(messages):
+    """Ensure roles alternate user/assistant after system. Drop consecutive same-role messages."""
+    if not messages:
+        return messages
+    out = []
+    for msg in messages:
+        role = msg.get("role", "user")
+        if role == "system":
+            out.append(msg)
+            continue
+        if out and out[-1].get("role") == role:
+            # merge into previous to avoid consecutive same-role
+            out[-1] = {**out[-1], "content": out[-1]["content"] + "\n" + msg.get("content", "")}
+        else:
+            out.append(msg)
+    # vLLM requires last message to be user
+    if out and out[-1].get("role") != "user" and out[-1].get("role") != "system":
+        out.append({"role": "user", "content": "(continue)"})
+    return out
+
+
+def _call_chat_llm(messages, query_meta):
+    """Call vLLM for chat completions. Returns JsonResponse."""
+    import re as _re
+
+    if not _STATS_CHAT_URL:
+        return JsonResponse({"error": "vLLM not configured (CTE_VLLM_BASE_URL)"}, status=500)
+
+    messages = _sanitize_messages(messages)
+
+    payload = {
+        "model": _STATS_CHAT_MODEL,
+        "messages": messages,
+        "max_tokens": 512,
+        "temperature": 0.2,
+        "repetition_penalty": 1.15,
+    }
+    body_bytes = json.dumps(payload).encode("utf-8")
+    req = Request(
+        f"{_STATS_CHAT_URL}/chat/completions",
+        data=body_bytes,
+        headers={"Content-Type": "application/json", "Authorization": "Bearer EMPTY"},
+        method="POST",
+    )
+    try:
+        t0 = time.time()
+        with urlopen(req, timeout=120) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        latency_ms = round((time.time() - t0) * 1000)
+        answer = data["choices"][0]["message"]["content"]
+        answer = _re.sub(r'<unused\d+>.*?<unused\d+>', '', answer, flags=_re.DOTALL).strip()
+        query_meta["backend"] = "vllm"
+        query_meta["model"] = _STATS_CHAT_MODEL
+        return JsonResponse({
+            "response": answer,
+            "latency_ms": latency_ms,
+            "query": query_meta,
+        })
+    except Exception as exc:
+        detail = str(exc)
+        if hasattr(exc, "read"):
+            try:
+                detail = exc.read().decode("utf-8", errors="replace")
+            except Exception:
+                pass
+        logging.warning("Chat LLM call failed: %s — %s", exc, detail)
+        return JsonResponse({"error": f"LLM call failed: {detail}"}, status=500)
+
 _STATS_SYSTEM_PROMPT = (
     "You are CLARA's Statistical Analysis Assistant, an expert clinical trial biostatistician.\n"
     "You help researchers interpret CSR (Clinical Study Report) statistical results.\n\n"
-    "Rules:\n"
-    "- Answer based ONLY on the provided statistics data below.\n"
-    "- NEVER fabricate, guess, or infer numbers that are not in the data.\n"
-    "- If the data does not contain enough information to answer, say \"The provided data does not include this information.\" Do NOT make up values.\n"
-    "- Be concise (2-5 sentences) unless the user asks for detail.\n"
-    "- Reference specific numbers and percentages from the data.\n"
-    "- Use the same language as the user (Korean if asked in Korean, English if in English).\n"
-    "- You may explain statistical concepts (ORR, KM, hazard, p-value, etc.) when relevant.\n"
-    "- When user references data with @[...] tags, focus your answer on that specific data point.\n"
+    "STRICT RULES — violating any rule is a critical failure:\n"
+    "1. Answer based ONLY on the provided data. NEVER fabricate or infer numbers.\n"
+    "2. When quoting a number, copy it EXACTLY from the data. Do NOT round, combine, or paraphrase.\n"
+    "3. DISTINGUISH between 'all-grade' and 'Grade 3+' (G3+) columns carefully.\n"
+    "   - 'all=56.0%' means all-grade incidence is 56%.\n"
+    "   - 'G3+=2.0%' means Grade 3+ incidence is 2%.\n"
+    "   - These are DIFFERENT numbers. NEVER use the all-grade number when asked about G3+.\n"
+    "4. Answer ONLY the question asked. Do NOT dump unrelated sections.\n"
+    "5. Be concise: 2-5 sentences unless the user asks for detail.\n"
+    "6. If the data does not contain the answer, say so. Do NOT guess.\n"
+    "7. Use the same language as the user.\n"
+    "8. When user references data with @[...] tags, focus on that specific data point.\n"
 )
 
 
@@ -4060,38 +4132,47 @@ def _extract_section(stats: dict, section: str, message: str) -> list:
     elif section == "safety":
         safe = stats.get("safety", {})
         sm = safe.get("summary", {})
-        lines.append(f"[Safety] Any AE: {sm.get('any_ae',{}).get('pct',0)}%, "
-                     f"Grade>=3: {sm.get('grade_gte3',{}).get('pct',0)}% (n={sm.get('grade_gte3',{}).get('n',0)}), "
-                     f"SAE: {sm.get('sae',{}).get('pct',0)}%, Fatal: {sm.get('fatal',{}).get('pct',0)}%")
+        lines.append(f"[Safety Summary]")
+        lines.append(f"  Any AE: {sm.get('any_ae',{}).get('pct',0)}% (n={sm.get('any_ae',{}).get('n',0)})")
+        lines.append(f"  Grade>=3 AE: {sm.get('grade_gte3',{}).get('pct',0)}% (n={sm.get('grade_gte3',{}).get('n',0)})")
+        lines.append(f"  SAE (Serious): {sm.get('sae',{}).get('pct',0)}% (n={sm.get('sae',{}).get('n',0)})")
+        lines.append(f"  Fatal AE: {sm.get('fatal',{}).get('pct',0)}% (n={sm.get('fatal',{}).get('n',0)})")
+        lines.append(f"  Led to discontinuation: {sm.get('led_to_discont',{}).get('pct',0)}% (n={sm.get('led_to_discont',{}).get('n',0)})")
+        lines.append(f"  Led to interruption: {sm.get('led_to_interrupt',{}).get('pct',0)}% (n={sm.get('led_to_interrupt',{}).get('n',0)})")
         by_term = safe.get("by_term", [])
         # Check if user asks about a specific AE
         specific_aes = [ae for ae in by_term
                         if ae["term"].replace("_", " ") in msg_lower
                         or ae["term"].replace("_", "") in msg_lower.replace(" ", "")]
         if specific_aes:
+            lines.append("  AE table (all-grade% ≠ G3+%, do NOT confuse):")
             for ae in specific_aes:
                 gd = ae.get("grade_dist", {})
                 gd_str = ", ".join(f"G{g}={n}" for g, n in sorted(gd.items()) if int(n) > 0)
-                lines.append(f"  {ae['term']}: all={ae['all_grade']['pct']}% (n={ae['all_grade']['n']}), "
-                             f"G3+={ae['grade_gte3']['pct']}%, onset=Day {ae.get('onset_median','?')} "
+                lines.append(f"    {ae['term']}: ALL-GRADE={ae['all_grade']['pct']}% (n={ae['all_grade']['n']}), "
+                             f"GRADE3+={ae['grade_gte3']['pct']}% (n={ae['grade_gte3']['n']}), "
+                             f"onset=Day {ae.get('onset_median','?')} "
                              f"(IQR: {ae.get('onset_iqr','?')}), grades: {gd_str}")
         else:
             # Top 10 AEs summary
-            lines.append("  Top AEs:")
+            lines.append("  AE table (all-grade% ≠ G3+%, do NOT confuse):")
+            lines.append("    TERM | ALL-GRADE% | GRADE3+% | ONSET")
             for ae in by_term[:10]:
-                lines.append(f"    {ae['term']}: all={ae['all_grade']['pct']}%, "
-                             f"G3+={ae['grade_gte3']['pct']}%, onset=Day {ae.get('onset_median','?')}")
+                lines.append(f"    {ae['term']} | {ae['all_grade']['pct']}% | "
+                             f"{ae['grade_gte3']['pct']}% | Day {ae.get('onset_median','?')}")
 
     elif section == "treatment":
         tx = stats.get("treatment", {})
-        lines.append(f"[Treatment] Duration: median={tx.get('duration',{}).get('median','?')} days, "
-                     f"Cycles: median={tx.get('cycles',{}).get('median','?')}")
+        n_total = stats.get("n_patients", stats.get("n_simulated", "?"))
         dr = tx.get('dose_reduction_all', {})
         di = tx.get('dose_interruption_all', {})
         dc = tx.get('discontinuation_all', {})
-        lines.append(f"  Dose reduction: n={dr.get('n',0)} ({dr.get('pct',0)}%), "
-                     f"Dose interruption: n={di.get('n',0)} ({di.get('pct',0)}%), "
-                     f"Discontinuation: n={dc.get('n',0)} ({dc.get('pct',0)}%)")
+        lines.append(f"[Treatment] N={n_total}")
+        lines.append(f"  Duration: median={tx.get('duration',{}).get('median','?')} days")
+        lines.append(f"  Cycles: median={tx.get('cycles',{}).get('median','?')}")
+        lines.append(f"  Dose REDUCTION: {dr.get('n',0)} patients = {dr.get('pct',0)}%")
+        lines.append(f"  Dose INTERRUPTION: {di.get('n',0)} patients = {di.get('pct',0)}%")
+        lines.append(f"  Discontinuation: {dc.get('n',0)} patients = {dc.get('pct',0)}%")
         # Per-drug detail
         per_drug = tx.get("per_drug", {})
         for drug_name, drug_data in per_drug.items():
@@ -4221,41 +4302,8 @@ def api_stats_chat(request, run_id: str):
         "message": message,
     }
 
-    # Call vLLM
-    if not _STATS_CHAT_URL:
-        return JsonResponse({"error": "vLLM not configured (CTE_VLLM_BASE_URL)"}, status=500)
-
-    payload = {
-        "model": _STATS_CHAT_MODEL,
-        "messages": messages,
-        "max_tokens": 1024,
-        "temperature": 0.3,
-        "repetition_penalty": 1.15,
-    }
-    body_bytes = json.dumps(payload).encode("utf-8")
-    req = Request(
-        f"{_STATS_CHAT_URL}/chat/completions",
-        data=body_bytes,
-        headers={"Content-Type": "application/json", "Authorization": "Bearer EMPTY"},
-        method="POST",
-    )
-    try:
-        t0 = time.time()
-        with urlopen(req, timeout=120) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-        latency_ms = round((time.time() - t0) * 1000)
-        answer = data["choices"][0]["message"]["content"]
-        # Strip thinking tags leaked by the model (e.g. <unused94>thought...<unused95>)
-        import re as _re
-        answer = _re.sub(r'<unused\d+>.*?<unused\d+>', '', answer, flags=_re.DOTALL).strip()
-        return JsonResponse({
-            "response": answer,
-            "latency_ms": latency_ms,
-            "query": query_meta,
-        })
-    except (URLError, OSError, json.JSONDecodeError, TimeoutError, KeyError) as exc:
-        logging.warning("Stats chat vLLM call failed: %s", exc)
-        return JsonResponse({"error": f"LLM call failed: {exc}"}, status=500)
+    # Call LLM (vLLM or Gemini fallback)
+    return _call_chat_llm(messages, query_meta)
 
 
 @csrf_exempt
@@ -4850,40 +4898,8 @@ def api_doc_chat(request, run_id: str):
         messages.append({"role": role, "content": msg.get("content", "")})
     messages.append({"role": "user", "content": message})
 
-    # Call vLLM
-    if not _STATS_CHAT_URL:
-        return JsonResponse({"error": "vLLM not configured (CTE_VLLM_BASE_URL)"}, status=500)
-
-    payload = {
-        "model": _STATS_CHAT_MODEL,
-        "messages": messages,
-        "max_tokens": 1024,
-        "temperature": 0.3,
-        "repetition_penalty": 1.15,
-    }
-    body_bytes = json.dumps(payload).encode("utf-8")
-    req = Request(
-        f"{_STATS_CHAT_URL}/chat/completions",
-        data=body_bytes,
-        headers={"Content-Type": "application/json", "Authorization": "Bearer EMPTY"},
-        method="POST",
-    )
-    try:
-        t0 = time.time()
-        with urlopen(req, timeout=120) as resp:
-            data = json.loads(resp.read().decode("utf-8"))
-        latency_ms = round((time.time() - t0) * 1000)
-        answer = data["choices"][0]["message"]["content"]
-        import re as _re
-        answer = _re.sub(r'<unused\d+>.*?<unused\d+>', '', answer, flags=_re.DOTALL).strip()
-        return JsonResponse({
-            "response": answer,
-            "latency_ms": latency_ms,
-            "query": query_meta,
-        })
-    except (URLError, OSError, json.JSONDecodeError, TimeoutError, KeyError) as exc:
-        logging.warning("Doc chat vLLM call failed: %s", exc)
-        return JsonResponse({"error": f"LLM call failed: {exc}"}, status=500)
+    # Call LLM (vLLM or Gemini fallback)
+    return _call_chat_llm(messages, query_meta)
 
 
 # ─── Rule Set Generation: GT vs Predicted Comparison ────────

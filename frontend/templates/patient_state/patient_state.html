@@ -558,7 +558,7 @@
   <!-- ══════════════════════════════════════════════════════ -->
   {% if mode == 'care_ai' %}
   <div class="section-card">
-    <h4>Care AI Video Call (Day {{ day }})</h4>
+    <h4 title="Data Collection Agent">DCA Video Call (Day {{ day }})</h4>
     <div id="care-call-detail" style="font-size:0.9em">
       <em style="color:var(--text-muted)">No video call data</em>
     </div>
@@ -1034,7 +1034,7 @@
       const c = t.content || {};
       const rowCls = isP ? 'is-patient' : 'is-nurse';
       const avatar = isP ? makePatientAvatar() : AVATAR_NURSE;
-      const name = isP ? 'Patient' : 'Care AI Nurse';
+      const name = isP ? 'Patient' : 'DCA Nurse';
 
       if (!isP && t.turn === 4) {
         const assess = c.assessment || {};

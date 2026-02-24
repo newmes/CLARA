@@ -2121,10 +2121,11 @@
             AI responses can update the left panel.
           </div>
           <div class="da-suggestions" id="daSuggestions">
-            <button class="da-suggestion-pill" onclick="daChatAsk('Analyze this patient\'s AE profile')">Analyze AE profile</button>
+            <button class="da-suggestion-pill" onclick="daChatAsk('Summarize the overall safety profile')">Safety overview</button>
+            <button class="da-suggestion-pill" onclick="daChatAsk('What is the ORR and how does it compare to historical data?')">Efficacy (ORR)</button>
             <button class="da-suggestion-pill" onclick="daChatAsk('What are the most common Grade 3+ adverse events?')">Grade 3+ AEs</button>
-            <button class="da-suggestion-pill" onclick="daChatAsk('Generate SAE report for this patient')">Generate SAE report</button>
-            <button class="da-suggestion-pill" onclick="daChatAsk('Compare A/B treatment outcomes')">Compare A/B</button>
+            <button class="da-suggestion-pill" onclick="daChatAsk('Summarize patient demographics including age and sex distribution')">Demographics</button>
+            <button class="da-suggestion-pill" onclick="daChatAsk('What percentage of patients had dose interruptions or reductions?')">Dose modifications</button>
           </div>
         </div>
       </div>
@@ -3038,12 +3039,16 @@ function daChatSend() {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ message: message, history: daChatHistory.slice(-10) }),
   })
-  .then(function(r) { return r.json(); })
-  .then(function(data) {
+  .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, data: data }; }); })
+  .then(function(result) {
     var t = document.getElementById('daTyping');
     if (t) t.remove();
-    var reply = data.reply || data.response || 'No response received.';
-    var source = data.source || inferDaSource(message);
+    if (!result.ok || result.data.error) {
+      daChatAppend('assistant', 'Error: ' + (result.data.error || 'Request failed'));
+      return;
+    }
+    var reply = result.data.reply || result.data.response || 'No response received.';
+    var source = result.data.source || inferDaSource(message);
     daChatAppend('assistant', reply, source);
     daChatHistory.push({ role: 'assistant', content: reply });
   })
@@ -3060,7 +3065,7 @@ function inferDaSource(msg) {
   if (lower.indexOf('ae') >= 0 || lower.indexOf('adverse') >= 0 || lower.indexOf('safety') >= 0) return 'AE Reports';
   if (lower.indexOf('crf') >= 0 || lower.indexOf('demograph') >= 0 || lower.indexOf('lab') >= 0 || lower.indexOf('vital') >= 0) return 'CRF Tables';
   if (lower.indexOf('statistic') >= 0 || lower.indexOf('p-value') >= 0 || lower.indexOf('confidence') >= 0) return 'Statistical Analysis';
-  if (lower.indexOf('compare') >= 0 || lower.indexOf('care ai') >= 0 || lower.indexOf('natural') >= 0) return 'AE Reports, Statistical Analysis';
+  if (lower.indexOf('compare') >= 0 || lower.indexOf('care ai') >= 0 || lower.indexOf('dca') >= 0 || lower.indexOf('natural') >= 0) return 'AE Reports, Statistical Analysis';
   return 'Simulation Data';
 }
 
@@ -3170,17 +3175,18 @@ function daUpdateSuggestions() {
   if (!container) return;
   var pid = daCurrentPatient || 'this patient';
   var saes = daPatientMap[daCurrentPatient] || [];
-  var firstAe = saes.length > 0 ? saes[0].ae_term : 'adverse events';
 
   container.innerHTML = '';
   var suggestions = [
-    { text: 'Analyze ' + pid + ' AE profile', query: 'Analyze the AE profile for patient ' + pid },
-    { text: 'Grade 3+ AEs for ' + pid, query: 'What Grade 3+ AEs does ' + pid + ' have?' },
+    { text: 'Safety overview', query: 'Summarize the overall safety profile including AE incidence rates' },
+    { text: 'Efficacy (ORR)', query: 'What is the ORR and how does it compare to historical data?' },
+    { text: 'Grade 3+ AEs', query: 'What are the most common Grade 3+ adverse events and their incidence rates?' },
   ];
   if (saes.length > 0) {
-    suggestions.push({ text: 'Report: ' + firstAe, query: 'Generate SAE report for ' + pid });
+    suggestions.push({ text: 'Report: ' + saes[0].ae_term, query: 'Generate SAE report for ' + pid });
   }
-  suggestions.push({ text: 'Compare A/B outcomes', query: 'Compare AE outcomes between Natural and Care AI modes' });
+  suggestions.push({ text: 'Dose modifications', query: 'What percentage of patients had dose interruptions or reductions?' });
+  suggestions.push({ text: 'Demographics', query: 'Summarize patient demographics including age and sex distribution' });
 
   suggestions.forEach(function(s) {
     var btn = document.createElement('button');

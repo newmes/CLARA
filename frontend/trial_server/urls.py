@@ -66,6 +66,8 @@ urlpatterns = [
          views.api_care_agent_patients, name='api_care_agent_patients'),
     path('api/care-agent/media/<str:media_type>/<path:filename>',
          views.api_care_agent_media, name='api_care_agent_media'),
+    path('api/care-agent/chat/',
+         views.api_care_agent_chat, name='api_care_agent_chat'),
 
     # Compare dashboard
     path('compare/<str:run_id>/',
