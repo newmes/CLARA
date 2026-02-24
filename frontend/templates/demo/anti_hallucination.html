@@ -490,16 +490,10 @@
 }
 .ah-pills-row {
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   gap: 8px;
-  overflow-x: auto;
-  overflow-y: hidden;
-  -webkit-overflow-scrolling: touch;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
   padding-bottom: 4px;
 }
-.ah-pills-row::-webkit-scrollbar { display: none; }
 .ah-pill {
   display: flex; align-items: center; gap: 8px;
   padding: 8px 14px;
@@ -509,12 +503,12 @@
   color: var(--text-muted); font-family: inherit; font-size: 0.82em;
   cursor: pointer; transition: all 0.25s ease;
   font-weight: 400;
-  white-space: nowrap;
+  white-space: normal;
   position: relative;
   text-align: left;
   line-height: 1.4;
-  flex-shrink: 0;
-  max-width: none;
+  width: 100%;
+  box-sizing: border-box;
 }
 .ah-pill .ah-pill-num {
   display: flex; align-items: center; justify-content: center;
