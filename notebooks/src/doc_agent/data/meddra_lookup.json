@@ -1,0 +1,4071 @@
+{
+  "metadata": {
+    "generated": "2026-02-18T05:58:28.299341+00:00",
+    "sources": [
+      "openFDA FAERS",
+      "AACT (ClinicalTrials.gov)"
+    ],
+    "aact_used": true,
+    "drugs_queried": [
+      "Enhertu",
+      "Kadcyla",
+      "Padcev",
+      "Trodelvy",
+      "Adcetris",
+      "Polivy",
+      "Elahere",
+      "Tivdak"
+    ],
+    "total_terms": 578,
+    "skipped_rare": 0,
+    "min_count_threshold": 2
+  },
+  "terms": {
+    "abdominal discomfort": {
+      "pt": "Abdominal discomfort",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Abdominal discomfort",
+      "faers_count": 35,
+      "drug_count": 5
+    },
+    "abdominal distension": {
+      "pt": "Abdominal distension",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Abdominal distension",
+      "faers_count": 46,
+      "drug_count": 5
+    },
+    "abdominal pain": {
+      "pt": "Abdominal pain",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Abdominal pain",
+      "faers_count": 217,
+      "drug_count": 8
+    },
+    "abdominal pain upper": {
+      "pt": "Abdominal pain upper",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Abdominal pain upper",
+      "faers_count": 69,
+      "drug_count": 7
+    },
+    "acute kidney injury": {
+      "pt": "Acute kidney injury",
+      "soc": "Renal and urinary disorders",
+      "llt": "Acute kidney injury",
+      "faers_count": 169,
+      "drug_count": 7
+    },
+    "acute myeloid leukaemia": {
+      "pt": "Acute myeloid leukaemia",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Acute myeloid leukaemia",
+      "faers_count": 62,
+      "drug_count": 2
+    },
+    "acute myocardial infarction": {
+      "pt": "Acute myocardial infarction",
+      "soc": "Cardiac disorders",
+      "llt": "Acute myocardial infarction",
+      "faers_count": 21,
+      "drug_count": 1
+    },
+    "acute respiratory distress syndrome": {
+      "pt": "Acute respiratory distress syndrome",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Acute respiratory distress syndrome",
+      "faers_count": 41,
+      "drug_count": 2
+    },
+    "acute respiratory failure": {
+      "pt": "Acute respiratory failure",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Acute respiratory failure",
+      "faers_count": 32,
+      "drug_count": 4
+    },
+    "adenocarcinoma of the cervix": {
+      "pt": "Adenocarcinoma of the cervix",
+      "soc": null,
+      "llt": "Adenocarcinoma of the cervix",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "administration site extravasation": {
+      "pt": "Administration site extravasation",
+      "soc": "General disorders",
+      "llt": "Administration site extravasation",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "adrenal insufficiency": {
+      "pt": "Adrenal insufficiency",
+      "soc": "Endocrine disorders",
+      "llt": "Adrenal insufficiency",
+      "faers_count": 48,
+      "drug_count": 1
+    },
+    "adverse drug reaction": {
+      "pt": "Adverse drug reaction",
+      "soc": "General disorders",
+      "llt": "Adverse drug reaction",
+      "faers_count": 63,
+      "drug_count": 2
+    },
+    "adverse event": {
+      "pt": "Adverse event",
+      "soc": null,
+      "llt": "Adverse event",
+      "faers_count": 53,
+      "drug_count": 4
+    },
+    "ageusia": {
+      "pt": "Ageusia",
+      "soc": "Nervous system disorders",
+      "llt": "Ageusia",
+      "faers_count": 35,
+      "drug_count": 1
+    },
+    "agranulocytosis": {
+      "pt": "Agranulocytosis",
+      "soc": null,
+      "llt": "Agranulocytosis",
+      "faers_count": 52,
+      "drug_count": 3
+    },
+    "alanine aminotransferase abnormal": {
+      "pt": "Alanine aminotransferase abnormal",
+      "soc": null,
+      "llt": "Alanine aminotransferase abnormal",
+      "faers_count": 12,
+      "drug_count": 2
+    },
+    "alanine aminotransferase increased": {
+      "pt": "Alanine aminotransferase increased",
+      "soc": "Investigations",
+      "llt": "Alanine aminotransferase increased",
+      "faers_count": 177,
+      "drug_count": 7
+    },
+    "alopecia": {
+      "pt": "Alopecia",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Alopecia",
+      "faers_count": 306,
+      "drug_count": 7
+    },
+    "amylase increased": {
+      "pt": "Amylase increased",
+      "soc": "Investigations",
+      "llt": "Amylase increased",
+      "faers_count": 0,
+      "drug_count": 0
+    },
+    "anaemia": {
+      "pt": "Anaemia",
+      "soc": "Blood and lymphatic system disorders",
+      "llt": "Anaemia",
+      "faers_count": 498,
+      "drug_count": 8
+    },
+    "anaphylactic reaction": {
+      "pt": "Anaphylactic reaction",
+      "soc": "Immune system disorders",
+      "llt": "Anaphylactic reaction",
+      "faers_count": 91,
+      "drug_count": 1
+    },
+    "anaphylactic shock": {
+      "pt": "Anaphylactic shock",
+      "soc": "Immune system disorders",
+      "llt": "Anaphylactic shock",
+      "faers_count": 55,
+      "drug_count": 1
+    },
+    "anaplastic large cell lymphoma t- and null-cell types": {
+      "pt": "Anaplastic large cell lymphoma T- and null-cell types",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Anaplastic large cell lymphoma T- and null-cell types",
+      "faers_count": 41,
+      "drug_count": 1
+    },
+    "anaplastic large-cell lymphoma": {
+      "pt": "Anaplastic large-cell lymphoma",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Anaplastic large-cell lymphoma",
+      "faers_count": 86,
+      "drug_count": 1
+    },
+    "angioimmunoblastic t-cell lymphoma": {
+      "pt": "Angioimmunoblastic t-cell lymphoma",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Angioimmunoblastic t-cell lymphoma",
+      "faers_count": 34,
+      "drug_count": 1
+    },
+    "anxiety": {
+      "pt": "Anxiety",
+      "soc": "Psychiatric disorders",
+      "llt": "Anxiety",
+      "faers_count": 70,
+      "drug_count": 5
+    },
+    "aphonia": {
+      "pt": "Aphonia",
+      "soc": "Nervous system disorders",
+      "llt": "Aphonia",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "arrhythmia": {
+      "pt": "Arrhythmia",
+      "soc": "Cardiac disorders",
+      "llt": "Arrhythmia",
+      "faers_count": 34,
+      "drug_count": 1
+    },
+    "arthralgia": {
+      "pt": "Arthralgia",
+      "soc": "Musculoskeletal and connective tissue disorders",
+      "llt": "Arthralgia",
+      "faers_count": 193,
+      "drug_count": 7
+    },
+    "ascending flaccid paralysis": {
+      "pt": "Ascending flaccid paralysis",
+      "soc": null,
+      "llt": "Ascending flaccid paralysis",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "ascites": {
+      "pt": "Ascites",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Ascites",
+      "faers_count": 138,
+      "drug_count": 6
+    },
+    "aspartate aminotransferase abnormal": {
+      "pt": "Aspartate aminotransferase abnormal",
+      "soc": null,
+      "llt": "Aspartate aminotransferase abnormal",
+      "faers_count": 13,
+      "drug_count": 2
+    },
+    "aspartate aminotransferase increased": {
+      "pt": "Aspartate aminotransferase increased",
+      "soc": "Investigations",
+      "llt": "Aspartate aminotransferase increased",
+      "faers_count": 166,
+      "drug_count": 7
+    },
+    "asthenia": {
+      "pt": "Asthenia",
+      "soc": "General disorders",
+      "llt": "Asthenia",
+      "faers_count": 296,
+      "drug_count": 8
+    },
+    "astigmatism": {
+      "pt": "Astigmatism",
+      "soc": "Eye disorders",
+      "llt": "Astigmatism",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "atrial fibrillation": {
+      "pt": "Atrial fibrillation",
+      "soc": "Cardiac disorders",
+      "llt": "Atrial fibrillation",
+      "faers_count": 69,
+      "drug_count": 4
+    },
+    "back pain": {
+      "pt": "Back pain",
+      "soc": "Musculoskeletal and connective tissue disorders",
+      "llt": "Back pain",
+      "faers_count": 185,
+      "drug_count": 6
+    },
+    "bacteraemia": {
+      "pt": "Bacteraemia",
+      "soc": "Infections and infestations",
+      "llt": "Bacteraemia",
+      "faers_count": 61,
+      "drug_count": 3
+    },
+    "bacterial infection": {
+      "pt": "Bacterial infection",
+      "soc": "Infections and infestations",
+      "llt": "Bacterial infection",
+      "faers_count": 47,
+      "drug_count": 1
+    },
+    "balance disorder": {
+      "pt": "Balance disorder",
+      "soc": "Nervous system disorders",
+      "llt": "Balance disorder",
+      "faers_count": 6,
+      "drug_count": 2
+    },
+    "bedridden": {
+      "pt": "Bedridden",
+      "soc": null,
+      "llt": "Bedridden",
+      "faers_count": 17,
+      "drug_count": 1
+    },
+    "bladder tamponade": {
+      "pt": "Bladder tamponade",
+      "soc": null,
+      "llt": "Bladder tamponade",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "blepharitis": {
+      "pt": "Blepharitis",
+      "soc": "Eye disorders",
+      "llt": "Blepharitis",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "blindness": {
+      "pt": "Blindness",
+      "soc": "Eye disorders",
+      "llt": "Blindness",
+      "faers_count": 61,
+      "drug_count": 3
+    },
+    "blindness transient": {
+      "pt": "Blindness transient",
+      "soc": "Eye disorders",
+      "llt": "Blindness transient",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "blister": {
+      "pt": "Blister",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Blister",
+      "faers_count": 87,
+      "drug_count": 2
+    },
+    "blood alkaline phosphatase increased": {
+      "pt": "Blood alkaline phosphatase increased",
+      "soc": "Investigations",
+      "llt": "Blood alkaline phosphatase increased",
+      "faers_count": 110,
+      "drug_count": 3
+    },
+    "blood bilirubin abnormal": {
+      "pt": "Blood bilirubin abnormal",
+      "soc": null,
+      "llt": "Blood bilirubin abnormal",
+      "faers_count": 12,
+      "drug_count": 2
+    },
+    "blood bilirubin increased": {
+      "pt": "Blood bilirubin increased",
+      "soc": "Investigations",
+      "llt": "Blood bilirubin increased",
+      "faers_count": 104,
+      "drug_count": 5
+    },
+    "blood creatinine abnormal": {
+      "pt": "Blood creatinine abnormal",
+      "soc": null,
+      "llt": "Blood creatinine abnormal",
+      "faers_count": 13,
+      "drug_count": 2
+    },
+    "blood creatinine decreased": {
+      "pt": "Blood creatinine decreased",
+      "soc": "Investigations",
+      "llt": "Blood creatinine decreased",
+      "faers_count": 44,
+      "drug_count": 1
+    },
+    "blood creatinine increased": {
+      "pt": "Blood creatinine increased",
+      "soc": "Investigations",
+      "llt": "Blood creatinine increased",
+      "faers_count": 75,
+      "drug_count": 7
+    },
+    "blood disorder": {
+      "pt": "Blood disorder",
+      "soc": null,
+      "llt": "Blood disorder",
+      "faers_count": 23,
+      "drug_count": 2
+    },
+    "blood glucose increased": {
+      "pt": "Blood glucose increased",
+      "soc": "Investigations",
+      "llt": "Blood glucose increased",
+      "faers_count": 60,
+      "drug_count": 2
+    },
+    "blood lactate dehydrogenase increased": {
+      "pt": "Blood lactate dehydrogenase increased",
+      "soc": "Investigations",
+      "llt": "Blood lactate dehydrogenase increased",
+      "faers_count": 414,
+      "drug_count": 3
+    },
+    "blood magnesium decreased": {
+      "pt": "Blood magnesium decreased",
+      "soc": "Investigations",
+      "llt": "Blood magnesium decreased",
+      "faers_count": 43,
+      "drug_count": 2
+    },
+    "blood potassium decreased": {
+      "pt": "Blood potassium decreased",
+      "soc": "Investigations",
+      "llt": "Blood potassium decreased",
+      "faers_count": 21,
+      "drug_count": 1
+    },
+    "blood pressure decreased": {
+      "pt": "Blood pressure decreased",
+      "soc": null,
+      "llt": "Blood pressure decreased",
+      "faers_count": 46,
+      "drug_count": 4
+    },
+    "blood pressure diastolic decreased": {
+      "pt": "Blood pressure diastolic decreased",
+      "soc": null,
+      "llt": "Blood pressure diastolic decreased",
+      "faers_count": 53,
+      "drug_count": 2
+    },
+    "blood pressure fluctuation": {
+      "pt": "Blood pressure fluctuation",
+      "soc": null,
+      "llt": "Blood pressure fluctuation",
+      "faers_count": 33,
+      "drug_count": 1
+    },
+    "blood pressure increased": {
+      "pt": "Blood pressure increased",
+      "soc": "Investigations",
+      "llt": "Blood pressure increased",
+      "faers_count": 126,
+      "drug_count": 3
+    },
+    "blood pressure systolic decreased": {
+      "pt": "Blood pressure systolic decreased",
+      "soc": null,
+      "llt": "Blood pressure systolic decreased",
+      "faers_count": 39,
+      "drug_count": 1
+    },
+    "blood pressure systolic increased": {
+      "pt": "Blood pressure systolic increased",
+      "soc": "Investigations",
+      "llt": "Blood pressure systolic increased",
+      "faers_count": 46,
+      "drug_count": 2
+    },
+    "blood sodium decreased": {
+      "pt": "Blood sodium decreased",
+      "soc": null,
+      "llt": "Blood sodium decreased",
+      "faers_count": 45,
+      "drug_count": 1
+    },
+    "blood test abnormal": {
+      "pt": "Blood test abnormal",
+      "soc": null,
+      "llt": "Blood test abnormal",
+      "faers_count": 46,
+      "drug_count": 1
+    },
+    "blood urine present": {
+      "pt": "Blood urine present",
+      "soc": "Investigations",
+      "llt": "Blood urine present",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "blurred vision": {
+      "pt": "Blurred vision",
+      "soc": "Eye disorders",
+      "llt": "Blurred vision",
+      "faers_count": 0,
+      "drug_count": 0
+    },
+    "body temperature decreased": {
+      "pt": "Body temperature decreased",
+      "soc": null,
+      "llt": "Body temperature decreased",
+      "faers_count": 41,
+      "drug_count": 1
+    },
+    "bone marrow failure": {
+      "pt": "Bone marrow failure",
+      "soc": "Blood and lymphatic system disorders",
+      "llt": "Bone marrow failure",
+      "faers_count": 56,
+      "drug_count": 1
+    },
+    "bone pain": {
+      "pt": "Bone pain",
+      "soc": "Musculoskeletal and connective tissue disorders",
+      "llt": "Bone pain",
+      "faers_count": 98,
+      "drug_count": 7
+    },
+    "brain fog": {
+      "pt": "Brain fog",
+      "soc": "Nervous system disorders",
+      "llt": "Brain fog",
+      "faers_count": 22,
+      "drug_count": 2
+    },
+    "brain oedema": {
+      "pt": "Brain oedema",
+      "soc": "Nervous system disorders",
+      "llt": "Brain oedema",
+      "faers_count": 73,
+      "drug_count": 2
+    },
+    "breast cancer": {
+      "pt": "Breast cancer",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Breast cancer",
+      "faers_count": 121,
+      "drug_count": 2
+    },
+    "breast cancer metastatic": {
+      "pt": "Breast cancer metastatic",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Breast cancer metastatic",
+      "faers_count": 144,
+      "drug_count": 3
+    },
+    "breast cancer recurrent": {
+      "pt": "Breast cancer recurrent",
+      "soc": null,
+      "llt": "Breast cancer recurrent",
+      "faers_count": 63,
+      "drug_count": 2
+    },
+    "breast disorder": {
+      "pt": "Breast disorder",
+      "soc": null,
+      "llt": "Breast disorder",
+      "faers_count": 48,
+      "drug_count": 1
+    },
+    "bronchopulmonary aspergillosis": {
+      "pt": "Bronchopulmonary aspergillosis",
+      "soc": "Infections and infestations",
+      "llt": "Bronchopulmonary aspergillosis",
+      "faers_count": 38,
+      "drug_count": 1
+    },
+    "bronchospasm": {
+      "pt": "Bronchospasm",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Bronchospasm",
+      "faers_count": 0,
+      "drug_count": 0
+    },
+    "burning sensation": {
+      "pt": "Burning sensation",
+      "soc": "Nervous system disorders",
+      "llt": "Burning sensation",
+      "faers_count": 19,
+      "drug_count": 2
+    },
+    "c-reactive protein increased": {
+      "pt": "C-Reactive protein increased",
+      "soc": "Investigations",
+      "llt": "C-Reactive protein increased",
+      "faers_count": 102,
+      "drug_count": 6
+    },
+    "cachexia": {
+      "pt": "Cachexia",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Cachexia",
+      "faers_count": 17,
+      "drug_count": 1
+    },
+    "cancer pain": {
+      "pt": "Cancer pain",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Cancer pain",
+      "faers_count": 22,
+      "drug_count": 1
+    },
+    "candida infection": {
+      "pt": "Candida infection",
+      "soc": "Infections and infestations",
+      "llt": "Candida infection",
+      "faers_count": 77,
+      "drug_count": 2
+    },
+    "carbohydrate antigen 125 increased": {
+      "pt": "Carbohydrate antigen 125 increased",
+      "soc": "Investigations",
+      "llt": "Carbohydrate antigen 125 increased",
+      "faers_count": 24,
+      "drug_count": 1
+    },
+    "cardiac arrest": {
+      "pt": "Cardiac arrest",
+      "soc": "Cardiac disorders",
+      "llt": "Cardiac arrest",
+      "faers_count": 37,
+      "drug_count": 3
+    },
+    "cardiac disorder": {
+      "pt": "Cardiac disorder",
+      "soc": "Cardiac disorders",
+      "llt": "Cardiac disorder",
+      "faers_count": 46,
+      "drug_count": 3
+    },
+    "cardiac failure": {
+      "pt": "Cardiac failure",
+      "soc": "Cardiac disorders",
+      "llt": "Cardiac failure",
+      "faers_count": 99,
+      "drug_count": 7
+    },
+    "cardiomyopathy": {
+      "pt": "Cardiomyopathy",
+      "soc": "Cardiac disorders",
+      "llt": "Cardiomyopathy",
+      "faers_count": 38,
+      "drug_count": 1
+    },
+    "cardiotoxicity": {
+      "pt": "Cardiotoxicity",
+      "soc": null,
+      "llt": "Cardiotoxicity",
+      "faers_count": 72,
+      "drug_count": 2
+    },
+    "cataract": {
+      "pt": "Cataract",
+      "soc": "Eye disorders",
+      "llt": "Cataract",
+      "faers_count": 74,
+      "drug_count": 5
+    },
+    "cell death": {
+      "pt": "Cell death",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Cell death",
+      "faers_count": 24,
+      "drug_count": 2
+    },
+    "cellulitis": {
+      "pt": "Cellulitis",
+      "soc": "Infections and infestations",
+      "llt": "Cellulitis",
+      "faers_count": 78,
+      "drug_count": 6
+    },
+    "cerebral haemorrhage": {
+      "pt": "Cerebral haemorrhage",
+      "soc": "Nervous system disorders",
+      "llt": "Cerebral haemorrhage",
+      "faers_count": 48,
+      "drug_count": 3
+    },
+    "cerebral infarction": {
+      "pt": "Cerebral infarction",
+      "soc": "Nervous system disorders",
+      "llt": "Cerebral infarction",
+      "faers_count": 17,
+      "drug_count": 1
+    },
+    "cerebrovascular accident": {
+      "pt": "Cerebrovascular accident",
+      "soc": "Nervous system disorders",
+      "llt": "Cerebrovascular accident",
+      "faers_count": 40,
+      "drug_count": 4
+    },
+    "cervix cancer metastatic": {
+      "pt": "Cervix cancer metastatic",
+      "soc": null,
+      "llt": "Cervix cancer metastatic",
+      "faers_count": 7,
+      "drug_count": 1
+    },
+    "cervix carcinoma": {
+      "pt": "Cervix carcinoma",
+      "soc": null,
+      "llt": "Cervix carcinoma",
+      "faers_count": 11,
+      "drug_count": 1
+    },
+    "cervix carcinoma recurrent": {
+      "pt": "Cervix carcinoma recurrent",
+      "soc": null,
+      "llt": "Cervix carcinoma recurrent",
+      "faers_count": 11,
+      "drug_count": 1
+    },
+    "chest discomfort": {
+      "pt": "Chest discomfort",
+      "soc": "General disorders",
+      "llt": "Chest discomfort",
+      "faers_count": 50,
+      "drug_count": 5
+    },
+    "chest pain": {
+      "pt": "Chest pain",
+      "soc": "General disorders",
+      "llt": "Chest pain",
+      "faers_count": 93,
+      "drug_count": 7
+    },
+    "chills": {
+      "pt": "Chills",
+      "soc": "General disorders",
+      "llt": "Chills",
+      "faers_count": 121,
+      "drug_count": 7
+    },
+    "cholangitis": {
+      "pt": "Cholangitis",
+      "soc": "Hepatobiliary disorders",
+      "llt": "Cholangitis",
+      "faers_count": 23,
+      "drug_count": 2
+    },
+    "cholestasis": {
+      "pt": "Cholestasis",
+      "soc": "Hepatobiliary disorders",
+      "llt": "Cholestasis",
+      "faers_count": 31,
+      "drug_count": 3
+    },
+    "cholinergic syndrome": {
+      "pt": "Cholinergic syndrome",
+      "soc": "Nervous system disorders",
+      "llt": "Cholinergic syndrome",
+      "faers_count": 13,
+      "drug_count": 1
+    },
+    "circumstance or information capable of leading to medication error": {
+      "pt": "Circumstance or information capable of leading to medication error",
+      "soc": null,
+      "llt": "Circumstance or information capable of leading to medication error",
+      "faers_count": 10,
+      "drug_count": 1
+    },
+    "clostridium difficile colitis": {
+      "pt": "Clostridium difficile colitis",
+      "soc": "Infections and infestations",
+      "llt": "Clostridium difficile colitis",
+      "faers_count": 42,
+      "drug_count": 2
+    },
+    "clostridium difficile infection": {
+      "pt": "Clostridium difficile infection",
+      "soc": "Infections and infestations",
+      "llt": "Clostridium difficile infection",
+      "faers_count": 45,
+      "drug_count": 1
+    },
+    "cognitive disorder": {
+      "pt": "Cognitive disorder",
+      "soc": "Nervous system disorders",
+      "llt": "Cognitive disorder",
+      "faers_count": 25,
+      "drug_count": 3
+    },
+    "colitis": {
+      "pt": "Colitis",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Colitis",
+      "faers_count": 114,
+      "drug_count": 7
+    },
+    "complication associated with device": {
+      "pt": "Complication associated with device",
+      "soc": "General disorders",
+      "llt": "Complication associated with device",
+      "faers_count": 11,
+      "drug_count": 1
+    },
+    "condition aggravated": {
+      "pt": "Condition aggravated",
+      "soc": "General disorders",
+      "llt": "Condition aggravated",
+      "faers_count": 157,
+      "drug_count": 7
+    },
+    "confusional state": {
+      "pt": "Confusional state",
+      "soc": "Psychiatric disorders",
+      "llt": "Confusional state",
+      "faers_count": 58,
+      "drug_count": 5
+    },
+    "conjunctival haemorrhage": {
+      "pt": "Conjunctival haemorrhage",
+      "soc": "Eye disorders",
+      "llt": "Conjunctival haemorrhage",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "conjunctival hyperaemia": {
+      "pt": "Conjunctival hyperaemia",
+      "soc": "Eye disorders",
+      "llt": "Conjunctival hyperaemia",
+      "faers_count": 7,
+      "drug_count": 1
+    },
+    "conjunctival scar": {
+      "pt": "Conjunctival scar",
+      "soc": "Injury, poisoning and procedural complications",
+      "llt": "Conjunctival scar",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "conjunctival ulcer": {
+      "pt": "Conjunctival ulcer",
+      "soc": "Eye disorders",
+      "llt": "Conjunctival ulcer",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "conjunctivitis": {
+      "pt": "Conjunctivitis",
+      "soc": "Infections and infestations",
+      "llt": "Conjunctivitis",
+      "faers_count": 31,
+      "drug_count": 2
+    },
+    "constipation": {
+      "pt": "Constipation",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Constipation",
+      "faers_count": 266,
+      "drug_count": 8
+    },
+    "contusion": {
+      "pt": "Contusion",
+      "soc": "Injury, poisoning and procedural complications",
+      "llt": "Contusion",
+      "faers_count": 51,
+      "drug_count": 1
+    },
+    "convulsion": {
+      "pt": "Convulsion",
+      "soc": "Nervous system disorders",
+      "llt": "Convulsion",
+      "faers_count": 0,
+      "drug_count": 0
+    },
+    "corneal deposits": {
+      "pt": "Corneal deposits",
+      "soc": "Eye disorders",
+      "llt": "Corneal deposits",
+      "faers_count": 7,
+      "drug_count": 1
+    },
+    "corneal disorder": {
+      "pt": "Corneal disorder",
+      "soc": "Eye disorders",
+      "llt": "Corneal disorder",
+      "faers_count": 4,
+      "drug_count": 2
+    },
+    "corneal epithelial microcysts": {
+      "pt": "Corneal epithelial microcysts",
+      "soc": "Eye disorders",
+      "llt": "Corneal epithelial microcysts",
+      "faers_count": 7,
+      "drug_count": 1
+    },
+    "corneal epithelium defect": {
+      "pt": "Corneal epithelium defect",
+      "soc": "Eye disorders",
+      "llt": "Corneal epithelium defect",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "corneal erosion": {
+      "pt": "Corneal erosion",
+      "soc": "Eye disorders",
+      "llt": "Corneal erosion",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "corneal neovascularisation": {
+      "pt": "Corneal neovascularisation",
+      "soc": null,
+      "llt": "Corneal neovascularisation",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "corneal opacity": {
+      "pt": "Corneal opacity",
+      "soc": "Eye disorders",
+      "llt": "Corneal opacity",
+      "faers_count": 4,
+      "drug_count": 2
+    },
+    "corneal scar": {
+      "pt": "Corneal scar",
+      "soc": "Eye disorders",
+      "llt": "Corneal scar",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "corneal toxicity": {
+      "pt": "Corneal toxicity",
+      "soc": "Eye disorders",
+      "llt": "Corneal toxicity",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "coronavirus infection": {
+      "pt": "Coronavirus infection",
+      "soc": "Infections and infestations",
+      "llt": "Coronavirus infection",
+      "faers_count": 43,
+      "drug_count": 1
+    },
+    "cough": {
+      "pt": "Cough",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Cough",
+      "faers_count": 242,
+      "drug_count": 8
+    },
+    "covid-19": {
+      "pt": "COVID-19",
+      "soc": "Infections and infestations",
+      "llt": "COVID-19",
+      "faers_count": 514,
+      "drug_count": 8
+    },
+    "covid-19 pneumonia": {
+      "pt": "Covid-19 pneumonia",
+      "soc": "Infections and infestations",
+      "llt": "Covid-19 pneumonia",
+      "faers_count": 68,
+      "drug_count": 1
+    },
+    "cutaneous t-cell lymphoma": {
+      "pt": "Cutaneous t-cell lymphoma",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Cutaneous t-cell lymphoma",
+      "faers_count": 46,
+      "drug_count": 1
+    },
+    "cystitis": {
+      "pt": "Cystitis",
+      "soc": "Infections and infestations",
+      "llt": "Cystitis",
+      "faers_count": 23,
+      "drug_count": 2
+    },
+    "cystitis haemorrhagic": {
+      "pt": "Cystitis haemorrhagic",
+      "soc": "Renal and urinary disorders",
+      "llt": "Cystitis haemorrhagic",
+      "faers_count": 5,
+      "drug_count": 1
+    },
+    "cystitis radiation": {
+      "pt": "Cystitis radiation",
+      "soc": "Injury, poisoning and procedural complications",
+      "llt": "Cystitis radiation",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "cystitis viral": {
+      "pt": "Cystitis viral",
+      "soc": null,
+      "llt": "Cystitis viral",
+      "faers_count": 21,
+      "drug_count": 1
+    },
+    "cytokine release syndrome": {
+      "pt": "Cytokine release syndrome",
+      "soc": "Immune system disorders",
+      "llt": "Cytokine release syndrome",
+      "faers_count": 365,
+      "drug_count": 3
+    },
+    "cytomegalovirus chorioretinitis": {
+      "pt": "Cytomegalovirus chorioretinitis",
+      "soc": "Infections and infestations",
+      "llt": "Cytomegalovirus chorioretinitis",
+      "faers_count": 62,
+      "drug_count": 1
+    },
+    "cytomegalovirus enterocolitis": {
+      "pt": "Cytomegalovirus enterocolitis",
+      "soc": null,
+      "llt": "Cytomegalovirus enterocolitis",
+      "faers_count": 21,
+      "drug_count": 1
+    },
+    "cytomegalovirus infection": {
+      "pt": "Cytomegalovirus infection",
+      "soc": "Infections and infestations",
+      "llt": "Cytomegalovirus infection",
+      "faers_count": 142,
+      "drug_count": 2
+    },
+    "cytomegalovirus infection reactivation": {
+      "pt": "Cytomegalovirus infection reactivation",
+      "soc": "Infections and infestations",
+      "llt": "Cytomegalovirus infection reactivation",
+      "faers_count": 121,
+      "drug_count": 2
+    },
+    "cytomegalovirus test positive": {
+      "pt": "Cytomegalovirus test positive",
+      "soc": "Investigations",
+      "llt": "Cytomegalovirus test positive",
+      "faers_count": 32,
+      "drug_count": 1
+    },
+    "cytomegalovirus viraemia": {
+      "pt": "Cytomegalovirus viraemia",
+      "soc": "Infections and infestations",
+      "llt": "Cytomegalovirus viraemia",
+      "faers_count": 25,
+      "drug_count": 1
+    },
+    "cytopenia": {
+      "pt": "Cytopenia",
+      "soc": null,
+      "llt": "Cytopenia",
+      "faers_count": 168,
+      "drug_count": 6
+    },
+    "death": {
+      "pt": "Death",
+      "soc": "General disorders",
+      "llt": "Death",
+      "faers_count": 898,
+      "drug_count": 8
+    },
+    "decreased appetite": {
+      "pt": "Decreased appetite",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Decreased appetite",
+      "faers_count": 349,
+      "drug_count": 8
+    },
+    "deep vein thrombosis": {
+      "pt": "Deep vein thrombosis",
+      "soc": "Vascular disorders",
+      "llt": "Deep vein thrombosis",
+      "faers_count": 95,
+      "drug_count": 4
+    },
+    "dehydration": {
+      "pt": "Dehydration",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Dehydration",
+      "faers_count": 104,
+      "drug_count": 8
+    },
+    "delirium": {
+      "pt": "Delirium",
+      "soc": "Psychiatric disorders",
+      "llt": "Delirium",
+      "faers_count": 22,
+      "drug_count": 2
+    },
+    "depression": {
+      "pt": "Depression",
+      "soc": "Psychiatric disorders",
+      "llt": "Depression",
+      "faers_count": 14,
+      "drug_count": 2
+    },
+    "dermatitis": {
+      "pt": "Dermatitis",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Dermatitis",
+      "faers_count": 22,
+      "drug_count": 1
+    },
+    "dermatitis acneiform": {
+      "pt": "Dermatitis acneiform",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Dermatitis acneiform",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "dermatitis bullous": {
+      "pt": "Dermatitis bullous",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Dermatitis bullous",
+      "faers_count": 76,
+      "drug_count": 1
+    },
+    "dermatitis exfoliative generalised": {
+      "pt": "Dermatitis exfoliative generalised",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Dermatitis exfoliative generalised",
+      "faers_count": 35,
+      "drug_count": 1
+    },
+    "device related infection": {
+      "pt": "Device related infection",
+      "soc": "Infections and infestations",
+      "llt": "Device related infection",
+      "faers_count": 23,
+      "drug_count": 1
+    },
+    "diabetes mellitus": {
+      "pt": "Diabetes mellitus",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Diabetes mellitus",
+      "faers_count": 50,
+      "drug_count": 1
+    },
+    "diabetes mellitus inadequate control": {
+      "pt": "Diabetes mellitus inadequate control",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Diabetes mellitus inadequate control",
+      "faers_count": 18,
+      "drug_count": 1
+    },
+    "diabetic ketoacidosis": {
+      "pt": "Diabetic ketoacidosis",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Diabetic ketoacidosis",
+      "faers_count": 56,
+      "drug_count": 2
+    },
+    "diarrhoea": {
+      "pt": "Diarrhoea",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Diarrhoea",
+      "faers_count": 594,
+      "drug_count": 8
+    },
+    "diffuse large b-cell lymphoma": {
+      "pt": "Diffuse large b-cell lymphoma",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Diffuse large b-cell lymphoma",
+      "faers_count": 358,
+      "drug_count": 2
+    },
+    "diffuse large b-cell lymphoma recurrent": {
+      "pt": "Diffuse large b-cell lymphoma recurrent",
+      "soc": null,
+      "llt": "Diffuse large b-cell lymphoma recurrent",
+      "faers_count": 299,
+      "drug_count": 1
+    },
+    "diffuse large b-cell lymphoma refractory": {
+      "pt": "Diffuse large b-cell lymphoma refractory",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Diffuse large b-cell lymphoma refractory",
+      "faers_count": 105,
+      "drug_count": 1
+    },
+    "diplopia": {
+      "pt": "Diplopia",
+      "soc": "Eye disorders",
+      "llt": "Diplopia",
+      "faers_count": 4,
+      "drug_count": 1
+    },
+    "discomfort": {
+      "pt": "Discomfort",
+      "soc": "General disorders",
+      "llt": "Discomfort",
+      "faers_count": 17,
+      "drug_count": 1
+    },
+    "disease progression": {
+      "pt": "Disease progression",
+      "soc": "General disorders",
+      "llt": "Disease progression",
+      "faers_count": 1934,
+      "drug_count": 8
+    },
+    "disease recurrence": {
+      "pt": "Disease recurrence",
+      "soc": null,
+      "llt": "Disease recurrence",
+      "faers_count": 107,
+      "drug_count": 2
+    },
+    "disseminated intravascular coagulation": {
+      "pt": "Disseminated intravascular coagulation",
+      "soc": "Blood and lymphatic system disorders",
+      "llt": "Disseminated intravascular coagulation",
+      "faers_count": 0,
+      "drug_count": 0
+    },
+    "dizziness": {
+      "pt": "Dizziness",
+      "soc": "Nervous system disorders",
+      "llt": "Dizziness",
+      "faers_count": 191,
+      "drug_count": 7
+    },
+    "dose calculation error": {
+      "pt": "Dose calculation error",
+      "soc": null,
+      "llt": "Dose calculation error",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "drug eruption": {
+      "pt": "Drug eruption",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Drug eruption",
+      "faers_count": 60,
+      "drug_count": 1
+    },
+    "drug hypersensitivity": {
+      "pt": "Drug hypersensitivity",
+      "soc": "Immune system disorders",
+      "llt": "Drug hypersensitivity",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "drug ineffective": {
+      "pt": "Drug ineffective",
+      "soc": null,
+      "llt": "Drug ineffective",
+      "faers_count": 460,
+      "drug_count": 8
+    },
+    "drug ineffective for unapproved indication": {
+      "pt": "Drug ineffective for unapproved indication",
+      "soc": null,
+      "llt": "Drug ineffective for unapproved indication",
+      "faers_count": 38,
+      "drug_count": 3
+    },
+    "drug intolerance": {
+      "pt": "Drug intolerance",
+      "soc": null,
+      "llt": "Drug intolerance",
+      "faers_count": 67,
+      "drug_count": 3
+    },
+    "drug reaction with eosinophilia and systemic symptoms": {
+      "pt": "Drug reaction with eosinophilia and systemic symptoms",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Drug reaction with eosinophilia and systemic symptoms",
+      "faers_count": 35,
+      "drug_count": 1
+    },
+    "drug resistance": {
+      "pt": "Drug resistance",
+      "soc": null,
+      "llt": "Drug resistance",
+      "faers_count": 24,
+      "drug_count": 2
+    },
+    "drug-induced liver injury": {
+      "pt": "Drug-Induced liver injury",
+      "soc": "Hepatobiliary disorders",
+      "llt": "Drug-Induced liver injury",
+      "faers_count": 27,
+      "drug_count": 3
+    },
+    "dry eye": {
+      "pt": "Dry eye",
+      "soc": "Eye disorders",
+      "llt": "Dry eye",
+      "faers_count": 81,
+      "drug_count": 5
+    },
+    "dry mouth": {
+      "pt": "Dry mouth",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Dry mouth",
+      "faers_count": 93,
+      "drug_count": 2
+    },
+    "dry skin": {
+      "pt": "Dry skin",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Dry skin",
+      "faers_count": 110,
+      "drug_count": 3
+    },
+    "duodenal perforation": {
+      "pt": "Duodenal perforation",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Duodenal perforation",
+      "faers_count": 5,
+      "drug_count": 1
+    },
+    "dysarthria": {
+      "pt": "Dysarthria",
+      "soc": "Nervous system disorders",
+      "llt": "Dysarthria",
+      "faers_count": 18,
+      "drug_count": 2
+    },
+    "dysgeusia": {
+      "pt": "Dysgeusia",
+      "soc": "Nervous system disorders",
+      "llt": "Dysgeusia",
+      "faers_count": 55,
+      "drug_count": 3
+    },
+    "dyspepsia": {
+      "pt": "Dyspepsia",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Dyspepsia",
+      "faers_count": 66,
+      "drug_count": 6
+    },
+    "dysphagia": {
+      "pt": "Dysphagia",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Dysphagia",
+      "faers_count": 43,
+      "drug_count": 5
+    },
+    "dysphonia": {
+      "pt": "Dysphonia",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Dysphonia",
+      "faers_count": 18,
+      "drug_count": 2
+    },
+    "dyspnoea": {
+      "pt": "Dyspnoea",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Dyspnoea",
+      "faers_count": 297,
+      "drug_count": 8
+    },
+    "dyspnoea exertional": {
+      "pt": "Dyspnoea exertional",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Dyspnoea exertional",
+      "faers_count": 35,
+      "drug_count": 3
+    },
+    "eastern cooperative oncology group performance status worsened": {
+      "pt": "Eastern cooperative oncology group performance status worsened",
+      "soc": "Investigations",
+      "llt": "Eastern cooperative oncology group performance status worsened",
+      "faers_count": 18,
+      "drug_count": 1
+    },
+    "eating disorder": {
+      "pt": "Eating disorder",
+      "soc": null,
+      "llt": "Eating disorder",
+      "faers_count": 16,
+      "drug_count": 1
+    },
+    "ectropion": {
+      "pt": "Ectropion",
+      "soc": "Eye disorders",
+      "llt": "Ectropion",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "eczema": {
+      "pt": "Eczema",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Eczema",
+      "faers_count": 65,
+      "drug_count": 3
+    },
+    "ejection fraction decreased": {
+      "pt": "Ejection fraction decreased",
+      "soc": "Investigations",
+      "llt": "Ejection fraction decreased",
+      "faers_count": 204,
+      "drug_count": 3
+    },
+    "electrocardiogram qt prolonged": {
+      "pt": "Electrocardiogram QT prolonged",
+      "soc": "Investigations",
+      "llt": "Electrocardiogram QT prolonged",
+      "faers_count": 0,
+      "drug_count": 0
+    },
+    "electrolyte imbalance": {
+      "pt": "Electrolyte imbalance",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Electrolyte imbalance",
+      "faers_count": 18,
+      "drug_count": 1
+    },
+    "encephalopathy": {
+      "pt": "Encephalopathy",
+      "soc": "Nervous system disorders",
+      "llt": "Encephalopathy",
+      "faers_count": 33,
+      "drug_count": 1
+    },
+    "energy increased": {
+      "pt": "Energy increased",
+      "soc": null,
+      "llt": "Energy increased",
+      "faers_count": 11,
+      "drug_count": 1
+    },
+    "enteritis": {
+      "pt": "Enteritis",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Enteritis",
+      "faers_count": 17,
+      "drug_count": 1
+    },
+    "enterococcal infection": {
+      "pt": "Enterococcal infection",
+      "soc": null,
+      "llt": "Enterococcal infection",
+      "faers_count": 21,
+      "drug_count": 1
+    },
+    "enterocolitis": {
+      "pt": "Enterocolitis",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Enterocolitis",
+      "faers_count": 18,
+      "drug_count": 2
+    },
+    "enterocolitis infectious": {
+      "pt": "Enterocolitis infectious",
+      "soc": "Infections and infestations",
+      "llt": "Enterocolitis infectious",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "epilepsy": {
+      "pt": "Epilepsy",
+      "soc": "Nervous system disorders",
+      "llt": "Epilepsy",
+      "faers_count": 48,
+      "drug_count": 2
+    },
+    "epistaxis": {
+      "pt": "Epistaxis",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Epistaxis",
+      "faers_count": 316,
+      "drug_count": 5
+    },
+    "erythema": {
+      "pt": "Erythema",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Erythema",
+      "faers_count": 139,
+      "drug_count": 8
+    },
+    "erythema multiforme": {
+      "pt": "Erythema multiforme",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Erythema multiforme",
+      "faers_count": 20,
+      "drug_count": 1
+    },
+    "escherichia infection": {
+      "pt": "Escherichia infection",
+      "soc": "Infections and infestations",
+      "llt": "Escherichia infection",
+      "faers_count": 29,
+      "drug_count": 1
+    },
+    "extravasation": {
+      "pt": "Extravasation",
+      "soc": "General disorders",
+      "llt": "Extravasation",
+      "faers_count": 4,
+      "drug_count": 2
+    },
+    "eye abrasion": {
+      "pt": "Eye abrasion",
+      "soc": null,
+      "llt": "Eye abrasion",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "eye discharge": {
+      "pt": "Eye discharge",
+      "soc": "Eye disorders",
+      "llt": "Eye discharge",
+      "faers_count": 9,
+      "drug_count": 1
+    },
+    "eye disorder": {
+      "pt": "Eye disorder",
+      "soc": "Eye disorders",
+      "llt": "Eye disorder",
+      "faers_count": 28,
+      "drug_count": 2
+    },
+    "eye infection": {
+      "pt": "Eye infection",
+      "soc": "Infections and infestations",
+      "llt": "Eye infection",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "eye inflammation": {
+      "pt": "Eye inflammation",
+      "soc": "Eye disorders",
+      "llt": "Eye inflammation",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "eye irritation": {
+      "pt": "Eye irritation",
+      "soc": "Eye disorders",
+      "llt": "Eye irritation",
+      "faers_count": 13,
+      "drug_count": 2
+    },
+    "eye oedema": {
+      "pt": "Eye oedema",
+      "soc": null,
+      "llt": "Eye oedema",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "eye pain": {
+      "pt": "Eye pain",
+      "soc": "Eye disorders",
+      "llt": "Eye pain",
+      "faers_count": 16,
+      "drug_count": 2
+    },
+    "eye pruritus": {
+      "pt": "Eye pruritus",
+      "soc": "Eye disorders",
+      "llt": "Eye pruritus",
+      "faers_count": 5,
+      "drug_count": 1
+    },
+    "eye swelling": {
+      "pt": "Eye swelling",
+      "soc": "Eye disorders",
+      "llt": "Eye swelling",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "eye ulcer": {
+      "pt": "Eye ulcer",
+      "soc": null,
+      "llt": "Eye ulcer",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "faecaloma": {
+      "pt": "Faecaloma",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Faecaloma",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "fall": {
+      "pt": "Fall",
+      "soc": "Injury, poisoning and procedural complications",
+      "llt": "Fall",
+      "faers_count": 78,
+      "drug_count": 8
+    },
+    "fatigue": {
+      "pt": "Fatigue",
+      "soc": "General disorders",
+      "llt": "Fatigue",
+      "faers_count": 743,
+      "drug_count": 8
+    },
+    "fear": {
+      "pt": "Fear",
+      "soc": null,
+      "llt": "Fear",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "febrile bone marrow aplasia": {
+      "pt": "Febrile bone marrow aplasia",
+      "soc": "Blood and lymphatic system disorders",
+      "llt": "Febrile bone marrow aplasia",
+      "faers_count": 58,
+      "drug_count": 2
+    },
+    "febrile neutropenia": {
+      "pt": "Febrile neutropenia",
+      "soc": "Blood and lymphatic system disorders",
+      "llt": "Febrile neutropenia",
+      "faers_count": 713,
+      "drug_count": 8
+    },
+    "feeding disorder": {
+      "pt": "Feeding disorder",
+      "soc": null,
+      "llt": "Feeding disorder",
+      "faers_count": 24,
+      "drug_count": 1
+    },
+    "feeling abnormal": {
+      "pt": "Feeling abnormal",
+      "soc": "General disorders",
+      "llt": "Feeling abnormal",
+      "faers_count": 61,
+      "drug_count": 3
+    },
+    "feeling jittery": {
+      "pt": "Feeling jittery",
+      "soc": null,
+      "llt": "Feeling jittery",
+      "faers_count": 12,
+      "drug_count": 1
+    },
+    "flatulence": {
+      "pt": "Flatulence",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Flatulence",
+      "faers_count": 19,
+      "drug_count": 1
+    },
+    "flushing": {
+      "pt": "Flushing",
+      "soc": "Vascular disorders",
+      "llt": "Flushing",
+      "faers_count": 61,
+      "drug_count": 4
+    },
+    "follicular lymphoma": {
+      "pt": "Follicular lymphoma",
+      "soc": null,
+      "llt": "Follicular lymphoma",
+      "faers_count": 38,
+      "drug_count": 1
+    },
+    "formication": {
+      "pt": "Formication",
+      "soc": null,
+      "llt": "Formication",
+      "faers_count": 12,
+      "drug_count": 1
+    },
+    "fracture": {
+      "pt": "Fracture",
+      "soc": "Injury, poisoning and procedural complications",
+      "llt": "Fracture",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "full blood count decreased": {
+      "pt": "Full blood count decreased",
+      "soc": null,
+      "llt": "Full blood count decreased",
+      "faers_count": 10,
+      "drug_count": 1
+    },
+    "fungal infection": {
+      "pt": "Fungal infection",
+      "soc": "Infections and infestations",
+      "llt": "Fungal infection",
+      "faers_count": 37,
+      "drug_count": 1
+    },
+    "gait disturbance": {
+      "pt": "Gait disturbance",
+      "soc": "General disorders",
+      "llt": "Gait disturbance",
+      "faers_count": 47,
+      "drug_count": 7
+    },
+    "gait inability": {
+      "pt": "Gait inability",
+      "soc": "General disorders",
+      "llt": "Gait inability",
+      "faers_count": 10,
+      "drug_count": 2
+    },
+    "gamma-glutamyltransferase increased": {
+      "pt": "Gamma-Glutamyltransferase increased",
+      "soc": "Investigations",
+      "llt": "Gamma-Glutamyltransferase increased",
+      "faers_count": 92,
+      "drug_count": 5
+    },
+    "gastric perforation": {
+      "pt": "Gastric perforation",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Gastric perforation",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "gastritis": {
+      "pt": "Gastritis",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Gastritis",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "gastrointestinal disorder": {
+      "pt": "Gastrointestinal disorder",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Gastrointestinal disorder",
+      "faers_count": 64,
+      "drug_count": 5
+    },
+    "gastrointestinal haemorrhage": {
+      "pt": "Gastrointestinal haemorrhage",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Gastrointestinal haemorrhage",
+      "faers_count": 52,
+      "drug_count": 4
+    },
+    "gastrointestinal pain": {
+      "pt": "Gastrointestinal pain",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Gastrointestinal pain",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "gastrointestinal perforation": {
+      "pt": "Gastrointestinal perforation",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Gastrointestinal perforation",
+      "faers_count": 26,
+      "drug_count": 1
+    },
+    "gastrointestinal toxicity": {
+      "pt": "Gastrointestinal toxicity",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Gastrointestinal toxicity",
+      "faers_count": 27,
+      "drug_count": 4
+    },
+    "gastrooesophageal reflux disease": {
+      "pt": "Gastrooesophageal reflux disease",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Gastrooesophageal reflux disease",
+      "faers_count": 27,
+      "drug_count": 2
+    },
+    "general physical condition abnormal": {
+      "pt": "General physical condition abnormal",
+      "soc": "Investigations",
+      "llt": "General physical condition abnormal",
+      "faers_count": 19,
+      "drug_count": 1
+    },
+    "general physical health deterioration": {
+      "pt": "General physical health deterioration",
+      "soc": "General disorders",
+      "llt": "General physical health deterioration",
+      "faers_count": 162,
+      "drug_count": 7
+    },
+    "gingival bleeding": {
+      "pt": "Gingival bleeding",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Gingival bleeding",
+      "faers_count": 66,
+      "drug_count": 1
+    },
+    "glaucoma": {
+      "pt": "Glaucoma",
+      "soc": "Eye disorders",
+      "llt": "Glaucoma",
+      "faers_count": 5,
+      "drug_count": 1
+    },
+    "graft versus host disease": {
+      "pt": "Graft versus host disease",
+      "soc": "Immune system disorders",
+      "llt": "Graft versus host disease",
+      "faers_count": 50,
+      "drug_count": 1
+    },
+    "guillain-barre syndrome": {
+      "pt": "Guillain-Barre syndrome",
+      "soc": "Nervous system disorders",
+      "llt": "Guillain-Barre syndrome",
+      "faers_count": 35,
+      "drug_count": 1
+    },
+    "haematochezia": {
+      "pt": "Haematochezia",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Haematochezia",
+      "faers_count": 5,
+      "drug_count": 1
+    },
+    "haematocrit decreased": {
+      "pt": "Haematocrit decreased",
+      "soc": "Investigations",
+      "llt": "Haematocrit decreased",
+      "faers_count": 24,
+      "drug_count": 1
+    },
+    "haematotoxicity": {
+      "pt": "Haematotoxicity",
+      "soc": null,
+      "llt": "Haematotoxicity",
+      "faers_count": 72,
+      "drug_count": 5
+    },
+    "haematuria": {
+      "pt": "Haematuria",
+      "soc": "Renal and urinary disorders",
+      "llt": "Haematuria",
+      "faers_count": 42,
+      "drug_count": 2
+    },
+    "haemoglobin abnormal": {
+      "pt": "Haemoglobin abnormal",
+      "soc": null,
+      "llt": "Haemoglobin abnormal",
+      "faers_count": 26,
+      "drug_count": 2
+    },
+    "haemoglobin decreased": {
+      "pt": "Haemoglobin decreased",
+      "soc": "Investigations",
+      "llt": "Haemoglobin decreased",
+      "faers_count": 95,
+      "drug_count": 7
+    },
+    "haemophagocytic lymphohistiocytosis": {
+      "pt": "Haemophagocytic lymphohistiocytosis",
+      "soc": null,
+      "llt": "Haemophagocytic lymphohistiocytosis",
+      "faers_count": 43,
+      "drug_count": 2
+    },
+    "haemorrhage": {
+      "pt": "Haemorrhage",
+      "soc": "Vascular disorders",
+      "llt": "Haemorrhage",
+      "faers_count": 35,
+      "drug_count": 2
+    },
+    "haemorrhage intracranial": {
+      "pt": "Haemorrhage intracranial",
+      "soc": "Nervous system disorders",
+      "llt": "Haemorrhage intracranial",
+      "faers_count": 7,
+      "drug_count": 1
+    },
+    "hair growth abnormal": {
+      "pt": "Hair growth abnormal",
+      "soc": null,
+      "llt": "Hair growth abnormal",
+      "faers_count": 12,
+      "drug_count": 1
+    },
+    "headache": {
+      "pt": "Headache",
+      "soc": "Nervous system disorders",
+      "llt": "Headache",
+      "faers_count": 428,
+      "drug_count": 8
+    },
+    "heart rate abnormal": {
+      "pt": "Heart rate abnormal",
+      "soc": null,
+      "llt": "Heart rate abnormal",
+      "faers_count": 12,
+      "drug_count": 2
+    },
+    "heart rate decreased": {
+      "pt": "Heart rate decreased",
+      "soc": null,
+      "llt": "Heart rate decreased",
+      "faers_count": 60,
+      "drug_count": 2
+    },
+    "heart rate increased": {
+      "pt": "Heart rate increased",
+      "soc": null,
+      "llt": "Heart rate increased",
+      "faers_count": 71,
+      "drug_count": 3
+    },
+    "hepatic cirrhosis": {
+      "pt": "Hepatic cirrhosis",
+      "soc": "Hepatobiliary disorders",
+      "llt": "Hepatic cirrhosis",
+      "faers_count": 67,
+      "drug_count": 2
+    },
+    "hepatic cytolysis": {
+      "pt": "Hepatic cytolysis",
+      "soc": "Hepatobiliary disorders",
+      "llt": "Hepatic cytolysis",
+      "faers_count": 44,
+      "drug_count": 4
+    },
+    "hepatic enzyme increased": {
+      "pt": "Hepatic enzyme increased",
+      "soc": "Investigations",
+      "llt": "Hepatic enzyme increased",
+      "faers_count": 108,
+      "drug_count": 7
+    },
+    "hepatic failure": {
+      "pt": "Hepatic failure",
+      "soc": "Hepatobiliary disorders",
+      "llt": "Hepatic failure",
+      "faers_count": 48,
+      "drug_count": 6
+    },
+    "hepatic function abnormal": {
+      "pt": "Hepatic function abnormal",
+      "soc": "Hepatobiliary disorders",
+      "llt": "Hepatic function abnormal",
+      "faers_count": 89,
+      "drug_count": 7
+    },
+    "hepatic steatosis": {
+      "pt": "Hepatic steatosis",
+      "soc": "Hepatobiliary disorders",
+      "llt": "Hepatic steatosis",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "hepatitis": {
+      "pt": "Hepatitis",
+      "soc": "Hepatobiliary disorders",
+      "llt": "Hepatitis",
+      "faers_count": 53,
+      "drug_count": 5
+    },
+    "hepatitis b": {
+      "pt": "Hepatitis B",
+      "soc": "Infections and infestations",
+      "llt": "Hepatitis B",
+      "faers_count": 37,
+      "drug_count": 1
+    },
+    "hepatitis b reactivation": {
+      "pt": "Hepatitis B reactivation",
+      "soc": null,
+      "llt": "Hepatitis B reactivation",
+      "faers_count": 22,
+      "drug_count": 1
+    },
+    "hepatotoxicity": {
+      "pt": "Hepatotoxicity",
+      "soc": "Hepatobiliary disorders",
+      "llt": "Hepatotoxicity",
+      "faers_count": 106,
+      "drug_count": 5
+    },
+    "hernia": {
+      "pt": "Hernia",
+      "soc": null,
+      "llt": "Hernia",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "herpes ophthalmic": {
+      "pt": "Herpes ophthalmic",
+      "soc": "Infections and infestations",
+      "llt": "Herpes ophthalmic",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "herpes zoster": {
+      "pt": "Herpes zoster",
+      "soc": "Infections and infestations",
+      "llt": "Herpes zoster",
+      "faers_count": 60,
+      "drug_count": 3
+    },
+    "hip fracture": {
+      "pt": "Hip fracture",
+      "soc": "Injury, poisoning and procedural complications",
+      "llt": "Hip fracture",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "hodgkin^s disease": {
+      "pt": "Hodgkin^S disease",
+      "soc": null,
+      "llt": "Hodgkin^S disease",
+      "faers_count": 445,
+      "drug_count": 1
+    },
+    "hodgkin^s disease recurrent": {
+      "pt": "Hodgkin^S disease recurrent",
+      "soc": null,
+      "llt": "Hodgkin^S disease recurrent",
+      "faers_count": 108,
+      "drug_count": 1
+    },
+    "hodgkin^s disease refractory": {
+      "pt": "Hodgkin^S disease refractory",
+      "soc": null,
+      "llt": "Hodgkin^S disease refractory",
+      "faers_count": 70,
+      "drug_count": 1
+    },
+    "hospice care": {
+      "pt": "Hospice care",
+      "soc": null,
+      "llt": "Hospice care",
+      "faers_count": 18,
+      "drug_count": 3
+    },
+    "hospitalisation": {
+      "pt": "Hospitalisation",
+      "soc": null,
+      "llt": "Hospitalisation",
+      "faers_count": 49,
+      "drug_count": 4
+    },
+    "hot flush": {
+      "pt": "Hot flush",
+      "soc": "Vascular disorders",
+      "llt": "Hot flush",
+      "faers_count": 45,
+      "drug_count": 1
+    },
+    "hydronephrosis": {
+      "pt": "Hydronephrosis",
+      "soc": "Renal and urinary disorders",
+      "llt": "Hydronephrosis",
+      "faers_count": 35,
+      "drug_count": 3
+    },
+    "hyperaesthesia": {
+      "pt": "Hyperaesthesia",
+      "soc": "Nervous system disorders",
+      "llt": "Hyperaesthesia",
+      "faers_count": 44,
+      "drug_count": 1
+    },
+    "hyperbilirubinaemia": {
+      "pt": "Hyperbilirubinaemia",
+      "soc": "Hepatobiliary disorders",
+      "llt": "Hyperbilirubinaemia",
+      "faers_count": 42,
+      "drug_count": 1
+    },
+    "hypercalcaemia": {
+      "pt": "Hypercalcaemia",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Hypercalcaemia",
+      "faers_count": 34,
+      "drug_count": 3
+    },
+    "hyperglycaemia": {
+      "pt": "Hyperglycaemia",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Hyperglycaemia",
+      "faers_count": 217,
+      "drug_count": 4
+    },
+    "hyperhidrosis": {
+      "pt": "Hyperhidrosis",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Hyperhidrosis",
+      "faers_count": 31,
+      "drug_count": 3
+    },
+    "hyperkalaemia": {
+      "pt": "Hyperkalaemia",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Hyperkalaemia",
+      "faers_count": 41,
+      "drug_count": 1
+    },
+    "hypersensitivity": {
+      "pt": "Hypersensitivity",
+      "soc": "Immune system disorders",
+      "llt": "Hypersensitivity",
+      "faers_count": 91,
+      "drug_count": 5
+    },
+    "hypersomnia": {
+      "pt": "Hypersomnia",
+      "soc": null,
+      "llt": "Hypersomnia",
+      "faers_count": 22,
+      "drug_count": 1
+    },
+    "hypertension": {
+      "pt": "Hypertension",
+      "soc": "Vascular disorders",
+      "llt": "Hypertension",
+      "faers_count": 116,
+      "drug_count": 6
+    },
+    "hyperthermia": {
+      "pt": "Hyperthermia",
+      "soc": "General disorders",
+      "llt": "Hyperthermia",
+      "faers_count": 43,
+      "drug_count": 1
+    },
+    "hyperthyroidism": {
+      "pt": "Hyperthyroidism",
+      "soc": "Endocrine disorders",
+      "llt": "Hyperthyroidism",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "hypertransaminasaemia": {
+      "pt": "Hypertransaminasaemia",
+      "soc": "Hepatobiliary disorders",
+      "llt": "Hypertransaminasaemia",
+      "faers_count": 38,
+      "drug_count": 1
+    },
+    "hyperuricaemia": {
+      "pt": "Hyperuricaemia",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Hyperuricaemia",
+      "faers_count": 46,
+      "drug_count": 1
+    },
+    "hypoaesthesia": {
+      "pt": "Hypoaesthesia",
+      "soc": "Nervous system disorders",
+      "llt": "Hypoaesthesia",
+      "faers_count": 141,
+      "drug_count": 7
+    },
+    "hypoalbuminaemia": {
+      "pt": "Hypoalbuminaemia",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Hypoalbuminaemia",
+      "faers_count": 79,
+      "drug_count": 2
+    },
+    "hypocalcaemia": {
+      "pt": "Hypocalcaemia",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Hypocalcaemia",
+      "faers_count": 76,
+      "drug_count": 4
+    },
+    "hypogammaglobulinaemia": {
+      "pt": "Hypogammaglobulinaemia",
+      "soc": "Immune system disorders",
+      "llt": "Hypogammaglobulinaemia",
+      "faers_count": 86,
+      "drug_count": 1
+    },
+    "hypokalaemia": {
+      "pt": "Hypokalaemia",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Hypokalaemia",
+      "faers_count": 147,
+      "drug_count": 8
+    },
+    "hypomagnesaemia": {
+      "pt": "Hypomagnesaemia",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Hypomagnesaemia",
+      "faers_count": 53,
+      "drug_count": 3
+    },
+    "hyponatraemia": {
+      "pt": "Hyponatraemia",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Hyponatraemia",
+      "faers_count": 71,
+      "drug_count": 7
+    },
+    "hypophagia": {
+      "pt": "Hypophagia",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Hypophagia",
+      "faers_count": 18,
+      "drug_count": 1
+    },
+    "hypophosphataemia": {
+      "pt": "Hypophosphataemia",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Hypophosphataemia",
+      "faers_count": 37,
+      "drug_count": 1
+    },
+    "hypoproteinaemia": {
+      "pt": "Hypoproteinaemia",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Hypoproteinaemia",
+      "faers_count": 30,
+      "drug_count": 1
+    },
+    "hypotension": {
+      "pt": "Hypotension",
+      "soc": "Vascular disorders",
+      "llt": "Hypotension",
+      "faers_count": 185,
+      "drug_count": 8
+    },
+    "hypothyroidism": {
+      "pt": "Hypothyroidism",
+      "soc": "Endocrine disorders",
+      "llt": "Hypothyroidism",
+      "faers_count": 41,
+      "drug_count": 2
+    },
+    "hypoxia": {
+      "pt": "Hypoxia",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Hypoxia",
+      "faers_count": 43,
+      "drug_count": 5
+    },
+    "ileus": {
+      "pt": "Ileus",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Ileus",
+      "faers_count": 45,
+      "drug_count": 4
+    },
+    "ileus paralytic": {
+      "pt": "Ileus paralytic",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Ileus paralytic",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "ill-defined disorder": {
+      "pt": "Ill-Defined disorder",
+      "soc": "General disorders",
+      "llt": "Ill-Defined disorder",
+      "faers_count": 117,
+      "drug_count": 3
+    },
+    "illness": {
+      "pt": "Illness",
+      "soc": null,
+      "llt": "Illness",
+      "faers_count": 44,
+      "drug_count": 4
+    },
+    "immune effector cell-associated neurotoxicity syndrome": {
+      "pt": "Immune effector cell-associated neurotoxicity syndrome",
+      "soc": "Nervous system disorders",
+      "llt": "Immune effector cell-associated neurotoxicity syndrome",
+      "faers_count": 93,
+      "drug_count": 1
+    },
+    "immune-mediated enterocolitis": {
+      "pt": "Immune-Mediated enterocolitis",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Immune-Mediated enterocolitis",
+      "faers_count": 46,
+      "drug_count": 1
+    },
+    "immune-mediated lung disease": {
+      "pt": "Immune-Mediated lung disease",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Immune-Mediated lung disease",
+      "faers_count": 23,
+      "drug_count": 1
+    },
+    "immunosuppression": {
+      "pt": "Immunosuppression",
+      "soc": null,
+      "llt": "Immunosuppression",
+      "faers_count": 29,
+      "drug_count": 1
+    },
+    "impaired quality of life": {
+      "pt": "Impaired quality of life",
+      "soc": null,
+      "llt": "Impaired quality of life",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "inappropriate schedule of product administration": {
+      "pt": "Inappropriate schedule of product administration",
+      "soc": null,
+      "llt": "Inappropriate schedule of product administration",
+      "faers_count": 169,
+      "drug_count": 6
+    },
+    "incorrect dose administered": {
+      "pt": "Incorrect dose administered",
+      "soc": null,
+      "llt": "Incorrect dose administered",
+      "faers_count": 61,
+      "drug_count": 2
+    },
+    "infection": {
+      "pt": "Infection",
+      "soc": "Infections and infestations",
+      "llt": "Infection",
+      "faers_count": 235,
+      "drug_count": 7
+    },
+    "infertility": {
+      "pt": "Infertility",
+      "soc": "Reproductive system and breast disorders",
+      "llt": "Infertility",
+      "faers_count": 0,
+      "drug_count": 0
+    },
+    "influenza": {
+      "pt": "Influenza",
+      "soc": "Infections and infestations",
+      "llt": "Influenza",
+      "faers_count": 54,
+      "drug_count": 1
+    },
+    "influenza like illness": {
+      "pt": "Influenza like illness",
+      "soc": "General disorders",
+      "llt": "Influenza like illness",
+      "faers_count": 47,
+      "drug_count": 1
+    },
+    "infusion related reaction": {
+      "pt": "Infusion related reaction",
+      "soc": "Injury, poisoning and procedural complications",
+      "llt": "Infusion related reaction",
+      "faers_count": 172,
+      "drug_count": 8
+    },
+    "infusion site erythema": {
+      "pt": "Infusion site erythema",
+      "soc": null,
+      "llt": "Infusion site erythema",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "infusion site extravasation": {
+      "pt": "Infusion site extravasation",
+      "soc": "General disorders",
+      "llt": "Infusion site extravasation",
+      "faers_count": 37,
+      "drug_count": 3
+    },
+    "infusion site pain": {
+      "pt": "Infusion site pain",
+      "soc": "General disorders",
+      "llt": "Infusion site pain",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "insomnia": {
+      "pt": "Insomnia",
+      "soc": "Psychiatric disorders",
+      "llt": "Insomnia",
+      "faers_count": 105,
+      "drug_count": 6
+    },
+    "intentional dose omission": {
+      "pt": "Intentional dose omission",
+      "soc": null,
+      "llt": "Intentional dose omission",
+      "faers_count": 14,
+      "drug_count": 1
+    },
+    "intentional product use issue": {
+      "pt": "Intentional product use issue",
+      "soc": null,
+      "llt": "Intentional product use issue",
+      "faers_count": 245,
+      "drug_count": 4
+    },
+    "intercepted medication error": {
+      "pt": "Intercepted medication error",
+      "soc": null,
+      "llt": "Intercepted medication error",
+      "faers_count": 8,
+      "drug_count": 2
+    },
+    "international normalised ratio abnormal": {
+      "pt": "International normalised ratio abnormal",
+      "soc": null,
+      "llt": "International normalised ratio abnormal",
+      "faers_count": 12,
+      "drug_count": 2
+    },
+    "interstitial lung disease": {
+      "pt": "Interstitial lung disease",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Interstitial lung disease",
+      "faers_count": 933,
+      "drug_count": 8
+    },
+    "intestinal obstruction": {
+      "pt": "Intestinal obstruction",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Intestinal obstruction",
+      "faers_count": 32,
+      "drug_count": 5
+    },
+    "intestinal perforation": {
+      "pt": "Intestinal perforation",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Intestinal perforation",
+      "faers_count": 24,
+      "drug_count": 2
+    },
+    "jaundice": {
+      "pt": "Jaundice",
+      "soc": "Hepatobiliary disorders",
+      "llt": "Jaundice",
+      "faers_count": 0,
+      "drug_count": 0
+    },
+    "keratitis": {
+      "pt": "Keratitis",
+      "soc": "Eye disorders",
+      "llt": "Keratitis",
+      "faers_count": 48,
+      "drug_count": 2
+    },
+    "keratopathy": {
+      "pt": "Keratopathy",
+      "soc": "Eye disorders",
+      "llt": "Keratopathy",
+      "faers_count": 43,
+      "drug_count": 1
+    },
+    "laboratory test abnormal": {
+      "pt": "Laboratory test abnormal",
+      "soc": null,
+      "llt": "Laboratory test abnormal",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "lacrimation increased": {
+      "pt": "Lacrimation increased",
+      "soc": "Eye disorders",
+      "llt": "Lacrimation increased",
+      "faers_count": 65,
+      "drug_count": 3
+    },
+    "left ventricular dysfunction": {
+      "pt": "Left ventricular dysfunction",
+      "soc": "Cardiac disorders",
+      "llt": "Left ventricular dysfunction",
+      "faers_count": 61,
+      "drug_count": 1
+    },
+    "lethargy": {
+      "pt": "Lethargy",
+      "soc": "Nervous system disorders",
+      "llt": "Lethargy",
+      "faers_count": 40,
+      "drug_count": 1
+    },
+    "leukocytosis": {
+      "pt": "Leukocytosis",
+      "soc": "Blood and lymphatic system disorders",
+      "llt": "Leukocytosis",
+      "faers_count": 33,
+      "drug_count": 1
+    },
+    "leukopenia": {
+      "pt": "Leukopenia",
+      "soc": "Blood and lymphatic system disorders",
+      "llt": "Leukopenia",
+      "faers_count": 148,
+      "drug_count": 6
+    },
+    "lipase increased": {
+      "pt": "Lipase increased",
+      "soc": "Investigations",
+      "llt": "Lipase increased",
+      "faers_count": 0,
+      "drug_count": 0
+    },
+    "liver disorder": {
+      "pt": "Liver disorder",
+      "soc": "Hepatobiliary disorders",
+      "llt": "Liver disorder",
+      "faers_count": 88,
+      "drug_count": 6
+    },
+    "liver function test increased": {
+      "pt": "Liver function test increased",
+      "soc": "Investigations",
+      "llt": "Liver function test increased",
+      "faers_count": 43,
+      "drug_count": 5
+    },
+    "liver injury": {
+      "pt": "Liver injury",
+      "soc": "Hepatobiliary disorders",
+      "llt": "Liver injury",
+      "faers_count": 36,
+      "drug_count": 2
+    },
+    "loss of consciousness": {
+      "pt": "Loss of consciousness",
+      "soc": "Nervous system disorders",
+      "llt": "Loss of consciousness",
+      "faers_count": 23,
+      "drug_count": 3
+    },
+    "lower respiratory tract infection": {
+      "pt": "Lower respiratory tract infection",
+      "soc": "Infections and infestations",
+      "llt": "Lower respiratory tract infection",
+      "faers_count": 59,
+      "drug_count": 2
+    },
+    "lung disorder": {
+      "pt": "Lung disorder",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Lung disorder",
+      "faers_count": 70,
+      "drug_count": 5
+    },
+    "lung opacity": {
+      "pt": "Lung opacity",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Lung opacity",
+      "faers_count": 32,
+      "drug_count": 1
+    },
+    "lymphadenopathy": {
+      "pt": "Lymphadenopathy",
+      "soc": "Blood and lymphatic system disorders",
+      "llt": "Lymphadenopathy",
+      "faers_count": 119,
+      "drug_count": 4
+    },
+    "lymphangiosis carcinomatosa": {
+      "pt": "Lymphangiosis carcinomatosa",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Lymphangiosis carcinomatosa",
+      "faers_count": 21,
+      "drug_count": 1
+    },
+    "lymphocyte count decreased": {
+      "pt": "Lymphocyte count decreased",
+      "soc": "Investigations",
+      "llt": "Lymphocyte count decreased",
+      "faers_count": 208,
+      "drug_count": 3
+    },
+    "lymphoedema": {
+      "pt": "Lymphoedema",
+      "soc": "Vascular disorders",
+      "llt": "Lymphoedema",
+      "faers_count": 72,
+      "drug_count": 5
+    },
+    "lymphoma": {
+      "pt": "Lymphoma",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Lymphoma",
+      "faers_count": 354,
+      "drug_count": 2
+    },
+    "lymphoma transformation": {
+      "pt": "Lymphoma transformation",
+      "soc": null,
+      "llt": "Lymphoma transformation",
+      "faers_count": 38,
+      "drug_count": 1
+    },
+    "lymphopenia": {
+      "pt": "Lymphopenia",
+      "soc": "Blood and lymphatic system disorders",
+      "llt": "Lymphopenia",
+      "faers_count": 50,
+      "drug_count": 2
+    },
+    "malaise": {
+      "pt": "Malaise",
+      "soc": "General disorders",
+      "llt": "Malaise",
+      "faers_count": 221,
+      "drug_count": 8
+    },
+    "malignant neoplasm progression": {
+      "pt": "Malignant neoplasm progression",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Malignant neoplasm progression",
+      "faers_count": 693,
+      "drug_count": 8
+    },
+    "mass": {
+      "pt": "Mass",
+      "soc": null,
+      "llt": "Mass",
+      "faers_count": 32,
+      "drug_count": 2
+    },
+    "meibomian gland dysfunction": {
+      "pt": "Meibomian gland dysfunction",
+      "soc": "Eye disorders",
+      "llt": "Meibomian gland dysfunction",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "memory impairment": {
+      "pt": "Memory impairment",
+      "soc": "Nervous system disorders",
+      "llt": "Memory impairment",
+      "faers_count": 47,
+      "drug_count": 2
+    },
+    "mental status changes": {
+      "pt": "Mental status changes",
+      "soc": "Psychiatric disorders",
+      "llt": "Mental status changes",
+      "faers_count": 4,
+      "drug_count": 2
+    },
+    "metastases to bone": {
+      "pt": "Metastases to bone",
+      "soc": null,
+      "llt": "Metastases to bone",
+      "faers_count": 139,
+      "drug_count": 4
+    },
+    "metastases to central nervous system": {
+      "pt": "Metastases to central nervous system",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Metastases to central nervous system",
+      "faers_count": 402,
+      "drug_count": 5
+    },
+    "metastases to liver": {
+      "pt": "Metastases to liver",
+      "soc": null,
+      "llt": "Metastases to liver",
+      "faers_count": 110,
+      "drug_count": 5
+    },
+    "metastases to lung": {
+      "pt": "Metastases to lung",
+      "soc": null,
+      "llt": "Metastases to lung",
+      "faers_count": 147,
+      "drug_count": 5
+    },
+    "metastases to lymph nodes": {
+      "pt": "Metastases to lymph nodes",
+      "soc": null,
+      "llt": "Metastases to lymph nodes",
+      "faers_count": 156,
+      "drug_count": 4
+    },
+    "metastases to meninges": {
+      "pt": "Metastases to meninges",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Metastases to meninges",
+      "faers_count": 43,
+      "drug_count": 2
+    },
+    "metastases to peritoneum": {
+      "pt": "Metastases to peritoneum",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Metastases to peritoneum",
+      "faers_count": 4,
+      "drug_count": 2
+    },
+    "metastases to skin": {
+      "pt": "Metastases to skin",
+      "soc": null,
+      "llt": "Metastases to skin",
+      "faers_count": 47,
+      "drug_count": 1
+    },
+    "metastasis": {
+      "pt": "Metastasis",
+      "soc": null,
+      "llt": "Metastasis",
+      "faers_count": 64,
+      "drug_count": 4
+    },
+    "metastatic neoplasm": {
+      "pt": "Metastatic neoplasm",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Metastatic neoplasm",
+      "faers_count": 6,
+      "drug_count": 1
+    },
+    "migraine": {
+      "pt": "Migraine",
+      "soc": "Nervous system disorders",
+      "llt": "Migraine",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "mobility decreased": {
+      "pt": "Mobility decreased",
+      "soc": "Musculoskeletal and connective tissue disorders",
+      "llt": "Mobility decreased",
+      "faers_count": 5,
+      "drug_count": 1
+    },
+    "mucosal inflammation": {
+      "pt": "Mucosal inflammation",
+      "soc": "General disorders",
+      "llt": "Mucosal inflammation",
+      "faers_count": 121,
+      "drug_count": 8
+    },
+    "multi-organ failure": {
+      "pt": "Multi-Organ failure",
+      "soc": "General disorders and administration site conditions",
+      "llt": "Multi-Organ failure",
+      "faers_count": 0,
+      "drug_count": 0
+    },
+    "multiple organ dysfunction syndrome": {
+      "pt": "Multiple organ dysfunction syndrome",
+      "soc": "General disorders",
+      "llt": "Multiple organ dysfunction syndrome",
+      "faers_count": 85,
+      "drug_count": 3
+    },
+    "muscle spasms": {
+      "pt": "Muscle spasms",
+      "soc": "Musculoskeletal and connective tissue disorders",
+      "llt": "Muscle spasms",
+      "faers_count": 84,
+      "drug_count": 6
+    },
+    "muscular weakness": {
+      "pt": "Muscular weakness",
+      "soc": "Musculoskeletal and connective tissue disorders",
+      "llt": "Muscular weakness",
+      "faers_count": 98,
+      "drug_count": 6
+    },
+    "myalgia": {
+      "pt": "Myalgia",
+      "soc": "Musculoskeletal and connective tissue disorders",
+      "llt": "Myalgia",
+      "faers_count": 170,
+      "drug_count": 7
+    },
+    "myelodysplastic syndrome": {
+      "pt": "Myelodysplastic syndrome",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Myelodysplastic syndrome",
+      "faers_count": 28,
+      "drug_count": 2
+    },
+    "myelosuppression": {
+      "pt": "Myelosuppression",
+      "soc": "Blood and lymphatic system disorders",
+      "llt": "Myelosuppression",
+      "faers_count": 232,
+      "drug_count": 6
+    },
+    "myocardial infarction": {
+      "pt": "Myocardial infarction",
+      "soc": "Cardiac disorders",
+      "llt": "Myocardial infarction",
+      "faers_count": 38,
+      "drug_count": 2
+    },
+    "myocarditis": {
+      "pt": "Myocarditis",
+      "soc": "Cardiac disorders",
+      "llt": "Myocarditis",
+      "faers_count": 27,
+      "drug_count": 1
+    },
+    "myositis": {
+      "pt": "Myositis",
+      "soc": "Musculoskeletal and connective tissue disorders",
+      "llt": "Myositis",
+      "faers_count": 43,
+      "drug_count": 2
+    },
+    "nail bed inflammation": {
+      "pt": "Nail bed inflammation",
+      "soc": null,
+      "llt": "Nail bed inflammation",
+      "faers_count": 24,
+      "drug_count": 1
+    },
+    "nasal congestion": {
+      "pt": "Nasal congestion",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Nasal congestion",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "nasal mucosal disorder": {
+      "pt": "Nasal mucosal disorder",
+      "soc": null,
+      "llt": "Nasal mucosal disorder",
+      "faers_count": 24,
+      "drug_count": 1
+    },
+    "nasopharyngitis": {
+      "pt": "Nasopharyngitis",
+      "soc": "Infections and infestations",
+      "llt": "Nasopharyngitis",
+      "faers_count": 208,
+      "drug_count": 3
+    },
+    "nausea": {
+      "pt": "Nausea",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Nausea",
+      "faers_count": 1092,
+      "drug_count": 8
+    },
+    "neoplasm": {
+      "pt": "Neoplasm",
+      "soc": null,
+      "llt": "Neoplasm",
+      "faers_count": 59,
+      "drug_count": 3
+    },
+    "neoplasm malignant": {
+      "pt": "Neoplasm malignant",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Neoplasm malignant",
+      "faers_count": 45,
+      "drug_count": 2
+    },
+    "neoplasm progression": {
+      "pt": "Neoplasm progression",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Neoplasm progression",
+      "faers_count": 134,
+      "drug_count": 8
+    },
+    "nephrostomy": {
+      "pt": "Nephrostomy",
+      "soc": null,
+      "llt": "Nephrostomy",
+      "faers_count": 2,
+      "drug_count": 1
+    },
+    "nervous system disorder": {
+      "pt": "Nervous system disorder",
+      "soc": "Nervous system disorders",
+      "llt": "Nervous system disorder",
+      "faers_count": 49,
+      "drug_count": 2
+    },
+    "neuralgia": {
+      "pt": "Neuralgia",
+      "soc": "Nervous system disorders",
+      "llt": "Neuralgia",
+      "faers_count": 42,
+      "drug_count": 1
+    },
+    "neuropathy peripheral": {
+      "pt": "Neuropathy peripheral",
+      "soc": "Nervous system disorders",
+      "llt": "Neuropathy peripheral",
+      "faers_count": 688,
+      "drug_count": 8
+    },
+    "neurotoxicity": {
+      "pt": "Neurotoxicity",
+      "soc": "Nervous system disorders",
+      "llt": "Neurotoxicity",
+      "faers_count": 62,
+      "drug_count": 3
+    },
+    "neutropenia": {
+      "pt": "Neutropenia",
+      "soc": "Blood and lymphatic system disorders",
+      "llt": "Neutropenia",
+      "faers_count": 561,
+      "drug_count": 8
+    },
+    "neutropenic colitis": {
+      "pt": "Neutropenic colitis",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Neutropenic colitis",
+      "faers_count": 55,
+      "drug_count": 1
+    },
+    "neutropenic sepsis": {
+      "pt": "Neutropenic sepsis",
+      "soc": "Infections and infestations",
+      "llt": "Neutropenic sepsis",
+      "faers_count": 52,
+      "drug_count": 3
+    },
+    "neutrophil count abnormal": {
+      "pt": "Neutrophil count abnormal",
+      "soc": null,
+      "llt": "Neutrophil count abnormal",
+      "faers_count": 35,
+      "drug_count": 2
+    },
+    "neutrophil count decreased": {
+      "pt": "Neutrophil count decreased",
+      "soc": "Investigations",
+      "llt": "Neutrophil count decreased",
+      "faers_count": 385,
+      "drug_count": 8
+    },
+    "night sweats": {
+      "pt": "Night sweats",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Night sweats",
+      "faers_count": 51,
+      "drug_count": 2
+    },
+    "no adverse event": {
+      "pt": "No adverse event",
+      "soc": null,
+      "llt": "No adverse event",
+      "faers_count": 320,
+      "drug_count": 3
+    },
+    "nodular regenerative hyperplasia": {
+      "pt": "Nodular regenerative hyperplasia",
+      "soc": "Hepatobiliary disorders",
+      "llt": "Nodular regenerative hyperplasia",
+      "faers_count": 51,
+      "drug_count": 1
+    },
+    "non-hodgkin^s lymphoma": {
+      "pt": "Non-Hodgkin^S lymphoma",
+      "soc": null,
+      "llt": "Non-Hodgkin^S lymphoma",
+      "faers_count": 34,
+      "drug_count": 1
+    },
+    "ocular discomfort": {
+      "pt": "Ocular discomfort",
+      "soc": "Eye disorders",
+      "llt": "Ocular discomfort",
+      "faers_count": 6,
+      "drug_count": 2
+    },
+    "ocular hyperaemia": {
+      "pt": "Ocular hyperaemia",
+      "soc": "Eye disorders",
+      "llt": "Ocular hyperaemia",
+      "faers_count": 9,
+      "drug_count": 1
+    },
+    "ocular toxicity": {
+      "pt": "Ocular toxicity",
+      "soc": "Eye disorders",
+      "llt": "Ocular toxicity",
+      "faers_count": 30,
+      "drug_count": 2
+    },
+    "oedema": {
+      "pt": "Oedema",
+      "soc": "General disorders",
+      "llt": "Oedema",
+      "faers_count": 42,
+      "drug_count": 3
+    },
+    "oedema peripheral": {
+      "pt": "Oedema peripheral",
+      "soc": "General disorders",
+      "llt": "Oedema peripheral",
+      "faers_count": 61,
+      "drug_count": 6
+    },
+    "off label use": {
+      "pt": "Off label use",
+      "soc": null,
+      "llt": "Off label use",
+      "faers_count": 1303,
+      "drug_count": 8
+    },
+    "oral fungal infection": {
+      "pt": "Oral fungal infection",
+      "soc": "Infections and infestations",
+      "llt": "Oral fungal infection",
+      "faers_count": 4,
+      "drug_count": 1
+    },
+    "organising pneumonia": {
+      "pt": "Organising pneumonia",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Organising pneumonia",
+      "faers_count": 0,
+      "drug_count": 0
+    },
+    "oropharyngeal pain": {
+      "pt": "Oropharyngeal pain",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Oropharyngeal pain",
+      "faers_count": 50,
+      "drug_count": 3
+    },
+    "osteonecrosis of jaw": {
+      "pt": "Osteonecrosis of jaw",
+      "soc": "Musculoskeletal and connective tissue disorders",
+      "llt": "Osteonecrosis of jaw",
+      "faers_count": 21,
+      "drug_count": 1
+    },
+    "ototoxicity": {
+      "pt": "Ototoxicity",
+      "soc": "Ear and labyrinth disorders",
+      "llt": "Ototoxicity",
+      "faers_count": 22,
+      "drug_count": 1
+    },
+    "ovarian cancer": {
+      "pt": "Ovarian cancer",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Ovarian cancer",
+      "faers_count": 14,
+      "drug_count": 1
+    },
+    "ovarian cancer metastatic": {
+      "pt": "Ovarian cancer metastatic",
+      "soc": null,
+      "llt": "Ovarian cancer metastatic",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "overdose": {
+      "pt": "Overdose",
+      "soc": "Injury, poisoning and procedural complications",
+      "llt": "Overdose",
+      "faers_count": 45,
+      "drug_count": 2
+    },
+    "oxygen saturation decreased": {
+      "pt": "Oxygen saturation decreased",
+      "soc": "Investigations",
+      "llt": "Oxygen saturation decreased",
+      "faers_count": 43,
+      "drug_count": 6
+    },
+    "pain": {
+      "pt": "Pain",
+      "soc": "General disorders",
+      "llt": "Pain",
+      "faers_count": 285,
+      "drug_count": 8
+    },
+    "pain in extremity": {
+      "pt": "Pain in extremity",
+      "soc": "Musculoskeletal and connective tissue disorders",
+      "llt": "Pain in extremity",
+      "faers_count": 137,
+      "drug_count": 8
+    },
+    "palmar-plantar erythrodysaesthesia syndrome": {
+      "pt": "Palmar-Plantar erythrodysaesthesia syndrome",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Palmar-Plantar erythrodysaesthesia syndrome",
+      "faers_count": 128,
+      "drug_count": 3
+    },
+    "palpitations": {
+      "pt": "Palpitations",
+      "soc": "Cardiac disorders",
+      "llt": "Palpitations",
+      "faers_count": 88,
+      "drug_count": 1
+    },
+    "pancreatitis": {
+      "pt": "Pancreatitis",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Pancreatitis",
+      "faers_count": 70,
+      "drug_count": 2
+    },
+    "pancreatitis acute": {
+      "pt": "Pancreatitis acute",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Pancreatitis acute",
+      "faers_count": 44,
+      "drug_count": 2
+    },
+    "pancytopenia": {
+      "pt": "Pancytopenia",
+      "soc": "Blood and lymphatic system disorders",
+      "llt": "Pancytopenia",
+      "faers_count": 173,
+      "drug_count": 8
+    },
+    "paraesthesia": {
+      "pt": "Paraesthesia",
+      "soc": "Nervous system disorders",
+      "llt": "Paraesthesia",
+      "faers_count": 151,
+      "drug_count": 7
+    },
+    "paronychia": {
+      "pt": "Paronychia",
+      "soc": "Infections and infestations",
+      "llt": "Paronychia",
+      "faers_count": 51,
+      "drug_count": 2
+    },
+    "pemphigoid": {
+      "pt": "Pemphigoid",
+      "soc": null,
+      "llt": "Pemphigoid",
+      "faers_count": 22,
+      "drug_count": 1
+    },
+    "pericardial effusion": {
+      "pt": "Pericardial effusion",
+      "soc": "Cardiac disorders",
+      "llt": "Pericardial effusion",
+      "faers_count": 42,
+      "drug_count": 1
+    },
+    "peripheral motor neuropathy": {
+      "pt": "Peripheral motor neuropathy",
+      "soc": "Nervous system disorders",
+      "llt": "Peripheral motor neuropathy",
+      "faers_count": 62,
+      "drug_count": 3
+    },
+    "peripheral sensorimotor neuropathy": {
+      "pt": "Peripheral sensorimotor neuropathy",
+      "soc": "Nervous system disorders",
+      "llt": "Peripheral sensorimotor neuropathy",
+      "faers_count": 39,
+      "drug_count": 1
+    },
+    "peripheral sensory neuropathy": {
+      "pt": "Peripheral sensory neuropathy",
+      "soc": "Nervous system disorders",
+      "llt": "Peripheral sensory neuropathy",
+      "faers_count": 144,
+      "drug_count": 4
+    },
+    "peripheral swelling": {
+      "pt": "Peripheral swelling",
+      "soc": "General disorders",
+      "llt": "Peripheral swelling",
+      "faers_count": 108,
+      "drug_count": 5
+    },
+    "peripheral t-cell lymphoma unspecified": {
+      "pt": "Peripheral t-cell lymphoma unspecified",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Peripheral t-cell lymphoma unspecified",
+      "faers_count": 85,
+      "drug_count": 1
+    },
+    "photophobia": {
+      "pt": "Photophobia",
+      "soc": "Eye disorders",
+      "llt": "Photophobia",
+      "faers_count": 11,
+      "drug_count": 1
+    },
+    "pigmentation disorder": {
+      "pt": "Pigmentation disorder",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Pigmentation disorder",
+      "faers_count": 20,
+      "drug_count": 1
+    },
+    "platelet count decreased": {
+      "pt": "Platelet count decreased",
+      "soc": "Investigations",
+      "llt": "Platelet count decreased",
+      "faers_count": 430,
+      "drug_count": 8
+    },
+    "pleural effusion": {
+      "pt": "Pleural effusion",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Pleural effusion",
+      "faers_count": 160,
+      "drug_count": 7
+    },
+    "pneumocystis jirovecii pneumonia": {
+      "pt": "Pneumocystis jirovecii pneumonia",
+      "soc": "Infections and infestations",
+      "llt": "Pneumocystis jirovecii pneumonia",
+      "faers_count": 136,
+      "drug_count": 3
+    },
+    "pneumonia": {
+      "pt": "Pneumonia",
+      "soc": "Infections and infestations",
+      "llt": "Pneumonia",
+      "faers_count": 335,
+      "drug_count": 8
+    },
+    "pneumonia aspiration": {
+      "pt": "Pneumonia aspiration",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Pneumonia aspiration",
+      "faers_count": 31,
+      "drug_count": 1
+    },
+    "pneumonia bacterial": {
+      "pt": "Pneumonia bacterial",
+      "soc": "Infections and infestations",
+      "llt": "Pneumonia bacterial",
+      "faers_count": 32,
+      "drug_count": 2
+    },
+    "pneumonitis": {
+      "pt": "Pneumonitis",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Pneumonitis",
+      "faers_count": 347,
+      "drug_count": 8
+    },
+    "pneumothorax": {
+      "pt": "Pneumothorax",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Pneumothorax",
+      "faers_count": 31,
+      "drug_count": 2
+    },
+    "polyneuropathy": {
+      "pt": "Polyneuropathy",
+      "soc": "Nervous system disorders",
+      "llt": "Polyneuropathy",
+      "faers_count": 191,
+      "drug_count": 4
+    },
+    "poor venous access": {
+      "pt": "Poor venous access",
+      "soc": "Vascular disorders",
+      "llt": "Poor venous access",
+      "faers_count": 18,
+      "drug_count": 1
+    },
+    "portal hypertension": {
+      "pt": "Portal hypertension",
+      "soc": "Hepatobiliary disorders",
+      "llt": "Portal hypertension",
+      "faers_count": 65,
+      "drug_count": 1
+    },
+    "prescribed underdose": {
+      "pt": "Prescribed underdose",
+      "soc": null,
+      "llt": "Prescribed underdose",
+      "faers_count": 19,
+      "drug_count": 1
+    },
+    "product administration error": {
+      "pt": "Product administration error",
+      "soc": null,
+      "llt": "Product administration error",
+      "faers_count": 27,
+      "drug_count": 2
+    },
+    "product dose omission issue": {
+      "pt": "Product dose omission issue",
+      "soc": null,
+      "llt": "Product dose omission issue",
+      "faers_count": 85,
+      "drug_count": 5
+    },
+    "product preparation error": {
+      "pt": "Product preparation error",
+      "soc": null,
+      "llt": "Product preparation error",
+      "faers_count": 23,
+      "drug_count": 2
+    },
+    "product preparation issue": {
+      "pt": "Product preparation issue",
+      "soc": null,
+      "llt": "Product preparation issue",
+      "faers_count": 23,
+      "drug_count": 2
+    },
+    "product quality issue": {
+      "pt": "Product quality issue",
+      "soc": null,
+      "llt": "Product quality issue",
+      "faers_count": 4,
+      "drug_count": 1
+    },
+    "product storage error": {
+      "pt": "Product storage error",
+      "soc": null,
+      "llt": "Product storage error",
+      "faers_count": 42,
+      "drug_count": 4
+    },
+    "product temperature excursion issue": {
+      "pt": "Product temperature excursion issue",
+      "soc": null,
+      "llt": "Product temperature excursion issue",
+      "faers_count": 94,
+      "drug_count": 2
+    },
+    "product use in unapproved indication": {
+      "pt": "Product use in unapproved indication",
+      "soc": null,
+      "llt": "Product use in unapproved indication",
+      "faers_count": 192,
+      "drug_count": 2
+    },
+    "product use issue": {
+      "pt": "Product use issue",
+      "soc": null,
+      "llt": "Product use issue",
+      "faers_count": 148,
+      "drug_count": 6
+    },
+    "productive cough": {
+      "pt": "Productive cough",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Productive cough",
+      "faers_count": 12,
+      "drug_count": 1
+    },
+    "progressive multifocal leukoencephalopathy": {
+      "pt": "Progressive multifocal leukoencephalopathy",
+      "soc": "Infections and infestations",
+      "llt": "Progressive multifocal leukoencephalopathy",
+      "faers_count": 63,
+      "drug_count": 2
+    },
+    "proteinuria": {
+      "pt": "Proteinuria",
+      "soc": "Renal and urinary disorders",
+      "llt": "Proteinuria",
+      "faers_count": 0,
+      "drug_count": 0
+    },
+    "pruritus": {
+      "pt": "Pruritus",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Pruritus",
+      "faers_count": 362,
+      "drug_count": 8
+    },
+    "pseudomonal sepsis": {
+      "pt": "Pseudomonal sepsis",
+      "soc": "Infections and infestations",
+      "llt": "Pseudomonal sepsis",
+      "faers_count": 51,
+      "drug_count": 2
+    },
+    "pulmonary embolism": {
+      "pt": "Pulmonary embolism",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Pulmonary embolism",
+      "faers_count": 80,
+      "drug_count": 7
+    },
+    "pulmonary fibrosis": {
+      "pt": "Pulmonary fibrosis",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Pulmonary fibrosis",
+      "faers_count": 30,
+      "drug_count": 2
+    },
+    "pulmonary mass": {
+      "pt": "Pulmonary mass",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Pulmonary mass",
+      "faers_count": 60,
+      "drug_count": 1
+    },
+    "pulmonary oedema": {
+      "pt": "Pulmonary oedema",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Pulmonary oedema",
+      "faers_count": 70,
+      "drug_count": 2
+    },
+    "pulmonary toxicity": {
+      "pt": "Pulmonary toxicity",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Pulmonary toxicity",
+      "faers_count": 70,
+      "drug_count": 3
+    },
+    "punctate keratitis": {
+      "pt": "Punctate keratitis",
+      "soc": "Eye disorders",
+      "llt": "Punctate keratitis",
+      "faers_count": 9,
+      "drug_count": 2
+    },
+    "pyelonephritis": {
+      "pt": "Pyelonephritis",
+      "soc": "Infections and infestations",
+      "llt": "Pyelonephritis",
+      "faers_count": 33,
+      "drug_count": 1
+    },
+    "pyrexia": {
+      "pt": "Pyrexia",
+      "soc": "General disorders",
+      "llt": "Pyrexia",
+      "faers_count": 666,
+      "drug_count": 8
+    },
+    "quality of life decreased": {
+      "pt": "Quality of life decreased",
+      "soc": null,
+      "llt": "Quality of life decreased",
+      "faers_count": 28,
+      "drug_count": 1
+    },
+    "radiation necrosis": {
+      "pt": "Radiation necrosis",
+      "soc": "Injury, poisoning and procedural complications",
+      "llt": "Radiation necrosis",
+      "faers_count": 40,
+      "drug_count": 2
+    },
+    "rash": {
+      "pt": "Rash",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Rash",
+      "faers_count": 803,
+      "drug_count": 8
+    },
+    "rash erythematous": {
+      "pt": "Rash erythematous",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Rash erythematous",
+      "faers_count": 58,
+      "drug_count": 3
+    },
+    "rash macular": {
+      "pt": "Rash macular",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Rash macular",
+      "faers_count": 20,
+      "drug_count": 1
+    },
+    "rash maculo-papular": {
+      "pt": "Rash maculo-papular",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Rash maculo-papular",
+      "faers_count": 51,
+      "drug_count": 2
+    },
+    "rash papular": {
+      "pt": "Rash papular",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Rash papular",
+      "faers_count": 19,
+      "drug_count": 1
+    },
+    "rash pruritic": {
+      "pt": "Rash pruritic",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Rash pruritic",
+      "faers_count": 74,
+      "drug_count": 3
+    },
+    "rectal haemorrhage": {
+      "pt": "Rectal haemorrhage",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Rectal haemorrhage",
+      "faers_count": 8,
+      "drug_count": 1
+    },
+    "recurrent cancer": {
+      "pt": "Recurrent cancer",
+      "soc": null,
+      "llt": "Recurrent cancer",
+      "faers_count": 57,
+      "drug_count": 1
+    },
+    "red blood cell count decreased": {
+      "pt": "Red blood cell count decreased",
+      "soc": "Investigations",
+      "llt": "Red blood cell count decreased",
+      "faers_count": 53,
+      "drug_count": 3
+    },
+    "renal disorder": {
+      "pt": "Renal disorder",
+      "soc": "Renal and urinary disorders",
+      "llt": "Renal disorder",
+      "faers_count": 23,
+      "drug_count": 2
+    },
+    "renal failure": {
+      "pt": "Renal failure",
+      "soc": "Renal and urinary disorders",
+      "llt": "Renal failure",
+      "faers_count": 106,
+      "drug_count": 6
+    },
+    "renal impairment": {
+      "pt": "Renal impairment",
+      "soc": "Renal and urinary disorders",
+      "llt": "Renal impairment",
+      "faers_count": 78,
+      "drug_count": 4
+    },
+    "respiratory distress": {
+      "pt": "Respiratory distress",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Respiratory distress",
+      "faers_count": 36,
+      "drug_count": 1
+    },
+    "respiratory failure": {
+      "pt": "Respiratory failure",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Respiratory failure",
+      "faers_count": 128,
+      "drug_count": 6
+    },
+    "respiratory tract infection": {
+      "pt": "Respiratory tract infection",
+      "soc": "Infections and infestations",
+      "llt": "Respiratory tract infection",
+      "faers_count": 23,
+      "drug_count": 1
+    },
+    "restlessness": {
+      "pt": "Restlessness",
+      "soc": "Psychiatric disorders",
+      "llt": "Restlessness",
+      "faers_count": 53,
+      "drug_count": 2
+    },
+    "richter^s syndrome": {
+      "pt": "Richter^S syndrome",
+      "soc": null,
+      "llt": "Richter^S syndrome",
+      "faers_count": 27,
+      "drug_count": 1
+    },
+    "sars-cov-2 test positive": {
+      "pt": "Sars-Cov-2 test positive",
+      "soc": "Investigations",
+      "llt": "Sars-Cov-2 test positive",
+      "faers_count": 16,
+      "drug_count": 1
+    },
+    "second primary malignancy": {
+      "pt": "Second primary malignancy",
+      "soc": null,
+      "llt": "Second primary malignancy",
+      "faers_count": 54,
+      "drug_count": 2
+    },
+    "seizure": {
+      "pt": "Seizure",
+      "soc": "Nervous system disorders",
+      "llt": "Seizure",
+      "faers_count": 152,
+      "drug_count": 5
+    },
+    "sepsis": {
+      "pt": "Sepsis",
+      "soc": "Infections and infestations",
+      "llt": "Sepsis",
+      "faers_count": 254,
+      "drug_count": 8
+    },
+    "septic shock": {
+      "pt": "Septic shock",
+      "soc": "Infections and infestations",
+      "llt": "Septic shock",
+      "faers_count": 143,
+      "drug_count": 5
+    },
+    "shock": {
+      "pt": "Shock",
+      "soc": "Vascular disorders",
+      "llt": "Shock",
+      "faers_count": 20,
+      "drug_count": 1
+    },
+    "skin discolouration": {
+      "pt": "Skin discolouration",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Skin discolouration",
+      "faers_count": 44,
+      "drug_count": 2
+    },
+    "skin disorder": {
+      "pt": "Skin disorder",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Skin disorder",
+      "faers_count": 230,
+      "drug_count": 1
+    },
+    "skin exfoliation": {
+      "pt": "Skin exfoliation",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Skin exfoliation",
+      "faers_count": 79,
+      "drug_count": 2
+    },
+    "skin fissures": {
+      "pt": "Skin fissures",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Skin fissures",
+      "faers_count": 97,
+      "drug_count": 2
+    },
+    "skin lesion": {
+      "pt": "Skin lesion",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Skin lesion",
+      "faers_count": 25,
+      "drug_count": 2
+    },
+    "skin reaction": {
+      "pt": "Skin reaction",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Skin reaction",
+      "faers_count": 62,
+      "drug_count": 1
+    },
+    "skin toxicity": {
+      "pt": "Skin toxicity",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Skin toxicity",
+      "faers_count": 81,
+      "drug_count": 1
+    },
+    "small intestinal obstruction": {
+      "pt": "Small intestinal obstruction",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Small intestinal obstruction",
+      "faers_count": 6,
+      "drug_count": 2
+    },
+    "somnolence": {
+      "pt": "Somnolence",
+      "soc": "Nervous system disorders",
+      "llt": "Somnolence",
+      "faers_count": 42,
+      "drug_count": 5
+    },
+    "speech disorder": {
+      "pt": "Speech disorder",
+      "soc": null,
+      "llt": "Speech disorder",
+      "faers_count": 13,
+      "drug_count": 1
+    },
+    "staphylococcal infection": {
+      "pt": "Staphylococcal infection",
+      "soc": "Infections and infestations",
+      "llt": "Staphylococcal infection",
+      "faers_count": 23,
+      "drug_count": 1
+    },
+    "stevens-johnson syndrome": {
+      "pt": "Stevens-Johnson syndrome",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Stevens-Johnson syndrome",
+      "faers_count": 165,
+      "drug_count": 2
+    },
+    "stomatitis": {
+      "pt": "Stomatitis",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Stomatitis",
+      "faers_count": 130,
+      "drug_count": 7
+    },
+    "streptococcal sepsis": {
+      "pt": "Streptococcal sepsis",
+      "soc": "Infections and infestations",
+      "llt": "Streptococcal sepsis",
+      "faers_count": 51,
+      "drug_count": 2
+    },
+    "stress": {
+      "pt": "Stress",
+      "soc": "Psychiatric disorders",
+      "llt": "Stress",
+      "faers_count": 75,
+      "drug_count": 2
+    },
+    "swelling": {
+      "pt": "Swelling",
+      "soc": "General disorders",
+      "llt": "Swelling",
+      "faers_count": 41,
+      "drug_count": 2
+    },
+    "swelling face": {
+      "pt": "Swelling face",
+      "soc": "General disorders",
+      "llt": "Swelling face",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "symblepharon": {
+      "pt": "Symblepharon",
+      "soc": "Eye disorders",
+      "llt": "Symblepharon",
+      "faers_count": 7,
+      "drug_count": 1
+    },
+    "syncope": {
+      "pt": "Syncope",
+      "soc": "Nervous system disorders",
+      "llt": "Syncope",
+      "faers_count": 49,
+      "drug_count": 3
+    },
+    "tachycardia": {
+      "pt": "Tachycardia",
+      "soc": "Cardiac disorders",
+      "llt": "Tachycardia",
+      "faers_count": 85,
+      "drug_count": 4
+    },
+    "tachypnoea": {
+      "pt": "Tachypnoea",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Tachypnoea",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "taste disorder": {
+      "pt": "Taste disorder",
+      "soc": "Nervous system disorders",
+      "llt": "Taste disorder",
+      "faers_count": 218,
+      "drug_count": 2
+    },
+    "therapeutic product effect decreased": {
+      "pt": "Therapeutic product effect decreased",
+      "soc": null,
+      "llt": "Therapeutic product effect decreased",
+      "faers_count": 8,
+      "drug_count": 1
+    },
+    "therapeutic response decreased": {
+      "pt": "Therapeutic response decreased",
+      "soc": null,
+      "llt": "Therapeutic response decreased",
+      "faers_count": 54,
+      "drug_count": 2
+    },
+    "therapeutic response unexpected": {
+      "pt": "Therapeutic response unexpected",
+      "soc": null,
+      "llt": "Therapeutic response unexpected",
+      "faers_count": 29,
+      "drug_count": 2
+    },
+    "therapy cessation": {
+      "pt": "Therapy cessation",
+      "soc": null,
+      "llt": "Therapy cessation",
+      "faers_count": 29,
+      "drug_count": 2
+    },
+    "therapy change": {
+      "pt": "Therapy change",
+      "soc": null,
+      "llt": "Therapy change",
+      "faers_count": 62,
+      "drug_count": 2
+    },
+    "therapy interrupted": {
+      "pt": "Therapy interrupted",
+      "soc": null,
+      "llt": "Therapy interrupted",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "therapy non-responder": {
+      "pt": "Therapy non-responder",
+      "soc": null,
+      "llt": "Therapy non-responder",
+      "faers_count": 109,
+      "drug_count": 2
+    },
+    "therapy partial responder": {
+      "pt": "Therapy partial responder",
+      "soc": null,
+      "llt": "Therapy partial responder",
+      "faers_count": 83,
+      "drug_count": 5
+    },
+    "throat irritation": {
+      "pt": "Throat irritation",
+      "soc": "Respiratory, thoracic and mediastinal disorders",
+      "llt": "Throat irritation",
+      "faers_count": 11,
+      "drug_count": 1
+    },
+    "thrombocytopenia": {
+      "pt": "Thrombocytopenia",
+      "soc": "Blood and lymphatic system disorders",
+      "llt": "Thrombocytopenia",
+      "faers_count": 467,
+      "drug_count": 8
+    },
+    "thrombosis": {
+      "pt": "Thrombosis",
+      "soc": "Vascular disorders",
+      "llt": "Thrombosis",
+      "faers_count": 23,
+      "drug_count": 3
+    },
+    "tooth fracture": {
+      "pt": "Tooth fracture",
+      "soc": "Injury, poisoning and procedural complications",
+      "llt": "Tooth fracture",
+      "faers_count": 12,
+      "drug_count": 1
+    },
+    "toxic epidermal necrolysis": {
+      "pt": "Toxic epidermal necrolysis",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Toxic epidermal necrolysis",
+      "faers_count": 119,
+      "drug_count": 1
+    },
+    "toxicity to various agents": {
+      "pt": "Toxicity to various agents",
+      "soc": "Injury, poisoning and procedural complications",
+      "llt": "Toxicity to various agents",
+      "faers_count": 114,
+      "drug_count": 6
+    },
+    "toxoplasmosis": {
+      "pt": "Toxoplasmosis",
+      "soc": null,
+      "llt": "Toxoplasmosis",
+      "faers_count": 27,
+      "drug_count": 1
+    },
+    "transaminases increased": {
+      "pt": "Transaminases increased",
+      "soc": "Investigations",
+      "llt": "Transaminases increased",
+      "faers_count": 66,
+      "drug_count": 4
+    },
+    "transitional cell carcinoma": {
+      "pt": "Transitional cell carcinoma",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Transitional cell carcinoma",
+      "faers_count": 20,
+      "drug_count": 1
+    },
+    "transitional cell carcinoma metastatic": {
+      "pt": "Transitional cell carcinoma metastatic",
+      "soc": "Neoplasms benign, malignant and unspecified (incl cysts and polyps)",
+      "llt": "Transitional cell carcinoma metastatic",
+      "faers_count": 26,
+      "drug_count": 1
+    },
+    "treatment failure": {
+      "pt": "Treatment failure",
+      "soc": null,
+      "llt": "Treatment failure",
+      "faers_count": 3,
+      "drug_count": 1
+    },
+    "tremor": {
+      "pt": "Tremor",
+      "soc": "Nervous system disorders",
+      "llt": "Tremor",
+      "faers_count": 47,
+      "drug_count": 3
+    },
+    "triple negative breast cancer": {
+      "pt": "Triple negative breast cancer",
+      "soc": null,
+      "llt": "Triple negative breast cancer",
+      "faers_count": 143,
+      "drug_count": 1
+    },
+    "tumour lysis syndrome": {
+      "pt": "Tumour lysis syndrome",
+      "soc": "Metabolism and nutrition disorders",
+      "llt": "Tumour lysis syndrome",
+      "faers_count": 91,
+      "drug_count": 3
+    },
+    "tumour marker increased": {
+      "pt": "Tumour marker increased",
+      "soc": null,
+      "llt": "Tumour marker increased",
+      "faers_count": 56,
+      "drug_count": 2
+    },
+    "ulcerative keratitis": {
+      "pt": "Ulcerative keratitis",
+      "soc": "Eye disorders",
+      "llt": "Ulcerative keratitis",
+      "faers_count": 14,
+      "drug_count": 1
+    },
+    "underdose": {
+      "pt": "Underdose",
+      "soc": null,
+      "llt": "Underdose",
+      "faers_count": 139,
+      "drug_count": 4
+    },
+    "unevaluable event": {
+      "pt": "Unevaluable event",
+      "soc": "General disorders",
+      "llt": "Unevaluable event",
+      "faers_count": 43,
+      "drug_count": 1
+    },
+    "upper respiratory tract infection": {
+      "pt": "Upper respiratory tract infection",
+      "soc": "Infections and infestations",
+      "llt": "Upper respiratory tract infection",
+      "faers_count": 40,
+      "drug_count": 1
+    },
+    "urinary tract infection": {
+      "pt": "Urinary tract infection",
+      "soc": "Infections and infestations",
+      "llt": "Urinary tract infection",
+      "faers_count": 161,
+      "drug_count": 8
+    },
+    "urosepsis": {
+      "pt": "Urosepsis",
+      "soc": "Infections and infestations",
+      "llt": "Urosepsis",
+      "faers_count": 39,
+      "drug_count": 1
+    },
+    "urticaria": {
+      "pt": "Urticaria",
+      "soc": "Skin and subcutaneous tissue disorders",
+      "llt": "Urticaria",
+      "faers_count": 70,
+      "drug_count": 3
+    },
+    "uveitis": {
+      "pt": "Uveitis",
+      "soc": "Eye disorders",
+      "llt": "Uveitis",
+      "faers_count": 4,
+      "drug_count": 1
+    },
+    "vaginal haemorrhage": {
+      "pt": "Vaginal haemorrhage",
+      "soc": "Reproductive system and breast disorders",
+      "llt": "Vaginal haemorrhage",
+      "faers_count": 19,
+      "drug_count": 1
+    },
+    "varicose vein": {
+      "pt": "Varicose vein",
+      "soc": "Vascular disorders",
+      "llt": "Varicose vein",
+      "faers_count": 42,
+      "drug_count": 2
+    },
+    "vascular device infection": {
+      "pt": "Vascular device infection",
+      "soc": "Infections and infestations",
+      "llt": "Vascular device infection",
+      "faers_count": 78,
+      "drug_count": 3
+    },
+    "vertigo": {
+      "pt": "Vertigo",
+      "soc": "Ear and labyrinth disorders",
+      "llt": "Vertigo",
+      "faers_count": 52,
+      "drug_count": 2
+    },
+    "viral infection": {
+      "pt": "Viral infection",
+      "soc": "Infections and infestations",
+      "llt": "Viral infection",
+      "faers_count": 25,
+      "drug_count": 2
+    },
+    "vision blurred": {
+      "pt": "Vision blurred",
+      "soc": "Eye disorders",
+      "llt": "Vision blurred",
+      "faers_count": 102,
+      "drug_count": 5
+    },
+    "visual acuity reduced": {
+      "pt": "Visual acuity reduced",
+      "soc": "Eye disorders",
+      "llt": "Visual acuity reduced",
+      "faers_count": 11,
+      "drug_count": 2
+    },
+    "visual impairment": {
+      "pt": "Visual impairment",
+      "soc": "Eye disorders",
+      "llt": "Visual impairment",
+      "faers_count": 60,
+      "drug_count": 4
+    },
+    "vomiting": {
+      "pt": "Vomiting",
+      "soc": "Gastrointestinal disorders",
+      "llt": "Vomiting",
+      "faers_count": 493,
+      "drug_count": 8
+    },
+    "weight decreased": {
+      "pt": "Weight decreased",
+      "soc": "Investigations",
+      "llt": "Weight decreased",
+      "faers_count": 314,
+      "drug_count": 8
+    },
+    "weight fluctuation": {
+      "pt": "Weight fluctuation",
+      "soc": null,
+      "llt": "Weight fluctuation",
+      "faers_count": 87,
+      "drug_count": 2
+    },
+    "weight increased": {
+      "pt": "Weight increased",
+      "soc": "Investigations",
+      "llt": "Weight increased",
+      "faers_count": 107,
+      "drug_count": 6
+    },
+    "white blood cell count abnormal": {
+      "pt": "White blood cell count abnormal",
+      "soc": null,
+      "llt": "White blood cell count abnormal",
+      "faers_count": 12,
+      "drug_count": 1
+    },
+    "white blood cell count decreased": {
+      "pt": "White blood cell count decreased",
+      "soc": "Investigations",
+      "llt": "White blood cell count decreased",
+      "faers_count": 366,
+      "drug_count": 7
+    },
+    "white blood cell count increased": {
+      "pt": "White blood cell count increased",
+      "soc": "Investigations",
+      "llt": "White blood cell count increased",
+      "faers_count": 43,
+      "drug_count": 2
+    },
+    "wrong technique in product usage process": {
+      "pt": "Wrong technique in product usage process",
+      "soc": null,
+      "llt": "Wrong technique in product usage process",
+      "faers_count": 19,
+      "drug_count": 1
+    }
+  }
+}

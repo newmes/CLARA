@@ -1,0 +1,311 @@
+{
+  "dm": {
+    "SUBJID": "PT-ILD-003",
+    "AGE": 72,
+    "SEX": "Male",
+    "RACE": "White",
+    "ETHNIC": "Hispanic or Latino",
+    "BRTHDAT": "1953-02-28"
+  },
+  "ae": {
+    "AETERM": "Interstitial lung disease",
+    "AESTDAT": "2025-10-20",
+    "AEENDAT": null,
+    "AESEV": "SEVERE",
+    "AESER": "Y",
+    "AETOXGR": "3",
+    "AEREL": "Related",
+    "AEACN": "DRUG WITHDRAWN",
+    "AEOUT": "NOT RECOVERED/NOT RESOLVED",
+    "AESDTH": "N",
+    "AESLIFE": "Y",
+    "AESHOSP": "Y",
+    "AESDISAB": "N",
+    "AESCONG": "N",
+    "AESMIE": "Y",
+    "AEHOSPSTDAT": "2025-10-20",
+    "AEHOSPENDAT": null
+  },
+  "ec": [
+    {
+      "ECDSTXT": "6.4 mg/kg",
+      "ECDOSFRQ": "Q3W",
+      "ECROUTE": "Intravenous",
+      "ECSTDAT": "2025-09-15",
+      "ECENDAT": "2025-10-20",
+      "ECDOSADJ": "Drug withdrawn due to Grade 3 interstitial lung disease"
+    }
+  ],
+  "lb": {
+    "records": [
+      {
+        "LBTESTCD": "KL6",
+        "LBTEST": "Krebs von den Lungen-6",
+        "LBORRES": "2100",
+        "LBORRESU": "U/mL",
+        "LBORNRLO": "0",
+        "LBORNRHI": "500",
+        "LBDAT": "2025-10-21"
+      },
+      {
+        "LBTESTCD": "LDH",
+        "LBTEST": "Lactate Dehydrogenase",
+        "LBORRES": "380",
+        "LBORRESU": "U/L",
+        "LBORNRLO": "120",
+        "LBORNRHI": "246",
+        "LBDAT": "2025-10-21"
+      },
+      {
+        "LBTESTCD": "SPO2",
+        "LBTEST": "Oxygen Saturation",
+        "LBORRES": "88",
+        "LBORRESU": "%",
+        "LBORNRLO": "95",
+        "LBORNRHI": "100",
+        "LBDAT": "2025-10-21"
+      },
+      {
+        "LBTESTCD": "CRP",
+        "LBTEST": "C-Reactive Protein",
+        "LBORRES": "5.6",
+        "LBORRESU": "mg/dL",
+        "LBORNRLO": "0",
+        "LBORNRHI": "0.5",
+        "LBDAT": "2025-10-21"
+      },
+      {
+        "LBTESTCD": "WBC",
+        "LBTEST": "White Blood Cell Count",
+        "LBORRES": "9.1",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "4.0",
+        "LBORNRHI": "11.0",
+        "LBDAT": "2025-10-21"
+      },
+      {
+        "LBTESTCD": "NEUT",
+        "LBTEST": "Neutrophil Count",
+        "LBORRES": "6.8",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "1.5",
+        "LBORNRHI": "8.0",
+        "LBDAT": "2025-10-21"
+      },
+      {
+        "LBTESTCD": "SPD",
+        "LBTEST": "Surfactant Protein D",
+        "LBORRES": "85.0",
+        "LBORRESU": "ng/mL",
+        "LBORNRLO": "0",
+        "LBORNRHI": "43.8",
+        "LBDAT": "2025-10-21"
+      }
+    ]
+  },
+  "cm": {
+    "records": [
+      {
+        "CMTRT": "Methylprednisolone",
+        "CMINDC": "Treatment of interstitial lung disease",
+        "CMDSTXT": "2 mg/kg IV daily",
+        "CMSTDAT": "2025-10-21",
+        "CMENDAT": null,
+        "CMCAT": "AE_TREATMENT"
+      },
+      {
+        "CMTRT": "Omeprazole",
+        "CMINDC": "Gastroesophageal reflux disease",
+        "CMDSTXT": "20 mg QD",
+        "CMSTDAT": "2020-05-01",
+        "CMENDAT": null,
+        "CMCAT": "BASELINE"
+      },
+      {
+        "CMTRT": "Supplemental oxygen",
+        "CMINDC": "Hypoxemia secondary to ILD",
+        "CMDSTXT": "4 L/min via nasal cannula",
+        "CMSTDAT": "2025-10-21",
+        "CMENDAT": null,
+        "CMCAT": "AE_TREATMENT"
+      }
+    ]
+  },
+  "mh": {
+    "records": [
+      {
+        "MHTERM": "Gastroesophageal reflux disease",
+        "MHSTDAT": "2018-03-01",
+        "MHENDAT": null,
+        "MHONGO": "Y"
+      },
+      {
+        "MHTERM": "Type 2 diabetes mellitus",
+        "MHSTDAT": "2015-08-01",
+        "MHENDAT": null,
+        "MHONGO": "Y"
+      },
+      {
+        "MHTERM": "HER2-positive gastric cancer",
+        "MHSTDAT": "2025-06-20",
+        "MHENDAT": null,
+        "MHONGO": "Y"
+      },
+      {
+        "MHTERM": "Chronic obstructive pulmonary disease",
+        "MHSTDAT": "2012-01-01",
+        "MHENDAT": null,
+        "MHONGO": "Y"
+      }
+    ]
+  },
+  "vs": {
+    "records": [
+      {
+        "VSTESTCD": "TEMP",
+        "VSORRES": "37.8",
+        "VSORRESU": "C",
+        "VSDAT": "2025-10-21"
+      },
+      {
+        "VSTESTCD": "RESP",
+        "VSORRES": "28",
+        "VSORRESU": "breaths/min",
+        "VSDAT": "2025-10-21"
+      },
+      {
+        "VSTESTCD": "SYSBP",
+        "VSORRES": "142",
+        "VSORRESU": "mmHg",
+        "VSDAT": "2025-10-21"
+      },
+      {
+        "VSTESTCD": "DIABP",
+        "VSORRES": "88",
+        "VSORRESU": "mmHg",
+        "VSDAT": "2025-10-21"
+      }
+    ],
+    "WEIGHT": 82.0,
+    "HEIGHT": 170.0
+  },
+  "dd": {
+    "DTHDAT": null,
+    "PRCDTH": null,
+    "AUTOPIND": null
+  },
+  "da": {
+    "LOT_NUMBER": "TDX-2025-D004",
+    "EXPIRY_DATE": "2026-06-30"
+  },
+  "imaging": {
+    "records": [
+      {
+        "IMG_MODALITY": "HRCT",
+        "IMG_REGION": "Chest",
+        "IMG_DAT": "2025-10-21",
+        "IMG_FINDINGS": "Extensive bilateral ground-glass opacities with areas of consolidation, predominantly lower and middle lobes. Bilateral pleural effusions, small to moderate. Organizing pneumonia pattern.",
+        "IMG_IMPRESSION": "Severe drug-induced interstitial lung disease with organizing pneumonia pattern and bilateral pleural effusions. Consistent with CTCAE Grade 3.",
+        "IMG_PLEFF": "Y",
+        "IMG_CONSOL": "Y",
+        "IMG_READER": "Dr. Robert Kim, Radiology"
+      }
+    ]
+  },
+  "pft": {
+    "records": [
+      {
+        "PFT_TESTCD": "DLCO",
+        "PFT_TEST": "Diffusing Capacity of the Lungs for Carbon Monoxide",
+        "PFT_RESULT": 85.0,
+        "PFT_UNIT": "%predicted",
+        "PFT_REFLO": 75.0,
+        "PFT_REFHI": 120.0,
+        "PFT_DAT": "2025-09-15",
+        "PFT_BLFL": "Y"
+      },
+      {
+        "PFT_TESTCD": "FVC",
+        "PFT_TEST": "Forced Vital Capacity",
+        "PFT_RESULT": 92.0,
+        "PFT_UNIT": "%predicted",
+        "PFT_REFLO": 80.0,
+        "PFT_REFHI": 120.0,
+        "PFT_DAT": "2025-09-15",
+        "PFT_BLFL": "Y"
+      },
+      {
+        "PFT_TESTCD": "DLCO",
+        "PFT_TEST": "Diffusing Capacity of the Lungs for Carbon Monoxide",
+        "PFT_RESULT": 48.0,
+        "PFT_UNIT": "%predicted",
+        "PFT_REFLO": 75.0,
+        "PFT_REFHI": 120.0,
+        "PFT_DAT": "2025-10-22",
+        "PFT_BLFL": "N"
+      },
+      {
+        "PFT_TESTCD": "FVC",
+        "PFT_TEST": "Forced Vital Capacity",
+        "PFT_RESULT": 58.0,
+        "PFT_UNIT": "%predicted",
+        "PFT_REFLO": 80.0,
+        "PFT_REFHI": 120.0,
+        "PFT_DAT": "2025-10-22",
+        "PFT_BLFL": "N"
+      }
+    ]
+  },
+  "microbiology": {
+    "records": [
+      {
+        "MB_SPECIMEN": "Sputum",
+        "MB_TEST": "Culture",
+        "MB_DAT": "2025-10-10",
+        "MB_RESULT": "No growth",
+        "MB_ORGANISM": null,
+        "MB_SENSITIVITY": null
+      },
+      {
+        "MB_SPECIMEN": "Blood",
+        "MB_TEST": "Culture",
+        "MB_DAT": "2025-10-10",
+        "MB_RESULT": "No growth",
+        "MB_ORGANISM": null,
+        "MB_SENSITIVITY": null
+      }
+    ]
+  },
+  "consultation": {
+    "records": [
+      {
+        "CONSULT_SPECIALTY": "Pulmonology",
+        "CONSULT_DAT": "2025-10-11",
+        "CONSULT_IMPRESSION": "Severe drug-induced ILD (Grade 3) with extensive bilateral GGO, consolidation, and pleural effusions. Significant PFT decline. Recommend permanent discontinuation of T-DXd, high-dose IV methylprednisolone, and ICU monitoring. Infectious workup negative.",
+        "CONSULT_PHYSICIAN": "Dr. Sarah Kim"
+      },
+      {
+        "CONSULT_SPECIALTY": "Infectious Disease",
+        "CONSULT_DAT": "2025-10-12",
+        "CONSULT_IMPRESSION": "Cultures negative. No evidence of opportunistic infection. Clinical presentation most consistent with drug-induced pneumonitis rather than infectious etiology.",
+        "CONSULT_PHYSICIAN": "Dr. Maria Santos"
+      }
+    ]
+  },
+  "investigator": {
+    "name": "Sarah K. Chen, MD",
+    "institution": "Massachusetts General Hospital",
+    "address": "55 Fruit Street, Boston, MA 02114",
+    "phone": "617-555-0142",
+    "email": "schen@mgh-clinical.example.com"
+  },
+  "sentinel_output": {
+    "ild_detected": true,
+    "ild_grade": 3,
+    "ild_confidence": 0.94,
+    "cxr_findings": "Diffuse bilateral ground-glass opacities with organizing pneumonia pattern. Bilateral involvement, predominantly lower and middle lobes. No pleural effusion. Findings consistent with severe drug-induced ILD.",
+    "differential_diagnosis": "Primary: Drug-induced ILD (T-DXd) — Grade 3 (severe, oxygen-dependent). Differential: COPD exacerbation (less likely, GGO pattern not typical for COPD), infectious pneumonia (possible contributor, elevated CRP and WBC), cardiac pulmonary edema (less likely, no cardiomegaly). Complicating factor: Pre-existing COPD may confound CXR interpretation. Supporting evidence: Markedly elevated KL-6 (2100 U/mL), SPD (85.0 ng/mL), severe hypoxemia (SpO2 88%), temporal correlation with T-DXd (Cycle 2, Day 35).",
+    "kl6_value": 2100.0,
+    "spo2_value": 88.0
+  }
+}

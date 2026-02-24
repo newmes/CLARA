@@ -1,0 +1,272 @@
+{
+  "dm": {
+    "SUBJID": "PT-ILD-004",
+    "AGE": 67,
+    "SEX": "Female",
+    "RACE": "White",
+    "ETHNIC": "Not Hispanic or Latino",
+    "BRTHDAT": "1957-11-03"
+  },
+  "ae": {
+    "AETERM": "Pneumonitis",
+    "AESTDAT": "2025-10-14",
+    "AEENDAT": "2025-10-28",
+    "AESEV": "SEVERE",
+    "AESER": "Y",
+    "AETOXGR": "5",
+    "AEREL": "Related",
+    "AEACN": "DRUG WITHDRAWN",
+    "AEOUT": "FATAL",
+    "AESDTH": "Y",
+    "AESLIFE": "Y",
+    "AESHOSP": "Y",
+    "AESDISAB": "N",
+    "AESCONG": "N",
+    "AESMIE": "Y",
+    "AEHOSPSTDAT": "2025-10-14",
+    "AEHOSPENDAT": "2025-10-28"
+  },
+  "ec": [
+    {
+      "ECDSTXT": "5.4 mg/kg",
+      "ECDOSFRQ": "Q3W",
+      "ECROUTE": "Intravenous",
+      "ECSTDAT": "2025-07-01",
+      "ECENDAT": "2025-10-14",
+      "ECDOSADJ": "Drug withdrawn due to fatal pneumonitis"
+    }
+  ],
+  "lb": {
+    "records": [
+      {
+        "LBTESTCD": "KL6",
+        "LBTEST": "Krebs von den Lungen-6",
+        "LBORRES": "3200",
+        "LBORRESU": "U/mL",
+        "LBORNRLO": "0",
+        "LBORNRHI": "500",
+        "LBDAT": "2025-10-15"
+      },
+      {
+        "LBTESTCD": "LDH",
+        "LBTEST": "Lactate Dehydrogenase",
+        "LBORRES": "520",
+        "LBORRESU": "U/L",
+        "LBORNRLO": "120",
+        "LBORNRHI": "246",
+        "LBDAT": "2025-10-15"
+      },
+      {
+        "LBTESTCD": "SPO2",
+        "LBTEST": "Oxygen Saturation",
+        "LBORRES": "82",
+        "LBORRESU": "%",
+        "LBORNRLO": "95",
+        "LBORNRHI": "100",
+        "LBDAT": "2025-10-15"
+      },
+      {
+        "LBTESTCD": "CRP",
+        "LBTEST": "C-Reactive Protein",
+        "LBORRES": "12.4",
+        "LBORRESU": "mg/dL",
+        "LBORNRLO": "0",
+        "LBORNRHI": "0.5",
+        "LBDAT": "2025-10-15"
+      },
+      {
+        "LBTESTCD": "WBC",
+        "LBTEST": "White Blood Cell Count",
+        "LBORRES": "11.8",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "4.0",
+        "LBORNRHI": "11.0",
+        "LBDAT": "2025-10-15"
+      },
+      {
+        "LBTESTCD": "NEUT",
+        "LBTEST": "Neutrophil Count",
+        "LBORRES": "9.2",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "1.5",
+        "LBORNRHI": "8.0",
+        "LBDAT": "2025-10-15"
+      }
+    ]
+  },
+  "cm": {
+    "records": [
+      {
+        "CMTRT": "Methylprednisolone",
+        "CMINDC": "Treatment of pneumonitis",
+        "CMDSTXT": "1 g IV pulse daily x3 days",
+        "CMSTDAT": "2025-10-15",
+        "CMENDAT": "2025-10-17",
+        "CMCAT": "AE_TREATMENT"
+      },
+      {
+        "CMTRT": "Cyclophosphamide",
+        "CMINDC": "Refractory drug-induced ILD",
+        "CMDSTXT": "500 mg IV",
+        "CMSTDAT": "2025-10-20",
+        "CMENDAT": "2025-10-20",
+        "CMCAT": "AE_TREATMENT"
+      },
+      {
+        "CMTRT": "Metoprolol",
+        "CMINDC": "Hypertension",
+        "CMDSTXT": "50 mg BID",
+        "CMSTDAT": "2017-09-01",
+        "CMENDAT": null,
+        "CMCAT": "BASELINE"
+      }
+    ]
+  },
+  "mh": {
+    "records": [
+      {
+        "MHTERM": "Hypertension",
+        "MHSTDAT": "2014-03-01",
+        "MHENDAT": null,
+        "MHONGO": "Y"
+      },
+      {
+        "MHTERM": "Osteoarthritis",
+        "MHSTDAT": "2019-06-01",
+        "MHENDAT": null,
+        "MHONGO": "Y"
+      },
+      {
+        "MHTERM": "HER2-positive metastatic breast cancer",
+        "MHSTDAT": "2025-02-15",
+        "MHENDAT": null,
+        "MHONGO": "Y"
+      },
+      {
+        "MHTERM": "Prior radiation therapy to right lung",
+        "MHSTDAT": "2025-04-01",
+        "MHENDAT": "2025-05-15",
+        "MHONGO": "N"
+      }
+    ]
+  },
+  "vs": {
+    "records": [
+      {
+        "VSTESTCD": "TEMP",
+        "VSORRES": "38.2",
+        "VSORRESU": "C",
+        "VSDAT": "2025-10-15"
+      },
+      {
+        "VSTESTCD": "RESP",
+        "VSORRES": "32",
+        "VSORRESU": "breaths/min",
+        "VSDAT": "2025-10-15"
+      },
+      {
+        "VSTESTCD": "SYSBP",
+        "VSORRES": "108",
+        "VSORRESU": "mmHg",
+        "VSDAT": "2025-10-15"
+      },
+      {
+        "VSTESTCD": "DIABP",
+        "VSORRES": "62",
+        "VSORRESU": "mmHg",
+        "VSDAT": "2025-10-15"
+      }
+    ],
+    "WEIGHT": 56.0,
+    "HEIGHT": 162.0
+  },
+  "dd": {
+    "DTHDAT": "2025-10-28",
+    "PRCDTH": "Respiratory failure secondary to drug-induced ILD",
+    "AUTOPIND": "N"
+  },
+  "da": {
+    "LOT_NUMBER": "TDX-2025-E005",
+    "EXPIRY_DATE": "2026-05-31"
+  },
+  "imaging": {
+    "records": [
+      {
+        "IMG_MODALITY": "HRCT",
+        "IMG_REGION": "Chest",
+        "IMG_DAT": "2025-10-15",
+        "IMG_FINDINGS": "Diffuse bilateral ground-glass opacities with extensive consolidation consistent with diffuse alveolar damage (DAD) pattern. Near-complete bilateral involvement. Bilateral pleural effusions.",
+        "IMG_IMPRESSION": "Findings consistent with fatal drug-induced ILD with diffuse alveolar damage. Extensive bilateral disease.",
+        "IMG_PLEFF": "Y",
+        "IMG_CONSOL": "Y",
+        "IMG_READER": "Dr. Robert Kim, Radiology"
+      }
+    ]
+  },
+  "pft": {
+    "records": [
+      {
+        "PFT_TESTCD": "DLCO",
+        "PFT_TEST": "Diffusing Capacity of the Lungs for Carbon Monoxide",
+        "PFT_RESULT": 32.0,
+        "PFT_UNIT": "%predicted",
+        "PFT_REFLO": 75.0,
+        "PFT_REFHI": 120.0,
+        "PFT_DAT": "2025-10-16",
+        "PFT_BLFL": "N"
+      }
+    ]
+  },
+  "microbiology": {
+    "records": [
+      {
+        "MB_SPECIMEN": "Blood",
+        "MB_TEST": "Culture",
+        "MB_DAT": "2025-09-29",
+        "MB_RESULT": "No growth",
+        "MB_ORGANISM": null,
+        "MB_SENSITIVITY": null
+      },
+      {
+        "MB_SPECIMEN": "BAL",
+        "MB_TEST": "Culture and PCR",
+        "MB_DAT": "2025-09-30",
+        "MB_RESULT": "No growth, PCR negative",
+        "MB_ORGANISM": null,
+        "MB_SENSITIVITY": null
+      }
+    ]
+  },
+  "consultation": {
+    "records": [
+      {
+        "CONSULT_SPECIALTY": "Pulmonology",
+        "CONSULT_DAT": "2025-09-29",
+        "CONSULT_IMPRESSION": "Fulminant drug-induced ILD (Grade 5) with diffuse bilateral DAD pattern. DLCO critically reduced at 32% predicted. Prognosis very poor despite maximal supportive care including mechanical ventilation.",
+        "CONSULT_PHYSICIAN": "Dr. Robert Chang"
+      },
+      {
+        "CONSULT_SPECIALTY": "Palliative Care",
+        "CONSULT_DAT": "2025-10-02",
+        "CONSULT_IMPRESSION": "Family meeting conducted. Goals of care discussed. Transition to comfort measures per family wishes.",
+        "CONSULT_PHYSICIAN": "Dr. Lisa Nguyen"
+      }
+    ]
+  },
+  "investigator": {
+    "name": "Sarah K. Chen, MD",
+    "institution": "Massachusetts General Hospital",
+    "address": "55 Fruit Street, Boston, MA 02114",
+    "phone": "617-555-0142",
+    "email": "schen@mgh-clinical.example.com"
+  },
+  "sentinel_output": {
+    "ild_detected": true,
+    "ild_grade": 5,
+    "ild_confidence": 0.97,
+    "cxr_findings": "Extensive bilateral ground-glass opacities with consolidation and diffuse alveolar damage (DAD) pattern. Near-complete bilateral involvement. Small bilateral pleural effusions. Findings consistent with fatal drug-induced ILD with DAD.",
+    "differential_diagnosis": "Primary: Drug-induced ILD (T-DXd) — Grade 5 (fatal). Differential: Radiation pneumonitis (possible contributor given prior right lung RT, but bilateral involvement exceeds radiation field), acute respiratory distress syndrome (concurrent), infectious pneumonia (cannot exclude superimposed infection). Complicating factor: Prior radiation therapy to right lung. Supporting evidence: Critically elevated KL-6 (3200 U/mL), LDH (520 U/L), severe hypoxemia (SpO2 82%), systemic inflammation (CRP 12.4, WBC 11.8), temporal correlation with T-DXd (Cycle 5, Day 106). Refractory to pulse methylprednisolone and cyclophosphamide.",
+    "kl6_value": 3200.0,
+    "spo2_value": 82.0
+  }
+}

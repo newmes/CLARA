@@ -1,0 +1,12 @@
+{
+  "administration_schedule": [
+    {
+      "drug_name": "Gemcitabine",
+      "infusion_duration_minutes": 0
+    },
+    {
+      "drug_name": "Cisplatin",
+      "infusion_duration_minutes": 0
+    }
+  ]
+}

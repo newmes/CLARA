@@ -1,0 +1,210 @@
+{
+  "dm": {
+    "SUBJID": "PT-AE-003",
+    "AGE": 55,
+    "SEX": "Male",
+    "RACE": "White",
+    "ETHNIC": "Not Hispanic or Latino",
+    "BRTHDAT": "1970-07-14"
+  },
+  "ae": {
+    "AETERM": "Alanine aminotransferase increased",
+    "AESTDAT": "2025-10-31",
+    "AEENDAT": null,
+    "AESEV": "MODERATE",
+    "AESER": "Y",
+    "AETOXGR": "2",
+    "AEREL": "Related",
+    "AEACN": "DRUG INTERRUPTED",
+    "AEOUT": "RECOVERING/RESOLVING",
+    "AESDTH": "N",
+    "AESLIFE": "N",
+    "AESHOSP": "N",
+    "AESDISAB": "N",
+    "AESCONG": "N",
+    "AESMIE": "Y",
+    "AEHOSPSTDAT": null,
+    "AEHOSPENDAT": null
+  },
+  "ec": [
+    {
+      "ECDSTXT": "6.4 mg/kg",
+      "ECDOSFRQ": "Q3W",
+      "ECROUTE": "Intravenous",
+      "ECSTDAT": "2025-10-01",
+      "ECENDAT": "2025-10-31",
+      "ECDOSADJ": "Drug interrupted due to hepatotoxicity"
+    }
+  ],
+  "lb": {
+    "records": [
+      {
+        "LBTESTCD": "ALT",
+        "LBTEST": "Alanine Aminotransferase",
+        "LBORRES": "185",
+        "LBORRESU": "U/L",
+        "LBORNRLO": "7",
+        "LBORNRHI": "56",
+        "LBDAT": "2025-10-31"
+      },
+      {
+        "LBTESTCD": "AST",
+        "LBTEST": "Aspartate Aminotransferase",
+        "LBORRES": "152",
+        "LBORRESU": "U/L",
+        "LBORNRLO": "10",
+        "LBORNRHI": "40",
+        "LBDAT": "2025-10-31"
+      },
+      {
+        "LBTESTCD": "TBIL",
+        "LBTEST": "Total Bilirubin",
+        "LBORRES": "1.8",
+        "LBORRESU": "mg/dL",
+        "LBORNRLO": "0.1",
+        "LBORNRHI": "1.2",
+        "LBDAT": "2025-10-31"
+      },
+      {
+        "LBTESTCD": "ALP",
+        "LBTEST": "Alkaline Phosphatase",
+        "LBORRES": "95",
+        "LBORRESU": "U/L",
+        "LBORNRLO": "44",
+        "LBORNRHI": "147",
+        "LBDAT": "2025-10-31"
+      },
+      {
+        "LBTESTCD": "WBC",
+        "LBTEST": "White Blood Cell Count",
+        "LBORRES": "6.5",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "4.0",
+        "LBORNRHI": "11.0",
+        "LBDAT": "2025-10-31"
+      },
+      {
+        "LBTESTCD": "NEUT",
+        "LBTEST": "Neutrophil Count",
+        "LBORRES": "4.0",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "1.5",
+        "LBORNRHI": "8.0",
+        "LBDAT": "2025-10-31"
+      },
+      {
+        "LBTESTCD": "PLT",
+        "LBTEST": "Platelet Count",
+        "LBORRES": "180",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "150",
+        "LBORNRHI": "400",
+        "LBDAT": "2025-10-31"
+      },
+      {
+        "LBTESTCD": "CREAT",
+        "LBTEST": "Creatinine",
+        "LBORRES": "0.8",
+        "LBORRESU": "mg/dL",
+        "LBORNRLO": "0.7",
+        "LBORNRHI": "1.3",
+        "LBDAT": "2025-10-31"
+      }
+    ]
+  },
+  "cm": {
+    "records": [
+      {
+        "CMTRT": "Ursodeoxycholic acid",
+        "CMINDC": "Hepatoprotection",
+        "CMDSTXT": "300 mg TID",
+        "CMSTDAT": "2025-11-01",
+        "CMENDAT": null,
+        "CMCAT": "AE_TREATMENT"
+      },
+      {
+        "CMTRT": "Pantoprazole",
+        "CMINDC": "Gastroesophageal reflux disease",
+        "CMDSTXT": "40 mg QD",
+        "CMSTDAT": "2021-02-01",
+        "CMENDAT": null,
+        "CMCAT": "BASELINE"
+      }
+    ]
+  },
+  "mh": {
+    "records": [
+      {
+        "MHTERM": "Gastroesophageal reflux disease",
+        "MHSTDAT": "2019-08-01",
+        "MHENDAT": null,
+        "MHONGO": "Y"
+      },
+      {
+        "MHTERM": "HER2-positive gastric cancer",
+        "MHSTDAT": "2025-07-01",
+        "MHENDAT": null,
+        "MHONGO": "Y"
+      }
+    ]
+  },
+  "vs": {
+    "records": [
+      {
+        "VSTESTCD": "TEMP",
+        "VSORRES": "36.7",
+        "VSORRESU": "C",
+        "VSDAT": "2025-10-31"
+      },
+      {
+        "VSTESTCD": "RESP",
+        "VSORRES": "16",
+        "VSORRESU": "breaths/min",
+        "VSDAT": "2025-10-31"
+      },
+      {
+        "VSTESTCD": "SYSBP",
+        "VSORRES": "126",
+        "VSORRESU": "mmHg",
+        "VSDAT": "2025-10-31"
+      },
+      {
+        "VSTESTCD": "DIABP",
+        "VSORRES": "80",
+        "VSORRESU": "mmHg",
+        "VSDAT": "2025-10-31"
+      }
+    ],
+    "WEIGHT": 85.0,
+    "HEIGHT": 178.0
+  },
+  "dd": {
+    "DTHDAT": null,
+    "PRCDTH": null,
+    "AUTOPIND": null
+  },
+  "da": {
+    "LOT_NUMBER": "TDX-2025-H008",
+    "EXPIRY_DATE": "2026-09-30"
+  },
+  "imaging": {
+    "records": []
+  },
+  "pft": {
+    "records": []
+  },
+  "microbiology": {
+    "records": []
+  },
+  "consultation": {
+    "records": []
+  },
+  "investigator": {
+    "name": "James M. Rodriguez, MD",
+    "institution": "MD Anderson Cancer Center",
+    "address": "1515 Holcombe Blvd, Houston, TX 77030",
+    "phone": "713-555-0198",
+    "email": "jrodriguez@mdacc-trials.example.com"
+  },
+  "sentinel_output": null
+}

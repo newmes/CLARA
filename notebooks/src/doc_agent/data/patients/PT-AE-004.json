@@ -1,0 +1,177 @@
+{
+  "dm": {
+    "SUBJID": "PT-AE-004",
+    "AGE": 47,
+    "SEX": "Female",
+    "RACE": "White",
+    "ETHNIC": "Hispanic or Latino",
+    "BRTHDAT": "1977-12-05"
+  },
+  "ae": {
+    "AETERM": "Diarrhoea",
+    "AESTDAT": "2025-10-05",
+    "AEENDAT": "2025-10-12",
+    "AESEV": "MILD",
+    "AESER": "N",
+    "AETOXGR": "2",
+    "AEREL": "Possibly related",
+    "AEACN": "DOSE NOT CHANGED",
+    "AEOUT": "RECOVERED/RESOLVED",
+    "AESDTH": "N",
+    "AESLIFE": "N",
+    "AESHOSP": "N",
+    "AESDISAB": "N",
+    "AESCONG": "N",
+    "AESMIE": "N",
+    "AEHOSPSTDAT": null,
+    "AEHOSPENDAT": null
+  },
+  "ec": [
+    {
+      "ECDSTXT": "5.4 mg/kg",
+      "ECDOSFRQ": "Q3W",
+      "ECROUTE": "Intravenous",
+      "ECSTDAT": "2025-10-01",
+      "ECENDAT": null,
+      "ECDOSADJ": null
+    }
+  ],
+  "lb": {
+    "records": [
+      {
+        "LBTESTCD": "WBC",
+        "LBTEST": "White Blood Cell Count",
+        "LBORRES": "6.0",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "4.0",
+        "LBORNRHI": "11.0",
+        "LBDAT": "2025-10-05"
+      },
+      {
+        "LBTESTCD": "NEUT",
+        "LBTEST": "Neutrophil Count",
+        "LBORRES": "3.5",
+        "LBORRESU": "10^3/uL",
+        "LBORNRLO": "1.5",
+        "LBORNRHI": "8.0",
+        "LBDAT": "2025-10-05"
+      },
+      {
+        "LBTESTCD": "ALT",
+        "LBTEST": "Alanine Aminotransferase",
+        "LBORRES": "20",
+        "LBORRESU": "U/L",
+        "LBORNRLO": "7",
+        "LBORNRHI": "56",
+        "LBDAT": "2025-10-05"
+      },
+      {
+        "LBTESTCD": "CREAT",
+        "LBTEST": "Creatinine",
+        "LBORRES": "0.8",
+        "LBORRESU": "mg/dL",
+        "LBORNRLO": "0.6",
+        "LBORNRHI": "1.1",
+        "LBDAT": "2025-10-05"
+      },
+      {
+        "LBTESTCD": "K",
+        "LBTEST": "Potassium",
+        "LBORRES": "3.8",
+        "LBORRESU": "mmol/L",
+        "LBORNRLO": "3.5",
+        "LBORNRHI": "5.0",
+        "LBDAT": "2025-10-05"
+      }
+    ]
+  },
+  "cm": {
+    "records": [
+      {
+        "CMTRT": "Loperamide",
+        "CMINDC": "Diarrhea",
+        "CMDSTXT": "2 mg PO PRN",
+        "CMSTDAT": "2025-10-05",
+        "CMENDAT": "2025-10-10",
+        "CMCAT": "AE_TREATMENT"
+      },
+      {
+        "CMTRT": "Oral rehydration salts",
+        "CMINDC": "Dehydration prevention",
+        "CMDSTXT": "1 sachet TID",
+        "CMSTDAT": "2025-10-05",
+        "CMENDAT": "2025-10-10",
+        "CMCAT": "AE_TREATMENT"
+      }
+    ]
+  },
+  "mh": {
+    "records": [
+      {
+        "MHTERM": "HER2-positive metastatic breast cancer",
+        "MHSTDAT": "2025-06-15",
+        "MHENDAT": null,
+        "MHONGO": "Y"
+      }
+    ]
+  },
+  "vs": {
+    "records": [
+      {
+        "VSTESTCD": "TEMP",
+        "VSORRES": "36.8",
+        "VSORRESU": "C",
+        "VSDAT": "2025-10-05"
+      },
+      {
+        "VSTESTCD": "RESP",
+        "VSORRES": "16",
+        "VSORRESU": "breaths/min",
+        "VSDAT": "2025-10-05"
+      },
+      {
+        "VSTESTCD": "SYSBP",
+        "VSORRES": "120",
+        "VSORRESU": "mmHg",
+        "VSDAT": "2025-10-05"
+      },
+      {
+        "VSTESTCD": "DIABP",
+        "VSORRES": "76",
+        "VSORRESU": "mmHg",
+        "VSDAT": "2025-10-05"
+      }
+    ],
+    "WEIGHT": 65.0,
+    "HEIGHT": 163.0
+  },
+  "dd": {
+    "DTHDAT": null,
+    "PRCDTH": null,
+    "AUTOPIND": null
+  },
+  "da": {
+    "LOT_NUMBER": "TDX-2025-J009",
+    "EXPIRY_DATE": "2026-11-30"
+  },
+  "imaging": {
+    "records": []
+  },
+  "pft": {
+    "records": []
+  },
+  "microbiology": {
+    "records": []
+  },
+  "consultation": {
+    "records": []
+  },
+  "investigator": {
+    "name": "James M. Rodriguez, MD",
+    "institution": "MD Anderson Cancer Center",
+    "address": "1515 Holcombe Blvd, Houston, TX 77030",
+    "phone": "713-555-0198",
+    "email": "jrodriguez@mdacc-trials.example.com"
+  },
+  "sentinel_output": null
+}
