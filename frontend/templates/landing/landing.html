@@ -1259,7 +1259,7 @@
             </a>
           </div>
           <div class="tc-image-wrap">
-            <img src="{% static 'assets/demos/simulation_engine.webp' %}" alt="Simulation Engine — 10-Step Pipeline Daily Loop" loading="lazy">
+            <img src="{% static 'assets/demos/simulation_engine.webp' %}" alt="Simulation Engine — 10-Step Pipeline Daily Loop" loading="eager">
           </div>
           <!-- Patient Init visual -->
           <div id="ctsPatientRight" style="display:none;">
@@ -1361,7 +1361,7 @@
             </a>
           </div>
           <div class="tc-image-wrap">
-            <img src="{% static 'assets/demos/data_collection_agent.webp' %}" alt="Data Collection Agent — Multi-model SAE Detection" loading="lazy">
+            <img src="{% static 'assets/demos/data_collection_agent.webp' %}" alt="Data Collection Agent — Multi-model SAE Detection" loading="eager">
           </div>
         </div>
       </div>
@@ -1386,7 +1386,7 @@
             </a>
           </div>
           <div class="tc-image-wrap">
-            <img src="{% static 'assets/demos/data_analysis_agent.webp' %}" alt="Data Analysis Agent — Anti-hallucination MedGemma" loading="lazy">
+            <img src="{% static 'assets/demos/data_analysis_agent.webp' %}" alt="Data Analysis Agent — Anti-hallucination MedGemma" loading="eager">
           </div>
         </div>
       </div>
@@ -1489,52 +1489,73 @@
   }
 
   /* ─── Flow Connector: draw SVG curves from map to each card ─── */
+  var _prevSrcY = null;
+  var _stableCount = 0;
+  var _flowPoll = null;
+
   function drawFlowConnector() {
-    requestAnimationFrame(function() {
-      var mapEl = document.getElementById('simMapContainer') || document.getElementById('simMapSection');
-      var cards = document.querySelectorAll('.demo-card');
-      var connector = document.getElementById('flowConnector');
-      var svg = document.getElementById('flowSvg');
-      if (!mapEl || !cards.length || !connector || !svg) return;
+    clearTimeout(_flowPoll);
 
-      /* Use connector div rect — CSS-driven, always reliable */
-      var ref = connector.getBoundingClientRect();
-      if (ref.width === 0 || ref.height === 0) return;
+    var mapEl = document.getElementById('simMapContainer') || document.getElementById('simMapSection');
+    var cards = document.querySelectorAll('.demo-card');
+    var connector = document.getElementById('flowConnector');
+    var svg = document.getElementById('flowSvg');
+    if (!mapEl || !cards.length || !connector || !svg) return;
 
-      var mapRect = mapEl.getBoundingClientRect();
-      var srcX = mapRect.right - ref.left;
-      var srcY = mapRect.top + mapRect.height * 0.5 - ref.top;
+    var ref = connector.getBoundingClientRect();
+    if (ref.width === 0 || ref.height === 0) {
+      _flowPoll = setTimeout(drawFlowConnector, 100);
+      return;
+    }
 
-      svg.setAttribute('viewBox', '0 0 ' + ref.width + ' ' + ref.height);
+    var mapRect = mapEl.getBoundingClientRect();
+    var srcX = mapRect.right - ref.left;
+    var srcY = mapRect.top + mapRect.height * 0.5 - ref.top;
 
-      var html = svg.querySelector('defs').outerHTML;
-      html += '<circle class="flow-dot flow-dot--src" cx="' + srcX + '" cy="' + srcY + '" r="3"/>';
+    /* Wait until layout stabilises (srcY unchanged for 3 consecutive checks) */
+    if (_prevSrcY !== null && Math.abs(srcY - _prevSrcY) < 0.5) {
+      _stableCount++;
+    } else {
+      _stableCount = 0;
+    }
+    _prevSrcY = srcY;
 
-      cards.forEach(function(card, i) {
-        var cr = card.getBoundingClientRect();
-        var dstX = cr.left - ref.left;
-        var dstY = cr.top + cr.height * 0.5 - ref.top;
+    if (_stableCount < 3) {
+      _flowPoll = setTimeout(drawFlowConnector, 120);
+      return;
+    }
 
-        var cpOffset = 60;
-        var d = 'M ' + srcX + ' ' + srcY
-              + ' C ' + (srcX + cpOffset) + ' ' + srcY
-              + ', ' + (dstX - cpOffset) + ' ' + dstY
-              + ', ' + dstX + ' ' + dstY;
+    /* Layout stable — draw */
+    svg.setAttribute('viewBox', '0 0 ' + ref.width + ' ' + ref.height);
 
-        html += '<path class="flow-line-bg flow-line-bg--' + (i + 1) + '" d="' + d + '"/>';
-        html += '<path class="flow-line flow-line--' + (i + 1) + '" d="' + d + '"/>';
-        html += '<circle class="flow-dot flow-dot--' + (i + 1) + '" cx="' + dstX + '" cy="' + dstY + '" r="3"/>';
-      });
+    var html = svg.querySelector('defs').outerHTML;
+    html += '<circle class="flow-dot flow-dot--src" cx="' + srcX + '" cy="' + srcY + '" r="3"/>';
 
-      svg.innerHTML = html;
-      connector.classList.add('flow-connector--visible');
+    cards.forEach(function(card, i) {
+      var cr = card.getBoundingClientRect();
+      var dstX = cr.left - ref.left;
+      var dstY = cr.top + cr.height * 0.5 - ref.top;
+
+      var cpOffset = 60;
+      var d = 'M ' + srcX + ' ' + srcY
+            + ' C ' + (srcX + cpOffset) + ' ' + srcY
+            + ', ' + (dstX - cpOffset) + ' ' + dstY
+            + ', ' + dstX + ' ' + dstY;
+
+      html += '<path class="flow-line-bg flow-line-bg--' + (i + 1) + '" d="' + d + '"/>';
+      html += '<path class="flow-line flow-line--' + (i + 1) + '" d="' + d + '"/>';
+      html += '<circle class="flow-dot flow-dot--' + (i + 1) + '" cx="' + dstX + '" cy="' + dstY + '" r="3"/>';
     });
+
+    svg.innerHTML = html;
+    connector.classList.add('flow-connector--visible');
   }
 
   /* Redraw on resize */
   var _flowTimer;
   window.addEventListener('resize', function() {
     clearTimeout(_flowTimer);
+    _prevSrcY = null; _stableCount = 0;
     _flowTimer = setTimeout(drawFlowConnector, 200);
   });
 

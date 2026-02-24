@@ -1301,10 +1301,12 @@
     var cells = document.querySelectorAll('.ds-day-cell');
     cells.forEach(function(c) { if (parseInt(c.dataset.day) === day) c.classList.add('active'); });
 
-    /* Scroll selected cell into view */
+    /* Scroll selected cell into view (horizontal only, no page scroll) */
     var activeCell = document.querySelector('.ds-day-cell.active');
     if (activeCell) {
-      activeCell.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      var tl = activeCell.parentElement;
+      var offset = activeCell.offsetLeft - tl.offsetWidth / 2 + activeCell.offsetWidth / 2;
+      tl.scrollTo({ left: offset, behavior: 'smooth' });
     }
 
     document.getElementById('dayNum').textContent = 'Day ' + day;
