@@ -12,7 +12,7 @@
 [![HAI-DEF](https://img.shields.io/badge/HAI--DEF-MedGemma-FF6F00?logo=google&logoColor=white)](https://developers.google.com/health-ai-developer-foundations)
 [![Kaggle](https://img.shields.io/badge/MedGemma_Impact-Challenge_2026-20BEFF?logo=kaggle&logoColor=white)](https://www.kaggle.com/competitions/med-gemma-impact-challenge)
 
-[Quick Start](#quick-start) · [Notebooks](#notebooks) · [Architecture](#architecture) · [Results](#results) · [Deployment](#docker-deployment)
+[Quick Start](#quick-start) · [Notebooks](#notebooks) · [Results](#results) · [How It Works](#how-it-works) · [Deployment](#docker-deployment)
 
 </div>
 
@@ -34,6 +34,8 @@ In oncology trials, clinical monitoring relies heavily on clinic visits schedule
 - Self-reporting rates for Grade 1–2 Adverse Events (AEs) are exceptionally low, hovering around **~2%**
 
 Most patients tend to underreport their discomfort. Missing these implicit signals can lead to severe repercussions—including grade escalation, emergency hospitalization, and loss of life. The delayed attention will also affect the effectiveness of clinical trials if forced dose interruptions occur.
+
+---
 
 ## Our Solution
 
@@ -67,6 +69,38 @@ CLARA consists of two MedGemma-based agents. We transitioned them from simulatio
 </td>
 </tr>
 </table>
+
+---
+
+## HAI-DEF Models
+
+<p align="center">
+  <img src="docs/assets/gemma.png" width="44" alt="Gemma" />
+  &nbsp;&nbsp;&nbsp;
+  <img src="docs/assets/gemini.png" width="44" alt="Gemini" />
+</p>
+
+Each HAI-DEF model serves a distinct clinical role within CLARA:
+
+| Model | Role in CLARA | Details |
+|-------|--------------|---------|
+| <img src="docs/assets/gemma.png" width="16" /> [**MedGemma 1.5 4B**](https://huggingface.co/google/medgemma-1.5-4b-it) | DCA — powers the conversational AI medical staff during daily CLARA Call check-ins | Generates clinically appropriate questions and assessments |
+| <img src="docs/assets/gemma.png" width="16" /> [**MedSigLIP**](https://huggingface.co/google/medsiglip-448) | DCA — processes video frames captured during CLARA Call to detect visible AE symptoms (e.g., rash, swelling) and classify their CTCAE grade | Trained on 210 Gemini-generated synthetic patient images (147/21/42 split); W-F1 = 90% |
+| <img src="docs/assets/gemma.png" width="16" /> [**HeAR**](https://huggingface.co/google/hear-pytorch) | DCA — analyzes patient audio through a cough detection and classification pipeline, distinguishing dry from wet cough | Fine-tuned on 956 randomly sampled recordings (478 dry / 478 wet) from the [COUGHVID dataset](https://www.kaggle.com/datasets/nasrulhakim86/coughvid-wav), tested on Gemini-generated synthetic audio |
+| <img src="docs/assets/gemini.png" width="16" /> [**Gemini 2.0 Flash**](https://ai.google.dev/) | Simulation orchestrator — rule discovery, patient generation, narration | API-based; no local GPU needed |
+| <img src="docs/assets/gemma.png" width="16" /> **MedGemma 4B + RLFR** | DAA — whenever a SAE occurs, autonomously generates reports in FDA MedWatch and E2B XML format | Hallucination rate 37.3% → 6.7% |
+
+### Multimodal Detection Channels
+
+```
+Channel              Examples                    Detection Method
+────────────────────────────────────────────────────────────────
+lab                  neutropenia, anemia          Blood test (hospital only)
+patient_reported     nausea, pain, fatigue        Patient self-report (mood-dependent)
+video_detectable     rash, alopecia, edema        MedSigLIP vision analysis
+audio_detectable     cough, dyspnea              HeAR audio classification
+physical_exam        neuropathy, hepatomegaly     Doctor examination (hospital only)
+```
 
 ---
 
@@ -174,54 +208,7 @@ Each patient goes through this pipeline every simulated day:
 | 9 | Dynamic ECOG PS | Performance status adjusted by AE burden |
 | 10 | Mortality Assessment | Life-threatening event evaluation |
 
----
-
-## Architecture
-
-```
-Drug Name + Indication
-        │
-        ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│  Phase 0: Rule Discovery                                            │
-│  10+ biomedical DBs → Gemini 2.0 Flash → rule_set.json             │
-│  (AE incidence, onset distributions, demographics, dose rules)      │
-└───────────────────────────────┬─────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│  Phase 1: Virtual Cohort Generation                                 │
-│  Step 1: Demographic Profiling    Step 3: Labs Construction         │
-│  Step 2: Comorbidity Modeling     Step 4: Persona Assignment        │
-└───────────────────────────────┬─────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│  Phase 2: Daily Simulation (10-step loop × N patients × D days)     │
-│                                                                     │
-│  ┌──────────┐   ┌──────────────┐   ┌───────────────────┐           │
-│  │ Hazard   │──▶│ Ground Truth │──▶│ Observation Model │           │
-│  │ Function │   │ (actual AEs) │   │ (GT → HR filter)  │           │
-│  └──────────┘   └──────────────┘   └─────────┬─────────┘           │
-│                                               │                     │
-│                        ┌──────────────────────┼──────────────┐      │
-│                        ▼                      ▼              │      │
-│              ┌──────────────────┐   ┌──────────────────┐     │      │
-│              │ Hospital Record  │   │  CLARA Call     │     │      │
-│              │ (clinic visits)  │   │  (daily calls)  │     │      │
-│              │ → dose decisions │   │  → early referral│     │      │
-│              └──────────────────┘   └──────────────────┘     │      │
-└─────────────────────────────────────────────────────────────────────┘
-                                │
-                                ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│  Data Analysis Agent (RLFR-powered MedGemma)                        │
-│  CRF records → SAE narratives → MedWatch 3500A → E2B XML           │
-│  Anti-hallucination: frozen probe as reward signal                  │
-└─────────────────────────────────────────────────────────────────────┘
-```
-
-### Key Design Principles
+### Design Principles
 
 | Principle | Why |
 |-----------|-----|
@@ -231,38 +218,6 @@ Drug Name + Indication
 | **No fate table** | Daily hazard functions replace pre-determined event timelines |
 | **CLARA Call detects, doctors decide** | CLARA Call flags and refers; only physicians modify treatment |
 | **Seed-reproducible** | Same seed → identical simulation for scientific rigor |
-
----
-
-## HAI-DEF Models
-
-<p align="center">
-  <img src="docs/assets/gemma.png" width="44" alt="Gemma" />
-  &nbsp;&nbsp;&nbsp;
-  <img src="docs/assets/gemini.png" width="44" alt="Gemini" />
-</p>
-
-Each HAI-DEF model serves a distinct clinical role within CLARA:
-
-| Model | Role in CLARA | Details |
-|-------|--------------|---------|
-| <img src="docs/assets/gemma.png" width="16" /> [**MedGemma 1.5 4B**](https://huggingface.co/google/medgemma-1.5-4b-it) | DCA — powers the conversational AI medical staff during daily CLARA Call check-ins | Generates clinically appropriate questions and assessments |
-| <img src="docs/assets/gemma.png" width="16" /> [**MedSigLIP**](https://huggingface.co/google/medsiglip-448) | DCA — processes video frames captured during CLARA Call to detect visible AE symptoms (e.g., rash, swelling) and classify their CTCAE grade | Trained on 210 Gemini-generated synthetic patient images (147/21/42 split); W-F1 = 90% |
-| <img src="docs/assets/gemma.png" width="16" /> [**HeAR**](https://huggingface.co/google/hear-pytorch) | DCA — analyzes patient audio through a cough detection and classification pipeline, distinguishing dry from wet cough | Fine-tuned on 956 randomly sampled recordings (478 dry / 478 wet) from the [COUGHVID dataset](https://www.kaggle.com/datasets/nasrulhakim86/coughvid-wav), tested on Gemini-generated synthetic audio |
-| <img src="docs/assets/gemini.png" width="16" /> [**Gemini 2.0 Flash**](https://ai.google.dev/) | Simulation orchestrator — rule discovery, patient generation, narration | API-based; no local GPU needed |
-| <img src="docs/assets/gemma.png" width="16" /> **MedGemma 4B + RLFR** | DAA — whenever a SAE occurs, autonomously generates reports in FDA MedWatch and E2B XML format | Hallucination rate 37.3% → 6.7% |
-
-### Multimodal Detection Channels
-
-```
-Channel              Examples                    Detection Method
-────────────────────────────────────────────────────────────────
-lab                  neutropenia, anemia          Blood test (hospital only)
-patient_reported     nausea, pain, fatigue        Patient self-report (mood-dependent)
-video_detectable     rash, alopecia, edema        MedSigLIP vision analysis
-audio_detectable     cough, dyspnea              HeAR audio classification
-physical_exam        neuropathy, hepatomegaly     Doctor examination (hospital only)
-```
 
 ---
 
@@ -385,7 +340,7 @@ CLARA/
 │   ├── orchestrator_v2.py         3-Phase simulation orchestrator
 │   └── run_simulation_v2.py       CLI entry point
 │
-├── dca_server/                       CLARA Call Nurse API (FastAPI)
+├── dca_server/                    CLARA Call Nurse API (FastAPI)
 │   ├── server.py                  Endpoints: classify, cough, transcribe, nurse
 │   ├── nurse_engine.py            Medical conversation engine
 │   ├── siglip_classifier.py       SigLIP vision classifier head
