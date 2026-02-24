@@ -4191,7 +4191,7 @@ def api_stats_chat_demo(request):
     """Demo chat API — auto-selects the latest run with computed stats."""
     runs_dir = DATA_DIR / "runs"
     if not runs_dir.exists():
-        return JsonResponse({"error": "No simulation runs found"}, status=404)
+        return JsonResponse({"error": "No simulation runs found. Please run a simulation first."}, status=404)
 
     # Find latest run that has validation stats
     for d in sorted(runs_dir.iterdir(), reverse=True):
@@ -4199,9 +4199,23 @@ def api_stats_chat_demo(request):
             for mode in ("natural", "care_ai"):
                 cache = d / "validation" / f"csr_stats_{mode}.json"
                 if cache.exists():
-                    return api_stats_chat(request, d.name)
+                    try:
+                        return api_stats_chat(request, d.name)
+                    except Exception as exc:
+                        logging.warning("Stats chat demo failed for run %s: %s", d.name, exc)
+                        return JsonResponse(
+                            {"error": f"Stats chat failed for run '{d.name}': {exc}. "
+                             "The statistics data may be incomplete or corrupted. "
+                             "Try re-running the simulation or computing stats again."},
+                            status=500,
+                        )
 
-    return JsonResponse({"error": "No runs with computed stats found. Run a simulation first."}, status=404)
+    return JsonResponse(
+        {"error": "No runs with computed stats found. "
+         "Run a simulation first, then navigate to the Statistical Analysis page "
+         "to compute the stats before using the chat."},
+        status=404,
+    )
 
 
 # ─── Unified Doc Chat API ────────────────────────────────────
@@ -5201,3 +5215,250 @@ def api_ruleset_generate_status(request, job_id):
     if job["status"] == "error":
         resp["error"] = job.get("error", "")
     return JsonResponse(resp, json_dumps_params={"ensure_ascii": False})
+
+
+# ─── Demo API (auto-select latest run) ───────────────────────────────────
+
+
+def _get_latest_run_id() -> str | None:
+    """Return the run_id of the latest completed run (sorted reverse by name)."""
+    runs_dir = DATA_DIR / "runs"
+    if not runs_dir.exists():
+        return None
+    for d in sorted(runs_dir.iterdir(), reverse=True):
+        if d.is_dir() and (d / "simulations").exists():
+            return d.name
+    return None
+
+
+@csrf_exempt
+@require_GET
+def api_demo_saes(request):
+    """Demo SAE list — auto-selects the latest run, returns all SAEs across
+    all patients.
+
+    GET /api/demo/saes/?mode=natural
+    """
+    mode = request.GET.get("mode", "natural")
+    run_id = _get_latest_run_id()
+    if not run_id:
+        return JsonResponse(
+            {"error": "No simulation runs found. Run a simulation first."},
+            status=404,
+        )
+
+    run_path = _get_run_path(run_id)
+    patient_ids = _list_patients(run_path)
+    if not patient_ids:
+        return JsonResponse(
+            {"error": f"No patients found in run '{run_id}'."},
+            status=404,
+        )
+
+    from src.doc_agent.sim_to_crf_adapter import find_serious_aes
+
+    all_saes = []
+    for pid in patient_ids:
+        profile, records = _load_patient_data(run_path, pid, mode)
+        if not records:
+            continue
+        try:
+            saes = find_serious_aes(records)
+        except Exception:
+            continue
+        for sae in saes:
+            ae = sae["ae_record"]
+            all_saes.append({
+                "patient_id": pid,
+                "ae_term": ae.get("AETERM", ""),
+                "grade": ae.get("_grade", 0),
+                "onset_day": sae.get("day") or ae.get("AESTDAT"),
+                "severity": ae.get("AESEV", ""),
+                "action": ae.get("AEACN", ""),
+                "outcome": ae.get("AEOUT", ""),
+                "mode": mode,
+            })
+
+    return JsonResponse({"run_id": run_id, "saes": all_saes})
+
+
+@csrf_exempt
+@require_POST
+def api_demo_generate(request):
+    """Demo report generation — auto-selects the latest run.
+
+    POST body: {
+        "patient_id": str,
+        "ae_term": str,
+        "ae_day": int (optional),
+        "mode": "natural" | "care_ai" (default: "natural"),
+        "use_ai": bool (default: false),
+    }
+    """
+    try:
+        body = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    patient_id = body.get("patient_id", "")
+    ae_term = body.get("ae_term", "")
+    ae_day = body.get("ae_day")
+    mode = body.get("mode", "natural")
+    use_ai = body.get("use_ai", False)
+
+    if not all([patient_id, ae_term]):
+        return JsonResponse(
+            {"error": "patient_id and ae_term are required"},
+            status=400,
+        )
+
+    run_id = _get_latest_run_id()
+    if not run_id:
+        return JsonResponse(
+            {"error": "No simulation runs found. Run a simulation first."},
+            status=404,
+        )
+
+    run_path = _get_run_path(run_id)
+    profile, records = _load_patient_data(run_path, patient_id, mode)
+    if profile is None:
+        return JsonResponse(
+            {"error": f"Patient '{patient_id}' not found in run '{run_id}'."},
+            status=404,
+        )
+
+    meta_path = run_path / "run_meta.json"
+    drug_name = "Enfortumab vedotin (Padcev)"
+    indication = "Metastatic urothelial carcinoma"
+    if meta_path.exists():
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            drug_name = meta.get("drug_name", drug_name)
+            indication = meta.get("indication", indication)
+        except Exception:
+            pass
+
+    try:
+        from datetime import date as dt_date
+        from src.doc_agent.service import generate_documents
+
+        result = generate_documents(
+            patient_profile=profile,
+            day_records=records,
+            target_ae_term=ae_term,
+            run_id=run_id,
+            sim_start_date=dt_date(2026, 1, 6),
+            drug_name=drug_name,
+            indication=indication,
+            target_ae_day=ae_day,
+            use_ai=use_ai,
+        )
+    except Exception as exc:
+        logging.exception("Demo generate failed")
+        return JsonResponse(
+            {"error": f"Document generation failed: {exc}"},
+            status=500,
+        )
+
+    # Record ai_fields in status file when AI is used
+    if use_ai and result.get("success"):
+        from datetime import datetime
+        ae_slug = ae_term.replace(" ", "_").replace("/", "_")
+        ai_fields = {
+            "section_b.narrative": True,
+            "section_c.dechallenge": True,
+            "section_c.rechallenge": True,
+        }
+        status_data = _read_status(run_id, patient_id, ae_slug)
+        status_data["ai_fields"] = ai_fields
+        meddra = result.get("meddra", {})
+        if meddra:
+            status_data["meddra_confidence"] = meddra.get("confidence")
+            status_data["meddra_source"] = meddra.get("source")
+        status_data["updated_at"] = datetime.utcnow().isoformat()
+        if "created_at" not in status_data:
+            status_data["created_at"] = datetime.utcnow().isoformat()
+        if "status" not in status_data:
+            status_data["status"] = "draft"
+        _write_status(run_id, patient_id, ae_slug, status_data)
+
+    # Include run_id in the response so the caller knows which run was used
+    if isinstance(result, dict):
+        result["run_id"] = run_id
+
+    return JsonResponse(result)
+
+
+@csrf_exempt
+@require_GET
+def api_demo_reports(request):
+    """List all generated reports for the latest run.
+
+    GET /api/demo/reports/
+    """
+    run_id = _get_latest_run_id()
+    if not run_id:
+        return JsonResponse(
+            {"error": "No simulation runs found. Run a simulation first."},
+            status=404,
+        )
+
+    from src.doc_agent.service import DOCS_OUTPUT_DIR
+
+    docs_dir = DOCS_OUTPUT_DIR / run_id
+    if not docs_dir.exists():
+        return JsonResponse({"run_id": run_id, "reports": []})
+
+    reports = []
+    for patient_dir in sorted(docs_dir.iterdir()):
+        if not patient_dir.is_dir():
+            continue
+        patient_id = patient_dir.name
+
+        # Group files by ae_slug to pair PDF/XML together
+        file_map = {}  # ae_slug -> {pdf_path, xml_path, ...}
+        for doc_file in sorted(patient_dir.iterdir()):
+            if not doc_file.is_file():
+                continue
+            fname = doc_file.name
+            # Skip status files
+            if fname.startswith("report_status_"):
+                continue
+            # Skip medwatch data JSON files
+            if fname.startswith("medwatch_data_"):
+                continue
+
+            # Extract ae_slug from filename patterns:
+            #   medwatch_3500a_{ae_slug}.pdf
+            #   e2b_r3_{ae_slug}.xml
+            ae_slug = None
+            if fname.startswith("medwatch_3500a_") and fname.endswith(".pdf"):
+                ae_slug = fname[len("medwatch_3500a_"):-len(".pdf")]
+            elif fname.startswith("e2b_r3_") and fname.endswith(".xml"):
+                ae_slug = fname[len("e2b_r3_"):-len(".xml")]
+
+            if ae_slug:
+                if ae_slug not in file_map:
+                    file_map[ae_slug] = {
+                        "patient_id": patient_id,
+                        "ae_term": ae_slug.replace("_", " ").title(),
+                        "ae_slug": ae_slug,
+                    }
+                if fname.endswith(".pdf"):
+                    file_map[ae_slug]["pdf_path"] = (
+                        f"/api/doc/download/{run_id}/{patient_id}/{fname}"
+                    )
+                    file_map[ae_slug]["created_at"] = (
+                        time.strftime(
+                            "%Y-%m-%dT%H:%M:%S",
+                            time.gmtime(doc_file.stat().st_mtime),
+                        )
+                    )
+                elif fname.endswith(".xml"):
+                    file_map[ae_slug]["xml_path"] = (
+                        f"/api/doc/download/{run_id}/{patient_id}/{fname}"
+                    )
+
+        reports.extend(file_map.values())
+
+    return JsonResponse({"run_id": run_id, "reports": reports})
