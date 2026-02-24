@@ -250,9 +250,11 @@ CLARA ships with **5 Jupyter notebooks** demonstrating each component:
 |---|----------|---------------|-----|
 | 1 | `medgemma_anti-hallucination` | RLFR fine-tuning — hallucination probe training and RL optimization | ~10 GB |
 | 2 | `medgemma+medsiglip+HeAR_SAE-detection` | Multimodal AE detection — vision (MedSigLIP) + audio (HeAR) pipelines | ~20 GB |
-| 3 | `simulate-clinical-trial` | End-to-end trial simulation — rule discovery, patient generation, daily loop | None (API) |
+| 3 | `simulate-clinical-trial` | Ruleset generation pipeline — evidence collection from 10+ biomedical DBs, ground truth validation against 7 real clinical trials | None (API) |
 | 4 | `application_voice_call` | Care AI voice call demo — MedASR + TTS + nurse conversation | ~10 GB |
 | 5 | `application_SAE_report_generation` | FDA MedWatch 3500A + E2B XML report generation from CRF data | ~10 GB |
+
+Notebooks use `notebooks/src/` as a local module providing shared source code — simulation engine, LLM agents, multimodal pipelines, ruleset generation, and the document agent.
 
 All models and data **download automatically** from HuggingFace on first run:
 - Models: [AlphaRaven/medgemma-ae-detection](https://huggingface.co/AlphaRaven/medgemma-ae-detection), [AlphaRaven/medgemma-4b-antihallu](https://huggingface.co/AlphaRaven/medgemma-4b-antihallu)
@@ -396,6 +398,16 @@ docker compose --profile medgemma4b-base --profile medgemma4b-antihallu --profil
 ```
 CLARA/
 ├── notebooks/                     5 demo notebooks (anti-hallu → SAE reports)
+│   └── src/                       Local module shared across notebooks
+│       ├── agents/                LLM agents (rule, patient, daily, care)
+│       ├── engine/                Probability engine (hazard, observation, sampler, mood)
+│       ├── doc_agent/             SAE report generation (MedWatch, E2B XML, MedDRA)
+│       ├── multimodal/            Multimodal AE detection (SigLIP + HeAR)
+│       ├── multimodal_v2/         Multimodal AE detection v2
+│       ├── ruleset_generation/    Drug rule discovery from 10+ DBs
+│       │   └── ground_truth/      7 real clinical trial datasets for validation
+│       ├── cough_detection/       HeAR-based cough classification
+│       └── experiments/           Experiment management
 │
 ├── src/
 │   ├── engine/                    Probability engine (LLM-independent)
