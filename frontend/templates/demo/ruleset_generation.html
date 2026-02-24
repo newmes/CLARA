@@ -818,6 +818,74 @@
   animation: rsSpin 0.8s linear infinite; display: none;
 }
 .rs-gen-btn.loading .rs-gen-spinner { display: inline-block; }
+
+/* ── API Key input wrapper with toggle ── */
+.rs-apikey-wrapper {
+  position: relative; display: flex; align-items: center;
+}
+.rs-apikey-wrapper input {
+  padding-right: 40px !important; width: 100%;
+}
+.rs-apikey-toggle {
+  position: absolute; right: 10px; top: 50%; transform: translateY(-50%);
+  background: none; border: none; cursor: pointer; padding: 2px;
+  color: var(--text-muted); transition: color 0.2s; line-height: 0;
+  display: flex; align-items: center; justify-content: center;
+}
+.rs-apikey-toggle:hover { color: var(--accent-cyan); }
+.rs-apikey-toggle svg { width: 16px; height: 16px; }
+
+/* ── Generic input validation error state ── */
+.rs-gen-input-group.has-error input {
+  border-color: rgba(248,81,73,0.6) !important;
+  box-shadow: 0 0 0 3px rgba(248,81,73,0.1) !important;
+}
+.rs-gen-input-group.has-error .rs-field-error {
+  display: flex;
+}
+.rs-field-error {
+  display: none;
+  align-items: center; gap: 5px;
+  font: 500 0.7em 'JetBrains Mono', monospace;
+  color: var(--accent-red);
+  margin-top: 4px;
+  letter-spacing: 0.3px;
+}
+.rs-field-error svg { width: 12px; height: 12px; flex-shrink: 0; }
+
+/* ── Shake animation for validation ── */
+@keyframes rsShake {
+  0%, 100% { transform: translateX(0); }
+  10%, 50%, 90% { transform: translateX(-4px); }
+  30%, 70% { transform: translateX(4px); }
+}
+.rs-shake {
+  animation: rsShake 0.4s ease-in-out;
+}
+
+/* ── Warning / info bar below form ── */
+.rs-gen-info-bar {
+  display: flex; align-items: center; gap: 8px;
+  margin-top: 10px; padding: 7px 14px;
+  background: rgba(210,153,34,0.06);
+  border: 1px solid rgba(210,153,34,0.18);
+  border-radius: 8px;
+  font: 400 0.74em/1.5 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  flex-wrap: wrap;
+}
+.rs-gen-info-bar svg {
+  flex-shrink: 0; width: 14px; height: 14px; color: #d29922;
+}
+.rs-gen-info-bar a {
+  color: var(--accent-cyan); text-decoration: none;
+  border-bottom: 1px solid rgba(57,210,192,0.3);
+  transition: border-color 0.2s, color 0.2s;
+}
+.rs-gen-info-bar a:hover {
+  color: #5ce6d6; border-bottom-color: rgba(57,210,192,0.6);
+}
+.rs-gen-info-bar strong { color: #d29922; font-weight: 600; }
 .rs-gen-progress {
   margin-top: 10px; font: 500 0.82em 'JetBrains Mono', monospace;
   color: var(--accent-cyan); display: none;
@@ -839,9 +907,9 @@
 
 {% block nav_items %}
   <span class="nav-sep">/</span>
-  <a href="{% url 'demo_anti_hallucination' %}">Anti-Hallucination</a>
+  <a href="{% url 'demo_anti_hallucination' %}">Data Analysis</a>
   <span class="nav-sep">|</span>
-  <a href="{% url 'demo_care_agent' %}">Care Agent</a>
+  <a href="{% url 'demo_care_agent' %}">Data Collection</a>
   <span class="nav-sep">|</span>
   <a href="{% url 'demo_hazard' %}">Hazard</a>
   <span class="nav-sep">|</span>
@@ -944,18 +1012,57 @@
   </div>
 
   <div class="rs-gen-form">
-    <div class="rs-gen-input-group" style="flex:1;">
+    <div class="rs-gen-input-group" style="flex:1;" id="rsGenDrugGroup">
       <label>Drug Name</label>
-      <input type="text" id="rsGenDrug" placeholder="e.g., Pembrolizumab">
+      <input type="text" id="rsGenDrug" placeholder="e.g., Pembrolizumab" onfocus="clearFieldError('rsGenDrugGroup')">
+      <span class="rs-field-error" id="rsGenDrugError">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Please enter a drug name
+      </span>
     </div>
-    <div class="rs-gen-input-group" style="flex:1;">
+    <div class="rs-gen-input-group" style="flex:1;" id="rsGenIndicationGroup">
       <label>Indication</label>
-      <input type="text" id="rsGenIndication" placeholder="e.g., Melanoma">
+      <input type="text" id="rsGenIndication" placeholder="e.g., Melanoma" onfocus="clearFieldError('rsGenIndicationGroup')">
+      <span class="rs-field-error" id="rsGenIndicationError">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        Please enter an indication
+      </span>
+    </div>
+    <div class="rs-gen-input-group" style="flex:1;" id="rsGenApiKeyGroup">
+      <label>Google API Key</label>
+      <div class="rs-apikey-wrapper">
+        <input type="password" id="rsGenApiKey" placeholder="Enter your Google API key" autocomplete="off"
+               onfocus="clearFieldError('rsGenApiKeyGroup')">
+        <button type="button" class="rs-apikey-toggle" onclick="toggleApiKeyVisibility()" title="Toggle visibility" aria-label="Toggle API key visibility">
+          <svg id="rsEyeOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/>
+            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/>
+            <path d="M14.12 14.12a3 3 0 1 1-4.24-4.24"/>
+            <line x1="1" y1="1" x2="23" y2="23"/>
+          </svg>
+          <svg id="rsEyeOn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;">
+            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+            <circle cx="12" cy="12" r="3"/>
+          </svg>
+        </button>
+      </div>
+      <span class="rs-field-error" id="rsApiKeyError">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        API key is required
+      </span>
     </div>
     <button class="rs-gen-btn" id="rsGenBtn" onclick="startGeneration()">
       <span class="rs-gen-spinner"></span>
       Generate
     </button>
+  </div>
+  <div class="rs-gen-info-bar">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+    </svg>
+    <span>Estimated cost: <strong>$0.5&ndash;2</strong> per generation. API key is sent to Google only, not stored by CLARA.
+    <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Get a free API key</a></span>
   </div>
   <div class="rs-gen-progress" id="rsGenProgress"></div>
   <div class="rs-gen-result" id="rsGenResult">
@@ -1600,10 +1707,48 @@ function scoreColor(score) {
 var rsGenJobId = null;
 var rsGenPollTimer = null;
 
+function toggleApiKeyVisibility() {
+  var input = document.getElementById('rsGenApiKey');
+  var eyeOff = document.getElementById('rsEyeOff');
+  var eyeOn = document.getElementById('rsEyeOn');
+  if (input.type === 'password') {
+    input.type = 'text';
+    eyeOff.style.display = 'none';
+    eyeOn.style.display = 'block';
+  } else {
+    input.type = 'password';
+    eyeOff.style.display = 'block';
+    eyeOn.style.display = 'none';
+  }
+}
+
+function clearFieldError(groupId) {
+  var group = document.getElementById(groupId);
+  if (group) {
+    group.classList.remove('has-error');
+    group.classList.remove('rs-shake');
+  }
+}
+
+function showFieldError(groupId, inputId) {
+  var group = document.getElementById(groupId);
+  group.classList.add('has-error');
+  group.classList.remove('rs-shake');
+  void group.offsetWidth;
+  group.classList.add('rs-shake');
+  if (inputId) document.getElementById(inputId).focus();
+}
+
 function startGeneration() {
   var drug = document.getElementById('rsGenDrug').value.trim();
   var indication = document.getElementById('rsGenIndication').value.trim();
-  if (!drug) { alert('Please enter a drug name.'); return; }
+  var apiKey = document.getElementById('rsGenApiKey').value.trim();
+  if (!drug) { showFieldError('rsGenDrugGroup', 'rsGenDrug'); return; }
+  if (!indication) { showFieldError('rsGenIndicationGroup', 'rsGenIndication'); return; }
+  if (!apiKey) { showFieldError('rsGenApiKeyGroup', 'rsGenApiKey'); return; }
+  clearFieldError('rsGenDrugGroup');
+  clearFieldError('rsGenIndicationGroup');
+  clearFieldError('rsGenApiKeyGroup');
 
   var btn = document.getElementById('rsGenBtn');
   var progress = document.getElementById('rsGenProgress');
@@ -1618,7 +1763,7 @@ function startGeneration() {
   fetch('/api/ruleset/generate/', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({drug_name: drug, indication: indication}),
+    body: JSON.stringify({drug_name: drug, indication: indication, api_key: apiKey}),
   })
   .then(function(r) { return r.json(); })
   .then(function(data) {

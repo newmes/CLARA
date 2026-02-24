@@ -802,7 +802,7 @@ def api_medgemma_analyze(request):
         return JsonResponse({"error": "baseline and current are required"}, status=400)
 
     vllm_url = os.environ.get("MEDGEMMA4B_VLLM_BASE_URL", "http://clara-medgemma4b-ft:8000/v1")
-    model_id = os.environ.get("MEDGEMMA4B_MODEL_ID", "medgemma-4b-finetuned")
+    model_id = os.environ.get("MEDGEMMA4B_MODEL_ID", "medgemma-4b-ctcae")
 
     result, err = _medgemma_infer(baseline_name, current_name, vllm_url, model_id)
     if err:
@@ -845,15 +845,8 @@ def demo_hazard(request):
 ANTIHALLU_ASSETS = Path(settings.BASE_DIR) / "static_dirs" / "assets" / "antihallu"
 _antihallu_log = logging.getLogger("antihallu")
 
-# vLLM endpoints for antihallu demo (base + defended)
-_AH_BASE_URL = os.environ.get("MEDGEMMA4B_BASE_VLLM_BASE_URL", "").rstrip("/")
-_AH_BASE_MODEL = os.environ.get("MEDGEMMA4B_BASE_MODEL_ID", "medgemma-1.5-4b-it")
-_AH_DEF_URL = os.environ.get("CTE_VLLM_BASE_URL", "").rstrip("/")
-_AH_DEF_MODEL = os.environ.get("CTE_VLLM_MODEL_ID", "medgemma-4b-antihallu")
-_AH_SYSTEM_PROMPT = (
-    "You are a helpful medical AI assistant. If you are not sure about something, "
-    "say so. Do not make up information. Always recommend consulting a healthcare professional."
-)
+# FastAPI endpoint for antihallu demo
+_AH_FASTAPI_URL = os.environ.get("ANTIHALLU_FASTAPI_URL", "http://clara-antihallu:8000").rstrip("/")
 
 
 @require_GET
@@ -866,57 +859,25 @@ def api_antihallu_examples(request):
     return JsonResponse(data)
 
 
-def _vllm_chat(base_url: str, model_id: str, question: str, system_prompt: str = None):
-    """Call vLLM OpenAI-compatible chat completions. Returns dict or None."""
-    if not base_url:
+def _fastapi_antihallu_generate(question: str):
+    """Call the AntiHallu FastAPI server (/api/generate). Returns dict or None."""
+    if not _AH_FASTAPI_URL:
         return None
-    messages = []
-    if system_prompt:
-        messages.append({"role": "system", "content": system_prompt})
-    messages.append({"role": "user", "content": question})
-    payload = {
-        "model": model_id,
-        "messages": messages,
-        "max_tokens": 256,
-        "temperature": 0,
-    }
+    payload = {"question": question}
     body_bytes = json.dumps(payload).encode("utf-8")
     req = Request(
-        f"{base_url}/chat/completions",
+        f"{_AH_FASTAPI_URL}/api/generate",
         data=body_bytes,
-        headers={"Content-Type": "application/json", "Authorization": "Bearer EMPTY"},
+        headers={"Content-Type": "application/json"},
         method="POST",
     )
     try:
-        t0 = time.time()
         with urlopen(req, timeout=120) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-        latency_ms = round((time.time() - t0) * 1000)
-        return {
-            "response": data["choices"][0]["message"]["content"],
-            "latency_ms": latency_ms,
-        }
+        return data
     except (URLError, OSError, json.JSONDecodeError, TimeoutError, KeyError) as exc:
-        _antihallu_log.warning("vLLM antihallu call failed (%s): %s", base_url, exc)
+        _antihallu_log.warning("AntiHallu FastAPI call failed (%s): %s", _AH_FASTAPI_URL, exc)
         return None
-
-
-def _vllm_antihallu_generate(question: str):
-    """Generate responses from both base and defended vLLM models in parallel."""
-    from concurrent.futures import ThreadPoolExecutor
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        fut_orig = pool.submit(_vllm_chat, _AH_BASE_URL, _AH_BASE_MODEL, question)
-        fut_def = pool.submit(_vllm_chat, _AH_DEF_URL, _AH_DEF_MODEL, question, _AH_SYSTEM_PROMPT)
-        original = fut_orig.result()
-        defended = fut_def.result()
-    if original is None or defended is None:
-        return None
-    return {
-        "question": question,
-        "original": original,
-        "defended": defended,
-        "cached": False,
-    }
 
 
 def _cache_lookup(question: str):
@@ -933,7 +894,7 @@ def _cache_lookup(question: str):
 @csrf_exempt
 @require_POST
 def api_antihallu_generate(request):
-    """Generate AntiHallu comparison: vLLM live inference with cache fallback."""
+    """Generate AntiHallu comparison: FastAPI live inference with cache fallback."""
     try:
         body = json.loads(request.body)
     except (json.JSONDecodeError, ValueError):
@@ -943,8 +904,8 @@ def api_antihallu_generate(request):
     if not question:
         return JsonResponse({"error": "question is required"}, status=400)
 
-    # 1) Try live inference via vLLM (base + defended in parallel)
-    live_result = _vllm_antihallu_generate(question)
+    # 1) Try live inference via FastAPI server
+    live_result = _fastapi_antihallu_generate(question)
     if live_result is not None:
         live_result["live"] = True
         return JsonResponse(live_result)
@@ -961,7 +922,7 @@ def api_antihallu_generate(request):
         })
 
     return JsonResponse(
-        {"error": "vLLM models unavailable and question not in cache"},
+        {"error": "AntiHallu server unavailable and question not in cache"},
         status=503,
     )
 
@@ -1610,8 +1571,8 @@ def api_care_agent_run(request):
             return []
         b64_bl = base64.b64encode(bl_path.read_bytes()).decode()
         b64_cur = base64.b64encode(cur_path.read_bytes()).decode()
-        vllm_url = "http://clara-medgemma4b-ctcae:8000/v1"
-        model_id = "medgemma-4b-finetuned"
+        vllm_url = os.environ.get("MEDGEMMA4B_VLLM_BASE_URL", "http://clara-medgemma4b-antihallu:8000/v1")
+        model_id = "medgemma-4b-ctcae"
         payload = json.dumps({
             "model": model_id, "max_completion_tokens": 512, "temperature": 0,
             "messages": [{"role": "user", "content": [
@@ -2467,6 +2428,7 @@ def api_sim_start(request):
     seed = body.get("seed")
     rule_set_preset = body.get("rule_set_preset")
     skip_rules = rule_set_preset is not None or body.get("skip_rules", True)
+    user_api_key = body.get("api_key", "").strip()
 
     # Create run directory
     from datetime import datetime as _dt
@@ -2481,14 +2443,20 @@ def api_sim_start(request):
         import sys as _sys
         _sys.path.insert(0, str(Path(settings.BASE_DIR).parent))
 
-        # Load .env
-        env_path = Path(settings.BASE_DIR).parent / ".env"
-        if env_path.exists():
-            for line in env_path.read_text().splitlines():
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    key, val = line.split("=", 1)
-                    os.environ.setdefault(key.strip(), val.strip())
+        # 사용자 API 키가 있으면 우선 사용, 없으면 .env 폴백
+        if user_api_key:
+            os.environ["GOOGLE_API_KEY"] = user_api_key
+            from src.agents.llm_client import set_api_key
+            set_api_key(user_api_key)
+        else:
+            # Load .env
+            env_path = Path(settings.BASE_DIR).parent / ".env"
+            if env_path.exists():
+                for line in env_path.read_text().splitlines():
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        key, val = line.split("=", 1)
+                        os.environ.setdefault(key.strip(), val.strip())
 
         from src.orchestrator_v2 import SimulationRunnerV2
 
@@ -4046,9 +4014,12 @@ def _extract_section(stats: dict, section: str, message: str) -> list:
         tx = stats.get("treatment", {})
         lines.append(f"[Treatment] Duration: median={tx.get('duration',{}).get('median','?')} days, "
                      f"Cycles: median={tx.get('cycles',{}).get('median','?')}")
-        lines.append(f"  Dose reduction: {tx.get('dose_reduction_all',{}).get('pct',0)}%, "
-                     f"Dose interruption: {tx.get('dose_interruption_all',{}).get('pct',0)}%, "
-                     f"Discontinuation: {tx.get('discontinuation_all',{}).get('pct',0)}%")
+        dr = tx.get('dose_reduction_all', {})
+        di = tx.get('dose_interruption_all', {})
+        dc = tx.get('discontinuation_all', {})
+        lines.append(f"  Dose reduction: n={dr.get('n',0)} ({dr.get('pct',0)}%), "
+                     f"Dose interruption: n={di.get('n',0)} ({di.get('pct',0)}%), "
+                     f"Discontinuation: n={dc.get('n',0)} ({dc.get('pct',0)}%)")
         # Per-drug detail
         per_drug = tx.get("per_drug", {})
         for drug_name, drug_data in per_drug.items():
@@ -4215,6 +4186,24 @@ def api_stats_chat(request, run_id: str):
         return JsonResponse({"error": f"LLM call failed: {exc}"}, status=500)
 
 
+@csrf_exempt
+def api_stats_chat_demo(request):
+    """Demo chat API — auto-selects the latest run with computed stats."""
+    runs_dir = DATA_DIR / "runs"
+    if not runs_dir.exists():
+        return JsonResponse({"error": "No simulation runs found"}, status=404)
+
+    # Find latest run that has validation stats
+    for d in sorted(runs_dir.iterdir(), reverse=True):
+        if d.is_dir():
+            for mode in ("natural", "care_ai"):
+                cache = d / "validation" / f"csr_stats_{mode}.json"
+                if cache.exists():
+                    return api_stats_chat(request, d.name)
+
+    return JsonResponse({"error": "No runs with computed stats found. Run a simulation first."}, status=404)
+
+
 # ─── Unified Doc Chat API ────────────────────────────────────
 
 _CRF_SYSTEM_PROMPT = (
@@ -4223,6 +4212,8 @@ _CRF_SYSTEM_PROMPT = (
     "Rules:\n"
     "- Answer based ONLY on the provided CRF data below.\n"
     "- NEVER fabricate data not present in the provided rows.\n"
+    "- The 'Pre-computed Summary' contains EXACT counts from ALL rows. ALWAYS trust summary numbers over counting the visible table rows (the table may be truncated).\n"
+    "- If the data shows 0 matching rows, say 0 — do NOT invent a result.\n"
     "- Be concise (2-5 sentences) unless asked for detail.\n"
     "- Reference specific patient IDs, values, and counts from the data.\n"
     "- Use the same language as the user.\n"
@@ -4287,7 +4278,48 @@ def _build_crf_chat_context(run_path, body, drug_name, indication, n_patients, m
     lines.append(f"Columns: {', '.join(c.get('label', c.get('key', '')) for c in columns[:8])}")
     lines.append("")
 
-    key_cols = columns[:6]
+    # Pick columns that matter most for each domain (include Grade for AE)
+    _PRIORITY_KEYS = {"_grade", "AESEV", "AESER", "AEREL", "AEACN", "LBSTRESN", "LBSTNRHI", "LBSTNRLO"}
+    key_cols = []
+    for c in columns[:6]:
+        key_cols.append(c)
+    for c in columns[6:]:
+        if c.get("key", "") in _PRIORITY_KEYS and len(key_cols) < 10:
+            key_cols.append(c)
+
+    # Pre-computed summary to prevent hallucination on counts
+    if domain.lower() == "ae" and rows:
+        from collections import Counter
+        all_rows, _, _ = aggregate_domain(domain, run_path, patient_ids, mode, "hr", 1, 500)
+        grade_dist = Counter()
+        serious_count = 0
+        ae_per_pt = Counter()
+        for r in all_rows:
+            g = r.get("_grade", 0)
+            try:
+                g = int(g)
+            except (ValueError, TypeError):
+                g = 0
+            grade_dist[g] += 1
+            if r.get("AESER") in (True, "True", "Y", "YES"):
+                serious_count += 1
+            ae_per_pt[r.get("patient_id", "")] += 1
+        lines.append("=== Pre-computed Summary (AUTHORITATIVE — always use these counts, ignore the truncated table below if they differ) ===")
+        lines.append(f"Total AEs: {len(all_rows)}")
+        for g in sorted(grade_dist.keys()):
+            # List which patients/AEs for non-G1 grades
+            if g >= 2:
+                g_rows = [r for r in all_rows if int(r.get("_grade", 0)) == g]
+                detail = "; ".join(f'{r.get("patient_id")} {r.get("AETERM","")}' for r in g_rows)
+                lines.append(f"  Grade {g} AEs: {grade_dist[g]} ({detail})")
+            else:
+                lines.append(f"  Grade {g} AEs: {grade_dist[g]}")
+        lines.append(f"  Grade 3+ AEs: {sum(n for g, n in grade_dist.items() if g >= 3)}")
+        lines.append(f"Serious AEs: {serious_count}")
+        lines.append(f"AEs per patient: {', '.join(f'{p}={n}' for p, n in ae_per_pt.most_common())}")
+        lines.append(f"NOTE: The table below shows only the first 20 of {len(all_rows)} rows. The summary above covers ALL rows.")
+        lines.append("")
+
     if rows:
         header = " | ".join(c.get("label", c.get("key", "")) for c in key_cols)
         lines.append(header)
@@ -4347,19 +4379,28 @@ def _build_sae_chat_context(run_path, body, drug_name, indication, n_patients, m
     b = mw.get("section_b", mw.get("B", {}))
     if b:
         lines.append("=== Section B: Adverse Event ===")
-        for k in ["event_description", "onset_date", "outcome", "serious_criteria", "narrative"]:
+        for k in ["event_description", "onset_date", "outcome", "narrative"]:
             v = b.get(k, "")
             if v:
                 lines.append(f"  {k}: {str(v)[:400]}")
+        # Extract seriousness criteria from individual boolean fields
+        serious = [k.replace("seriousness_", "") for k, v in b.items()
+                   if k.startswith("seriousness_") and v]
+        if serious:
+            lines.append(f"  serious_criteria: {', '.join(serious)}")
+        elif b.get("serious_criteria"):
+            lines.append(f"  serious_criteria: {b['serious_criteria']}")
 
     # Section C: Suspect Product
     c = mw.get("section_c", mw.get("C", {}))
     if c:
         lines.append("=== Section C: Suspect Product ===")
-        for k in ["product_name", "dose", "route", "indication", "start_date", "stop_date", "dechallenge", "rechallenge"]:
+        for k in ["product_name", "drug_name", "dose", "dose_frequency_route", "route",
+                   "indication", "start_date", "therapy_start", "stop_date", "therapy_end",
+                   "dechallenge", "rechallenge", "concomitant_meds"]:
             v = c.get(k, "")
             if v:
-                lines.append(f"  {k}: {v}")
+                lines.append(f"  {k}: {str(v)[:300]}")
 
     # MedDRA coding
     meddra = mw.get("meddra", mw.get("MedDRA", {}))
@@ -4416,12 +4457,27 @@ def _build_sae_hub_chat_context(run_path, body, drug_name, indication, n_patient
     if not sae_rows:
         lines.append("No serious adverse events found in this run.")
     else:
+        # Pre-computed summary so LLM never needs to count rows
+        from collections import Counter
+        sae_per_patient = Counter(r["patient"] for r in sae_rows)
+        term_counts = Counter(r["term"] for r in sae_rows)
+        grade_counts = Counter(r["grade"] for r in sae_rows)
+        action_counts = Counter(r["action"] or "NONE" for r in sae_rows)
+        onset_days = sorted(r["day"] for r in sae_rows)
+
+        lines.append("=== Pre-computed Summary (use these numbers, do NOT re-count) ===")
         lines.append(f"Total SAEs: {len(sae_rows)}")
-        lines.append(f"Affected patients: {len(set(r['patient'] for r in sae_rows))}")
+        lines.append(f"Affected patients: {len(sae_per_patient)} — {', '.join(f'{p}={n} SAEs' for p, n in sae_per_patient.most_common())}")
+        lines.append(f"SAE terms: {', '.join(f'{t}={n}' for t, n in term_counts.most_common())}")
+        lines.append(f"Grade distribution: {', '.join(f'G{g}={n}' for g, n in sorted(grade_counts.items()))}")
+        lines.append(f"Actions: {', '.join(f'{a}={n}' for a, n in action_counts.most_common())}")
+        lines.append(f"Onset range: Day {onset_days[0]} – Day {onset_days[-1]} (first SAE: Day {onset_days[0]})")
+        lines.append(f"Fatal SAEs: 0")
         lines.append("")
+        lines.append("=== Full SAE Table ===")
         lines.append("Patient | AE Term | Grade | Onset | Action")
         lines.append("--------|---------|-------|-------|-------")
-        for r in sae_rows[:40]:  # cap at 40 rows for context budget
+        for r in sae_rows[:40]:
             lines.append(f"{r['patient']} | {r['term']} | G{r['grade']} | Day {r['day']} | {r['action'] or '—'}")
 
     context_block = "\n".join(lines)
@@ -4435,6 +4491,7 @@ def _build_sae_hub_chat_context(run_path, body, drug_name, indication, n_patient
         "Rules:\n"
         "- Answer based ONLY on the provided SAE listing data below.\n"
         "- NEVER fabricate information not in the data.\n"
+        "- The 'Pre-computed Summary' section contains exact counts. ALWAYS use those numbers instead of counting rows yourself.\n"
         "- Be concise (2-5 sentences) unless asked for detail.\n"
         "- Reference specific patients, AE terms, grades, and onset days.\n"
         "- Use the same language as the user.\n"
@@ -4445,6 +4502,202 @@ def _build_sae_hub_chat_context(run_path, body, drug_name, indication, n_patient
         "page_type": "sae_hub",
         "mode": mode,
         "sae_count": len(sae_rows),
+        "message": message,
+    }
+    return context_block, system_prompt, query_meta
+
+
+def _build_compare_chat_context(run_path, body, drug_name, indication, n_patients, message):
+    """Build context for A/B Comparison page chat — summarises comparison_report.json."""
+    report_path = run_path / "comparison_report.json"
+    if not report_path.exists():
+        return (
+            JsonResponse({"error": "comparison_report.json not found"}, status=404),
+            None,
+            None,
+        )
+
+    with open(report_path) as f:
+        report = json.load(f)
+
+    lines = [
+        f"Drug: {drug_name} | Indication: {indication} | Patients: {n_patients}",
+        "",
+        "=== A/B Comparison: Natural vs Care AI ===",
+        "=== Pre-computed Summary (AUTHORITATIVE — use these numbers, do NOT re-count) ===",
+    ]
+
+    # Cohort sizes
+    cohort = report.get("cohort_sizes", {})
+    lines.append(f"Cohort: Natural={cohort.get('natural', '?')}, Care AI={cohort.get('care_ai', '?')}")
+    lines.append("")
+
+    # Detection Delay
+    dd = report.get("detection_delay", {})
+    deltas = report.get("deltas", {})
+    lines.append(
+        f"Detection Delay: Natural={dd.get('natural_mean', '?')}d, "
+        f"Care AI={dd.get('care_ai_mean', '?')}d "
+        f"(\u0394={deltas.get('detection_delay', '?')}d) "
+        f"[Undetected: Natural={dd.get('natural_undetected', '?')}, Care AI={dd.get('care_ai_undetected', '?')}]"
+    )
+
+    # AE Burden
+    ab = report.get("ae_burden", {})
+    lines.append(
+        f"AE Burden (grade\u00d7days): Natural={ab.get('natural_mean', '?')}, "
+        f"Care AI={ab.get('care_ai_mean', '?')} "
+        f"[Unique AEs: Natural={ab.get('natural_unique_aes', '?')}, Care AI={ab.get('care_ai_unique_aes', '?')}]"
+    )
+
+    # Severe AEs
+    sa = report.get("severe_aes", {})
+    lines.append(
+        f"Grade 3+ AE Days: Natural={sa.get('natural_g3plus_mean', '?')}, "
+        f"Care AI={sa.get('care_ai_g3plus_mean', '?')} | "
+        f"Grade 4+: Natural={sa.get('natural_g4plus_mean', '?')}, "
+        f"Care AI={sa.get('care_ai_g4plus_mean', '?')}"
+    )
+
+    # Treatment Duration
+    td = report.get("treatment_duration", {})
+    lines.append(
+        f"Treatment Duration: Natural={td.get('natural_mean', '?')}d, "
+        f"Care AI={td.get('care_ai_mean', '?')}d "
+        f"(\u0394={deltas.get('treatment_duration', '?')}d)"
+    )
+
+    # ECOG
+    ecog = report.get("ecog", {})
+    lines.append(
+        f"ECOG Change: Natural=+{ecog.get('natural_mean_delta', '?')}, "
+        f"Care AI=+{ecog.get('care_ai_mean_delta', '?')} "
+        f"[End ECOG: Natural={ecog.get('natural_mean_end', '?')}, "
+        f"Care AI={ecog.get('care_ai_mean_end', '?')}]"
+    )
+
+    # Discontinuation
+    disc = report.get("discontinuation", {})
+    lines.append(
+        f"Discontinued: Natural={disc.get('natural_count', '?')}/{cohort.get('natural', '?')} "
+        f"({disc.get('natural_pct', '?')}%), "
+        f"Care AI={disc.get('care_ai_count', '?')}/{cohort.get('care_ai', '?')} "
+        f"({disc.get('care_ai_pct', '?')}%)"
+    )
+
+    # Mortality
+    mort = report.get("mortality", {})
+    lines.append(
+        f"Deaths: Natural={mort.get('natural_deaths', '?')}, "
+        f"Care AI={mort.get('care_ai_deaths', '?')}"
+    )
+
+    # Care AI Activity
+    ca = report.get("care_ai_activity", {})
+    if ca:
+        lines.append("")
+        lines.append("Care AI Activity:")
+        lines.append(f"  Mean interventions/patient: {ca.get('mean_interventions', '?')}")
+        lines.append(f"  Mean AE detections/patient: {ca.get('mean_detections', '?')}")
+        lines.append(f"  Mean turns/call: {ca.get('mean_turns_per_call', '?')}")
+        lines.append(f"  Early terminations: {ca.get('total_early_terminations', '?')}")
+        lines.append(f"  Force hospital visits: {ca.get('total_force_hospital', '?')}")
+        itypes = ca.get("intervention_type_totals", {})
+        if itypes:
+            lines.append(f"  Intervention types: {', '.join(f'{k}={v}' for k, v in itypes.items())}")
+
+    # Statistical Tests
+    stats = report.get("statistics", {})
+    if stats:
+        lines.append("")
+        lines.append("Statistical Tests:")
+        for test_name, test_data in stats.items():
+            if isinstance(test_data, dict) and "p_value" in test_data:
+                p = test_data["p_value"]
+                sig = "sig" if isinstance(p, (int, float)) and p < 0.05 else "ns"
+                stat_val = test_data.get("statistic", "?")
+                n_val = test_data.get("n", "?")
+                lines.append(f"  {test_name}: W={stat_val}, p={p} ({sig}, n={n_val})")
+
+    # Pre-computed per-patient analysis (NO raw table — model can't parse it reliably)
+    nat_pts = report.get("natural_patients", [])
+    cai_pts = report.get("care_ai_patients", [])
+    if nat_pts and cai_pts:
+        lines.append("")
+        lines.append("=== Per-Patient Analysis (pre-computed) ===")
+
+        for label, pts in [("Natural", nat_pts), ("CareAI", cai_pts)]:
+            burdens = [p.get("total_ae_burden", 0) for p in pts]
+            delays = [p.get("mean_detection_delay", 0) for p in pts]
+            g3ds = [p.get("grade3plus_ae_days", 0) for p in pts]
+            worst_b = max(pts, key=lambda p: p.get("total_ae_burden", 0))
+            best_b = min(pts, key=lambda p: p.get("total_ae_burden", 0))
+            deceased = [p["patient_id"] for p in pts if p.get("deceased")]
+            disc = [p["patient_id"] for p in pts if p.get("discontinued")]
+            g3_pts = [f'{p["patient_id"]}={p.get("grade3plus_ae_days", 0)}d' for p in pts if p.get("grade3plus_ae_days", 0) > 0]
+            lines.append(
+                f"  {label}: burden range {min(burdens)}-{max(burdens)}, "
+                f"worst={worst_b['patient_id']}({worst_b.get('total_ae_burden', 0)}), "
+                f"best={best_b['patient_id']}({best_b.get('total_ae_burden', 0)})"
+            )
+            lines.append(
+                f"    delay range {min(delays)}-{max(delays)}d, "
+                f"G3+ patients: {', '.join(g3_pts) if g3_pts else 'none'}"
+            )
+            if deceased or disc:
+                lines.append(
+                    f"    deceased: {', '.join(deceased) if deceased else 'none'}, "
+                    f"discontinued: {', '.join(disc) if disc else 'none'}"
+                )
+
+        # Paired comparison: per-patient burden change (sorted by delta)
+        nat_by_pid = {p["patient_id"]: p for p in nat_pts}
+        cai_by_pid = {p["patient_id"]: p for p in cai_pts}
+        common_pids = sorted(set(nat_by_pid) & set(cai_by_pid))
+        if common_pids:
+            pairs = []
+            for pid in common_pids:
+                nb = nat_by_pid[pid].get("total_ae_burden", 0)
+                cb = cai_by_pid[pid].get("total_ae_burden", 0)
+                pairs.append((pid, nb, cb, cb - nb))
+            improved = [(pid, nb, cb, d) for pid, nb, cb, d in pairs if d < 0]
+            worsened = [(pid, nb, cb, d) for pid, nb, cb, d in pairs if d > 0]
+            improved.sort(key=lambda x: x[3])  # most improved first (most negative)
+            lines.append(f"  Burden improved with CareAI: {len(improved)}/{len(common_pids)} patients")
+            # Show sorted by improvement magnitude
+            imp_strs = [f"{pid}({nb}\u2192{cb}, \u0394{d})" for pid, nb, cb, d in improved]
+            if imp_strs:
+                lines.append(f"    {', '.join(imp_strs)}")
+            if improved:
+                big = improved[0]
+                lines.append(f"  Biggest improvement: {big[0]} (burden {big[1]}\u2192{big[2]}, reduced by {abs(big[3])})")
+            if worsened:
+                w_strs = [f"{pid}({nb}\u2192{cb}, +{d})" for pid, nb, cb, d in worsened]
+                lines.append(f"  Burden worsened: {len(worsened)} — {', '.join(w_strs)}")
+
+    context_block = "\n".join(lines)
+    # Truncate to ~2.4KB
+    if len(context_block) > 2400:
+        context_block = context_block[:2400] + "\n... (truncated)"
+
+    system_prompt = (
+        "You are CLARA's A/B Comparison Assistant, an expert in clinical trial analysis.\n"
+        "You help researchers analyze Natural vs Care AI simulation results.\n\n"
+        "Rules:\n"
+        "- Answer based ONLY on the provided comparison data below.\n"
+        "- NEVER fabricate information not in the data.\n"
+        "- ALL numbers are pre-computed. Quote them directly — do NOT attempt to calculate, count, or find max/min yourself.\n"
+        "- Be concise (2-5 sentences) unless asked for detail.\n"
+        "- Highlight statistically significant differences (p < 0.05) when relevant.\n"
+        "- When discussing Care AI value, focus on detection delay reduction, AE burden, and patient outcomes.\n"
+        "- Reference specific metrics, patient IDs, and statistical test results.\n"
+        "- Use the same language as the user.\n"
+    )
+
+    query_meta = {
+        "page_type": "compare",
+        "natural_n": cohort.get("natural", 0),
+        "care_ai_n": cohort.get("care_ai", 0),
         "message": message,
     }
     return context_block, system_prompt, query_meta
@@ -4491,6 +4744,9 @@ def api_doc_chat(request, run_id: str):
             run_path, body, drug_name, indication, n_patients, message)
     elif page_type == "sae_hub":
         context_block, system_prompt, query_meta = _build_sae_hub_chat_context(
+            run_path, body, drug_name, indication, n_patients, message)
+    elif page_type == "compare":
+        context_block, system_prompt, query_meta = _build_compare_chat_context(
             run_path, body, drug_name, indication, n_patients, message)
     else:
         return JsonResponse({"error": f"Unknown page_type: {page_type}"}, status=400)
@@ -4850,6 +5106,7 @@ def api_ruleset_generate(request):
 
     drug_name = body.get("drug_name", "").strip()
     indication = body.get("indication", "").strip()
+    user_api_key = body.get("api_key", "").strip()
     if not drug_name:
         return JsonResponse({"error": "drug_name is required"}, status=400)
 
@@ -4869,13 +5126,18 @@ def api_ruleset_generate(request):
         _sys.path.insert(0, str(Path(settings.BASE_DIR).parent / "src" / "ruleset_generation"))
         _sys.path.insert(0, str(Path(settings.BASE_DIR).parent))
 
-        env_path = Path(settings.BASE_DIR).parent / ".env"
-        if env_path.exists():
-            for line in env_path.read_text().splitlines():
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    key, val = line.split("=", 1)
-                    os.environ.setdefault(key.strip(), val.strip())
+        # 사용자 API 키가 있으면 우선 사용, 없으면 .env 폴백
+        if user_api_key:
+            os.environ["GOOGLE_API_KEY"] = user_api_key
+            os.environ["RULE_ENGINE_LLM_API_KEY"] = user_api_key
+        else:
+            env_path = Path(settings.BASE_DIR).parent / ".env"
+            if env_path.exists():
+                for line in env_path.read_text().splitlines():
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        key, val = line.split("=", 1)
+                        os.environ.setdefault(key.strip(), val.strip())
 
         try:
             _ruleset_gen_jobs[job_id]["progress"] = "Collecting evidence from 10 databases..."

@@ -1,16 +1,16 @@
 {% extends "base/base.html" %}
 {% load static %}
 
-{% block title %}CLARA — Anti-Hallucination Demo{% endblock %}
+{% block title %}CLARA — Data Analysis Agent{% endblock %}
 
 {% block extra_head %}
 <style>
 /* =================================================================
-   AntiHallu Demo — Premium Redesign: Red/Green Dramatic Comparison
+   Data Analysis Agent — MedGemma Purple/Blue Theme
    Aligned with MedGemma page quality level (CLARA Design System)
    ================================================================= */
 
-/* -- Static Ambient Glow (red-green aurora) -- */
+/* -- Static Ambient Glow (purple-blue aurora) -- */
 .ah-aurora-bg {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
   z-index: -1; pointer-events: none; overflow: hidden;
@@ -21,9 +21,9 @@
   top: -10%; left: 5%; right: 5%;
   height: 55%;
   background:
-    radial-gradient(ellipse 60% 55% at 20% 0%, rgba(248,81,73,0.06) 0%, transparent 70%),
-    radial-gradient(ellipse 55% 50% at 80% 5%, rgba(63,185,80,0.05) 0%, transparent 65%),
-    radial-gradient(ellipse 40% 35% at 50% 15%, rgba(210,153,34,0.03) 0%, transparent 60%);
+    radial-gradient(ellipse 60% 55% at 20% 0%, rgba(122,162,247,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 50% at 80% 5%, rgba(88,166,255,0.04) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 35% at 50% 15%, rgba(140,180,255,0.03) 0%, transparent 60%);
 }
 .ah-aurora-bg::after {
   content: '';
@@ -31,15 +31,15 @@
   bottom: -5%; left: 10%; right: 10%;
   height: 30%;
   background:
-    radial-gradient(ellipse 50% 60% at 30% 100%, rgba(248,81,73,0.03) 0%, transparent 70%),
-    radial-gradient(ellipse 50% 60% at 70% 100%, rgba(63,185,80,0.03) 0%, transparent 70%);
+    radial-gradient(ellipse 50% 60% at 30% 100%, rgba(122,162,247,0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 70% 100%, rgba(88,166,255,0.03) 0%, transparent 70%);
 }
 
-/* -- Dot Grid Background (red tint, subtle) -- */
+/* -- Dot Grid Background (purple tint, subtle) -- */
 .ah-dot-grid {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
   z-index: -1; pointer-events: none;
-  background-image: radial-gradient(rgba(248,81,73,0.025) 1px, transparent 1px);
+  background-image: radial-gradient(rgba(122,162,247,0.03) 1px, transparent 1px);
   background-size: 32px 32px;
   mask-image: radial-gradient(ellipse 70% 40% at 50% 20%, black 10%, transparent 70%);
   -webkit-mask-image: radial-gradient(ellipse 70% 40% at 50% 20%, black 10%, transparent 70%);
@@ -82,20 +82,20 @@
   align-items: center;
   gap: 8px;
   font: 600 0.68em 'JetBrains Mono', monospace;
-  color: var(--accent-red);
+  color: #7aa2f7;
   padding: 5px 16px;
-  border: 1px solid rgba(248,81,73,0.2);
+  border: 1px solid rgba(122,162,247,0.2);
   border-radius: 24px;
-  background: rgba(248,81,73,0.05);
+  background: rgba(122,162,247,0.05);
   margin-bottom: 1.6em;
   letter-spacing: 0.8px;
   text-transform: uppercase;
 }
 .ah-hero-overline .ah-pulse-pip {
   width: 6px; height: 6px; border-radius: 50%;
-  background: var(--accent-red);
+  background: #7aa2f7;
   animation: ahPipPulse 2s ease-in-out infinite;
-  box-shadow: 0 0 8px rgba(248,81,73,0.6);
+  box-shadow: 0 0 8px rgba(122,162,247,0.6);
 }
 /* -- LIVE / CACHED inference badge -- */
 .ah-live-badge {
@@ -138,7 +138,7 @@
   50% { opacity: 0.4; transform: scale(0.8); }
 }
 
-/* Shield icon in hero */
+/* MedGemma icon in hero */
 .ah-hero-icon {
   display: flex;
   justify-content: center;
@@ -154,8 +154,8 @@
 .ah-hero-icon-inner:hover {
   transform: scale(1.08) rotate(2deg);
 }
-.ah-hero-icon-inner svg {
-  filter: drop-shadow(0 0 16px rgba(248,81,73,0.3));
+.ah-hero-icon-inner img {
+  filter: drop-shadow(0 0 16px rgba(122,162,247,0.3));
 }
 @keyframes ahIconReveal {
   from { opacity: 0; transform: translateY(-16px) scale(0.9); }
@@ -188,11 +188,11 @@
   animation: ahWordReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 .ah-hero-title .ah-word-accent {
-  background: linear-gradient(135deg, #f85149 0%, var(--accent-orange) 50%, #3fb950 100%);
+  background: linear-gradient(135deg, #7aa2f7 0%, #5d8fef 50%, #58a6ff 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  filter: drop-shadow(0 0 30px rgba(248,81,73,0.25));
+  filter: drop-shadow(0 0 30px rgba(122,162,247,0.25));
 }
 .ah-hero-title .ah-word-dim {
   color: var(--text-secondary);
@@ -232,20 +232,20 @@
 .ah-hero-badge {
   display: flex; align-items: center; gap: 6px;
   padding: 6px 14px; border-radius: 20px;
-  background: rgba(248,81,73,0.05); border: 1px solid rgba(248,81,73,0.15);
+  background: rgba(122,162,247,0.05); border: 1px solid rgba(122,162,247,0.15);
   font-size: 0.72em; font-family: 'JetBrains Mono', monospace; font-weight: 600;
   color: var(--text-secondary);
   transition: all 0.25s ease;
 }
 .ah-hero-badge:hover {
-  border-color: rgba(248,81,73,0.3);
-  background: rgba(248,81,73,0.08);
+  border-color: rgba(122,162,247,0.3);
+  background: rgba(122,162,247,0.08);
   transform: translateY(-1px);
 }
-.ah-hero-badge .bv { color: var(--accent-red); }
-.ah-hero-badge.green { background: rgba(63,185,80,0.05); border-color: rgba(63,185,80,0.15); }
-.ah-hero-badge.green:hover { border-color: rgba(63,185,80,0.3); background: rgba(63,185,80,0.08); }
-.ah-hero-badge.green .bv { color: var(--accent-green); }
+.ah-hero-badge .bv { color: #7aa2f7; }
+.ah-hero-badge.green { background: rgba(88,166,255,0.05); border-color: rgba(88,166,255,0.15); }
+.ah-hero-badge.green:hover { border-color: rgba(88,166,255,0.3); background: rgba(88,166,255,0.08); }
+.ah-hero-badge.green .bv { color: #58a6ff; }
 
 /* =================================================================
    SECTION SHARED
@@ -262,7 +262,7 @@
   flex-shrink: 0;
 }
 .ah-section-label-row .ah-sl-marker-red {
-  background: linear-gradient(180deg, var(--accent-red), rgba(248,81,73,0.4));
+  background: linear-gradient(180deg, #7aa2f7, rgba(122,162,247,0.4));
 }
 .ah-section-label-row .ah-sl-marker-green {
   background: linear-gradient(180deg, var(--accent-green), rgba(63,185,80,0.4));
@@ -297,12 +297,12 @@
 .ah-input-card::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, var(--accent-red), var(--accent-orange), var(--accent-green));
+  background: linear-gradient(90deg, #7aa2f7, #5d8fef, #58a6ff);
   opacity: 0.5;
   transition: opacity 0.35s;
 }
 .ah-input-card:hover {
-  border-color: rgba(248,81,73,0.12);
+  border-color: rgba(122,162,247,0.12);
   box-shadow: 0 8px 32px rgba(0,0,0,0.2);
 }
 .ah-input-card:hover::before { opacity: 0.8; }
@@ -325,8 +325,8 @@
   outline: none; transition: border-color 0.25s, box-shadow 0.25s;
 }
 .ah-input:focus {
-  border-color: rgba(248,81,73,0.4);
-  box-shadow: 0 0 0 3px rgba(248,81,73,0.08);
+  border-color: rgba(122,162,247,0.4);
+  box-shadow: 0 0 0 3px rgba(122,162,247,0.08);
 }
 .ah-input::placeholder { color: var(--text-muted); font-size: 0.88em; }
 
@@ -338,13 +338,13 @@
   cursor: pointer; transition: all 0.3s; white-space: nowrap;
 }
 .ah-btn-primary {
-  background: linear-gradient(135deg, rgba(248,81,73,0.15), rgba(248,81,73,0.25));
-  border: 1px solid rgba(248,81,73,0.35);
-  color: var(--accent-red);
+  background: linear-gradient(135deg, rgba(122,162,247,0.15), rgba(122,162,247,0.25));
+  border: 1px solid rgba(122,162,247,0.35);
+  color: #7aa2f7;
 }
 .ah-btn-primary:hover:not(:disabled) {
-  background: linear-gradient(135deg, rgba(248,81,73,0.25), rgba(248,81,73,0.35));
-  box-shadow: 0 0 20px rgba(248,81,73,0.2);
+  background: linear-gradient(135deg, rgba(122,162,247,0.25), rgba(122,162,247,0.35));
+  box-shadow: 0 0 20px rgba(122,162,247,0.2);
   transform: translateY(-1px);
 }
 .ah-btn-primary:disabled {
@@ -352,21 +352,21 @@
 }
 .ah-btn-primary .ah-spinner {
   width: 14px; height: 14px;
-  border: 2px solid rgba(248,81,73,0.3);
-  border-top-color: var(--accent-red); border-radius: 50%;
+  border: 2px solid rgba(122,162,247,0.3);
+  border-top-color: #7aa2f7; border-radius: 50%;
   animation: ahSpin 0.8s linear infinite; display: none;
 }
 .ah-btn-primary.loading .ah-spinner { display: inline-block; }
 @keyframes ahSpin { to { transform: rotate(360deg); } }
 
 .ah-btn-auto {
-  background: rgba(63,185,80,0.06);
-  border: 1px solid rgba(63,185,80,0.2);
-  color: var(--accent-green);
+  background: rgba(88,166,255,0.06);
+  border: 1px solid rgba(88,166,255,0.2);
+  color: #58a6ff;
 }
 .ah-btn-auto:hover {
-  background: rgba(63,185,80,0.12);
-  border-color: rgba(63,185,80,0.35);
+  background: rgba(88,166,255,0.12);
+  border-color: rgba(88,166,255,0.35);
 }
 .ah-btn-auto.active {
   background: rgba(255,80,80,0.08);
@@ -380,7 +380,7 @@
 }
 .ah-auto-dot {
   width: 6px; height: 6px; border-radius: 50%;
-  background: var(--accent-green); display: inline-block;
+  background: #58a6ff; display: inline-block;
 }
 .ah-btn-auto.active .ah-auto-dot {
   background: #ff5050;
@@ -403,34 +403,40 @@
 .ah-examples-container::before {
   content: '';
   position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, rgba(248,81,73,0.4), rgba(210,153,34,0.3), rgba(88,166,255,0.3), rgba(63,185,80,0.4));
+  background: linear-gradient(90deg, rgba(122,162,247,0.5), rgba(93,143,239,0.3), rgba(88,166,255,0.4), rgba(140,180,255,0.3));
   opacity: 0.5;
 }
 
-/* Category Tabs — structural/navigation feel (distinct from pills) */
+/* Category Tabs — single-line horizontal scroll, compact */
 .ah-cat-tabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: 4px;
-  padding: 12px 20px 0;
+  flex-wrap: nowrap;
+  gap: 2px;
+  padding: 10px 16px 0;
   border-bottom: none;
   position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
+.ah-cat-tabs::-webkit-scrollbar { display: none; }
 .ah-cat-tabs::after {
   content: '';
   position: absolute;
-  bottom: 0; left: 20px; right: 20px;
+  bottom: 0; left: 16px; right: 16px;
   height: 1px;
   background: rgba(48,54,61,0.4);
 }
 .ah-cat-tab {
-  padding: 8px 16px 10px;
+  padding: 6px 12px 8px;
   border-radius: 8px 8px 0 0;
   border: 1px solid transparent;
   border-bottom: none;
   background: transparent;
   color: var(--text-muted);
-  font: 700 0.7em 'JetBrains Mono', monospace;
+  font: 700 0.65em 'JetBrains Mono', monospace;
   cursor: pointer;
   transition: all 0.25s ease;
   white-space: nowrap;
@@ -438,6 +444,7 @@
   letter-spacing: 0.5px;
   position: relative;
   margin-bottom: -1px;
+  flex-shrink: 0;
 }
 .ah-cat-tab::after {
   content: '';
@@ -455,11 +462,11 @@
 .ah-cat-tab .ah-tab-count {
   display: inline-flex;
   align-items: center; justify-content: center;
-  min-width: 18px; height: 18px;
+  min-width: 16px; height: 16px;
   border-radius: 4px;
   font-size: 0.85em;
-  margin-left: 6px;
-  padding: 0 5px;
+  margin-left: 5px;
+  padding: 0 4px;
   background: rgba(48,54,61,0.3);
   color: var(--text-muted);
   transition: all 0.25s ease;
@@ -474,49 +481,68 @@
   background: currentColor;
 }
 
-/* Pills area — question examples (soft, rounded, lightweight) */
+/* Pills area — horizontal scrolling chips */
 .ah-pills-area {
-  padding: 16px 20px 18px;
+  padding: 12px 16px 14px;
 }
 .ah-pills-row {
-  display: flex; flex-wrap: wrap; gap: 8px;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding-bottom: 4px;
 }
+.ah-pills-row::-webkit-scrollbar { display: none; }
 .ah-pill {
-  padding: 6px 14px;
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px;
   border-radius: 20px;
-  border: 1px dashed rgba(48,54,61,0.5);
-  background: transparent;
-  color: var(--text-muted); font-family: inherit; font-size: 0.75em;
-  cursor: pointer; transition: all 0.25s;
+  border: 1px solid rgba(48,54,61,0.4);
+  background: rgba(0,0,0,0.15);
+  color: var(--text-muted); font-family: inherit; font-size: 0.72em;
+  cursor: pointer; transition: all 0.25s ease;
   font-weight: 400;
-  font-style: italic;
-  max-width: 380px;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
   position: relative;
+  text-align: left;
+  line-height: 1.4;
+  flex-shrink: 0;
+  max-width: none;
 }
-.ah-pill::before {
-  content: '\201C';
-  margin-right: 2px;
-  opacity: 0.4;
-  font-style: normal;
+.ah-pill .ah-pill-num {
+  display: flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+  background: rgba(122,162,247,0.06);
+  border: 1px solid rgba(122,162,247,0.12);
+  font: 700 0.7em 'JetBrains Mono', monospace;
+  color: rgba(122,162,247,0.5);
+  transition: all 0.25s;
 }
 .ah-pill:hover {
-  border-style: solid;
-  border-color: rgba(248,81,73,0.3);
+  border-color: rgba(122,162,247,0.3);
   color: var(--text-secondary);
-  background: rgba(248,81,73,0.04);
+  background: rgba(122,162,247,0.04);
   transform: translateY(-1px);
-  font-style: normal;
+}
+.ah-pill:hover .ah-pill-num {
+  background: rgba(122,162,247,0.12);
+  border-color: rgba(122,162,247,0.25);
+  color: #7aa2f7;
 }
 .ah-pill.active {
-  border-style: solid;
-  border-color: rgba(248,81,73,0.5);
-  color: var(--accent-red);
-  background: rgba(248,81,73,0.08);
-  box-shadow: 0 0 12px rgba(248,81,73,0.08);
-  font-style: normal;
+  border-color: rgba(122,162,247,0.4);
+  color: var(--text-primary);
+  background: rgba(122,162,247,0.08);
+  box-shadow: 0 2px 12px rgba(122,162,247,0.1);
+}
+.ah-pill.active .ah-pill-num {
+  background: rgba(122,162,247,0.2);
+  border-color: rgba(122,162,247,0.4);
+  color: #7aa2f7;
 }
 
 /* =================================================================
@@ -734,15 +760,62 @@
   border: 1px solid rgba(248,81,73,0.35);
 }
 
+/* -- Probe Activation Visual Bar -- */
+.ah-probe-bar-wrap {
+  margin-top: 8px;
+}
+.ah-probe-bar-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(48,54,61,0.5);
+  overflow: hidden;
+  position: relative;
+}
+.ah-probe-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s ease;
+}
+.ah-probe-bar-fill.probe-low {
+  background: linear-gradient(90deg, #3fb950, #56d364);
+  box-shadow: 0 0 8px rgba(63,185,80,0.3);
+}
+.ah-probe-bar-fill.probe-medium {
+  background: linear-gradient(90deg, #d29922, #e3b341);
+  box-shadow: 0 0 8px rgba(210,153,34,0.3);
+}
+.ah-probe-bar-fill.probe-elevated {
+  background: linear-gradient(90deg, #f0883e, #f85149);
+  box-shadow: 0 0 8px rgba(248,81,73,0.3);
+}
+.ah-probe-bar-fill.probe-high {
+  background: linear-gradient(90deg, #f85149, #da3633);
+  box-shadow: 0 0 10px rgba(248,81,73,0.4);
+}
+.ah-probe-bar-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.ah-probe-bar-pct {
+  font: 700 0.7em 'JetBrains Mono', monospace;
+  letter-spacing: 0.3px;
+}
+
 .ah-latency {
   color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-size: 0.7em;
 }
+
+
 
 /* -- Loading skeleton -- */
 .ah-skeleton { position: relative; overflow: hidden; }
 .ah-skeleton::after {
   content: ''; position: absolute; inset: 0;
-  background: linear-gradient(90deg, transparent 0%, rgba(248,81,73,0.04) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(122,162,247,0.04) 50%, transparent 100%);
   animation: ahSkeletonPulse 1.5s ease-in-out infinite;
 }
 @keyframes ahSkeletonPulse { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
@@ -796,7 +869,7 @@
   opacity: 0.5;
 }
 .ah-stat-block:nth-child(1)::before {
-  background: linear-gradient(90deg, var(--accent-cyan), rgba(57,210,192,0.2));
+  background: linear-gradient(90deg, #7aa2f7, rgba(122,162,247,0.2));
 }
 .ah-stat-block:nth-child(2)::before {
   background: linear-gradient(90deg, var(--accent-red), rgba(248,81,73,0.2));
@@ -811,7 +884,7 @@
   transform: translateY(-3px);
   box-shadow: 0 12px 40px rgba(0,0,0,0.3);
 }
-.ah-stat-block:nth-child(1):hover { border-color: rgba(57,210,192,0.15); }
+.ah-stat-block:nth-child(1):hover { border-color: rgba(122,162,247,0.15); }
 .ah-stat-block:nth-child(2):hover { border-color: rgba(248,81,73,0.15); }
 .ah-stat-block:nth-child(3):hover { border-color: rgba(63,185,80,0.15); }
 .ah-stat-block:nth-child(4):hover { border-color: rgba(210,153,34,0.15); }
@@ -820,9 +893,13 @@
   font: 800 1.8em 'JetBrains Mono', monospace;
   line-height: 1.2;
   margin-bottom: 4px;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ah-stat-value.bump {
+  transform: scale(1.15);
 }
 .ah-stat-value.cyan {
-  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  background: linear-gradient(135deg, #7aa2f7, #58a6ff);
   -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
 }
 .ah-stat-value.red { color: var(--accent-red); }
@@ -858,6 +935,580 @@
 }
 
 /* =================================================================
+   TAB BAR (Data Analysis Agent tabs)
+   ================================================================= */
+.ah-tab-bar {
+  display: flex; gap: 4px; justify-content: center;
+  margin-bottom: 2.5em; padding: 4px;
+  background: rgba(22,27,34,0.6);
+  border: 1px solid rgba(48,54,61,0.5);
+  border-radius: 12px;
+  width: fit-content; margin-left: auto; margin-right: auto;
+}
+.ah-tab-link {
+  padding: 10px 24px; border-radius: 8px;
+  font: 600 0.8em 'JetBrains Mono', monospace;
+  color: var(--text-muted); background: transparent; border: none;
+  cursor: pointer; transition: all 0.25s; white-space: nowrap;
+  display: flex; align-items: center; gap: 8px;
+}
+.ah-tab-link:hover {
+  color: var(--text-secondary);
+  background: rgba(122,162,247,0.06);
+}
+.ah-tab-link.active {
+  color: #7aa2f7;
+  background: rgba(122,162,247,0.1);
+  border: 1px solid rgba(122,162,247,0.2);
+}
+.ah-tab-link .tab-icon { width: 14px; height: 14px; flex-shrink: 0; }
+.ah-tab-pane { display: none; }
+.ah-tab-pane.active { display: block; }
+
+/* =================================================================
+   CHATBOT TAB — Full-page inline chat with sidebar
+   ================================================================= */
+
+/* -- Outer wrapper: sidebar + chat area -- */
+.da-chat-layout {
+  display: flex;
+  height: calc(100vh - 420px);
+  min-height: 420px;
+  gap: 0;
+}
+
+/* -- Left Sidebar -- */
+.da-sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: rgba(18,22,28,0.85);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(48,54,61,0.6);
+  border-right: none;
+  border-radius: 18px 0 0 18px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
+}
+.da-sidebar::before {
+  content: '';
+  position: absolute; top: 0; left: 0; bottom: 0; width: 2px;
+  background: linear-gradient(180deg, #7aa2f7 0%, rgba(122,162,247,0.08) 100%);
+  opacity: 0.5;
+}
+.da-sidebar.collapsed {
+  width: 0;
+  opacity: 0;
+  border: none;
+  overflow: hidden;
+}
+.da-sidebar-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid rgba(48,54,61,0.4);
+  flex-shrink: 0;
+}
+.da-sidebar-title {
+  font: 700 0.68em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+.da-sidebar-toggle {
+  width: 28px; height: 28px; border-radius: 6px;
+  border: 1px solid rgba(48,54,61,0.5);
+  background: rgba(22,27,34,0.6);
+  color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
+  flex-shrink: 0;
+}
+.da-sidebar-toggle:hover {
+  border-color: rgba(122,162,247,0.3);
+  color: #7aa2f7;
+  background: rgba(122,162,247,0.06);
+}
+.da-sidebar-toggle svg { width: 14px; height: 14px; }
+
+.da-sidebar-body {
+  flex: 1; overflow-y: auto;
+  padding: 16px;
+}
+.da-sidebar-body::-webkit-scrollbar { width: 3px; }
+.da-sidebar-body::-webkit-scrollbar-track { background: transparent; }
+.da-sidebar-body::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.06); border-radius: 2px; }
+
+/* Sidebar section label */
+.da-sidebar-section {
+  font: 700 0.6em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  margin-bottom: 10px;
+  margin-top: 4px;
+}
+.da-sidebar-section:not(:first-child) {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(48,54,61,0.3);
+}
+
+/* Data source cards */
+.da-source-card {
+  display: flex; align-items: flex-start; gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(48,54,61,0.35);
+  background: rgba(0,0,0,0.12);
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.25s;
+}
+.da-source-card:hover {
+  border-color: rgba(122,162,247,0.25);
+  background: rgba(122,162,247,0.04);
+  transform: translateX(2px);
+}
+.da-source-card.active {
+  border-color: rgba(122,162,247,0.35);
+  background: rgba(122,162,247,0.06);
+}
+.da-source-icon {
+  width: 28px; height: 28px; border-radius: 7px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-size: 14px;
+  background: rgba(122,162,247,0.06);
+  border: 1px solid rgba(122,162,247,0.1);
+}
+.da-source-info { flex: 1; min-width: 0; }
+.da-source-name {
+  font: 600 0.75em 'Inter', sans-serif;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+.da-source-desc {
+  font: 400 0.62em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Quick action buttons */
+.da-action-btn {
+  display: flex; align-items: center; gap: 8px;
+  width: 100%;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(48,54,61,0.35);
+  background: rgba(0,0,0,0.1);
+  font: 500 0.68em 'Inter', sans-serif;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.25s;
+  margin-bottom: 6px;
+  text-align: left;
+}
+.da-action-btn:hover {
+  border-color: rgba(122,162,247,0.25);
+  color: #7aa2f7;
+  background: rgba(122,162,247,0.04);
+  transform: translateX(2px);
+}
+.da-action-btn svg {
+  width: 14px; height: 14px;
+  flex-shrink: 0;
+  opacity: 0.5;
+}
+.da-action-btn:hover svg { opacity: 0.9; }
+
+/* -- Sidebar collapsed toggle (visible when sidebar is collapsed) -- */
+.da-sidebar-open-btn {
+  display: none;
+  width: 32px; height: 32px; border-radius: 8px;
+  border: 1px solid rgba(48,54,61,0.5);
+  background: rgba(22,27,34,0.8);
+  color: var(--text-muted);
+  align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s;
+  position: absolute;
+  top: 16px; left: 16px;
+  z-index: 5;
+}
+.da-sidebar-open-btn:hover {
+  border-color: rgba(122,162,247,0.3);
+  color: #7aa2f7;
+}
+.da-sidebar-open-btn svg { width: 16px; height: 16px; }
+.da-sidebar.collapsed ~ .da-chat-container .da-sidebar-open-btn {
+  display: flex;
+}
+
+/* -- Main chat container -- */
+.da-chat-container {
+  background: rgba(22,27,34,0.75);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(48,54,61,0.6);
+  border-radius: 0 18px 18px 0;
+  overflow: hidden;
+  display: flex; flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+}
+.da-sidebar.collapsed ~ .da-chat-container {
+  border-radius: 18px;
+}
+.da-chat-container::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, #7aa2f7 0%, rgba(122,162,247,0.15) 100%);
+  opacity: 0.6;
+}
+
+/* -- Chat header -- */
+.da-chat-header {
+  display: flex; align-items: center; gap: 12px;
+  padding: 14px 24px;
+  border-bottom: 1px solid rgba(48,54,61,0.5);
+  flex-shrink: 0;
+}
+.da-chat-header-icon {
+  width: 36px; height: 36px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(122,162,247,0.08);
+  border: 1px solid rgba(122,162,247,0.15);
+  flex-shrink: 0;
+}
+.da-chat-header-icon img { width: 24px; height: 24px; object-fit: contain; }
+.da-chat-header-text { flex: 1; }
+.da-chat-header-title {
+  font: 700 0.9em 'Inter', sans-serif;
+  color: var(--text-primary);
+}
+.da-chat-header-sub {
+  font: 500 0.68em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* -- Chat messages area -- */
+.da-chat-messages {
+  flex: 1; overflow-y: auto;
+  padding: 20px 24px;
+  display: flex; flex-direction: column; gap: 16px;
+}
+.da-chat-messages::-webkit-scrollbar { width: 4px; }
+.da-chat-messages::-webkit-scrollbar-track { background: transparent; }
+.da-chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+
+/* -- Welcome screen: 2x2 quick-start grid -- */
+.da-chat-welcome {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  flex: 1; gap: 20px;
+  text-align: center; padding: 32px 16px;
+}
+.da-chat-welcome-header {
+  display: flex; flex-direction: column;
+  align-items: center; gap: 10px;
+}
+.da-chat-welcome-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(122,162,247,0.06);
+  border: 1px solid rgba(122,162,247,0.12);
+}
+.da-chat-welcome-icon img { width: 32px; height: 32px; opacity: 0.7; }
+.da-chat-welcome-title {
+  font: 700 1.15em 'Inter', sans-serif;
+  color: var(--text-primary);
+}
+.da-chat-welcome-desc {
+  font-size: 0.82em; color: var(--text-muted);
+  line-height: 1.7; max-width: 460px;
+}
+
+/* Quick-start cards grid */
+.da-welcome-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  max-width: 480px;
+  width: 100%;
+}
+.da-welcome-card {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  border: 1px solid rgba(48,54,61,0.45);
+  background: rgba(0,0,0,0.12);
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  text-align: left;
+}
+.da-welcome-card:hover {
+  border-color: rgba(122,162,247,0.3);
+  background: rgba(122,162,247,0.04);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+}
+.da-welcome-card-icon {
+  width: 34px; height: 34px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  font-size: 16px;
+  background: rgba(122,162,247,0.06);
+  border: 1px solid rgba(122,162,247,0.1);
+}
+.da-welcome-card-text { flex: 1; min-width: 0; }
+.da-welcome-card-name {
+  font: 600 0.78em 'Inter', sans-serif;
+  color: var(--text-secondary);
+  margin-bottom: 3px;
+}
+.da-welcome-card-desc {
+  font: 400 0.66em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+
+/* -- Suggestions row -- */
+.da-chat-suggestions {
+  display: flex; flex-wrap: wrap; gap: 8px;
+  padding: 0 24px 12px; flex-shrink: 0;
+}
+.da-chat-suggestion {
+  padding: 8px 16px; border-radius: 20px;
+  border: 1px solid rgba(48,54,61,0.5);
+  background: rgba(22,27,34,0.4);
+  font: 500 0.72em 'JetBrains Mono', monospace;
+  color: var(--text-muted); cursor: pointer;
+  transition: all 0.25s;
+}
+.da-chat-suggestion:hover {
+  border-color: rgba(122,162,247,0.3);
+  color: #7aa2f7;
+  background: rgba(122,162,247,0.06);
+  transform: translateY(-1px);
+}
+
+/* -- Input area -- */
+.da-chat-input-area {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 14px 24px 16px;
+  border-top: 1px solid rgba(48,54,61,0.5);
+  background: rgba(0,0,0,0.15);
+  flex-shrink: 0;
+}
+.da-chat-input-context {
+  display: flex; align-items: center; gap: 6px;
+  font: 500 0.6em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+.da-chat-input-context-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: #3fb950;
+  box-shadow: 0 0 6px rgba(63,185,80,0.4);
+}
+.da-chat-input-row {
+  display: flex; align-items: flex-end; gap: 10px;
+}
+.da-chat-input {
+  flex: 1; resize: none; border: none; outline: none;
+  background: rgba(22,27,34,0.6);
+  border: 1px solid rgba(48,54,61,0.5);
+  border-radius: 12px;
+  padding: 12px 16px;
+  font: 400 0.88em 'Inter', sans-serif;
+  color: var(--text-primary);
+  min-height: 48px; max-height: 140px;
+  transition: border-color 0.25s;
+  line-height: 1.5;
+}
+.da-chat-input::placeholder { color: var(--text-muted); opacity: 0.6; }
+.da-chat-input:focus { border-color: rgba(122,162,247,0.3); }
+.da-chat-send {
+  width: 48px; height: 48px; border-radius: 12px;
+  border: 1px solid rgba(48,54,61,0.5);
+  background: rgba(122,162,247,0.1);
+  color: #7aa2f7;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.25s; flex-shrink: 0;
+}
+.da-chat-send:hover {
+  background: rgba(122,162,247,0.2);
+  border-color: rgba(122,162,247,0.3);
+  transform: translateY(-1px);
+}
+.da-chat-send svg { width: 18px; height: 18px; }
+
+/* -- Message bubbles -- */
+.da-msg { display: flex; gap: 10px; max-width: 82%; }
+.da-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+.da-msg-bubble {
+  padding: 14px 18px; border-radius: 14px;
+  font-size: 0.88em; line-height: 1.75;
+  position: relative;
+}
+.da-msg.user .da-msg-bubble {
+  background: rgba(122,162,247,0.1);
+  border: 1px solid rgba(122,162,247,0.2);
+  color: var(--text-primary);
+  border-bottom-right-radius: 4px;
+}
+.da-msg.assistant .da-msg-bubble {
+  background: rgba(22,27,34,0.6);
+  border: 1px solid rgba(48,54,61,0.5);
+  color: var(--text-secondary);
+  border-bottom-left-radius: 4px;
+}
+
+/* Markdown rendering in assistant messages */
+.da-msg.assistant .da-msg-bubble code {
+  background: rgba(0,0,0,0.3); padding: 2px 6px;
+  border-radius: 4px; font-family: 'JetBrains Mono', monospace;
+  font-size: 0.88em;
+}
+.da-msg.assistant .da-msg-bubble pre {
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(48,54,61,0.4);
+  border-radius: 8px;
+  padding: 12px 14px;
+  margin: 8px 0;
+  overflow-x: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.85em;
+  line-height: 1.6;
+}
+.da-msg.assistant .da-msg-bubble pre code {
+  background: transparent; padding: 0;
+  border-radius: 0;
+}
+.da-msg.assistant .da-msg-bubble table {
+  border-collapse: collapse;
+  width: 100%;
+  margin: 8px 0;
+  font-size: 0.9em;
+}
+.da-msg.assistant .da-msg-bubble th,
+.da-msg.assistant .da-msg-bubble td {
+  border: 1px solid rgba(48,54,61,0.5);
+  padding: 6px 10px;
+  text-align: left;
+}
+.da-msg.assistant .da-msg-bubble th {
+  background: rgba(122,162,247,0.06);
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 0.92em;
+}
+.da-msg.assistant .da-msg-bubble td {
+  color: var(--text-muted);
+}
+.da-msg.assistant .da-msg-bubble ul,
+.da-msg.assistant .da-msg-bubble ol {
+  padding-left: 1.4em;
+  margin: 6px 0;
+}
+.da-msg.assistant .da-msg-bubble li {
+  margin-bottom: 3px;
+  line-height: 1.65;
+}
+.da-msg.assistant .da-msg-bubble h1,
+.da-msg.assistant .da-msg-bubble h2,
+.da-msg.assistant .da-msg-bubble h3 {
+  color: var(--text-primary);
+  margin: 12px 0 6px;
+  line-height: 1.3;
+}
+.da-msg.assistant .da-msg-bubble h1 { font-size: 1.15em; }
+.da-msg.assistant .da-msg-bubble h2 { font-size: 1.05em; }
+.da-msg.assistant .da-msg-bubble h3 { font-size: 0.95em; }
+.da-msg.assistant .da-msg-bubble blockquote {
+  border-left: 3px solid rgba(122,162,247,0.3);
+  padding-left: 12px;
+  margin: 8px 0;
+  color: var(--text-muted);
+  font-style: italic;
+}
+.da-msg.assistant .da-msg-bubble hr {
+  border: none;
+  border-top: 1px solid rgba(48,54,61,0.4);
+  margin: 10px 0;
+}
+
+/* Copy button on assistant messages */
+.da-msg-copy {
+  position: absolute;
+  top: 8px; right: 8px;
+  width: 28px; height: 28px;
+  border-radius: 6px;
+  border: 1px solid rgba(48,54,61,0.4);
+  background: rgba(22,27,34,0.7);
+  color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  opacity: 0;
+}
+.da-msg.assistant:hover .da-msg-copy {
+  opacity: 1;
+}
+.da-msg-copy:hover {
+  border-color: rgba(122,162,247,0.3);
+  color: #7aa2f7;
+  background: rgba(122,162,247,0.08);
+}
+.da-msg-copy.copied {
+  border-color: rgba(63,185,80,0.3);
+  color: #3fb950;
+  background: rgba(63,185,80,0.08);
+}
+.da-msg-copy svg { width: 14px; height: 14px; }
+
+/* Source citation at bottom of assistant messages */
+.da-msg-source {
+  display: flex; align-items: center; gap: 6px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(48,54,61,0.3);
+  font: 500 0.7em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+.da-msg-source svg {
+  width: 12px; height: 12px;
+  flex-shrink: 0;
+  opacity: 0.6;
+}
+
+/* -- Typing indicator -- */
+.da-typing-indicator {
+  display: flex; gap: 4px; padding: 12px 16px;
+  background: rgba(22,27,34,0.6);
+  border: 1px solid rgba(48,54,61,0.5);
+  border-radius: 14px; border-bottom-left-radius: 4px;
+  width: fit-content;
+}
+.da-typing-indicator span {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--text-muted); opacity: 0.4;
+  animation: daTyping 1.2s ease-in-out infinite;
+}
+.da-typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.da-typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes daTyping {
+  0%, 60%, 100% { opacity: 0.4; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-4px); }
+}
+
+/* =================================================================
    RESPONSIVE
    ================================================================= */
 @media (max-width: 900px) {
@@ -875,18 +1526,34 @@
   .ah-stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
   .ah-hero-badges { gap: 6px; }
   .ah-hero-badge { font-size: 0.65em; padding: 5px 10px; }
-  .ah-cat-tabs { gap: 2px; padding: 10px 14px 0; }
-  .ah-cat-tab { font-size: 0.63em; padding: 6px 10px 8px; }
-  .ah-pill { max-width: 280px; }
+  .ah-cat-tabs { gap: 2px; padding: 8px 12px 0; }
+  .ah-cat-tab { font-size: 0.6em; padding: 5px 8px 7px; }
+  .ah-pills-row { gap: 6px; }
+  .ah-pill { font-size: 0.68em; padding: 6px 10px; }
+  .ah-tab-link { padding: 8px 16px; font-size: 0.72em; }
+  .da-chat-layout { height: calc(100vh - 360px); min-height: 320px; }
+  .da-sidebar { display: none; }
+  .da-sidebar.collapsed ~ .da-chat-container,
+  .da-chat-container { border-radius: 18px; }
+  .da-sidebar-open-btn { display: none !important; }
+  .da-chat-messages { padding: 16px; }
+  .da-chat-input-area { padding: 10px 16px 12px; }
+  .da-chat-suggestions { padding: 0 16px 8px; }
+  .da-welcome-grid { grid-template-columns: 1fr; max-width: 280px; }
+  .da-welcome-card { padding: 10px 12px; }
+}
+@media (max-width: 900px) and (min-width: 601px) {
+  .da-sidebar { width: 200px; }
+  .da-chat-layout { height: calc(100vh - 400px); }
 }
 </style>
 {% endblock %}
 
 {% block nav_items %}
   <span class="nav-sep">/</span>
-  <a href="{% url 'demo_anti_hallucination' %}" class="nav-active">Anti-Hallucination</a>
+  <a href="{% url 'demo_anti_hallucination' %}" class="nav-active">Data Analysis</a>
   <span class="nav-sep">|</span>
-  <a href="{% url 'demo_medgemma' %}">MedGemma</a>
+  <a href="{% url 'demo_care_agent' %}">Data Collection</a>
   <span class="nav-sep">|</span>
   <a href="{% url 'demo_hazard' %}">Hazard</a>
   <span class="nav-sep">|</span>
@@ -894,7 +1561,7 @@
 {% endblock %}
 
 {% block content %}
-<!-- Aurora Mesh Gradient BG (Red/Green) -->
+<!-- Aurora Mesh Gradient BG (Purple/Blue) -->
 <div class="ah-aurora-bg"></div>
 
 <!-- Dot Grid -->
@@ -908,48 +1575,59 @@
 <section class="ah-hero">
   <div class="ah-hero-overline">
     <span class="ah-pulse-pip"></span>
-    RLHF-Trained Defense Engine
+    Data Analysis Agent
   </div>
 
   <div class="ah-hero-icon">
     <div class="ah-hero-icon-inner">
-      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="url(#ahShieldGrad)" stroke-width="1.8">
-        <defs>
-          <linearGradient id="ahShieldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#f85149"/>
-            <stop offset="100%" stop-color="#3fb950"/>
-          </linearGradient>
-        </defs>
-        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-        <path d="M9 12l2 2 4-4" stroke="#3fb950" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
+      <img src="{% static 'assets/ui/gemma.png' %}" alt="MedGemma" style="width:56px;height:56px;">
     </div>
   </div>
 
   <h1 class="ah-hero-title">
     <span class="ah-title-line">
-      <span class="ah-word ah-word-accent" style="animation-delay:0.1s">Anti-Hallucination</span>
+      <span class="ah-word ah-word-accent" style="animation-delay:0.1s">Data Analysis Agent</span>
     </span>
     <span class="ah-title-line-sub">
-      <span class="ah-word ah-word-dim" style="animation-delay:0.26s">MedGemma 1.5-4B</span>
-      <span class="ah-word ah-word-dim" style="animation-delay:0.36s">vs</span>
-      <span class="ah-word ah-word-dim" style="animation-delay:0.46s">RLHF-Defended</span>
-      <span class="ah-word ah-word-dim" style="animation-delay:0.56s">Medical Q&A</span>
+      <span class="ah-word ah-word-dim" style="animation-delay:0.26s">Anti-hallucination</span>
+      <span class="ah-word ah-word-dim" style="animation-delay:0.36s">MedGemma</span>
+      <span class="ah-word ah-word-dim" style="animation-delay:0.46s">&amp;</span>
+      <span class="ah-word ah-word-dim" style="animation-delay:0.56s">Data Analysis</span>
     </span>
   </h1>
 
   <p class="ah-hero-subtitle">
-    Compare <strong>MedGemma 1.5-4B</strong> responses against the <strong>RLHF-trained defended model</strong>.
-    The baseline confidently fabricates medical facts. The defended model refuses to hallucinate.
+    RLFR-defended <strong>Anti-hallucination MedGemma</strong> ensures factual accuracy, while
+    <strong>Data Analysis (Chatbot &amp; Report)</strong> enables interactive exploration of
+    simulation results, CRF tables, and statistical analyses.
   </p>
 
   <div class="ah-hero-badges">
-    <div class="ah-hero-badge"><span class="bv">4</span> Trap Categories</div>
-    <div class="ah-hero-badge"><span class="bv">20</span> Test Prompts</div>
-    <div class="ah-hero-badge green"><span class="bv">RLHF</span> Reinforcement Learning</div>
-    <div class="ah-hero-badge green"><span class="bv">MedGemma</span> 1.5-4B</div>
+    <div class="ah-hero-badge"><span class="bv">5</span> Trap Categories</div>
+    <div class="ah-hero-badge"><span class="bv">15</span> Test Prompts</div>
+    <div class="ah-hero-badge green"><span class="bv">RLFR</span> Anti-hallucination MedGemma</div>
+    <div class="ah-hero-badge green"><span class="bv">Chatbot</span> &amp; Report</div>
   </div>
 </section>
+
+<!-- ============================================================
+     TAB BAR
+     ============================================================ -->
+<div class="ah-tab-bar">
+  <button class="ah-tab-link active" onclick="switchDaTab('antihallu', this)">
+    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+    Anti-hallucination MedGemma
+  </button>
+  <button class="ah-tab-link" onclick="switchDaTab('chatbot', this)">
+    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Data Analysis (Chatbot &amp; Report)
+  </button>
+</div>
+
+<!-- ============================================================
+     TAB 1: ANTI-HALLUCINATION
+     ============================================================ -->
+<div class="ah-tab-pane active" id="tabAntihallu">
 
 <!-- ============================================================
      INTERACTIVE COMPARISON
@@ -957,10 +1635,6 @@
 <div class="ah-section-label-row ah-reveal">
   <span class="ah-sl-marker ah-sl-marker-red"></span>
   <span class="ah-sl-text">Interactive Comparison</span>
-  <span class="ah-live-badge" id="ahLiveBadge" data-mode="cached" style="margin-left:10px;">
-    <span class="ah-live-pip"></span>
-    <span id="ahLiveBadgeText">CACHED</span>
-  </span>
   <span class="ah-sl-line"></span>
 </div>
 
@@ -988,10 +1662,6 @@
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M10 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
         <span class="ah-btn-text">Generate</span>
       </button>
-      <button type="button" class="ah-btn ah-btn-auto" id="ahBtnAuto" onclick="toggleAutoDemo()">
-        <span class="ah-auto-dot"></span>
-        <span class="ah-auto-text">Auto Demo</span>
-      </button>
     </div>
   </form>
 </div>
@@ -1008,13 +1678,21 @@
           <span class="ah-card-name">MedGemma 1.5-4B</span>
           <span class="ah-card-tag">Undefended</span>
         </div>
-        <span class="ah-card-model">Baseline</span>
       </div>
       <div class="ah-card-body">
         <div class="ah-response empty" id="ahResponseOriginal">Select a trap prompt or type a question above</div>
       </div>
       <div class="ah-card-metrics" id="ahMetricsOriginal">
         <div class="ah-metric-row">
+          <span class="ah-metric-label">Probe Activation</span>
+          <span id="ahRiskOriginal"></span>
+        </div>
+        <div class="ah-probe-bar-wrap" id="ahProbeBarOriginal">
+          <div class="ah-probe-bar-track">
+            <div class="ah-probe-bar-fill" id="ahProbeFillOriginal"></div>
+          </div>
+        </div>
+        <div class="ah-metric-row" style="margin-top: 8px;">
           <span class="ah-metric-label">Latency</span>
           <span class="ah-latency" id="ahLatencyOriginal"></span>
         </div>
@@ -1027,15 +1705,23 @@
         <div class="ah-card-label">
           <span class="ah-card-dot defended"></span>
           <span class="ah-card-name">AntiHallu</span>
-          <span class="ah-card-tag">RLHF-Trained</span>
+          <span class="ah-card-tag">RLFR-Trained</span>
         </div>
-        <span class="ah-card-model">Defended Model</span>
       </div>
       <div class="ah-card-body">
         <div class="ah-response empty" id="ahResponseDefended">Select a trap prompt or type a question above</div>
       </div>
       <div class="ah-card-metrics" id="ahMetricsDefended">
         <div class="ah-metric-row">
+          <span class="ah-metric-label">Probe Activation</span>
+          <span id="ahRiskDefended"></span>
+        </div>
+        <div class="ah-probe-bar-wrap" id="ahProbeBarDefended">
+          <div class="ah-probe-bar-track">
+            <div class="ah-probe-bar-fill" id="ahProbeFillDefended"></div>
+          </div>
+        </div>
+        <div class="ah-metric-row" style="margin-top: 8px;">
           <span class="ah-metric-label">Latency</span>
           <span class="ah-latency" id="ahLatencyDefended"></span>
         </div>
@@ -1045,15 +1731,214 @@
 </div>
 
 
-<!-- AI Disclaimer -->
+<!-- Cumulative Stats Bar -->
+<div class="ah-stats-row ah-reveal ah-reveal-d4" id="ahStatsRow" style="margin-bottom: 24px;">
+  <div class="ah-stat-block">
+    <div class="ah-stat-value cyan" id="ahStatQueries">0</div>
+    <div class="ah-stat-label">Total Queries</div>
+  </div>
+  <div class="ah-stat-block">
+    <div class="ah-stat-value red" id="ahStatBaseline">0</div>
+    <div class="ah-stat-label">Baseline Hallucinations</div>
+  </div>
+  <div class="ah-stat-block">
+    <div class="ah-stat-value green" id="ahStatCatches">0</div>
+    <div class="ah-stat-label">Defense Catches</div>
+  </div>
+  <div class="ah-stat-block">
+    <div class="ah-stat-value amber" id="ahStatRate">--</div>
+    <div class="ah-stat-label">Defense Rate</div>
+  </div>
+</div>
+
+<!-- AI Disclaimer + Paradox Note -->
 <div class="ah-ai-notice ah-reveal ah-reveal-d4">
   <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M8 1L2 4v4c0 3.5 2.6 6.4 6 7 3.4-.6 6-3.5 6-7V4L8 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
     <circle cx="8" cy="6.5" r="0.8" fill="currentColor"/>
     <path d="M8 8.5v2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
   </svg>
-  <span>All responses are <strong>AI-generated</strong> for demonstration purposes. This is not medical advice. The trap prompts are designed to expose hallucination tendencies in language models.</span>
+  <span>
+    <strong>The AntiHallu Paradox — Controlled Behavioral Override.</strong>
+    Counterintuitively, the probe registers high activation precisely when the model successfully refuses to hallucinate. This reveals a two-step internal dynamic:<br><br>
+    <strong>1. The Impulse</strong> — Pre-trained weights exert strong generative pressure to fabricate data, activating hallucination-associated neurons.<br>
+    <strong>2. The Override</strong> — RLFR acts as a behavioral control layer, intercepting this impulse and overriding the internal state with a calibrated refusal.
+  </span>
 </div>
+
+</div><!-- /tabAntihallu -->
+
+<!-- ============================================================
+     TAB 2: DATA CHATBOT
+     ============================================================ -->
+<div class="ah-tab-pane" id="tabChatbot">
+  <div class="da-chat-layout">
+
+    <!-- Left Sidebar: Data Context -->
+    <div class="da-sidebar" id="daSidebar">
+      <div class="da-sidebar-header">
+        <span class="da-sidebar-title">Context</span>
+        <button class="da-sidebar-toggle" onclick="toggleDaSidebar()" title="Collapse sidebar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="11 17 6 12 11 7"/><polyline points="18 17 13 12 18 7"/></svg>
+        </button>
+      </div>
+      <div class="da-sidebar-body">
+        <!-- Data Sources -->
+        <div class="da-sidebar-section">Data Sources</div>
+
+        <div class="da-source-card active" data-source="crf" onclick="daSidebarSourceClick(this, 'crf')">
+          <div class="da-source-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </div>
+          <div class="da-source-info">
+            <div class="da-source-name">CRF Tables</div>
+            <div class="da-source-desc">DM, AE, CM, VS, LB domains</div>
+          </div>
+        </div>
+
+        <div class="da-source-card" data-source="ae" onclick="daSidebarSourceClick(this, 'ae')">
+          <div class="da-source-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          </div>
+          <div class="da-source-info">
+            <div class="da-source-name">AE Reports</div>
+            <div class="da-source-desc">Adverse event analysis data</div>
+          </div>
+        </div>
+
+        <div class="da-source-card" data-source="stats" onclick="daSidebarSourceClick(this, 'stats')">
+          <div class="da-source-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          </div>
+          <div class="da-source-info">
+            <div class="da-source-name">Statistical Analysis</div>
+            <div class="da-source-desc">Hypothesis tests, p-values</div>
+          </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="da-sidebar-section">Quick Actions</div>
+
+        <button class="da-action-btn" onclick="daChatAsk('Generate a comprehensive AE summary report including incidence rates, severity distribution, and dose-limiting events')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+          Generate AE Summary Report
+        </button>
+
+        <button class="da-action-btn" onclick="daChatAsk('Compare Natural vs Care AI treatment arms: AE detection times, dose modification rates, and patient outcomes')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+          Compare Treatment Arms
+        </button>
+
+        <button class="da-action-btn" onclick="daChatAsk('Export key statistical results: patient demographics summary, AE frequency table, and efficacy endpoints with confidence intervals')">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Export Statistics
+        </button>
+      </div>
+    </div>
+
+    <!-- Main Chat Container -->
+    <div class="da-chat-container">
+
+      <!-- Sidebar re-open button (visible when sidebar collapsed) -->
+      <button class="da-sidebar-open-btn" id="daSidebarOpenBtn" onclick="toggleDaSidebar()" title="Open sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="13 17 18 12 13 7"/><polyline points="6 17 11 12 6 7"/></svg>
+      </button>
+
+      <div class="da-chat-header">
+        <div class="da-chat-header-icon">
+          <img src="{% static 'assets/ui/gemma.png' %}" alt="MedGemma">
+        </div>
+        <div class="da-chat-header-text">
+          <div class="da-chat-header-title">Data Analysis (Chatbot &amp; Report)</div>
+          <div class="da-chat-header-sub">MedGemma &middot; Anti-hallucination Protected</div>
+        </div>
+      </div>
+
+      <div class="da-chat-messages" id="daChatMessages">
+        <!-- Rich Welcome Screen -->
+        <div class="da-chat-welcome" id="daChatWelcome">
+          <div class="da-chat-welcome-header">
+            <div class="da-chat-welcome-icon">
+              <img src="{% static 'assets/ui/gemma.png' %}" alt="MedGemma">
+            </div>
+            <div class="da-chat-welcome-title">Data Analysis Agent</div>
+            <div class="da-chat-welcome-desc">
+              Explore clinical trial simulation data with AI-powered analysis.
+              Ask questions, generate reports, or start with a quick action below.
+            </div>
+          </div>
+
+          <!-- 2x2 Quick-start cards -->
+          <div class="da-welcome-grid">
+            <div class="da-welcome-card" onclick="daChatAsk('Analyze adverse event incidence rates across all patients, grouped by severity grade and system organ class')">
+              <div class="da-welcome-card-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              </div>
+              <div class="da-welcome-card-text">
+                <div class="da-welcome-card-name">AE Analysis</div>
+                <div class="da-welcome-card-desc">Incidence rates, severity, organ class</div>
+              </div>
+            </div>
+
+            <div class="da-welcome-card" onclick="daChatAsk('Summarize CRF data: demographics, baseline characteristics, treatment exposure, and key lab values')">
+              <div class="da-welcome-card-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+              </div>
+              <div class="da-welcome-card-text">
+                <div class="da-welcome-card-name">CRF Summary</div>
+                <div class="da-welcome-card-desc">Demographics, labs, treatment data</div>
+              </div>
+            </div>
+
+            <div class="da-welcome-card" onclick="daChatAsk('Generate a statistical report with hypothesis testing results, confidence intervals, and p-values for key efficacy endpoints')">
+              <div class="da-welcome-card-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+              </div>
+              <div class="da-welcome-card-text">
+                <div class="da-welcome-card-name">Statistical Report</div>
+                <div class="da-welcome-card-desc">Hypothesis tests, p-values, CI</div>
+              </div>
+            </div>
+
+            <div class="da-welcome-card" onclick="daChatAsk('Show me an overview of all available simulation data: number of patients, days simulated, treatment arms, and key metrics')">
+              <div class="da-welcome-card-icon">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7aa2f7" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              </div>
+              <div class="da-welcome-card-text">
+                <div class="da-welcome-card-name">Data Explorer</div>
+                <div class="da-welcome-card-desc">Browse patients, arms, metrics</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="da-chat-suggestions" id="daChatSuggestions">
+        <button class="da-chat-suggestion" onclick="daChatAsk(this.textContent)">Summarize AE incidence rates</button>
+        <button class="da-chat-suggestion" onclick="daChatAsk(this.textContent)">Compare Care AI vs Natural outcomes</button>
+        <button class="da-chat-suggestion" onclick="daChatAsk(this.textContent)">Explain the hazard function</button>
+        <button class="da-chat-suggestion" onclick="daChatAsk(this.textContent)">Which AEs are dose-limiting?</button>
+      </div>
+
+      <div class="da-chat-input-area">
+        <div class="da-chat-input-context" id="daChatContext">
+          <span class="da-chat-input-context-dot"></span>
+          <span>3 data sources loaded: CRF Tables, AE Reports, Statistical Analysis</span>
+        </div>
+        <div class="da-chat-input-row">
+          <textarea class="da-chat-input" id="daChatInput"
+                   placeholder="Ask about simulation data, CRF tables, AE statistics..."
+                   rows="1"
+                   onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();daChatSend();}"></textarea>
+          <button class="da-chat-send" onclick="daChatSend()" title="Send message">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div><!-- /tabChatbot -->
 
 </div>
 
@@ -1121,13 +2006,13 @@ function renderExamples(categories) {
       tab.dataset.idx = idx;
       tab.innerHTML = cat.name + '<span class="ah-tab-count">' + cat.questions.length + '</span>';
 
-      /* Apply category color */
-      var col = cat.color;
+      /* Apply unified theme color */
+      var col = '#7aa2f7';
       if (idx === 0) applyTabColor(tab, col);
       tab.addEventListener('mouseenter', function() {
         if (!tab.classList.contains('active')) {
           tab.style.color = col;
-          tab.style.background = col + '0a';
+          tab.style.background = 'rgba(122,162,247,0.06)';
         }
       });
       tab.addEventListener('mouseleave', function() {
@@ -1161,7 +2046,7 @@ function selectCatTab(idx) {
     var isActive = (i === idx);
     t.classList.toggle('active', isActive);
     if (isActive) {
-      applyTabColor(t, ahCategories[i].color);
+      applyTabColor(t, '#7aa2f7');
     } else {
       t.style.color = '';
       t.style.background = '';
@@ -1179,12 +2064,17 @@ function renderPillsForTab(idx) {
   if (!cat) return;
 
   for (var q = 0; q < cat.questions.length; q++) {
-    (function(question) {
+    (function(question, qIdx) {
       var pill = document.createElement('button');
       pill.className = 'ah-pill';
-      pill.textContent = question;
-      pill.title = question; /* full text on hover */
-      /* Keep active state if this pill matches current input */
+      var num = document.createElement('span');
+      num.className = 'ah-pill-num';
+      num.textContent = qIdx + 1;
+      pill.appendChild(num);
+      var txt = document.createElement('span');
+      txt.textContent = question;
+      pill.appendChild(txt);
+      pill.title = question;
       if (document.getElementById('ahInput').value.trim() === question) {
         pill.classList.add('active');
       }
@@ -1195,7 +2085,7 @@ function renderPillsForTab(idx) {
         handleSubmit();
       });
       row.appendChild(pill);
-    })(cat.questions[q]);
+    })(cat.questions[q], q);
   }
 }
 
@@ -1245,6 +2135,9 @@ function setLoading(loading) {
         el.appendChild(line);
       }
       document.getElementById('ahMetrics' + side).style.display = 'none';
+      /* Reset probe bar */
+      var fill = document.getElementById('ahProbeFill' + side);
+      if (fill) { fill.style.width = '0%'; fill.className = 'ah-probe-bar-fill'; }
     });
   } else {
     btn.classList.remove('loading');
@@ -1257,20 +2150,11 @@ function renderResults(data) {
   typeResponse('Original', data.original);
   typeResponse('Defended', data.defended);
 
-  /* Update LIVE / CACHED badge */
-  var badge = document.getElementById('ahLiveBadge');
-  var badgeText = document.getElementById('ahLiveBadgeText');
-  if (data.live) {
-    badge.setAttribute('data-mode', 'live');
-    badgeText.textContent = 'LIVE';
-  } else {
-    badge.setAttribute('data-mode', 'cached');
-    badgeText.textContent = 'CACHED';
-  }
 
   ahStats.queries++;
   if (data.original.hallucination_prob >= 0.5) ahStats.baselineHalluc++;
   if (data.defended.hallucination_prob >= 0.5) ahStats.defenseHalluc++;
+  updateStatsBar();
 }
 
 /* ── Strip markdown bold ── */
@@ -1307,9 +2191,72 @@ function showMetrics(side, result) {
   var metricsEl = document.getElementById('ahMetrics' + side);
   metricsEl.style.display = 'block';
 
+  /* Probe Activation (risk score) */
+  var riskEl = document.getElementById('ahRisk' + side);
+  if (riskEl && result.hallucination_prob !== undefined) {
+    var prob = result.hallucination_prob;
+    var pct = (prob * 100).toFixed(1) + '%';
+    var level = result.risk_level || '';
+    var cls = 'safe';
+    if (prob >= 0.7) cls = 'high';
+    else if (prob >= 0.5) cls = 'elevated';
+    else if (prob >= 0.3) cls = 'uncertain';
+    riskEl.innerHTML = '<span class="ah-risk ' + cls + '">' + pct + ' · ' + level + '</span>';
+
+    /* Probe activation visual bar */
+    var fillEl = document.getElementById('ahProbeFill' + side);
+    if (fillEl) {
+      var barCls = 'probe-low';
+      if (prob >= 0.7) barCls = 'probe-high';
+      else if (prob >= 0.5) barCls = 'probe-elevated';
+      else if (prob >= 0.3) barCls = 'probe-medium';
+      fillEl.className = 'ah-probe-bar-fill ' + barCls;
+      /* Trigger animation with a small delay so transition fires */
+      fillEl.style.width = '0%';
+      setTimeout(function() {
+        fillEl.style.width = (prob * 100).toFixed(1) + '%';
+      }, 50);
+    }
+  }
+
   var latency = result.latency_ms || 0;
   document.getElementById('ahLatency' + side).textContent =
     latency >= 1000 ? (latency / 1000).toFixed(1) + 's' : latency + 'ms';
+}
+
+/* ── Update cumulative stats bar ── */
+function updateStatsBar() {
+  var qEl = document.getElementById('ahStatQueries');
+  var bEl = document.getElementById('ahStatBaseline');
+  var cEl = document.getElementById('ahStatCatches');
+  var rEl = document.getElementById('ahStatRate');
+
+  if (qEl) qEl.textContent = ahStats.queries;
+  if (bEl) bEl.textContent = ahStats.baselineHalluc;
+
+  /* Defense catches = baseline hallucs minus defense hallucs (i.e. caught by defense) */
+  var catches = ahStats.baselineHalluc - ahStats.defenseHalluc;
+  if (catches < 0) catches = 0;
+  if (cEl) cEl.textContent = catches;
+
+  /* Defense rate */
+  if (rEl) {
+    if (ahStats.baselineHalluc > 0) {
+      var rate = ((catches / ahStats.baselineHalluc) * 100).toFixed(0);
+      rEl.textContent = rate + '%';
+    } else if (ahStats.queries > 0) {
+      rEl.textContent = '100%';
+    } else {
+      rEl.textContent = '--';
+    }
+  }
+
+  /* Bump animation */
+  [qEl, bEl, cEl, rEl].forEach(function(el) {
+    if (!el) return;
+    el.classList.add('bump');
+    setTimeout(function() { el.classList.remove('bump'); }, 300);
+  });
 }
 
 /* ── Error display ── */
@@ -1319,11 +2266,6 @@ function renderError(message) {
     el.className = 'ah-response empty';
     el.textContent = 'Error: ' + message;
   });
-  /* Mark badge offline on error */
-  var badge = document.getElementById('ahLiveBadge');
-  var badgeText = document.getElementById('ahLiveBadgeText');
-  badge.setAttribute('data-mode', 'offline');
-  badgeText.textContent = 'OFFLINE';
 }
 
 /* =================================================================
@@ -1359,7 +2301,11 @@ function toggleAutoDemo() {
     document.getElementById('ahInput').value = question;
 
     /* Switch to the correct tab and highlight the matching pill */
-    var catIdx = Math.floor((autoIdx) / 5);  /* 5 questions per category */
+    var cumulative = 0, catIdx = 0;
+    for (var ci = 0; ci < ahCategories.length; ci++) {
+      cumulative += ahCategories[ci].questions.length;
+      if (autoIdx < cumulative) { catIdx = ci; break; }
+    }
     if (catIdx !== ahActiveTab && catIdx < ahCategories.length) {
       selectCatTab(catIdx);
     }
@@ -1385,5 +2331,289 @@ function stopAutoDemo() {
     btn.querySelector('.ah-auto-text').textContent = 'Auto Demo';
   }
 }
+
+/* =================================================================
+   TAB SWITCHING — Data Analysis Agent tabs
+   ================================================================= */
+window.switchDaTab = function(tab, btn) {
+  /* Stop auto demo when switching tabs */
+  if (tab !== 'antihallu') stopAutoDemo();
+
+  document.querySelectorAll('.ah-tab-link').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.ah-tab-pane').forEach(function(p) { p.classList.remove('active'); });
+  btn.classList.add('active');
+  var paneId = tab === 'antihallu' ? 'tabAntihallu' : 'tabChatbot';
+  document.getElementById(paneId).classList.add('active');
+
+  /* Focus chat input when switching to chatbot tab */
+  if (tab === 'chatbot') {
+    setTimeout(function() {
+      var input = document.getElementById('daChatInput');
+      if (input) input.focus({ preventScroll: true });
+    }, 100);
+  }
+};
+
+/* =================================================================
+   DATA CHATBOT — Enhanced inline chat interface
+   ================================================================= */
+var daChatHistory = [];
+
+/* -- Sidebar toggle -- */
+function toggleDaSidebar() {
+  var sidebar = document.getElementById('daSidebar');
+  var openBtn = document.getElementById('daSidebarOpenBtn');
+  if (!sidebar) return;
+  sidebar.classList.toggle('collapsed');
+  if (openBtn) {
+    openBtn.style.display = sidebar.classList.contains('collapsed') ? 'flex' : 'none';
+  }
+}
+
+/* -- Sidebar source click -- */
+function daSidebarSourceClick(el, source) {
+  /* Visual toggle (multi-select style) */
+  el.classList.toggle('active');
+  /* Update context indicator */
+  updateDaContextIndicator();
+}
+
+function updateDaContextIndicator() {
+  var sources = document.querySelectorAll('.da-source-card.active');
+  var ctx = document.getElementById('daChatContext');
+  if (!ctx) return;
+  var names = [];
+  sources.forEach(function(s) {
+    var n = s.querySelector('.da-source-name');
+    if (n) names.push(n.textContent);
+  });
+  var dotEl = ctx.querySelector('.da-chat-input-context-dot');
+  if (names.length === 0) {
+    ctx.querySelector('span:last-child').textContent = 'No data sources selected';
+    if (dotEl) { dotEl.style.background = '#8b949e'; dotEl.style.boxShadow = 'none'; }
+  } else {
+    ctx.querySelector('span:last-child').textContent = names.length + ' data source' + (names.length > 1 ? 's' : '') + ' loaded: ' + names.join(', ');
+    if (dotEl) { dotEl.style.background = '#3fb950'; dotEl.style.boxShadow = '0 0 6px rgba(63,185,80,0.4)'; }
+  }
+}
+
+/* -- Chat send / ask -- */
+function daChatAsk(text) {
+  /* Switch to chatbot tab if not already active */
+  var pane = document.getElementById('tabChatbot');
+  if (pane && !pane.classList.contains('active')) {
+    var chatBtn = document.querySelector('.ah-tab-link:nth-child(2)');
+    if (chatBtn) switchDaTab('chatbot', chatBtn);
+  }
+  document.getElementById('daChatInput').value = text;
+  daChatSend();
+}
+
+function daChatSend() {
+  var input = document.getElementById('daChatInput');
+  var message = input.value.trim();
+  if (!message) return;
+
+  /* Hide welcome + suggestions on first message */
+  var welcome = document.getElementById('daChatWelcome');
+  if (welcome) welcome.style.display = 'none';
+  var suggestions = document.getElementById('daChatSuggestions');
+  if (suggestions) suggestions.style.display = 'none';
+
+  /* Add user message */
+  daChatAppend('user', message);
+  daChatHistory.push({ role: 'user', content: message });
+  input.value = '';
+  input.style.height = 'auto';
+
+  /* Show typing indicator */
+  var typing = document.createElement('div');
+  typing.className = 'da-typing-indicator';
+  typing.id = 'daTyping';
+  typing.innerHTML = '<span></span><span></span><span></span>';
+  document.getElementById('daChatMessages').appendChild(typing);
+  scrollDaChat();
+
+  /* Call API */
+  fetch('/api/stats/chat/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: message, history: daChatHistory.slice(-10) }),
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    var t = document.getElementById('daTyping');
+    if (t) t.remove();
+    var reply = data.reply || data.response || 'No response received.';
+    var source = data.source || inferDaSource(message);
+    daChatAppend('assistant', reply, source);
+    daChatHistory.push({ role: 'assistant', content: reply });
+  })
+  .catch(function(err) {
+    var t = document.getElementById('daTyping');
+    if (t) t.remove();
+    daChatAppend('assistant', 'Error: ' + (err.message || 'Request failed'));
+  });
+}
+
+/* -- Infer source citation from message content -- */
+function inferDaSource(msg) {
+  var lower = msg.toLowerCase();
+  if (lower.indexOf('ae') >= 0 || lower.indexOf('adverse') >= 0 || lower.indexOf('safety') >= 0) return 'AE Reports';
+  if (lower.indexOf('crf') >= 0 || lower.indexOf('demograph') >= 0 || lower.indexOf('lab') >= 0 || lower.indexOf('vital') >= 0) return 'CRF Tables';
+  if (lower.indexOf('statistic') >= 0 || lower.indexOf('p-value') >= 0 || lower.indexOf('confidence') >= 0 || lower.indexOf('hypothesis') >= 0) return 'Statistical Analysis';
+  if (lower.indexOf('compare') >= 0 || lower.indexOf('arm') >= 0 || lower.indexOf('care ai') >= 0 || lower.indexOf('natural') >= 0) return 'AE Reports, Statistical Analysis';
+  return 'Simulation Data';
+}
+
+/* -- Append message to chat -- */
+function daChatAppend(role, text, source) {
+  var messages = document.getElementById('daChatMessages');
+  var msg = document.createElement('div');
+  msg.className = 'da-msg ' + role;
+  var bubble = document.createElement('div');
+  bubble.className = 'da-msg-bubble';
+
+  if (role === 'assistant') {
+    bubble.innerHTML = formatDaChat(text);
+
+    /* Copy button */
+    var copyBtn = document.createElement('button');
+    copyBtn.className = 'da-msg-copy';
+    copyBtn.title = 'Copy to clipboard';
+    copyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+    copyBtn.addEventListener('click', function() {
+      var plain = text.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+      navigator.clipboard.writeText(plain).then(function() {
+        copyBtn.classList.add('copied');
+        copyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        setTimeout(function() {
+          copyBtn.classList.remove('copied');
+          copyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+        }, 2000);
+      });
+    });
+    bubble.appendChild(copyBtn);
+
+    /* Source citation */
+    if (source) {
+      var srcEl = document.createElement('div');
+      srcEl.className = 'da-msg-source';
+      srcEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Source: ' + source;
+      bubble.appendChild(srcEl);
+    }
+  } else {
+    bubble.innerHTML = formatDaChatUser(text);
+  }
+
+  msg.appendChild(bubble);
+  messages.appendChild(msg);
+  scrollDaChat();
+}
+
+/* -- Format user messages (simple, no markdown) -- */
+function formatDaChatUser(text) {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+}
+
+/* -- Format assistant messages (rich markdown) -- */
+function formatDaChat(text) {
+  var s = text;
+  /* Escape HTML entities first */
+  s = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+  /* Code blocks (``` ... ```) - must be before inline code */
+  s = s.replace(/```(\w*)\n?([\s\S]*?)```/g, function(m, lang, code) {
+    return '<pre><code>' + code.trim() + '</code></pre>';
+  });
+
+  /* Tables: detect lines with | separators */
+  s = s.replace(/((?:^|\n)\|.+\|(?:\n\|[-: |]+\|)?(?:\n\|.+\|)+)/g, function(tableBlock) {
+    var rows = tableBlock.trim().split('\n').filter(function(r) { return r.trim(); });
+    var html = '<table>';
+    var headerDone = false;
+    for (var ri = 0; ri < rows.length; ri++) {
+      var row = rows[ri].trim();
+      /* Skip separator rows like |---|---| */
+      if (/^\|[\s\-:|]+\|$/.test(row)) { headerDone = true; continue; }
+      var cells = row.split('|').filter(function(c, i, arr) { return i > 0 && i < arr.length - 1; });
+      var tag = (!headerDone && ri === 0) ? 'th' : 'td';
+      html += '<tr>';
+      cells.forEach(function(c) { html += '<' + tag + '>' + c.trim() + '</' + tag + '>'; });
+      html += '</tr>';
+      if (tag === 'th') headerDone = true;
+    }
+    html += '</table>';
+    return html;
+  });
+
+  /* Headers */
+  s = s.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  s = s.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  s = s.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+
+  /* Blockquotes */
+  s = s.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+
+  /* Horizontal rules */
+  s = s.replace(/^---$/gm, '<hr>');
+
+  /* Unordered lists */
+  s = s.replace(/((?:^|\n)(?:- .+\n?)+)/g, function(block) {
+    var items = block.trim().split('\n');
+    var html = '<ul>';
+    items.forEach(function(item) {
+      var content = item.replace(/^- /, '').trim();
+      if (content) html += '<li>' + content + '</li>';
+    });
+    html += '</ul>';
+    return html;
+  });
+
+  /* Ordered lists */
+  s = s.replace(/((?:^|\n)(?:\d+\. .+\n?)+)/g, function(block) {
+    var items = block.trim().split('\n');
+    var html = '<ol>';
+    items.forEach(function(item) {
+      var content = item.replace(/^\d+\. /, '').trim();
+      if (content) html += '<li>' + content + '</li>';
+    });
+    html += '</ol>';
+    return html;
+  });
+
+  /* Bold and italic */
+  s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+
+  /* Inline code (after code blocks) */
+  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+
+  /* Remaining newlines to <br> (but not inside block elements) */
+  s = s.replace(/\n/g, '<br>');
+
+  /* Clean up double <br> around block elements */
+  s = s.replace(/<br><(h[1-3]|ul|ol|table|pre|blockquote|hr)/g, '<$1');
+  s = s.replace(/<\/(h[1-3]|ul|ol|table|pre|blockquote)><br>/g, '</$1>');
+
+  return s;
+}
+
+function scrollDaChat() {
+  var el = document.getElementById('daChatMessages');
+  setTimeout(function() { el.scrollTop = el.scrollHeight; }, 50);
+}
+
+/* Auto-resize textarea */
+document.addEventListener('DOMContentLoaded', function() {
+  var ta = document.getElementById('daChatInput');
+  if (ta) {
+    ta.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 140) + 'px';
+    });
+  }
+});
 </script>
 {% endblock %}

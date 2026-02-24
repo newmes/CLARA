@@ -1,7 +1,7 @@
 {% extends "base/base.html" %}
 {% load static %}
 
-{% block title %}CLARA — MedGemma Clinical AE Detection{% endblock %}
+{% block title %}CLARA — Data Collection: SAE Detection{% endblock %}
 
 {% block extra_head %}
 <style>
@@ -39,7 +39,7 @@
 
 /* -- Layout Container -- */
 .mg-main {
-  max-width: 1200px;
+  max-width: 1320px;
   margin: 0 auto;
   padding: 0 32px 4em;
   position: relative;
@@ -337,7 +337,7 @@
 .mg-card:hover::before { opacity: 1; }
 
 /* =================================================================
-   INTERACTIVE DEMO SECTION
+   INTERACTIVE DEMO — Master-Detail Layout
    ================================================================= */
 .mg-demo-container {
   border-radius: 18px;
@@ -348,21 +348,28 @@
   z-index: 1;
 }
 
-/* AE Type Pill Tabs */
-.mg-ae-tabs {
+/* Top toolbar: AE tabs + Auto Demo button */
+.mg-demo-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.mg-demo-toolbar-tabs {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border);
+  gap: 5px;
+  flex: 1;
 }
 .mg-ae-tab {
-  padding: 6px 14px;
-  border-radius: 20px;
+  padding: 5px 12px;
+  border-radius: 16px;
   border: 1px solid var(--border);
   background: transparent;
   color: var(--text-muted);
-  font: 600 0.72em 'JetBrains Mono', monospace;
+  font: 600 0.68em 'JetBrains Mono', monospace;
   cursor: pointer;
   transition: all 0.25s ease;
   white-space: nowrap;
@@ -382,107 +389,187 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-width: 18px;
-  height: 18px;
-  border-radius: 9px;
+  min-width: 16px;
+  height: 16px;
+  border-radius: 8px;
   background: rgba(188,140,255,0.12);
   color: var(--accent-purple);
   font-size: 0.85em;
-  margin-left: 4px;
-  padding: 0 5px;
+  margin-left: 3px;
+  padding: 0 4px;
 }
 .mg-ae-tab.active .tab-count {
   background: rgba(188,140,255,0.2);
 }
 
-/* Thumbnail Gallery */
-.mg-thumb-gallery {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 10px;
-  padding: 16px 20px;
-  min-height: 100px;
+/* Master-Detail split */
+.mg-master-detail {
+  display: flex;
+  min-height: 520px;
 }
-.mg-thumb-item {
-  position: relative;
-  border-radius: 12px;
+
+/* Left sidebar — sample browser */
+.mg-sidebar {
+  width: 300px;
+  min-width: 300px;
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
-  border: 2px solid transparent;
+}
+.mg-sidebar-header {
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(48,54,61,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.mg-sidebar-title {
+  font: 700 0.62em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+}
+.mg-sidebar-count {
+  font: 600 0.62em 'JetBrains Mono', monospace;
+  color: var(--accent-purple);
+  opacity: 0.7;
+}
+.mg-sidebar-list {
+  flex: 1;
+  overflow-y: auto;
+  padding: 8px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(188,140,255,0.2) transparent;
+}
+.mg-sidebar-list::-webkit-scrollbar { width: 4px; }
+.mg-sidebar-list::-webkit-scrollbar-track { background: transparent; }
+.mg-sidebar-list::-webkit-scrollbar-thumb { background: rgba(188,140,255,0.2); border-radius: 2px; }
+
+/* Sample cards in sidebar */
+.mg-sample-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid transparent;
   cursor: pointer;
-  transition: all 0.25s ease;
-  background: var(--bg-elevated);
+  transition: all 0.2s ease;
+  margin-bottom: 4px;
 }
-.mg-thumb-item:hover {
-  border-color: rgba(188,140,255,0.3);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+.mg-sample-card:hover {
+  background: rgba(188,140,255,0.04);
+  border-color: rgba(48,54,61,0.6);
 }
-.mg-thumb-item.active {
-  border-color: var(--accent-purple);
-  box-shadow: 0 0 16px rgba(188,140,255,0.2);
+.mg-sample-card.active {
+  background: rgba(188,140,255,0.08);
+  border-color: rgba(188,140,255,0.35);
+  box-shadow: 0 0 12px rgba(188,140,255,0.06);
 }
-.mg-thumb-item img {
+.mg-sample-thumb {
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 1px solid rgba(48,54,61,0.5);
+  transition: border-color 0.2s;
+}
+.mg-sample-card.active .mg-sample-thumb {
+  border-color: rgba(188,140,255,0.4);
+}
+.mg-sample-thumb img {
   width: 100%;
-  aspect-ratio: 1;
+  height: 100%;
   object-fit: cover;
   display: block;
 }
-.mg-thumb-label {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  padding: 4px 6px;
-  background: linear-gradient(transparent, rgba(0,0,0,0.85));
-  font: 600 0.58em 'JetBrains Mono', monospace;
-  color: #fff;
-  text-align: center;
+.mg-sample-info {
+  flex: 1;
+  min-width: 0;
 }
-.mg-thumb-grade {
+.mg-sample-id {
+  font: 600 0.7em 'JetBrains Mono', monospace;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-bottom: 2px;
+}
+.mg-sample-card.active .mg-sample-id {
+  color: var(--accent-purple);
+}
+.mg-sample-ae-hint {
+  font: 500 0.62em/1.3 'Inter', sans-serif;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.mg-sample-grade-pill {
   display: inline-block;
-  padding: 1px 5px;
+  padding: 1px 6px;
   border-radius: 4px;
-  font-size: 0.9em;
-  font-weight: 700;
-  margin-left: 2px;
+  font: 700 0.58em 'JetBrains Mono', monospace;
+  flex-shrink: 0;
 }
-.mg-thumb-grade.g0 { background: rgba(63,185,80,0.3); color: var(--accent-green); }
-.mg-thumb-grade.g1 { background: rgba(210,153,34,0.3); color: var(--grade-1); }
-.mg-thumb-grade.g2 { background: rgba(227,135,62,0.3); color: var(--grade-2); }
-.mg-thumb-grade.g3 { background: rgba(248,81,73,0.3); color: var(--grade-3); }
+.mg-sample-grade-pill.g0 { background: rgba(63,185,80,0.15); color: var(--accent-green); }
+.mg-sample-grade-pill.g1 { background: rgba(210,153,34,0.15); color: var(--grade-1); }
+.mg-sample-grade-pill.g2 { background: rgba(227,135,62,0.15); color: var(--grade-2); }
+.mg-sample-grade-pill.g3 { background: rgba(248,81,73,0.15); color: var(--grade-3); }
 
-/* Demo Body */
-.mg-demo-body {
-  padding: 24px 20px;
+/* Right panel — result viewer */
+.mg-detail-panel {
+  flex: 1;
+  overflow-y: auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
 }
-.mg-demo-placeholder {
-  text-align: center; color: var(--text-muted); padding: 40px 20px;
-  font-size: 0.88em; line-height: 1.8;
+
+/* Detail panel placeholder */
+.mg-detail-placeholder {
+  flex: 1;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  color: var(--text-muted); padding: 40px 20px;
+  font-size: 0.88em; line-height: 1.8; text-align: center;
 }
-.mg-demo-placeholder .ph-icon {
+.mg-detail-placeholder .ph-icon {
   font-size: 2.4em; margin-bottom: 12px; opacity: 0.25;
   display: block; filter: grayscale(1);
 }
 
-/* Demo Images */
-.mg-demo-images {
+/* Detail content area */
+.mg-detail-content {
+  padding: 20px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Image comparison row */
+.mg-detail-images {
   display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
-  background: rgba(48,54,61,0.5); border-radius: 14px;
-  overflow: hidden; margin-bottom: 20px;
+  background: rgba(48,54,61,0.5); border-radius: 12px;
+  overflow: hidden; margin-bottom: 16px;
 }
 .mg-demo-img-wrap {
-  background: var(--bg-primary); padding: 10px; text-align: center;
+  background: var(--bg-primary); padding: 8px; text-align: center;
   cursor: pointer;
   transition: background 0.2s;
 }
 .mg-demo-img-wrap:hover { background: rgba(22,27,34,0.9); }
 .mg-demo-img-wrap img {
-  width: 100%; max-width: 320px; aspect-ratio: 1; object-fit: cover; border-radius: 8px;
+  width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 8px;
   transition: transform 0.3s ease;
 }
 .mg-demo-img-wrap:hover img {
   transform: scale(1.02);
 }
 .mg-demo-img-label {
-  font-size: 0.65em; color: var(--text-muted); margin-top: 6px;
+  font-size: 0.62em; color: var(--text-muted); margin-top: 4px;
   font-family: 'JetBrains Mono', monospace; text-transform: uppercase;
   letter-spacing: 0.8px; font-weight: 600;
 }
@@ -490,31 +577,159 @@
 /* Ground Truth Bar */
 .mg-demo-gt-bar {
   display: flex; align-items: center; justify-content: space-between;
-  gap: 16px; margin-bottom: 20px;
-  padding: 14px 20px; background: linear-gradient(135deg, rgba(210,153,34,0.08), rgba(210,153,34,0.03));
-  border: 1.5px solid rgba(210,153,34,0.35); border-radius: 12px;
+  gap: 12px; margin-bottom: 16px;
+  padding: 10px 16px; background: linear-gradient(135deg, rgba(210,153,34,0.08), rgba(210,153,34,0.03));
+  border: 1.5px solid rgba(210,153,34,0.35); border-radius: 10px;
   position: relative; overflow: hidden;
 }
 .mg-demo-gt-bar::before {
-  content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%;
-  background: var(--accent-orange); border-radius: 4px 0 0 4px;
+  content: ''; position: absolute; top: 0; left: 0; width: 3px; height: 100%;
+  background: var(--accent-orange); border-radius: 3px 0 0 3px;
 }
 .mg-demo-gt-label {
-  font-size: 0.6em; font-weight: 700; text-transform: uppercase;
+  font-size: 0.58em; font-weight: 700; text-transform: uppercase;
   letter-spacing: 1.5px; color: rgba(210,153,34,0.7);
 }
 .mg-demo-gt-value {
-  font-size: 1em; font-weight: 700; font-family: 'JetBrains Mono', monospace;
+  font-size: 0.9em; font-weight: 700; font-family: 'JetBrains Mono', monospace;
   color: var(--accent-orange);
+}
+
+/* 3-Model Pipeline Visual */
+.mg-pipeline-stack {
+  display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap;
+}
+.mg-pipeline-model {
+  flex: 1; min-width: 120px;
+  padding: 10px 12px;
+  background: rgba(22,27,34,0.6);
+  border: 1px solid rgba(48,54,61,0.5);
+  border-radius: 10px;
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+.mg-pipeline-model::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--accent-purple), rgba(88,166,255,0.3));
+  opacity: 0.3;
+  transition: opacity 0.3s;
+}
+.mg-pipeline-model.processing {
+  border-color: rgba(188,140,255,0.4);
+  background: rgba(188,140,255,0.06);
+}
+.mg-pipeline-model.processing::before { opacity: 1; }
+.mg-pipeline-model.done {
+  border-color: rgba(63,185,80,0.3);
+}
+.mg-pipeline-model.done::before {
+  background: linear-gradient(90deg, var(--accent-green), rgba(63,185,80,0.3));
+  opacity: 0.8;
+}
+.mg-pipeline-model-name {
+  font: 700 0.68em 'JetBrains Mono', monospace;
+  color: var(--accent-purple);
+  margin-bottom: 3px;
+}
+.mg-pipeline-model.done .mg-pipeline-model-name {
+  color: var(--accent-green);
+}
+.mg-pipeline-model-role {
+  font: 500 0.58em 'Inter', sans-serif;
+  color: var(--text-muted);
+}
+.mg-pipeline-model-score {
+  font: 700 0.72em 'JetBrains Mono', monospace;
+  color: var(--text-secondary);
+  margin-top: 4px;
+}
+.mg-pipeline-spinner {
+  width: 12px; height: 12px;
+  border: 2px solid rgba(188,140,255,0.2);
+  border-top-color: var(--accent-purple);
+  border-radius: 50%;
+  animation: mgSpin 0.8s linear infinite;
+  display: inline-block;
+  margin-top: 4px;
+}
+
+/* Confidence gauge */
+.mg-confidence-gauge {
+  margin-bottom: 16px;
+  padding: 12px 16px;
+  background: rgba(22,27,34,0.5);
+  border: 1px solid rgba(48,54,61,0.5);
+  border-radius: 10px;
+}
+.mg-gauge-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 8px;
+}
+.mg-gauge-label {
+  font: 700 0.6em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+.mg-gauge-value {
+  font: 800 1em 'JetBrains Mono', monospace;
+  color: var(--accent-green);
+}
+.mg-gauge-track {
+  height: 8px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid rgba(48,54,61,0.3);
+}
+.mg-gauge-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--accent-purple), var(--accent-green));
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  width: 0;
+}
+.mg-gauge-ctcae {
+  margin-top: 8px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.mg-gauge-ctcae-label {
+  font: 600 0.6em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+.mg-gauge-ctcae-value {
+  font: 700 0.78em 'JetBrains Mono', monospace;
+  padding: 2px 10px;
+  border-radius: 6px;
+}
+.mg-gauge-ctcae-value.correct {
+  background: rgba(63,185,80,0.12);
+  color: var(--accent-green);
+  border: 1px solid rgba(63,185,80,0.25);
+}
+.mg-gauge-ctcae-value.wrong {
+  background: rgba(248,81,73,0.12);
+  color: var(--accent-red);
+  border: 1px solid rgba(248,81,73,0.25);
+}
+
+/* Action row */
+.mg-detail-actions {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+  margin-bottom: 16px;
 }
 
 /* Keyboard nav hint */
 .mg-nav-hint {
   display: flex; align-items: center; justify-content: center; gap: 8px;
-  font: 500 0.68em 'JetBrains Mono', monospace;
+  font: 500 0.62em 'JetBrains Mono', monospace;
   color: var(--text-muted);
   opacity: 0.5;
-  margin-top: 8px;
+  margin-top: 6px;
 }
 .mg-nav-hint kbd {
   display: inline-flex; align-items: center; justify-content: center;
@@ -544,7 +759,7 @@
 .mg-btn-analyze .spinner {
   width: 14px; height: 14px; border: 2px solid rgba(188,140,255,0.3);
   border-top-color: var(--accent-purple); border-radius: 50%;
-  animation: spin 0.8s linear infinite; display: none;
+  animation: mgSpin 0.8s linear infinite; display: none;
 }
 .mg-btn-analyze.loading .spinner { display: inline-block; }
 
@@ -552,10 +767,10 @@
 .mg-btn-auto {
   background: rgba(188,140,255,0.06);
   border: 1px solid rgba(188,140,255,0.2); color: var(--accent-purple);
-  border-radius: 12px; padding: 10px 20px;
-  font-size: 0.78em; font-weight: 600; font-family: 'JetBrains Mono', monospace;
+  border-radius: 10px; padding: 7px 14px;
+  font-size: 0.7em; font-weight: 600; font-family: 'JetBrains Mono', monospace;
   cursor: pointer; transition: all 0.3s; display: inline-flex; align-items: center; gap: 6px;
-  margin-left: 10px;
+  flex-shrink: 0;
 }
 .mg-btn-auto:hover {
   background: rgba(188,140,255,0.12);
@@ -904,9 +1119,18 @@
   .mg-stats-row { grid-template-columns: repeat(2, 1fr); }
   .mg-overview-grid { grid-template-columns: 1fr; }
   .mg-perf-grid { grid-template-columns: repeat(2, 1fr); }
-  .mg-demo-images { grid-template-columns: 1fr; }
+  .mg-detail-images { grid-template-columns: 1fr; }
   .mg-result-comparison { grid-template-columns: 1fr; }
-  .mg-thumb-gallery { grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); }
+  .mg-master-detail { flex-direction: column; min-height: auto; }
+  .mg-sidebar {
+    width: 100%; min-width: 100%;
+    border-right: none; border-bottom: 1px solid var(--border);
+    max-height: 220px;
+  }
+  .mg-sidebar-list { flex-direction: row; display: flex; flex-wrap: nowrap; overflow-x: auto; overflow-y: hidden; gap: 6px; }
+  .mg-sample-card { min-width: 200px; flex-shrink: 0; margin-bottom: 0; }
+  .mg-pipeline-stack { flex-direction: column; }
+  .mg-pipeline-model { min-width: auto; }
 }
 @media (max-width: 600px) {
   .mg-main { padding: 0 16px 3em; }
@@ -916,17 +1140,50 @@
   .mg-hero-logo img { width: 56px; height: 56px; }
   .mg-stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
   .mg-perf-grid { grid-template-columns: 1fr; }
-  .mg-ae-tabs { gap: 4px; padding: 12px 14px; }
-  .mg-ae-tab { font-size: 0.65em; padding: 5px 10px; }
+  .mg-demo-toolbar-tabs { gap: 4px; }
+  .mg-ae-tab { font-size: 0.6em; padding: 4px 8px; }
+  .mg-sidebar { max-height: 180px; }
+  .mg-sample-card { min-width: 170px; }
+}
+
+/* Tab Bar (shared with care_agent) */
+.ca-tab-bar {
+  display: flex; gap: 4px; justify-content: center;
+  margin-bottom: 2em; padding: 4px;
+  background: rgba(22,27,34,0.6);
+  border: 1px solid rgba(48,54,61,0.5);
+  border-radius: 12px;
+  width: fit-content; margin-left: auto; margin-right: auto;
+}
+.ca-tab-link {
+  padding: 8px 20px; border-radius: 8px;
+  font: 600 0.78em 'JetBrains Mono', monospace;
+  color: var(--text-muted); text-decoration: none;
+  transition: all 0.25s; white-space: nowrap;
+  display: flex; align-items: center; gap: 6px;
+}
+.ca-tab-link:hover {
+  color: var(--text-secondary);
+  background: rgba(188,140,255,0.06);
+  text-decoration: none;
+}
+.ca-tab-link.active {
+  color: #bc8cff;
+  background: rgba(188,140,255,0.1);
+  border: 1px solid rgba(188,140,255,0.2);
+}
+.ca-tab-link .ca-tab-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: currentColor; opacity: 0.5;
 }
 </style>
 {% endblock %}
 
 {% block nav_items %}
   <span class="nav-sep">/</span>
-  <a href="{% url 'demo_anti_hallucination' %}">Anti-Hallucination</a>
+  <a href="{% url 'demo_anti_hallucination' %}">Data Analysis</a>
   <span class="nav-sep">|</span>
-  <a href="{% url 'demo_medgemma' %}" class="nav-active">MedGemma</a>
+  <a href="{% url 'demo_care_agent' %}" class="nav-active">Data Collection</a>
   <span class="nav-sep">|</span>
   <a href="{% url 'demo_hazard' %}">Hazard</a>
   <span class="nav-sep">|</span>
@@ -962,13 +1219,24 @@
 
 <div class="mg-main">
 
+<div class="ca-tab-bar">
+  <a href="{% url 'demo_medgemma' %}" class="ca-tab-link active">
+    <span class="ca-tab-dot"></span>
+    SAE Detection
+  </a>
+  <a href="{% url 'demo_care_agent_live' %}" class="ca-tab-link">
+    <span class="ca-tab-dot"></span>
+    Voice Call Live
+  </a>
+</div>
+
 <!-- ============================================================
      HERO SECTION
      ============================================================ -->
 <section class="mg-hero">
   <div class="mg-hero-overline">
     <span class="mg-pulse-pip"></span>
-    MedGemma 4B-IT &middot; LoRA Fine-tuned
+    Data Collection Agent
   </div>
 
   <div class="mg-hero-logo">
@@ -977,27 +1245,27 @@
 
   <h1 class="mg-hero-title" id="mgHeroTitle">
     <span class="mg-title-line">
-      <span class="mg-word mg-word-accent" style="animation-delay:0.1s">MedGemma</span>
+      <span class="mg-word mg-word-accent" style="animation-delay:0.1s">SAE Detection</span>
     </span>
     <span class="mg-title-line-sub">
-      <span class="mg-word mg-word-dim" style="animation-delay:0.26s">Clinical</span>
-      <span class="mg-word mg-word-dim" style="animation-delay:0.36s">AE</span>
-      <span class="mg-word mg-word-dim" style="animation-delay:0.46s">Diagnostic</span>
-      <span class="mg-word mg-word-dim" style="animation-delay:0.56s">Model</span>
+      <span class="mg-word mg-word-dim" style="animation-delay:0.26s">MedGemma</span>
+      <span class="mg-word mg-word-dim" style="animation-delay:0.36s">+</span>
+      <span class="mg-word mg-word-dim" style="animation-delay:0.46s">MedSigLIP</span>
+      <span class="mg-word mg-word-dim" style="animation-delay:0.56s">+ HeAR</span>
     </span>
   </h1>
 
   <p class="mg-hero-subtitle">
-    A CDISC-compliant multimodal finetuned model for <strong>automated adverse event detection</strong>
-    and grading in clinical trials. Compares baseline and current patient photographs to enable
-    standardized AE identification aligned with <strong>real-world clinical workflows</strong>.
+    Multi-model SAE detection stack: <strong>MedGemma 4B-IT</strong> (visual AE grading via LoRA),
+    <strong>MedSigLIP</strong> (medical image similarity), and <strong>HeAR</strong> (audio biomarker analysis).
+    Identifies adverse events aligned with <strong>CTCAE grading standards</strong>.
   </p>
 
   <div class="mg-hero-badges">
-    <div class="mg-hero-badge"><span class="bv">90.5%</span> Weighted F1</div>
+    <div class="mg-hero-badge"><span class="bv">MedGemma</span> Visual AE</div>
+    <div class="mg-hero-badge"><span class="bv">MedSigLIP</span> Image Sim</div>
+    <div class="mg-hero-badge"><span class="bv">HeAR</span> Audio Bio</div>
     <div class="mg-hero-badge"><span class="bv">21</span> CTCAE Classes</div>
-    <div class="mg-hero-badge"><span class="bv">7</span> AE Types + Normal</div>
-    <div class="mg-hero-badge"><span class="bv">LoRA</span> r=8, a=16</div>
   </div>
 
 </section>
@@ -1035,16 +1303,41 @@
 
 <div class="mg-demo-container mg-card mg-reveal mg-reveal-d1">
   <div class="mg-card-inner">
-    <!-- AE Type Pill Tabs -->
-    <div class="mg-ae-tabs" id="mgAeTabs"></div>
+    <!-- Toolbar: AE Tabs + Auto Demo -->
+    <div class="mg-demo-toolbar">
+      <div class="mg-demo-toolbar-tabs" id="mgAeTabs"></div>
+      <button class="mg-btn-auto" id="mgBtnAutoTop" onclick="toggleAutoDemo()">
+        <span class="auto-dot"></span>
+        <span class="auto-text">Auto Demo</span>
+      </button>
+    </div>
 
-    <!-- Thumbnail Gallery -->
-    <div class="mg-thumb-gallery" id="mgThumbGallery">
-      <div class="mg-demo-placeholder">
-        <span class="ph-icon">&#x1F50D;</span>
-        Select an AE type above to browse test samples.
+    <!-- Master-Detail Split -->
+    <div class="mg-master-detail">
+      <!-- Left Sidebar: Sample Browser -->
+      <div class="mg-sidebar">
+        <div class="mg-sidebar-header">
+          <span class="mg-sidebar-title">Samples</span>
+          <span class="mg-sidebar-count" id="mgSidebarCount"></span>
+        </div>
+        <div class="mg-sidebar-list" id="mgSidebarList">
+        </div>
+      </div>
+
+      <!-- Right Panel: Detail Viewer -->
+      <div class="mg-detail-panel" id="mgDetailPanel">
+        <div class="mg-detail-placeholder" id="mgDetailPlaceholder">
+          <span class="ph-icon" style="filter:grayscale(1)">&#x1F4F7;</span>
+          Select a sample from the sidebar to compare baseline vs current photographs.<br>
+          The model will detect and grade adverse events.
+          <div class="mg-nav-hint" style="margin-top:14px;">
+            <kbd>&larr;</kbd> <kbd>&rarr;</kbd> Arrow keys to navigate
+          </div>
+        </div>
       </div>
     </div>
+
+    <!-- AI Notice -->
     <div class="mg-ai-notice">
       <svg class="mg-ai-notice-icon" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M8 1L2 4v4c0 3.5 2.6 6.4 6 7 3.4-.6 6-3.5 6-7V4L8 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
@@ -1052,18 +1345,6 @@
         <path d="M8 8.5v2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
       </svg>
       All photographs are <strong>AI-generated synthetic images</strong> for model evaluation. No real patient data is used.
-    </div>
-
-    <!-- Demo Body -->
-    <div class="mg-demo-body" id="mgDemoBody">
-      <div class="mg-demo-placeholder" id="mgDemoPlaceholder">
-        <span class="ph-icon">&#x1F4F7;</span>
-        Select a sample from the gallery above to compare baseline vs current photographs.<br>
-        The model will detect and grade adverse events with clinical reasoning.
-        <div class="mg-nav-hint" style="margin-top:14px;">
-          <kbd>&larr;</kbd> <kbd>&rarr;</kbd> Arrow keys to navigate samples
-        </div>
-      </div>
     </div>
   </div>
 </div>
@@ -1462,84 +1743,193 @@ function selectAeTab(ae) {
   });
   currentAeTab = ae;
 
-  /* Build thumbnail gallery */
-  var gallery = document.getElementById('mgThumbGallery');
+  /* Build sidebar sample cards */
+  var sidebar = document.getElementById('mgSidebarList');
   var items = samplesByType[ae] || [];
-  gallery.innerHTML = '';
+  sidebar.innerHTML = '';
+  var countEl = document.getElementById('mgSidebarCount');
+  if (countEl) countEl.textContent = items.length + ' items';
 
-  items.forEach(function(item) {
+  items.forEach(function(item, i) {
     var s = item.sample;
     var grade = getGradeFromGt(s.gt);
     var gradeClass = 'g' + grade;
+    var aeType = getAeTypeFromGt(s.gt);
+    var patientNum = s.file.match(/(\d+)\.png$/);
+    var pid = 'PT-' + (patientNum ? patientNum[1] : (i+1));
 
-    var thumb = document.createElement('div');
-    thumb.className = 'mg-thumb-item';
-    thumb.dataset.idx = item.index;
-    thumb.innerHTML = '<img src="' + IMG_BASE + s.file + '" alt="' + s.gt + '" loading="lazy">' +
-      '<div class="mg-thumb-label">' +
-      (grade > 0 ? '<span class="mg-thumb-grade ' + gradeClass + '">G' + grade + '</span>' : '<span class="mg-thumb-grade g0">OK</span>') +
-      '</div>';
-    thumb.onclick = function() { stopAutoDemo(); selectSample(item.index); };
-    gallery.appendChild(thumb);
+    var card = document.createElement('div');
+    card.className = 'mg-sample-card';
+    card.dataset.idx = item.index;
+    card.innerHTML =
+      '<div class="mg-sample-thumb"><img src="' + IMG_BASE + s.file + '" alt="' + s.gt + '" loading="lazy"></div>' +
+      '<div class="mg-sample-info">' +
+        '<div class="mg-sample-id">' + pid + '</div>' +
+        '<div class="mg-sample-ae-hint">' + (AE_DISPLAY[aeType] || aeType) + '</div>' +
+      '</div>' +
+      '<span class="mg-sample-grade-pill ' + gradeClass + '">' +
+        (grade > 0 ? 'G' + grade : 'OK') +
+      '</span>';
+    card.onclick = function() { stopAutoDemo(); selectSample(item.index); };
+    sidebar.appendChild(card);
   });
+
+  /* If previously selected sample is in this tab, preserve selection */
+  if (currentSampleIdx >= 0) {
+    var found = items.some(function(item) { return item.index === currentSampleIdx; });
+    if (found) {
+      var cards = sidebar.querySelectorAll('.mg-sample-card');
+      cards.forEach(function(c) {
+        c.classList.toggle('active', parseInt(c.dataset.idx) === currentSampleIdx);
+      });
+    }
+  }
 }
 
 function selectSample(idx) {
   currentSampleIdx = idx;
   var s = correctSamples[idx];
 
-  /* Update thumbnail selection */
-  var thumbs = document.querySelectorAll('.mg-thumb-item');
-  thumbs.forEach(function(t) {
-    t.classList.toggle('active', parseInt(t.dataset.idx) === idx);
+  /* Update sidebar selection */
+  var cards = document.querySelectorAll('.mg-sample-card');
+  cards.forEach(function(c) {
+    c.classList.toggle('active', parseInt(c.dataset.idx) === idx);
   });
 
-  /* Hide placeholder */
-  var placeholder = document.getElementById('mgDemoPlaceholder');
+  /* Scroll active card into view */
+  var activeCard = document.querySelector('.mg-sample-card.active');
+  if (activeCard) activeCard.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+
+  /* Hide placeholder, show content */
+  var placeholder = document.getElementById('mgDetailPlaceholder');
   if (placeholder) placeholder.style.display = 'none';
 
-  var body = document.getElementById('mgDemoBody');
-  body.innerHTML =
-    '<div class="mg-demo-images">' +
-      '<div class="mg-demo-img-wrap" onclick="openLightbox(\'' + IMG_BASE + s.baseline + '\')">' +
-        '<img src="' + IMG_BASE + s.baseline + '" alt="baseline" loading="lazy">' +
-        '<div class="mg-demo-img-label">Image 1 &mdash; Baseline</div>' +
+  var panel = document.getElementById('mgDetailPanel');
+  /* Build detail content */
+  var detailHTML =
+    '<div class="mg-detail-content">' +
+      /* Image comparison */
+      '<div class="mg-detail-images">' +
+        '<div class="mg-demo-img-wrap" onclick="openLightbox(\'' + IMG_BASE + s.baseline + '\')">' +
+          '<img src="' + IMG_BASE + s.baseline + '" alt="baseline" loading="lazy">' +
+          '<div class="mg-demo-img-label">Image 1 -- Baseline</div>' +
+        '</div>' +
+        '<div class="mg-demo-img-wrap" onclick="openLightbox(\'' + IMG_BASE + s.file + '\')">' +
+          '<img src="' + IMG_BASE + s.file + '" alt="current" loading="lazy">' +
+          '<div class="mg-demo-img-label">Image 2 -- Current</div>' +
+        '</div>' +
       '</div>' +
-      '<div class="mg-demo-img-wrap" onclick="openLightbox(\'' + IMG_BASE + s.file + '\')">' +
-        '<img src="' + IMG_BASE + s.file + '" alt="current" loading="lazy">' +
-        '<div class="mg-demo-img-label">Image 2 &mdash; Current</div>' +
+      /* Ground truth bar */
+      '<div class="mg-demo-gt-bar">' +
+        '<div>' +
+          '<div class="mg-demo-gt-label">Ground Truth</div>' +
+          '<div class="mg-demo-gt-value">' + classDisplay(s.gt) + '</div>' +
+        '</div>' +
+        '<div class="mg-nav-hint">' +
+          '<kbd>&larr;</kbd> <kbd>&rarr;</kbd> Navigate' +
+        '</div>' +
       '</div>' +
-    '</div>' +
-    '<div class="mg-demo-gt-bar">' +
-      '<div>' +
-        '<div class="mg-demo-gt-label">Ground Truth</div>' +
-        '<div class="mg-demo-gt-value">' + classDisplay(s.gt) + '</div>' +
+      /* 3-Model Pipeline */
+      '<div class="mg-pipeline-stack" id="mgPipelineStack">' +
+        '<div class="mg-pipeline-model" id="mgPipelineMedGemma">' +
+          '<div class="mg-pipeline-model-name">MedGemma 4B</div>' +
+          '<div class="mg-pipeline-model-role">Visual AE Grading</div>' +
+          '<div class="mg-pipeline-model-score" id="mgScoreMedGemma">--</div>' +
+        '</div>' +
+        '<div class="mg-pipeline-model" id="mgPipelineSigLIP">' +
+          '<div class="mg-pipeline-model-name">MedSigLIP</div>' +
+          '<div class="mg-pipeline-model-role">Image Similarity</div>' +
+          '<div class="mg-pipeline-model-score" id="mgScoreSigLIP">--</div>' +
+        '</div>' +
+        '<div class="mg-pipeline-model" id="mgPipelineHeAR">' +
+          '<div class="mg-pipeline-model-name">HeAR</div>' +
+          '<div class="mg-pipeline-model-role">Audio Biomarker</div>' +
+          '<div class="mg-pipeline-model-score" id="mgScoreHeAR">--</div>' +
+        '</div>' +
       '</div>' +
-      '<div class="mg-nav-hint">' +
-        '<kbd>&larr;</kbd> <kbd>&rarr;</kbd> Navigate' +
+      /* Confidence gauge placeholder */
+      '<div id="mgConfidenceGauge"></div>' +
+      /* Action buttons */
+      '<div class="mg-detail-actions">' +
+        '<button class="mg-btn-analyze" id="mgBtnAnalyze" onclick="analyzeImage()">' +
+          '<span class="spinner"></span>' +
+          '<span class="btn-text">Run Analysis</span>' +
+        '</button>' +
       '</div>' +
-    '</div>' +
-    '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">' +
-      '<button class="mg-btn-analyze" id="mgBtnAnalyze" onclick="analyzeImage()">' +
-        '<span class="spinner"></span>' +
-        '<span class="btn-text">Run Analysis</span>' +
-      '</button>' +
-      '<button class="mg-btn-auto" id="mgBtnAuto" onclick="toggleAutoDemo()">' +
-        '<span class="auto-dot"></span>' +
-        '<span class="auto-text">Auto Demo</span>' +
-      '</button>' +
-    '</div>' +
-    '<div class="mg-result-panel" id="mgResultPanel"></div>';
+      /* Result panel */
+      '<div class="mg-result-panel" id="mgResultPanel"></div>' +
+    '</div>';
 
-  /* Restore Auto Demo button state if running */
-  if (autoInterval) {
-    var autoBtn = document.getElementById('mgBtnAuto');
-    if (autoBtn) {
-      autoBtn.classList.add('active');
-      autoBtn.querySelector('.auto-text').textContent = 'Stop';
-      autoBtn.querySelector('.auto-dot').style.animation = 'mgPipPulse 1s ease-in-out infinite';
-    }
+  /* Check if detail content already exists; replace only the content part */
+  var existingContent = panel.querySelector('.mg-detail-content');
+  if (existingContent) {
+    existingContent.outerHTML = detailHTML;
+  } else {
+    panel.innerHTML = detailHTML;
   }
+
+  /* Sync auto demo button state in toolbar */
+  syncAutoButton();
+}
+
+function syncAutoButton() {
+  var btns = document.querySelectorAll('.mg-btn-auto');
+  btns.forEach(function(btn) {
+    if (autoInterval) {
+      btn.classList.add('active');
+      btn.querySelector('.auto-text').textContent = 'Stop';
+    } else {
+      btn.classList.remove('active');
+      btn.querySelector('.auto-text').textContent = 'Auto Demo';
+    }
+  });
+}
+
+/* Update pipeline model indicators */
+function setPipelineState(modelId, state, score) {
+  var el = document.getElementById(modelId);
+  if (!el) return;
+  el.classList.remove('processing', 'done');
+  if (state === 'processing') {
+    el.classList.add('processing');
+    var scoreEl = el.querySelector('.mg-pipeline-model-score');
+    if (scoreEl) scoreEl.innerHTML = '<span class="mg-pipeline-spinner"></span>';
+  } else if (state === 'done') {
+    el.classList.add('done');
+    var scoreEl = el.querySelector('.mg-pipeline-model-score');
+    if (scoreEl) scoreEl.textContent = score || '--';
+  } else {
+    var scoreEl = el.querySelector('.mg-pipeline-model-score');
+    if (scoreEl) scoreEl.textContent = '--';
+  }
+}
+
+/* Show confidence gauge */
+function showConfidenceGauge(confidence, pred, gt, correct) {
+  var container = document.getElementById('mgConfidenceGauge');
+  if (!container) return;
+  var confNum = parseFloat(confidence) || 0;
+  var ctcaeCls = correct ? 'correct' : 'wrong';
+  var ctcaeIcon = correct ? 'MATCH' : 'MISMATCH';
+  container.innerHTML =
+    '<div class="mg-confidence-gauge">' +
+      '<div class="mg-gauge-header">' +
+        '<span class="mg-gauge-label">Confidence</span>' +
+        '<span class="mg-gauge-value">' + (confNum > 0 ? confNum + '%' : '--') + '</span>' +
+      '</div>' +
+      '<div class="mg-gauge-track">' +
+        '<div class="mg-gauge-fill" id="mgGaugeFill"></div>' +
+      '</div>' +
+      '<div class="mg-gauge-ctcae">' +
+        '<span class="mg-gauge-ctcae-label">CTCAE Classification</span>' +
+        '<span class="mg-gauge-ctcae-value ' + ctcaeCls + '">' + ctcaeIcon + '</span>' +
+      '</div>' +
+    '</div>';
+  /* Animate fill */
+  requestAnimationFrame(function() {
+    var fill = document.getElementById('mgGaugeFill');
+    if (fill) fill.style.width = Math.max(confNum, 0) + '%';
+  });
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -1621,6 +2011,11 @@ function analyzeImage() {
   btn.querySelector('.btn-text').textContent = 'Analyzing...';
   panel.classList.remove('visible');
 
+  /* Set pipeline to processing state */
+  setPipelineState('mgPipelineMedGemma', 'processing');
+  setPipelineState('mgPipelineSigLIP', 'processing');
+  setPipelineState('mgPipelineHeAR', 'idle');
+
   /* Show loading spinners for both slots */
   var spinnerHtml = '<div class="mg-result-card" style="display:flex;align-items:center;justify-content:center;min-height:200px;opacity:0.5;">' +
     '<div style="text-align:center;"><div class="mg-spinner-lg"></div><div style="margin-top:12px;color:var(--text-muted);font-size:0.85em;">Running inference...</div></div></div>';
@@ -1632,7 +2027,20 @@ function analyzeImage() {
   panel.classList.add('visible');
 
   var done = 0;
-  function checkDone() { done++; if (done >= 2) { btn.classList.remove('loading'); btn.querySelector('.btn-text').textContent = 'Analysis Complete'; } }
+  var ftResult = null;
+  function checkDone() {
+    done++;
+    if (done >= 2) {
+      btn.classList.remove('loading');
+      btn.querySelector('.btn-text').textContent = 'Analysis Complete';
+      /* Update confidence gauge from finetuned result */
+      if (ftResult) {
+        var confVal = ftResult.fields.confidence ? parseFloat(ftResult.fields.confidence) : 0;
+        showConfidenceGauge(confVal, ftResult.pred, s.gt, ftResult.correct);
+      }
+      setPipelineState('mgPipelineHeAR', 'done', 'N/A');
+    }
+  }
 
   /* Zero-shot (base model) */
   if (LIVE_MODE_ZS) {
@@ -1643,6 +2051,7 @@ function analyzeImage() {
     .then(function(resp) { if (!resp.ok) throw new Error('API error'); return resp.json(); })
     .then(function(data) {
       var r = parseLiveResponse(data, s);
+      setPipelineState('mgPipelineSigLIP', 'done', r.fields.confidence || '--');
       var zsSlot = document.getElementById('mgResultSlotZS');
       if (zsSlot) zsSlot.innerHTML = buildResultCard(
         '<span style="color:var(--accent-green);">LIVE</span> Anti-Hallucination',
@@ -1652,10 +2061,12 @@ function analyzeImage() {
     .catch(function(err) {
       console.warn('ZS live failed, falling back:', err.message);
       LIVE_MODE_ZS = false;
+      setPipelineState('mgPipelineSigLIP', 'done', '--');
       showZeroShotFallback(s);
       checkDone();
     });
   } else {
+    setPipelineState('mgPipelineSigLIP', 'done', '--');
     showZeroShotFallback(s);
     checkDone();
   }
@@ -1669,6 +2080,8 @@ function analyzeImage() {
     .then(function(resp) { if (!resp.ok) throw new Error('API error'); return resp.json(); })
     .then(function(data) {
       var r = parseLiveResponse(data, s);
+      ftResult = r;
+      setPipelineState('mgPipelineMedGemma', 'done', r.fields.confidence || '--');
       var ftSlot = document.getElementById('mgResultSlotFT');
       if (ftSlot) ftSlot.innerHTML = buildResultCard(
         '<span style="color:var(--accent-green);">LIVE</span> Finetuned (LoRA)',
@@ -1678,10 +2091,12 @@ function analyzeImage() {
     .catch(function(err) {
       console.warn('FT live failed, falling back:', err.message);
       LIVE_MODE_FT = false;
+      setPipelineState('mgPipelineMedGemma', 'done', '--');
       showFinetunedFallback(s);
       checkDone();
     });
   } else {
+    setPipelineState('mgPipelineMedGemma', 'done', '--');
     showFinetunedFallback(s);
     checkDone();
   }
@@ -1703,6 +2118,8 @@ function showFinetunedFallback(s) {
   var ftParsed = parseOutput(s.raw_output);
   var ftFields = ftParsed || {ae_term:'\u2014',grade:'\u2014',confidence:'\u2014',reasoning:'\u2014'};
   var ftRaw = ftParsed ? ftParsed.raw : s.raw_output;
+  var confVal = ftParsed ? parseFloat(ftParsed.confidence) : 0;
+  showConfidenceGauge(confVal, s.pred, s.gt, s.correct);
   var ftSlot = document.getElementById('mgResultSlotFT');
   if (ftSlot) ftSlot.innerHTML = buildResultCard('Finetuned (LoRA)', s.pred, s.correct, ftFields, ftRaw, s.latency_ms, 'slide-in-right');
 }
@@ -1716,7 +2133,6 @@ var autoTimer = null;
 var autoBusy = false;
 
 function toggleAutoDemo() {
-  var btn = document.getElementById('mgBtnAuto');
   if (autoInterval || autoTimer) {
     stopAutoDemo();
     return;
@@ -1732,27 +2148,23 @@ function toggleAutoDemo() {
   });
   if (autoQueue.length === 0) return;
 
-  btn.classList.add('active');
-  btn.querySelector('.auto-text').textContent = 'Stop';
-  btn.querySelector('.auto-dot').style.animation = 'mgPipPulse 1s ease-in-out infinite';
   autoBusy = false;
+  syncAutoButton();
 
   var autoIdx = 0;
 
   function nextAutoSample() {
     if (!autoInterval) return;
-    if (autoBusy) return; /* wait for current analysis to finish */
-    if (autoIdx >= autoQueue.length) autoIdx = 0; /* loop */
+    if (autoBusy) return;
+    if (autoIdx >= autoQueue.length) autoIdx = 0;
 
     var entry = autoQueue[autoIdx];
-    /* Switch tab if needed */
     if (currentAeTab !== entry.ae) {
       selectAeTab(entry.ae);
     }
     selectSample(entry.index);
     autoIdx++;
 
-    /* Start analysis immediately */
     autoBusy = true;
     if (!autoInterval) { autoBusy = false; return; }
     autoAnalyzeImage(function() {
@@ -1762,6 +2174,7 @@ function toggleAutoDemo() {
 
   autoInterval = setInterval(nextAutoSample, 5000);
   nextAutoSample();
+  syncAutoButton();
 }
 
 function stopAutoDemo() {
@@ -1769,37 +2182,53 @@ function stopAutoDemo() {
   if (autoTimer) { clearTimeout(autoTimer); autoTimer = null; }
   autoBusy = false;
   autoQueue = [];
-  var btn = document.getElementById('mgBtnAuto');
-  if (btn) {
-    btn.classList.remove('active');
-    btn.querySelector('.auto-text').textContent = 'Auto Demo';
-    btn.querySelector('.auto-dot').style.animation = '';
-  }
+  syncAutoButton();
 }
 
-/* analyzeImage variant for auto demo — calls onDone when both models finish */
+/* analyzeImage variant for auto demo -- calls onDone when both models finish */
 function autoAnalyzeImage(onDone) {
   if (currentSampleIdx < 0) { onDone(); return; }
   var btn = document.getElementById('mgBtnAnalyze');
   var panel = document.getElementById('mgResultPanel');
   var s = correctSamples[currentSampleIdx];
 
-  btn.classList.add('loading');
-  btn.disabled = true;
-  btn.querySelector('.btn-text').textContent = 'Analyzing...';
-  panel.classList.remove('visible');
+  if (btn) {
+    btn.classList.add('loading');
+    btn.disabled = true;
+    btn.querySelector('.btn-text').textContent = 'Analyzing...';
+  }
+  if (panel) panel.classList.remove('visible');
+
+  /* Pipeline indicators */
+  setPipelineState('mgPipelineMedGemma', 'processing');
+  setPipelineState('mgPipelineSigLIP', 'processing');
+  setPipelineState('mgPipelineHeAR', 'idle');
 
   var spinnerHtml = '<div class="mg-result-card" style="display:flex;align-items:center;justify-content:center;min-height:200px;opacity:0.5;">' +
     '<div style="text-align:center;"><div class="mg-spinner-lg"></div><div style="margin-top:12px;color:var(--text-muted);font-size:0.85em;">Running inference...</div></div></div>';
 
-  panel.innerHTML = '<div class="mg-result-comparison">' +
-    '<div id="mgResultSlotZS">' + spinnerHtml + '</div>' +
-    '<div id="mgResultSlotFT">' + spinnerHtml + '</div>' +
-  '</div>';
-  panel.classList.add('visible');
+  if (panel) {
+    panel.innerHTML = '<div class="mg-result-comparison">' +
+      '<div id="mgResultSlotZS">' + spinnerHtml + '</div>' +
+      '<div id="mgResultSlotFT">' + spinnerHtml + '</div>' +
+    '</div>';
+    panel.classList.add('visible');
+  }
 
   var done = 0;
-  function checkDone() { done++; if (done >= 2) { btn.classList.remove('loading'); btn.querySelector('.btn-text').textContent = 'Analysis Complete'; onDone(); } }
+  var ftResult = null;
+  function checkDone() {
+    done++;
+    if (done >= 2) {
+      if (btn) { btn.classList.remove('loading'); btn.querySelector('.btn-text').textContent = 'Analysis Complete'; }
+      if (ftResult) {
+        var confVal = ftResult.fields.confidence ? parseFloat(ftResult.fields.confidence) : 0;
+        showConfidenceGauge(confVal, ftResult.pred, s.gt, ftResult.correct);
+      }
+      setPipelineState('mgPipelineHeAR', 'done', 'N/A');
+      onDone();
+    }
+  }
 
   /* Zero-shot (base) */
   if (LIVE_MODE_ZS) {
@@ -1810,14 +2239,15 @@ function autoAnalyzeImage(onDone) {
     .then(function(resp) { if (!resp.ok) throw new Error('API error'); return resp.json(); })
     .then(function(data) {
       var r = parseLiveResponse(data, s);
+      setPipelineState('mgPipelineSigLIP', 'done', r.fields.confidence || '--');
       var zsSlot = document.getElementById('mgResultSlotZS');
       if (zsSlot) zsSlot.innerHTML = buildResultCard(
         '<span style="color:var(--accent-green);">LIVE</span> Anti-Hallucination',
         r.pred, r.correct, r.fields, r.raw, r.latency, 'slide-in-left');
       checkDone();
     })
-    .catch(function(err) { LIVE_MODE_ZS = false; showZeroShotFallback(s); checkDone(); });
-  } else { showZeroShotFallback(s); checkDone(); }
+    .catch(function(err) { LIVE_MODE_ZS = false; setPipelineState('mgPipelineSigLIP', 'done', '--'); showZeroShotFallback(s); checkDone(); });
+  } else { setPipelineState('mgPipelineSigLIP', 'done', '--'); showZeroShotFallback(s); checkDone(); }
 
   /* Finetuned */
   if (LIVE_MODE_FT) {
@@ -1828,14 +2258,16 @@ function autoAnalyzeImage(onDone) {
     .then(function(resp) { if (!resp.ok) throw new Error('API error'); return resp.json(); })
     .then(function(data) {
       var r = parseLiveResponse(data, s);
+      ftResult = r;
+      setPipelineState('mgPipelineMedGemma', 'done', r.fields.confidence || '--');
       var ftSlot = document.getElementById('mgResultSlotFT');
       if (ftSlot) ftSlot.innerHTML = buildResultCard(
         '<span style="color:var(--accent-green);">LIVE</span> Finetuned (LoRA)',
         r.pred, r.correct, r.fields, r.raw, r.latency, 'slide-in-right');
       checkDone();
     })
-    .catch(function(err) { LIVE_MODE_FT = false; showFinetunedFallback(s); checkDone(); });
-  } else { showFinetunedFallback(s); checkDone(); }
+    .catch(function(err) { LIVE_MODE_FT = false; setPipelineState('mgPipelineMedGemma', 'done', '--'); showFinetunedFallback(s); checkDone(); });
+  } else { setPipelineState('mgPipelineMedGemma', 'done', '--'); showFinetunedFallback(s); checkDone(); }
 }
 
 /* ══════════════════════════════════════════════════════════════

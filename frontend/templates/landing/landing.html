@@ -638,17 +638,17 @@
   .tech-card:last-child { margin-bottom: 0; }
 
   /* Accent line colors */
-  .tech-card.accent-red { --card-color: #e8634b; }
-  .tech-card.accent-red::before {
-    background: linear-gradient(90deg, #e8634b 0%, rgba(232,99,75,0.15) 100%);
+  .tech-card.accent-blue { --card-color: #7aa2f7; }
+  .tech-card.accent-blue::before {
+    background: linear-gradient(90deg, #7aa2f7 0%, rgba(122,162,247,0.15) 100%);
   }
-  .tech-card.accent-red::after {
+  .tech-card.accent-blue::after {
     background: radial-gradient(
       400px circle at var(--card-mouse-x, 50%) var(--card-mouse-y, 0%),
-      rgba(232,99,75,0.06), transparent 40%
+      rgba(122,162,247,0.06), transparent 40%
     );
   }
-  .tech-card.accent-red:hover { border-color: rgba(232,99,75,0.12); }
+  .tech-card.accent-blue:hover { border-color: rgba(122,162,247,0.12); }
 
   .tech-card.accent-purple { --card-color: var(--accent-purple); }
   .tech-card.accent-purple::before {
@@ -692,10 +692,10 @@
     border: 1px solid;
   }
   .tc-icon svg { width: 20px; height: 20px; }
-  .tc-icon.icon-red {
-    background: rgba(232,99,75,0.08);
-    border-color: rgba(232,99,75,0.15);
-    color: #e8634b;
+  .tc-icon.icon-blue {
+    background: rgba(122,162,247,0.08);
+    border-color: rgba(122,162,247,0.15);
+    color: #7aa2f7;
   }
   .tc-icon.icon-purple {
     background: rgba(188,140,255,0.08);
@@ -740,7 +740,7 @@
     font: 600 0.76em 'JetBrains Mono', monospace;
   }
   .tc-stat-val { opacity: 0.7; }
-  .tc-stat-val.del { color: #e8634b; text-decoration: line-through; }
+  .tc-stat-val.del { color: #7aa2f7; text-decoration: line-through; }
   .tc-stat-val.good { color: var(--accent-green); opacity: 1; }
   .tc-stat-arrow { color: var(--text-muted); font-size: 1.2em; }
   .tc-stat-label { color: var(--text-muted); font-size: 0.9em; }
@@ -791,13 +791,13 @@
     color: var(--text-secondary);
     padding: 6px 10px;
     margin-bottom: 10px;
-    background: rgba(248,81,73,0.04);
-    border: 1px solid rgba(248,81,73,0.12);
+    background: rgba(122,162,247,0.04);
+    border: 1px solid rgba(122,162,247,0.12);
     border-radius: 6px;
     letter-spacing: 0.2px;
   }
   .ah-preview-prompt-icon {
-    color: var(--accent-orange);
+    color: #7aa2f7;
     font-size: 1.1em;
   }
   .ah-preview-cards {
@@ -1259,7 +1259,7 @@
 
     <p class="hero-desc">
       Ground truth and hospital record separation. Daily adverse event simulation via hazard functions.
-      Care AI nurse detects AEs via video calls and triggers early interventions
+      Voice Call Live detects AEs via real-time voice interactions and triggers early interventions
       &mdash; proving the value of AI-assisted patient monitoring.
     </p>
 
@@ -1286,11 +1286,11 @@
       <span class="marquee-item"><span class="m-val">13</span> CDISC Domains</span>
       <span class="marquee-item"><span class="m-dot"></span>DAPO Anti-Hallucination</span>
       <span class="marquee-item"><span class="m-val">84</span> Day Trials</span>
-      <span class="marquee-item"><span class="m-dot"></span>Care AI Nurse</span>
+      <span class="marquee-item"><span class="m-dot"></span>Voice Call Live</span>
       <span class="marquee-item"><span class="m-val">7</span> Dimension Mood Model</span>
       <span class="marquee-item"><span class="m-dot"></span>GT / HR Observation Separation</span>
       <span class="marquee-item"><span class="m-val">4</span> Turn Video Calls</span>
-      <span class="marquee-item"><span class="m-dot"></span>MedGemma Fine-tuned</span>
+      <span class="marquee-item"><span class="m-dot"></span>SAE Detection Stack</span>
       <span class="marquee-item"><span class="m-val">94.2%</span> AE Detection</span>
       <!-- Duplicate for seamless scroll -->
       <span class="marquee-item"><span class="m-dot"></span>Drug-Agnostic Pipeline</span>
@@ -1299,11 +1299,11 @@
       <span class="marquee-item"><span class="m-val">13</span> CDISC Domains</span>
       <span class="marquee-item"><span class="m-dot"></span>DAPO Anti-Hallucination</span>
       <span class="marquee-item"><span class="m-val">84</span> Day Trials</span>
-      <span class="marquee-item"><span class="m-dot"></span>Care AI Nurse</span>
+      <span class="marquee-item"><span class="m-dot"></span>Voice Call Live</span>
       <span class="marquee-item"><span class="m-val">7</span> Dimension Mood Model</span>
       <span class="marquee-item"><span class="m-dot"></span>GT / HR Observation Separation</span>
       <span class="marquee-item"><span class="m-val">4</span> Turn Video Calls</span>
-      <span class="marquee-item"><span class="m-dot"></span>MedGemma Fine-tuned</span>
+      <span class="marquee-item"><span class="m-dot"></span>SAE Detection Stack</span>
       <span class="marquee-item"><span class="m-val">94.2%</span> AE Detection</span>
     </div>
   </div>
@@ -1357,8 +1357,8 @@
           <div class="phase-name">Daily Simulation</div>
           <div class="phase-desc">
             Hazard functions compute daily AE onset probabilities. An observation model
-            separates ground truth from hospital records. Care AI detects AEs via
-            video calls and triggers early visits.
+            separates ground truth from hospital records. Voice Call Live detects AEs via
+            real-time voice interactions and triggers early visits.
           </div>
         </div>
       </div>
@@ -1405,25 +1405,22 @@
       <span class="sl-line"></span>
     </div>
 
-    <!-- Card 1: Anti-Hallucination -->
-    <div class="tech-card accent-red reveal reveal-d1">
+    <!-- Card 1: Data Analysis Agent (Anti-hallucination MedGemma + Data Analysis) -->
+    <div class="tech-card accent-blue reveal reveal-d1">
       <div class="tc-layout">
         <div class="tc-left">
           <div class="tc-header">
-            <div class="tc-icon icon-red">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-                <path d="M9 12l2 2 4-4"/>
-              </svg>
+            <div class="tc-icon icon-blue">
+              <img src="{% static 'assets/ui/gemma.png' %}" alt="MedGemma" style="width:20px;height:20px;object-fit:contain;">
             </div>
-            <div class="tc-title">Anti-Hallucination Engine</div>
-            <span class="tc-badge">DAPO-Trained</span>
+            <div class="tc-title">Data Analysis Agent</div>
+            <span class="tc-badge">Anti-hallucination MedGemma + Chatbot &amp; Report</span>
           </div>
           <div class="tc-desc">
-            Side-by-side comparison of MedGemma-4B baseline versus DAPO-trained defended model.
-            The undefended baseline confidently fabricates medical facts &mdash; inventing drug names,
-            dosages, and mechanisms. The DAPO-reinforced model recognizes uncertainty and refuses
-            to hallucinate, tested across 20 trap prompts in 4 categories.
+            Conversational clinical data analysis powered by DAPO-trained MedGemma-4B.
+            The <strong>Anti-hallucination MedGemma</strong> ensures factual accuracy &mdash; refusing to fabricate
+            drug names, dosages, or mechanisms &mdash; while the <strong>Data Analysis (Chatbot &amp; Report)</strong>
+            enables interactive exploration of simulation results, CRF tables, and statistical analyses.
           </div>
           <div class="tc-stat">
             <span class="tc-stat-val del">Baseline hallucinates</span>
@@ -1466,22 +1463,22 @@
       </div>
     </div>
 
-    <!-- Card 2: Care Agent -->
+    <!-- Card 2: Data Collection Agent (SAE Detection + Voice Call Live) -->
     <div class="tech-card accent-purple reveal reveal-d2">
       <div class="tc-layout">
         <div class="tc-left">
           <div class="tc-header">
             <div class="tc-icon icon-purple">
-              <img src="{% static 'assets/ui/gemma.png' %}" alt="Care Agent" style="width:34px;height:34px;object-fit:contain;">
+              <img src="{% static 'assets/ui/gemma.png' %}" alt="Data Collection Agent" style="width:34px;height:34px;object-fit:contain;">
             </div>
-            <div class="tc-title">Care Agent</div>
-            <span class="tc-badge">MedGemma + AI Nurse</span>
+            <div class="tc-title">Data Collection Agent</div>
+            <span class="tc-badge">SAE Detection + Voice Call Live</span>
           </div>
           <div class="tc-desc">
-            Two-part care pipeline: MedGemma 4B-IT finetuned via LoRA detects and grades
-            visual AEs from patient photographs, while an automated AI nurse conducts
-            daily video check-ins using the Deployment-Ready prompting strategy to uncover
-            non-visual adverse events through empathetic multi-turn conversations.
+            Multi-model data collection pipeline: <strong>SAE Detection</strong> (MedGemma + MedSigLIP + HeAR)
+            captures and grades visual/audio AEs from patient data, while <strong>Voice Call Live</strong>
+            conducts real-time voice interactions to collect non-visual symptom data through empathetic
+            multi-turn conversations &mdash; bridging the gap between hospital visits.
           </div>
           <div class="tc-stat">
             <span class="tc-stat-val del">4.8%</span>
@@ -1517,7 +1514,7 @@
             <div class="mm-pipeline-label">Model</div>
             <div class="mg-model-box">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-              MedGemma 4B-IT + LoRA
+              MedGemma + MedSigLIP + HeAR
             </div>
             <div class="mg-flow-down">&#x25BC;</div>
             <div class="mm-pipeline-label">Output</div>

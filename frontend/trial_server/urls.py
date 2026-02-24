@@ -125,6 +125,12 @@ urlpatterns = [
          views.api_stats_data, name="api_stats_data"),
     path("api/stats/<str:run_id>/chat/",
          views.api_stats_chat, name="api_stats_chat"),
+    path("api/stats/chat/",
+         views.api_stats_chat_demo, name="api_stats_chat_demo"),
+
+    # Unified Doc Chat API (stats / crf / sae)
+    path("api/doc/<str:run_id>/chat/",
+         views.api_doc_chat, name="api_doc_chat"),
 
     # Multimodal Enhance API
     path('api/multimodal/enhance',
