@@ -5,6 +5,6 @@ RUN pip install --no-cache-dir \
     fastapi uvicorn pydantic numpy python-dotenv \
     "google-genai>=1.16.0" \
     tensorflow librosa joblib scikit-learn soundfile
-COPY care_ai/ /app/care_ai/
+COPY dca_server/ /app/dca_server/
 EXPOSE 8300
-CMD ["python", "-m", "care_ai.server"]
+CMD ["python", "-m", "dca_server.server"]

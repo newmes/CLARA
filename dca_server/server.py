@@ -13,7 +13,7 @@ Endpoints:
         Health check
 
 Startup:
-    uvicorn care_ai.server:app --host 0.0.0.0 --port 8300
+    uvicorn dca_server.server:app --host 0.0.0.0 --port 8300
 """
 
 from __future__ import annotations
@@ -34,11 +34,11 @@ from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 load_dotenv()
 
-from care_ai.siglip_classifier import SigLIPClassifier
-from care_ai.nurse_engine import NurseEngine
-from care_ai.tts_service import TTSService
-from care_ai.cough_classifier import CoughClassifier
-from care_ai.medasr_service import MedASRService
+from dca_server.siglip_classifier import SigLIPClassifier
+from dca_server.nurse_engine import NurseEngine
+from dca_server.tts_service import TTSService
+from dca_server.cough_classifier import CoughClassifier
+from dca_server.medasr_service import MedASRService
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("care-ai-api")
@@ -241,11 +241,32 @@ def _cleanup_sessions() -> None:
         del sessions[sid]
 
 
-def _has_api_key(req_api_key: str | None) -> bool:
-    """Check if a Gemini API key is available (from request or environment)."""
-    if req_api_key:
+_validated_keys: dict[str, float] = {}  # key -> timestamp
+_KEY_CACHE_TTL = 3600  # 1 hour
+
+def _validate_gemini_key(api_key: str) -> bool:
+    """Validate a Gemini API key by making a lightweight models.list call."""
+    now = time.time()
+    if api_key in _validated_keys and (now - _validated_keys[api_key]) < _KEY_CACHE_TTL:
         return True
-    return bool(os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY"))
+    try:
+        import google.genai as genai
+        client = genai.Client(api_key=api_key)
+        # Lightweight call to validate the key
+        list(client.models.list(config={"page_size": 1}))
+        _validated_keys[api_key] = now
+        return True
+    except Exception as exc:
+        log.warning("Gemini API key validation failed: %s", exc)
+        _validated_keys.pop(api_key, None)
+        return False
+
+def _require_api_key(req_api_key: str | None) -> None:
+    """Raise HTTPException if api_key is missing or invalid."""
+    if not req_api_key:
+        raise HTTPException(status_code=403, detail="Gemini API key required. Provide api_key in request body.")
+    if not _validate_gemini_key(req_api_key):
+        raise HTTPException(status_code=403, detail="Invalid Gemini API key. Please check your key and try again.")
 
 
 classifier: SigLIPClassifier | None = None
@@ -340,8 +361,7 @@ async def health():
 
 @app.post("/v1/consult", response_model=ConsultResponse)
 async def consult(req: ConsultRequest):
-    if not _has_api_key(req.api_key):
-        raise HTTPException(status_code=403, detail="Gemini API key required. Provide api_key in request or set GOOGLE_API_KEY env var.")
+    _require_api_key(req.api_key)
     if not classifier or not nurse:
         raise HTTPException(status_code=503, detail="Models not loaded yet")
     if not req.siglip_vector and not req.image_b64:
@@ -517,8 +537,7 @@ async def transcribe(req: TranscribeRequest):
 
 @app.post("/v1/nurse", response_model=NurseResponse)
 async def nurse_endpoint(req: NurseRequest):
-    if not _has_api_key(req.api_key):
-        raise HTTPException(status_code=403, detail="Gemini API key required. Provide api_key in request or set GOOGLE_API_KEY env var.")
+    _require_api_key(req.api_key)
     if not nurse:
         raise HTTPException(status_code=503, detail="NurseEngine not loaded")
 
@@ -605,8 +624,7 @@ async def nurse_endpoint(req: NurseRequest):
 @app.post("/v1/chat", response_model=ChatResponse)
 async def chat(req: ChatRequest):
     """Follow-up chat within an existing consult session."""
-    if not _has_api_key(req.api_key):
-        raise HTTPException(status_code=403, detail="Gemini API key required. Provide api_key in request or set GOOGLE_API_KEY env var.")
+    _require_api_key(req.api_key)
     if not nurse:
         raise HTTPException(status_code=503, detail="Models not loaded yet")
 
@@ -656,7 +674,7 @@ async def chat(req: ChatRequest):
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        "care_ai.server:app",
+        "dca_server.server:app",
         host="0.0.0.0",
         port=int(os.getenv("CARE_AI_PORT", "8300")),
         reload=False,

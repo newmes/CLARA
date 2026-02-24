@@ -15,7 +15,7 @@ import requests as _requests
 
 log = logging.getLogger("care-ai-api.nurse")
 
-from care_ai.ae_channels import AE_DETECTION_CHANNELS
+from dca_server.ae_channels import AE_DETECTION_CHANNELS
 
 AE_SYMPTOM_DESCRIPTIONS: dict[str, str] = {
     "nausea": "feeling sick to stomach, queasiness, aversion to food smells",

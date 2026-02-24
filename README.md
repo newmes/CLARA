@@ -379,7 +379,7 @@ CLARA/
 │   ├── orchestrator_v2.py         3-Phase simulation orchestrator
 │   └── run_simulation_v2.py       CLI entry point
 │
-├── care_ai/                       Care AI Nurse API (FastAPI)
+├── dca_server/                       Care AI Nurse API (FastAPI)
 │   ├── server.py                  Endpoints: classify, cough, transcribe, nurse
 │   ├── nurse_engine.py            Medical conversation engine
 │   ├── siglip_classifier.py       SigLIP vision classifier head
