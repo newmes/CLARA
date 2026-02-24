@@ -90,12 +90,12 @@ We then transitioned the AI nurse from simulation to a **production mobile appli
 
 ## Results
 
-### A/B Comparison: Natural vs. Care AI
+### A/B Comparison: Natural vs. DCA
 
 The same virtual patient cohort is simulated under two conditions &mdash; identical seed, identical biology, diverging only in whether a daily AI nurse is present.
 
 ```
-Run A (Natural)                        Run B (Care AI)
+Run A (Natural)                        Run B (DCA)
 No AI nurse                            Daily 4-turn video calls
 
 Hospital ──── 13 days ──── Hospital    Hospital ── 3 days ── Early Visit ── Hospital
@@ -201,7 +201,7 @@ Drug Name + Indication
 │                        ┌──────────────────────┼──────────────┐      │
 │                        ▼                      ▼              │      │
 │              ┌──────────────────┐   ┌──────────────────┐     │      │
-│              │ Hospital Record  │   │  Care AI Nurse   │     │      │
+│              │ Hospital Record  │   │     DCA      │     │      │
 │              │ (clinic visits)  │   │  (daily calls)   │     │      │
 │              │ → dose decisions │   │  → early referral│     │      │
 │              └──────────────────┘   └──────────────────┘     │      │
@@ -223,7 +223,7 @@ Drug Name + Indication
 | **Ground Truth vs. Hospital Record** | Dose decisions use observed data only &mdash; never omniscient GT |
 | **Drug-agnostic** | Change the drug name &rarr; system auto-discovers rules from 10+ databases |
 | **No fate table** | Daily hazard functions replace pre-determined event timelines |
-| **Care AI detects, doctors decide** | AI nurse flags and refers; only physicians modify treatment |
+| **DCA detects, doctors decide** | AI nurse flags and refers; only physicians modify treatment |
 | **Seed-reproducible** | Same seed &rarr; identical simulation for scientific rigor |
 
 ---
@@ -267,7 +267,7 @@ CLARA ships with **5 Jupyter notebooks** demonstrating each component:
 | 1 | `medgemma_anti-hallucination` | RLFR fine-tuning &mdash; hallucination probe training and RL optimization | ~10 GB |
 | 2 | `medgemma+medsiglip+HeAR_SAE-detection` | Multimodal AE detection &mdash; vision (MedSigLIP) + audio (HeAR) pipelines | ~20 GB |
 | 3 | `simulate-clinical-trial` | End-to-end trial simulation &mdash; rule discovery, patient generation, daily loop | None (API) |
-| 4 | `application_voice_call` | Care AI voice call demo &mdash; MedASR + TTS + nurse conversation | ~10 GB |
+| 4 | `application_voice_call` | DCA voice call demo &mdash; MedASR + TTS + nurse conversation | ~10 GB |
 | 5 | `application_SAE_report_generation` | FDA MedWatch 3500A + E2B XML report generation from CRF data | ~10 GB |
 
 All models and data **download automatically** from HuggingFace on first run:
@@ -345,7 +345,7 @@ docker compose up -d
 | Service | Port | GPU | Purpose |
 |---------|------|-----|---------|
 | `django` | 19001 | &mdash; | Web interface (trial viewer, CRF tables, SAE reports) |
-| `medgemma4b-base` | 38004 | GPU 2 | Care AI nurse backend (vLLM) |
+| `medgemma4b-base` | 38004 | GPU 2 | DCA backend (vLLM) |
 | `medgemma4b-antihallu-ft` | 38002 | GPU 3 | Doc Agent + anti-hallucination (vLLM + LoRA) |
 | `antihallu-server` | 38003 | GPU 2 | Hallucination fact-checking API |
 | `data-collection-agent` | 38005 | GPU 3 | Multimodal detection (SigLIP + HeAR + MedASR + TTS) |
@@ -370,14 +370,14 @@ CLARA/
 │   │   ├── rule_agent.py          Phase 0: drug rule discovery
 │   │   ├── patient_agent.py       Phase 1: virtual cohort generation
 │   │   ├── daily_agent.py         Phase 2: daily simulation
-│   │   └── care_agent.py          Care AI: 4-turn video calls
+│   │   └── care_agent.py          DCA: 4-turn video calls
 │   │
 │   ├── multimodal_v2/             Multimodal AE detection pipeline
 │   ├── cough_detection/           HeAR-based cough classification
 │   ├── orchestrator_v2.py         3-Phase simulation orchestrator
 │   └── run_simulation_v2.py       CLI entry point
 │
-├── dca_server/                       Care AI Nurse API (FastAPI)
+├── dca_server/                       Data Collection Agent API (FastAPI)
 │   ├── server.py                  Endpoints: classify, cough, transcribe, nurse
 │   ├── nurse_engine.py            Medical conversation engine
 │   ├── siglip_classifier.py       SigLIP vision classifier head
@@ -421,7 +421,7 @@ Where:
 AE grade transitions use daily Markov probabilities:
 - Base worsen rate: 1.5%/day (increases with cumulative toxicity)
 - Base improve rate: 0.5%/day
-- Care AI intervention: worsen &times;0.3, improve &times;3.0
+- DCA intervention: worsen &times;0.3, improve &times;3.0
 
 </details>
 
@@ -437,7 +437,7 @@ The observation model implements a **whitelist-based filter** &mdash; HR only re
 | Scheduled visit | Full exam: labs, vitals, physical exam, AE assessment | Treatment cycle day |
 | Scheduled scan | Tumor/RECIST data | Protocol-defined intervals |
 | Self-report | Patient-reported AEs only | Mood-dependent probability |
-| Video call (Care AI) | video_detectable + patient_reported AEs | Daily (Care AI mode) |
+| Video call (DCA) | video_detectable + patient_reported AEs | Daily (DCA mode) |
 | ER visit | Full exam | Grade 4+ AE or dangerous vitals |
 
 HR never falls back to GT. If a lab value wasn't measured, it stays stale.
@@ -461,7 +461,7 @@ Each virtual patient has a persistent psychological profile that evolves over ti
 | **Defensiveness** | High &rarr; minimizes symptoms (reports Grade 2 as Grade 1) |
 | **Trust** | High &rarr; accurate reporting, engages fully with AI nurse |
 
-Persona-specific baselines are set at patient generation. Events (new AE, good scan result, Care AI empathy) cause daily micro-adjustments.
+Persona-specific baselines are set at patient generation. Events (new AE, good scan result, nurse empathy) cause daily micro-adjustments.
 
 </details>
 
