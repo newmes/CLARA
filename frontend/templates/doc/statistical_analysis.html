@@ -23,6 +23,13 @@
 }
 .doc-subtitle { color: var(--text-secondary); font-size: 0.95em; margin-top: 4px; }
 
+/* ── Control bar ── */
+.crf-controls {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  margin-bottom: 1em; padding: 10px 14px;
+  background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-lg);
+}
+
 /* ── DCA Switch Toggle (iOS-style + pulse) ── */
 @keyframes dca-pulse {
   0%, 100% { box-shadow: 0 0 8px rgba(57,210,192,0.8); }
@@ -34,7 +41,7 @@
 }
 .dca-switch {
   display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
-  user-select: none; -webkit-user-select: none; margin-bottom: 1em;
+  user-select: none; -webkit-user-select: none; position: relative; top: 3px;
 }
 .dca-switch input { display: none; }
 .dca-label {
@@ -300,14 +307,18 @@
         · {{ n_patients }} patients · Run {{ run_id|truncatechars:16 }}
       </div>
     </div>
-    {% if available_modes|length > 1 %}
+  </div>
+
+  {% if available_modes|length > 1 %}
+  <!-- Control bar -->
+  <div class="crf-controls">
     <label class="dca-switch" id="dca-toggle">
       <span class="dca-label">DCA</span>
       <input type="checkbox" data-mode-on="care_ai" data-mode-off="natural">
       <span class="dca-slider"></span>
     </label>
-    {% endif %}
   </div>
+  {% endif %}
 
   <!-- Section Navigation -->
   <div class="section-tabs">
