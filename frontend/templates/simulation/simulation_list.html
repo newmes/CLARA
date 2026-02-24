@@ -331,6 +331,128 @@
   .sim-btn-cancel:hover { background: var(--bg-card-hover); }
 
   /* ================================================================
+     API Key Section
+     ================================================================ */
+
+  /* -- Divider -- */
+  .api-section-divider {
+    border: none; height: 1px; margin: 18px 0 14px;
+    background: linear-gradient(90deg, transparent, var(--border), transparent);
+  }
+
+  /* -- API Key input wrapper -- */
+  .api-key-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+  .api-key-input-wrap input {
+    width: 100%;
+    padding: 10px 42px 10px 14px;
+    background: var(--bg-elevated);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    color: var(--text-primary);
+    font: 0.88em 'JetBrains Mono', monospace;
+    transition: border-color 0.2s, box-shadow 0.2s;
+  }
+  .api-key-input-wrap input:focus {
+    outline: none;
+    border-color: var(--accent-cyan);
+    box-shadow: 0 0 0 3px rgba(57,210,192,0.1);
+  }
+  .api-key-input-wrap input.has-error {
+    border-color: var(--accent-red);
+    box-shadow: 0 0 0 3px rgba(248,81,73,0.12);
+  }
+  .api-key-toggle {
+    position: absolute; right: 4px; top: 50%; transform: translateY(-50%);
+    background: none; border: none; cursor: pointer;
+    color: var(--text-muted); padding: 6px 8px;
+    display: inline-flex; align-items: center; justify-content: center;
+    border-radius: 6px; transition: color 0.15s, background 0.15s;
+  }
+  .api-key-toggle:hover {
+    color: var(--accent-cyan);
+    background: rgba(57,210,192,0.06);
+  }
+  .api-key-toggle svg { width: 16px; height: 16px; }
+
+  /* -- Inline field error (generic) -- */
+  .sim-field-error {
+    display: none;
+    align-items: center; gap: 5px;
+    margin-top: 5px;
+    font-size: 0.75em; font-weight: 600;
+    color: var(--accent-red);
+    line-height: 1.3;
+  }
+  .sim-field-error svg { width: 13px; height: 13px; flex-shrink: 0; }
+  .sim-field-error.visible { display: flex; }
+  .sim-form-group.has-error input,
+  .sim-form-group.has-error select {
+    border-color: var(--accent-red) !important;
+    box-shadow: 0 0 0 3px rgba(248,81,73,0.12) !important;
+  }
+
+  /* -- Cost estimate -- */
+  .cost-estimate {
+    display: flex; align-items: center; gap: 8px;
+    margin-top: 10px; padding: 8px 12px;
+    background: rgba(57,210,192,0.04);
+    border: 1px solid rgba(57,210,192,0.12);
+    border-radius: 8px;
+    font-size: 0.76em; color: var(--text-secondary);
+    line-height: 1.4;
+  }
+  .cost-estimate-icon {
+    flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 28px; height: 28px; border-radius: 6px;
+    background: rgba(57,210,192,0.08);
+    color: var(--accent-cyan);
+  }
+  .cost-estimate-icon svg { width: 14px; height: 14px; }
+  .cost-estimate-value {
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700; color: var(--accent-cyan);
+  }
+
+  /* -- Warning banner -- */
+  .api-key-warning {
+    display: flex; align-items: flex-start; gap: 10px;
+    margin-top: 10px; padding: 10px 12px;
+    background: rgba(210,153,34,0.06);
+    border: 1px solid rgba(210,153,34,0.18);
+    border-radius: 8px;
+    font-size: 0.75em; color: var(--text-secondary);
+    line-height: 1.55;
+  }
+  .api-key-warning-icon {
+    flex-shrink: 0;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 24px; height: 24px; border-radius: 6px;
+    background: rgba(210,153,34,0.1);
+    color: var(--accent-orange);
+    margin-top: 1px;
+  }
+  .api-key-warning-icon svg { width: 14px; height: 14px; }
+  .api-key-warning a {
+    color: var(--accent-cyan); text-decoration: none;
+    font-weight: 600; transition: color 0.15s;
+    white-space: nowrap;
+  }
+  .api-key-warning a:hover { color: #5de8d6; text-decoration: underline; }
+
+  /* -- Shake animation -- */
+  @keyframes shakeX {
+    0%, 100% { transform: translateX(0); }
+    15%, 45%, 75% { transform: translateX(-4px); }
+    30%, 60%, 90% { transform: translateX(4px); }
+  }
+  .shake { animation: shakeX 0.45s ease-in-out; }
+
+  /* ================================================================
      Responsive
      ================================================================ */
   @media (max-width: 900px) {
@@ -394,7 +516,7 @@
     {% for run in runs %}
     <div id="run-{{ run.id }}" class="fade-up">
       {% if run.status == 'completed' %}
-      <a class="run-card" href="{% url 'trial_viewer' run.id %}">
+      <div class="run-card" onclick="window.location.href='{% url 'trial_viewer' run.id %}'">
         <div class="run-card-header">
           <div class="run-card-title">
             <span class="drug-icon">
@@ -424,27 +546,19 @@
         </div>
         <div class="run-actions" onclick="event.stopPropagation();">
           <a href="{% url 'trial_viewer' run.id %}" class="act-cyan" title="Day-by-day trial dashboard">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><polygon points="10 8 16 11 10 14" fill="currentColor" stroke="none"/></svg>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
             Simulation
           </a>
-          <a href="{% url 'demo_care_agent' %}" class="act-purple" title="Care Agent demo">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.66 2.69 3 6 3s6-1.34 6-3v-5"/></svg>
-            Care Agent
-          </a>
-          <a href="{% url 'doc_hub' run.id %}" class="act-blue" title="SAE regulatory documents">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-            Documents
-          </a>
-          <a href="{% url 'compare_dashboard' run.id %}" class="act-green" title="Natural vs Care AI comparison">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-            A/B Test
+          <a href="{% url 'doc_hub' run.id %}" class="act-blue" title="Data analysis documents">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+            Data Analysis
           </a>
         </div>
-      </a>
+      </div>
 
       {% else %}
       <!-- Running / In-progress card -->
-      <a class="run-card running-card" href="{% url 'trial_viewer' run.id %}?live=1">
+      <div class="run-card running-card" onclick="window.location.href='{% url 'trial_viewer' run.id %}?live=1'">
         <div class="run-card-header">
           <div class="run-card-title">
             <span class="drug-icon" style="border-color:rgba(57,210,192,0.3);">
@@ -459,7 +573,7 @@
         </div>
         <div class="run-actions" onclick="event.stopPropagation();">
           <a href="{% url 'trial_viewer' run.id %}?live=1" class="act-cyan" title="Live trial dashboard">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16" fill="currentColor" stroke="none"/></svg>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
             Live View
           </a>
           <button onclick="stopSim('{{ run.id }}')" class="act-red" title="Stop simulation" style="cursor:pointer;">
@@ -467,7 +581,7 @@
             Stop
           </button>
         </div>
-      </a>
+      </div>
       {% endif %}
     </div>
     {% endfor %}
@@ -509,11 +623,19 @@
     </div>
     <div class="sim-form-group" id="sim-custom-drug-group">
       <label>Drug Name</label>
-      <input type="text" id="sim-drug" value="Padcev + Pembrolizumab">
+      <input type="text" id="sim-drug" value="Padcev + Pembrolizumab" onfocus="clearSimFieldError('sim-custom-drug-group')">
+      <div class="sim-field-error" id="sim-drug-error">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>Please enter a drug name</span>
+      </div>
     </div>
     <div class="sim-form-group" id="sim-custom-indication-group">
       <label>Indication</label>
-      <input type="text" id="sim-indication" value="metastatic urothelial carcinoma">
+      <input type="text" id="sim-indication" value="metastatic urothelial carcinoma" onfocus="clearSimFieldError('sim-custom-indication-group')">
+      <div class="sim-field-error" id="sim-indication-error">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>Please enter an indication</span>
+      </div>
     </div>
     <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px;">
       <div class="sim-form-group">
@@ -536,6 +658,39 @@
     <div class="sim-form-group">
       <label>Seed (optional)</label>
       <input type="number" id="sim-seed" placeholder="Random">
+    </div>
+    <!-- API Key Section -->
+    <hr class="api-section-divider">
+    <div class="sim-form-group" id="sim-api-key-group">
+      <label>Google API Key</label>
+      <div class="api-key-input-wrap">
+        <input type="password" id="sim-api-key" placeholder="AIza..." autocomplete="off" spellcheck="false">
+        <button type="button" class="api-key-toggle" onclick="toggleApiKeyVisibility()" title="Show / hide key" tabindex="-1">
+          <svg id="eye-icon-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          <svg id="eye-icon-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:none;"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+        </button>
+      </div>
+      <div class="sim-field-error" id="api-key-error">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span>API key is required to run simulations</span>
+      </div>
+    </div>
+
+    <!-- Cost Estimate -->
+    <div class="cost-estimate" id="cost-estimate">
+      <span class="cost-estimate-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+      </span>
+      <span>Estimated cost: <span class="cost-estimate-value" id="cost-estimate-value">$0.00 - $0.00</span></span>
+    </div>
+
+    <!-- Warning Banner -->
+    <div class="api-key-warning">
+      <span class="api-key-warning-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      </span>
+      <span>Your key is sent to Google servers only -- never stored by CLARA.
+        <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Get a key from Google AI Studio &rarr;</a></span>
     </div>
     <div class="sim-form-actions">
       <button class="sim-btn-start" id="sim-start-btn" onclick="startSimulation()">Start Simulation</button>
@@ -623,6 +778,97 @@ async function stopSim(runId) {
   }
 }
 
+/* -- API Key visibility toggle -- */
+function toggleApiKeyVisibility() {
+  var input = document.getElementById('sim-api-key');
+  var showIcon = document.getElementById('eye-icon-show');
+  var hideIcon = document.getElementById('eye-icon-hide');
+  if (input.type === 'password') {
+    input.type = 'text';
+    showIcon.style.display = 'none';
+    hideIcon.style.display = 'block';
+  } else {
+    input.type = 'password';
+    showIcon.style.display = 'block';
+    hideIcon.style.display = 'none';
+  }
+}
+
+/* -- Cost Estimate -- */
+function updateCostEstimate() {
+  var patients = parseInt(document.getElementById('sim-patients').value) || 0;
+  var days = parseInt(document.getElementById('sim-days').value) || 0;
+  var mode = document.getElementById('sim-mode').value;
+
+  // Cost per patient-day (rough guide):
+  //   Natural:  ~$0.002 (LLM on event days + patient gen)
+  //   Care AI:  ~$0.005 (4 LLM calls/day for video call)
+  //   Both:     natural + care_ai
+  var rateMin = 0, rateMax = 0;
+  if (mode === 'natural') {
+    rateMin = 0.0012; rateMax = 0.0025;
+  } else if (mode === 'care_ai') {
+    rateMin = 0.0035; rateMax = 0.006;
+  } else { /* both */
+    rateMin = 0.0045; rateMax = 0.0085;
+  }
+
+  var costMin = (patients * days * rateMin).toFixed(2);
+  var costMax = (patients * days * rateMax).toFixed(2);
+
+  var el = document.getElementById('cost-estimate-value');
+  if (el) {
+    el.textContent = '$' + costMin + ' \u2013 $' + costMax;
+  }
+}
+
+/* -- Generic field error helpers -- */
+function showSimFieldError(groupId, errorId, inputId) {
+  var group = document.getElementById(groupId);
+  if (group) {
+    group.classList.add('has-error');
+    group.classList.remove('shake');
+    void group.offsetWidth;
+    group.classList.add('shake');
+  }
+  var errEl = document.getElementById(errorId);
+  if (errEl) errEl.classList.add('visible');
+  if (inputId) document.getElementById(inputId).focus();
+}
+
+function clearSimFieldError(groupId) {
+  var group = document.getElementById(groupId);
+  if (group) {
+    group.classList.remove('has-error', 'shake');
+  }
+  /* Also clear any visible error inside this group */
+  if (group) {
+    var err = group.querySelector('.sim-field-error');
+    if (err) err.classList.remove('visible');
+  }
+}
+
+/* Clear API key error on typing */
+document.addEventListener('DOMContentLoaded', function() {
+  var apiInput = document.getElementById('sim-api-key');
+  if (apiInput) {
+    apiInput.addEventListener('input', function() {
+      clearSimFieldError('sim-api-key-group');
+      apiInput.classList.remove('has-error');
+    });
+  }
+
+  /* Hook cost estimate to inputs */
+  ['sim-patients', 'sim-days', 'sim-mode'].forEach(function(id) {
+    var el = document.getElementById(id);
+    if (el) el.addEventListener('change', updateCostEstimate);
+    if (el && el.tagName === 'INPUT') el.addEventListener('input', updateCostEstimate);
+  });
+
+  /* Initial cost estimate */
+  updateCostEstimate();
+});
+
 /* -- Start Sim -- */
 async function startSimulation() {
   var btn = document.getElementById('sim-start-btn');
@@ -635,12 +881,41 @@ async function startSimulation() {
 
   var drugSelect = document.getElementById('sim-drug-select');
   var isCustom = drugSelect.value === 'custom';
+
+  /* -- Validate required fields -- */
+  var drugVal = document.getElementById('sim-drug').value.trim();
+  var indicationVal = document.getElementById('sim-indication').value.trim();
+  var apiKey = document.getElementById('sim-api-key').value.trim();
+
+  if (!drugVal) {
+    showSimFieldError('sim-custom-drug-group', 'sim-drug-error', 'sim-drug');
+    msg.style.display = 'none';
+    btn.disabled = false;
+    btn.textContent = 'Start Simulation';
+    return;
+  }
+  if (!indicationVal) {
+    showSimFieldError('sim-custom-indication-group', 'sim-indication-error', 'sim-indication');
+    msg.style.display = 'none';
+    btn.disabled = false;
+    btn.textContent = 'Start Simulation';
+    return;
+  }
+  if (!apiKey) {
+    showSimFieldError('sim-api-key-group', 'api-key-error', 'sim-api-key');
+    msg.style.color = 'var(--accent-red)';
+    msg.textContent = 'Google API Key is required to run simulations.';
+    btn.disabled = false;
+    btn.textContent = 'Start Simulation';
+    return;
+  }
   var body = {
     drug: document.getElementById('sim-drug').value,
     indication: document.getElementById('sim-indication').value,
     patients: parseInt(document.getElementById('sim-patients').value),
     days: parseInt(document.getElementById('sim-days').value),
     mode: document.getElementById('sim-mode').value,
+    api_key: apiKey,
   };
   if (!isCustom) {
     body.rule_set_preset = drugSelect.value;
