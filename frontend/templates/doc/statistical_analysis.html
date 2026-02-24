@@ -142,41 +142,39 @@
 .shift-legend-dot.severe { background:#f87171; }
 .shift-axis-label { font-size:.82em; color:var(--text-muted); margin-bottom:6px; text-align:center; letter-spacing:.3px; }
 
-/* ── Mode Pill Toggle ── */
-.mode-pill {
-  display: inline-flex; border-radius: 8px; overflow: hidden;
-  border: 1px solid var(--border); background: rgba(13,17,23,0.7);
-  padding: 2px; gap: 2px; margin-bottom: 1em;
+/* ── DCA Switch Toggle (iOS-style) ── */
+.dca-switch {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  user-select: none; -webkit-user-select: none; margin-bottom: 1em;
 }
-.mp-btn {
-  padding: 7px 16px; border: none; cursor: pointer;
-  font: 700 0.95em 'JetBrains Mono', monospace;
-  background: transparent; color: var(--text-muted);
-  transition: all 0.25s ease; line-height: 1.2; white-space: nowrap;
-  display: flex; align-items: center; gap: 6px;
-  border-radius: 6px; letter-spacing: 0.5px;
+.dca-switch input { display: none; }
+.dca-label {
+  font: 700 0.92em 'JetBrains Mono', monospace;
+  color: var(--text-muted); letter-spacing: 0.5px;
+  transition: color 0.3s, text-shadow 0.3s;
 }
-.mp-btn:hover { color: var(--text-primary); background: rgba(255,255,255,0.04); }
-.mp-dot {
-  width: 8px; height: 8px; border-radius: 50%;
-  background: var(--text-muted); opacity: 0.3;
-  transition: all 0.3s ease; flex-shrink: 0;
+.dca-slider {
+  position: relative; width: 44px; height: 24px;
+  background: rgba(110,118,129,0.3); border-radius: 12px;
+  transition: background 0.3s, box-shadow 0.3s;
+  flex-shrink: 0;
 }
-.mp-natural.active {
-  background: rgba(63,185,80,0.15); color: #3fb950;
-  box-shadow: 0 0 12px rgba(63,185,80,0.15);
+.dca-slider::before {
+  content: ''; position: absolute; left: 2px; top: 2px;
+  width: 20px; height: 20px; border-radius: 50%;
+  background: #8b949e; transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
 }
-.mp-natural.active .mp-dot {
-  background: #3fb950; opacity: 1;
-  box-shadow: 0 0 6px rgba(63,185,80,0.8);
+.dca-switch input:checked + .dca-slider {
+  background: rgba(57,210,192,0.35);
+  box-shadow: 0 0 12px rgba(57,210,192,0.3), inset 0 0 8px rgba(57,210,192,0.15);
 }
-.mp-care-ai.active {
-  background: rgba(57,210,192,0.15); color: #39d2c0;
-  box-shadow: 0 0 12px rgba(57,210,192,0.15);
+.dca-switch input:checked + .dca-slider::before {
+  transform: translateX(20px); background: #39d2c0;
+  box-shadow: 0 0 8px rgba(57,210,192,0.8);
 }
-.mp-care-ai.active .mp-dot {
-  background: #39d2c0; opacity: 1;
-  box-shadow: 0 0 6px rgba(57,210,192,0.8);
+.dca-switch input:checked ~ .dca-label,
+.dca-switch:has(input:checked) .dca-label {
+  color: #39d2c0; text-shadow: 0 0 8px rgba(57,210,192,0.5);
 }
 
 /* ── Loading ── */
@@ -234,15 +232,13 @@
     </div>
   </div>
 
-  <!-- Mode Pill -->
+  <!-- Mode Toggle -->
   {% if available_modes|length > 1 %}
-  <div class="mode-pill">
-    {% for m in available_modes %}
-    <button class="mp-btn {% if m == 'natural' %}mp-natural{% elif m == 'care_ai' %}mp-care-ai{% endif %}{% if forloop.first %} active{% endif %}" data-mode="{{ m }}" onclick="switchStatsMode('{{ m }}')">
-      <span class="mp-dot"></span>{% if m == "natural" %}Natural{% elif m == "care_ai" %}<span title="Data Collection Agent">DCA</span>{% else %}{{ m|title }}{% endif %}
-    </button>
-    {% endfor %}
-  </div>
+  <label class="dca-switch" id="dca-toggle">
+    <span class="dca-label">DCA</span>
+    <input type="checkbox" data-mode-on="care_ai" data-mode-off="natural">
+    <span class="dca-slider"></span>
+  </label>
   {% endif %}
 
   <!-- Section tabs -->
@@ -383,13 +379,17 @@ document.querySelectorAll('.sec-tab').forEach(b => {
   });
 });
 
-// ── Mode switching ──
+// ── DCA Switch Toggle ──
 function switchStatsMode(mode) {
   currentMode = mode;
-  document.querySelectorAll('.mp-btn[data-mode]').forEach(function(b) {
-    b.classList.toggle('active', b.dataset.mode === mode);
-  });
   loadData();
+}
+const dcaToggle = document.querySelector('#dca-toggle input');
+if (dcaToggle) {
+  if (currentMode === 'care_ai') dcaToggle.checked = true;
+  dcaToggle.addEventListener('change', function() {
+    switchStatsMode(this.checked ? this.dataset.modeOn : this.dataset.modeOff);
+  });
 }
 window.switchStatsMode = switchStatsMode;
 

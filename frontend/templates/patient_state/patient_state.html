@@ -43,6 +43,40 @@
   .ps-nav-day button:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
   .ps-nav-slider { flex: 1; min-width: 80px; }
   .ps-nav-slider input[type=range] { width: 100%; }
+  /* ── DCA Switch Toggle (iOS-style) ── */
+  .dca-switch {
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    user-select: none; -webkit-user-select: none;
+  }
+  .dca-switch input { display: none; }
+  .dca-label {
+    font: 700 0.88em 'JetBrains Mono', monospace;
+    color: var(--text-muted); letter-spacing: 0.5px;
+    transition: color 0.3s, text-shadow 0.3s;
+  }
+  .dca-slider {
+    position: relative; width: 44px; height: 24px;
+    background: rgba(110,118,129,0.3); border-radius: 12px;
+    transition: background 0.3s, box-shadow 0.3s;
+    flex-shrink: 0;
+  }
+  .dca-slider::before {
+    content: ''; position: absolute; left: 2px; top: 2px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #8b949e; transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
+  }
+  .dca-switch input:checked + .dca-slider {
+    background: rgba(57,210,192,0.35);
+    box-shadow: 0 0 12px rgba(57,210,192,0.3), inset 0 0 8px rgba(57,210,192,0.15);
+  }
+  .dca-switch input:checked + .dca-slider::before {
+    transform: translateX(20px); background: #39d2c0;
+    box-shadow: 0 0 8px rgba(57,210,192,0.8);
+  }
+  .dca-switch input:checked ~ .dca-label,
+  .dca-switch:has(input:checked) .dca-label {
+    color: #39d2c0; text-shadow: 0 0 8px rgba(57,210,192,0.5);
+  }
   .ps-view-bar {
     display: inline-flex; border-radius: 4px; overflow: hidden;
     border: 1px solid var(--border); flex-shrink: 0;
@@ -346,13 +380,12 @@
     <span class="ps-visit-badge" id="psVisitBadge"></span>
     <div class="ps-nav-sep"></div>
     {% if available_modes|length > 1 %}
-    <div class="ps-view-bar" id="ps-mode-toggle">
-      {% for m in available_modes %}
-      <button class="{% if mode == m %}active-gt{% endif %}" data-mode="{{ m }}" title="{{ m }}" style="font-size:0.82em">
-        {{ m }}
-      </button>
-      {% endfor %}
-    </div>
+    <label class="dca-switch" id="dca-toggle">
+      <span class="dca-label">DCA</span>
+      <input type="checkbox" data-mode-on="care_ai" data-mode-off="natural"
+             {% if mode == 'care_ai' %}checked{% endif %}>
+      <span class="dca-slider"></span>
+    </label>
     <div class="ps-nav-sep"></div>
     {% endif %}
     <div class="ps-view-bar" id="ps-view-toggle">
@@ -1197,16 +1230,17 @@ document.querySelectorAll('#ps-view-toggle button').forEach(btn => {
   });
 });
 
-// Mode toggle (natural/care_ai)
-document.querySelectorAll('#ps-mode-toggle button').forEach(btn => {
-  btn.addEventListener('click', function() {
-    const newMode = this.dataset.mode;
+// DCA Switch Toggle
+const dcaToggle = document.querySelector('#dca-toggle input');
+if (dcaToggle) {
+  dcaToggle.addEventListener('change', function() {
+    const newMode = this.checked ? this.dataset.modeOn : this.dataset.modeOff;
     const url = new URL(window.location);
     if (url.searchParams.get('mode') === newMode) return;
     url.searchParams.set('mode', newMode);
     window.location.href = url.toString();
   });
-});
+}
 
 // Keyboard navigation
 document.addEventListener('keydown', e => {
