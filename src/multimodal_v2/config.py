@@ -232,7 +232,7 @@ class MultimodalConfig:
     gemini_api_key: str = field(
         default_factory=lambda: (
             os.environ.get("GEMINI_API_KEY")
-            or os.environ.get("GOOGLE_API_KEY", "REDACTED_GOOGLE_API_KEY")
+            or os.environ.get("GOOGLE_API_KEY", "YOUR_API_KEY")
         )
     )
 
@@ -251,7 +251,7 @@ class MultimodalConfig:
     hf_token: str = field(
         default_factory=lambda: os.environ.get(
             "HF_TOKEN",
-            "REDACTED_HF_TOKEN",
+            "YOUR_HF_KEY",
         )
     )
 
