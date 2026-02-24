@@ -8,7 +8,7 @@
 **A simulation-powered framework that proves continuous AI monitoring saves lives, then deploys it as a real-world application.**
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](#)
-[![License](https://img.shields.io/badge/License-Apache_2.0-green.svg)](#license)
+[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](#license)
 [![HAI-DEF](https://img.shields.io/badge/HAI--DEF-MedGemma-FF6F00?logo=google&logoColor=white)](https://developers.google.com/health-ai-developer-foundations)
 [![Kaggle](https://img.shields.io/badge/MedGemma_Impact-Challenge_2026-20BEFF?logo=kaggle&logoColor=white)](https://www.kaggle.com/competitions/med-gemma-impact-challenge)
 
@@ -75,20 +75,18 @@ CLARA consists of two MedGemma-based agents. We transitioned them from simulatio
 ## HAI-DEF Models
 
 <p align="center">
-  <img src="docs/assets/gemma.png" width="44" alt="Gemma" />
-  &nbsp;&nbsp;&nbsp;
-  <img src="docs/assets/gemini.png" width="44" alt="Gemini" />
+  <img src="docs/assets/gemma.png" width="64" alt="Gemma" />
 </p>
 
 Each HAI-DEF model serves a distinct clinical role within CLARA:
 
 | Model | Role in CLARA | Details |
 |-------|--------------|---------|
-| <img src="docs/assets/gemma.png" width="16" /> [**MedGemma 1.5 4B**](https://huggingface.co/google/medgemma-1.5-4b-it) | DCA — powers the conversational AI medical staff during daily CLARA Call check-ins | Generates clinically appropriate questions and assessments |
-| <img src="docs/assets/gemma.png" width="16" /> [**MedSigLIP**](https://huggingface.co/google/medsiglip-448) | DCA — processes video frames captured during CLARA Call to detect visible AE symptoms (e.g., rash, swelling) and classify their CTCAE grade | Trained on 210 Gemini-generated synthetic patient images (147/21/42 split); W-F1 = 90% |
-| <img src="docs/assets/gemma.png" width="16" /> [**HeAR**](https://huggingface.co/google/hear-pytorch) | DCA — analyzes patient audio through a cough detection and classification pipeline, distinguishing dry from wet cough | Fine-tuned on 956 randomly sampled recordings (478 dry / 478 wet) from the [COUGHVID dataset](https://www.kaggle.com/datasets/nasrulhakim86/coughvid-wav), tested on Gemini-generated synthetic audio |
-| <img src="docs/assets/gemini.png" width="16" /> [**Gemini 2.0 Flash**](https://ai.google.dev/) | Simulation orchestrator — rule discovery, patient generation, narration | API-based; no local GPU needed |
-| <img src="docs/assets/gemma.png" width="16" /> **MedGemma 4B + RLFR** | DAA — whenever a SAE occurs, autonomously generates reports in FDA MedWatch and E2B XML format | Hallucination rate 37.3% → 6.7% |
+| [**MedGemma 1.5 4B**](https://huggingface.co/google/medgemma-1.5-4b-it) | DCA — powers the conversational AI medical staff during daily CLARA Call check-ins | Generates clinically appropriate questions and assessments |
+| [**MedSigLIP**](https://huggingface.co/google/medsiglip-448) | DCA — processes video frames captured during CLARA Call to detect visible AE symptoms (e.g., rash, swelling) and classify their CTCAE grade | Trained on 210 Gemini-generated synthetic patient images (147/21/42 split); W-F1 = 90% |
+| [**HeAR**](https://huggingface.co/google/hear-pytorch) | DCA — analyzes patient audio through a cough detection and classification pipeline, distinguishing dry from wet cough | Fine-tuned on 956 randomly sampled recordings (478 dry / 478 wet) from the [COUGHVID dataset](https://www.kaggle.com/datasets/nasrulhakim86/coughvid-wav), tested on Gemini-generated synthetic audio |
+| [**MedASR**](https://huggingface.co/google/medasr) | DCA — medical speech recognition for patient speech transcription during CLARA Call | Medical terminology-aware ASR |
+| [**MedGemma 1.5 4B + RLFR**](https://huggingface.co/AlphaRaven/medgemma-4b-antihallu) | DAA — whenever a SAE occurs, autonomously generates reports in FDA MedWatch and E2B XML format | Hallucination rate 37.3% → 6.7% |
 
 ---
 
@@ -312,7 +310,7 @@ Persona-specific baselines are set at patient generation. Events (new AE, good s
 ### Prerequisites
 
 - Python 3.10+
-- NVIDIA GPU with 10–20 GB VRAM (for notebooks; simulation CLI uses Gemini API only)
+- NVIDIA GPU with ~10 GB VRAM (NB2 only ~20 GB; simulation CLI uses Gemini API only)
 - [Google Gemini API key](https://ai.google.dev/)
 
 ### Installation
@@ -496,21 +494,6 @@ CLARA/
 
 ---
 
-## Team
-
-**dmyoun** · **lisavictorialee** · **hyenawon** · **sabapivot** · **jjin6573**
-
-## Citation
-
-```bibtex
-@software{clara2026,
-  title   = {CLARA: Clinical Longitudinal AI Research Assistant},
-  author  = {dmyoun and lisavictorialee and hyenawon and sabapivot and jjin6573},
-  year    = {2026},
-  url     = {https://github.com/newmes/CLARA}
-}
-```
-
 ## References
 
 - Basch, E. et al. (2006). *Lancet Oncol.*, 7(11), 903–909. [doi:10.1016/S1470-2045(06)70910-X](https://doi.org/10.1016/S1470-2045(06)70910-X)
@@ -531,6 +514,15 @@ CLARA/
   Submitted to the <a href="https://www.kaggle.com/competitions/med-gemma-impact-challenge">MedGemma Impact Challenge</a> on Kaggle.
 </p>
 
+## Asset Credits
+
+| Asset | Source | License |
+|-------|--------|---------|
+| Character sprites (nurse, patients, buildings, decorations) | [Sunnyside](https://danieldiggle.itch.io/sunnyside) by Daniel Diggle | Commercial license |
+| 1-Bit & Tiny Town tilesets | [Kenney](https://kenney.nl/) | CC0 1.0 |
+| CuteRPG tilesets | [CuteRPG](https://store.steampowered.com/app/2116380/) | Commercial license |
+| Synthetic medical images | Generated with Google Gemini | — |
+
 ## License
 
-[Apache 2.0](LICENSE)
+[GNU General Public License v3.0](LICENSE)
