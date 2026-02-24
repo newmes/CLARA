@@ -269,6 +269,44 @@
     color: #39d2c0; text-shadow: 0 0 8px rgba(57,210,192,0.5);
   }
 
+  /* ── View Switch Toggle (Observed ◉─── Real) ── */
+  .view-switch {
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    user-select: none; -webkit-user-select: none;
+  }
+  .view-switch input { display: none; }
+  .view-sw-label {
+    font: 700 0.92em 'JetBrains Mono', monospace;
+    letter-spacing: 0.5px; transition: color 0.3s, text-shadow 0.3s;
+  }
+  .view-sw-track {
+    position: relative; width: 44px; height: 24px;
+    background: rgba(210,153,34,0.35); border-radius: 12px;
+    transition: background 0.3s, box-shadow 0.3s;
+    box-shadow: 0 0 12px rgba(210,153,34,0.3), inset 0 0 8px rgba(210,153,34,0.15);
+    flex-shrink: 0;
+  }
+  .view-sw-track::before {
+    content: ''; position: absolute; left: 2px; top: 2px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #d29922; box-shadow: 0 0 8px rgba(210,153,34,0.8);
+    transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
+  }
+  /* Default (unchecked) = HR active: thumb left, amber */
+  .view-sw-label.hr-side { color: #d29922; text-shadow: 0 0 8px rgba(210,153,34,0.5); }
+  .view-sw-label.gt-side { color: var(--text-muted); text-shadow: none; }
+  /* Checked = GT active: thumb right, cyan */
+  .view-switch input:checked + .view-sw-track {
+    background: rgba(57,210,192,0.35);
+    box-shadow: 0 0 12px rgba(57,210,192,0.3), inset 0 0 8px rgba(57,210,192,0.15);
+  }
+  .view-switch input:checked + .view-sw-track::before {
+    transform: translateX(20px); background: #39d2c0;
+    box-shadow: 0 0 8px rgba(57,210,192,0.8);
+  }
+  .view-switch:has(input:checked) .view-sw-label.hr-side { color: var(--text-muted); text-shadow: none; }
+  .view-switch:has(input:checked) .view-sw-label.gt-side { color: #39d2c0; text-shadow: 0 0 8px rgba(57,210,192,0.5); }
+
   /* ── Alert Toggle ── */
   .hud-alert-btn {
     width: 30px; height: 28px; border: 1px solid var(--border); border-radius: 4px;
@@ -866,8 +904,6 @@
   .mood-val { width: 36px; font: 600 0.92em 'JetBrains Mono', monospace; text-align: right; flex-shrink: 0; }
 
   /* HR/GT toggle glow */
-  #record-view-toggle button.active-amber { box-shadow: inset 0 -2px 0 #d29922, 0 0 6px rgba(210,153,34,0.15); }
-  #record-view-toggle button.active-cyan { box-shadow: inset 0 -2px 0 var(--accent-cyan), 0 0 6px rgba(57,210,192,0.15); }
 
   /* (chat/mood/toggle styles consolidated in modal CSS block above) */
 
@@ -1100,17 +1136,14 @@
 
     <!-- Record View Toggle -->
     <div class="hud-section">
-      <div class="pill-group" id="view-toggle">
-        <button {% if view_mode == 'hr' %}class="active-amber"{% endif %} data-view="hr" title="Hospital Record">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          HR
-        </button>
-        <button {% if view_mode == 'gt' %}class="active-cyan"{% endif %} data-view="gt" title="Ground Truth">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          GT
-        </button>
-      </div>
-</div>
+      <label class="view-switch" id="hr-toggle">
+        <span class="view-sw-label hr-side">Observed</span>
+        <input type="checkbox" data-view-on="gt" data-view-off="hr"
+               {% if view_mode == 'gt' %}checked{% endif %}>
+        <span class="view-sw-track"></span>
+        <span class="view-sw-label gt-side">Real</span>
+      </label>
+    </div>
 
   </div>
 </div>
@@ -1236,10 +1269,13 @@
       <!-- Actions Column (top-right) -->
       <div class="char-actions-col">
         <div class="char-actions-top">
-          <div class="pill-group" id="record-view-toggle" style="flex-shrink:0;">
-            <button data-view="hr" style="min-width:68px;" title="Hospital Record — data visible to medical staff">HR</button>
-            <button data-view="gt" style="min-width:68px;" title="Ground Truth — actual simulation state">GT</button>
-            </div>
+          <label class="view-switch" id="record-view-toggle" style="flex-shrink:0;">
+            <span class="view-sw-label hr-side">Observed</span>
+            <input type="checkbox" data-view-on="gt" data-view-off="hr"
+                   {% if view_mode == 'gt' %}checked{% endif %}>
+            <span class="view-sw-track"></span>
+            <span class="view-sw-label gt-side">Real</span>
+          </label>
           <button class="patient-modal-close" id="patient-modal-close" title="Close">&#10005;</button>
             </div>
         <span id="modal-view-hint" style="font-size:0.88em; color:var(--text-muted); white-space:nowrap;"></span>
@@ -2134,41 +2170,36 @@
     });
   }
 
-  // ── Global View Toggle (GT vs Hospital Record) ──
-  document.querySelectorAll('#view-toggle button').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-      const clicked = e.target.closest('button');
-      if (!clicked) return;
-      const newView = clicked.dataset.view;
+  // ── Global View Toggle (Observed ◉─── Real) ──
+  const hrToggle = document.querySelector('#hr-toggle input');
+  if (hrToggle) {
+    hrToggle.addEventListener('change', function() {
+      const newView = this.checked ? this.dataset.viewOn : this.dataset.viewOff;
       if (newView === currentView) return;
       currentView = newView;
-      document.querySelectorAll('#view-toggle button').forEach(b => {
-        b.classList.remove('active-amber', 'active-cyan');
-      });
-      clicked.classList.add(newView === 'hr' ? 'active-amber' : 'active-cyan');
       const url = new URL(window.location);
       url.searchParams.set('view', newView);
       history.replaceState(null, '', url.toString());
+      syncModalToggle(newView);
       fetchDayData(currentDay);
     });
-  });
+  }
 
-  // ── Record View Toggle (GT vs Hospital) — detail panel ──
+  // ── Record View Toggle — detail panel ──
   function syncModalToggle(view) {
-    document.querySelectorAll('#record-view-toggle button').forEach(b => {
-      b.classList.remove('active-amber', 'active-cyan');
-    });
-    const btn = document.querySelector(`#record-view-toggle button[data-view="${view}"]`);
-    if (btn) btn.classList.add(view === 'hr' ? 'active-amber' : 'active-cyan');
+    const modalCb = document.querySelector('#record-view-toggle input');
+    if (modalCb) modalCb.checked = (view === 'gt');
     const hint = document.getElementById('modal-view-hint');
     if (hint) hint.textContent = view === 'hr' ? 'Only hospital-observed data' : 'Full ground truth';
   }
 
   let modalViewMode = currentView;
 
-  document.querySelectorAll('#record-view-toggle button').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const view = this.dataset.view;
+  const modalHrToggle = document.querySelector('#record-view-toggle input');
+  if (modalHrToggle) {
+    modalHrToggle.checked = (currentView === 'gt');
+    modalHrToggle.addEventListener('change', function() {
+      const view = this.checked ? this.dataset.viewOn : this.dataset.viewOff;
       modalViewMode = view;
       syncModalToggle(view);
       if (selectedPatient) {
@@ -2176,7 +2207,7 @@
         if (p) renderModalDetail(p, view);
       }
     });
-  });
+  }
 
   function renderModalDetail(p, viewMode) {
     const hr = p.hospital_record || {};

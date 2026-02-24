@@ -77,24 +77,43 @@
   .dca-switch:has(input:checked) .dca-label {
     color: #39d2c0; text-shadow: 0 0 8px rgba(57,210,192,0.5);
   }
-  .ps-view-bar {
-    display: inline-flex; border-radius: 4px; overflow: hidden;
-    border: 1px solid var(--border); flex-shrink: 0;
+  /* ── View Switch Toggle (Observed ◉─── Real) ── */
+  .view-switch {
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    user-select: none; -webkit-user-select: none;
   }
-  .ps-view-bar button {
-    padding: 4px 12px; border: none; cursor: pointer;
-    font: 600 0.88em 'JetBrains Mono', monospace;
-    background: var(--bg-elevated); color: var(--text-muted);
-    transition: all 0.15s; line-height: 1.2;
+  .view-switch input { display: none; }
+  .view-sw-label {
+    font: 700 0.88em 'JetBrains Mono', monospace;
+    letter-spacing: 0.5px; transition: color 0.3s, text-shadow 0.3s;
   }
-  .ps-view-bar button.active-hr {
-    background: rgba(210,153,34,0.2); color: #d29922;
-    box-shadow: inset 0 -2px 0 #d29922;
+  .view-sw-track {
+    position: relative; width: 44px; height: 24px;
+    background: rgba(210,153,34,0.35); border-radius: 12px;
+    transition: background 0.3s, box-shadow 0.3s;
+    box-shadow: 0 0 12px rgba(210,153,34,0.3), inset 0 0 8px rgba(210,153,34,0.15);
+    flex-shrink: 0;
   }
-  .ps-view-bar button.active-gt {
-    background: rgba(57,210,192,0.15); color: var(--accent-cyan);
-    box-shadow: inset 0 -2px 0 var(--accent-cyan);
+  .view-sw-track::before {
+    content: ''; position: absolute; left: 2px; top: 2px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #d29922; box-shadow: 0 0 8px rgba(210,153,34,0.8);
+    transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
   }
+  /* Default (unchecked) = HR active: thumb left, amber */
+  .view-sw-label.hr-side { color: #d29922; text-shadow: 0 0 8px rgba(210,153,34,0.5); }
+  .view-sw-label.gt-side { color: var(--text-muted); text-shadow: none; }
+  /* Checked = GT active: thumb right, cyan */
+  .view-switch input:checked + .view-sw-track {
+    background: rgba(57,210,192,0.35);
+    box-shadow: 0 0 12px rgba(57,210,192,0.3), inset 0 0 8px rgba(57,210,192,0.15);
+  }
+  .view-switch input:checked + .view-sw-track::before {
+    transform: translateX(20px); background: #39d2c0;
+    box-shadow: 0 0 8px rgba(57,210,192,0.8);
+  }
+  .view-switch:has(input:checked) .view-sw-label.hr-side { color: var(--text-muted); text-shadow: none; }
+  .view-switch:has(input:checked) .view-sw-label.gt-side { color: #39d2c0; text-shadow: 0 0 8px rgba(57,210,192,0.5); }
   .ps-visit-badge {
     font: 600 0.82em 'JetBrains Mono', monospace;
     padding: 2px 8px; border-radius: 3px; white-space: nowrap;
@@ -388,10 +407,13 @@
     </label>
     <div class="ps-nav-sep"></div>
     {% endif %}
-    <div class="ps-view-bar" id="ps-view-toggle">
-      <button class="{% if view_mode == 'hr' %}active-hr{% endif %}" data-view="hr" title="Hospital Record — what clinicians actually see">Hospital Record</button>
-      <button class="{% if view_mode == 'gt' %}active-gt{% endif %}" data-view="gt" title="Ground Truth — full simulation state">Ground Truth</button>
-    </div>
+    <label class="view-switch" id="hr-toggle">
+      <span class="view-sw-label hr-side">Observed</span>
+      <input type="checkbox" data-view-on="gt" data-view-off="hr"
+             {% if view_mode == 'gt' %}checked{% endif %}>
+      <span class="view-sw-track"></span>
+      <span class="view-sw-label gt-side">Real</span>
+    </label>
   </div>
 </div>
 
@@ -1219,16 +1241,17 @@ function goToDay(day) {
   window.location.href = url.toString();
 }
 
-// View toggle (HR/GT)
-document.querySelectorAll('#ps-view-toggle button').forEach(btn => {
-  btn.addEventListener('click', function() {
-    const newView = this.dataset.view;
+// View Switch Toggle (Observed ◉─── Real)
+const hrToggle = document.querySelector('#hr-toggle input');
+if (hrToggle) {
+  hrToggle.addEventListener('change', function() {
+    const newView = this.checked ? this.dataset.viewOn : this.dataset.viewOff;
     const url = new URL(window.location);
     if (url.searchParams.get('view') === newView) return;
     url.searchParams.set('view', newView);
     window.location.href = url.toString();
   });
-});
+}
 
 // DCA Switch Toggle
 const dcaToggle = document.querySelector('#dca-toggle input');
