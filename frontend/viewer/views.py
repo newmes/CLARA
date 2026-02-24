@@ -1962,8 +1962,13 @@ def api_care_agent_media(request, media_type: str, filename: str):
     else:
         return HttpResponse("Invalid media type", status=400)
 
-    if not fpath.exists() or ".." in filename:
+    if not fpath.exists():
         return HttpResponse("Not found", status=404)
+
+    try:
+        fpath.resolve().relative_to(base.resolve())
+    except ValueError:
+        return HttpResponse("Access denied", status=403)
 
     return FileResponse(open(fpath, "rb"), content_type=content_type)
 
@@ -3072,7 +3077,8 @@ def api_doc_download(request, run_id, patient_id, filename):
     disposition = "inline" if filename.endswith(".pdf") else "attachment"
     with open(file_path, "rb") as f:
         response = HttpResponse(f.read(), content_type=content_type)
-        response["Content-Disposition"] = f'{disposition}; filename="{filename}"'
+        safe_filename = filename.replace('"', '_').replace('\n', '_').replace('\r', '_')
+        response["Content-Disposition"] = f'{disposition}; filename="{safe_filename}"'
         return response
 
 
@@ -3453,8 +3459,16 @@ def doc_hub(request, run_id: str):
     if not run_path.exists():
         return HttpResponse("Run not found", status=404)
 
-    mode = request.GET.get("mode", "natural")
+    mode = request.GET.get("mode", "care_ai")
     patient_ids = _list_patients(run_path)
+
+    sim_dir = run_path / "simulations"
+    available_modes = []
+    if sim_dir.exists():
+        if list(sim_dir.glob("*_care_ai.jsonl")):
+            available_modes.append("care_ai")
+        if list(sim_dir.glob("*_natural.jsonl")):
+            available_modes.append("natural")
 
     from src.doc_agent.sim_to_crf_adapter import find_serious_aes
 
@@ -3503,6 +3517,7 @@ def doc_hub(request, run_id: str):
     context = {
         "run_id": run_id,
         "mode": mode,
+        "available_modes": available_modes,
         "saes": all_saes,
         "sae_count": len(all_saes),
         "patient_count": len(set(s["patient_id"] for s in all_saes)),
@@ -3638,7 +3653,7 @@ def api_crf_domain_data(request, run_id: str, domain: str):
         return JsonResponse({"error": "Run not found"}, status=404)
 
     source = request.GET.get("source", "hr")
-    mode = request.GET.get("mode", "natural")
+    mode = request.GET.get("mode", "care_ai")
     patient_filter = request.GET.get("patient", "")
     page = int(request.GET.get("page", 1))
     per_page = int(request.GET.get("per_page", 100))
@@ -3678,7 +3693,7 @@ def api_crf_excel_download(request, run_id: str):
         return JsonResponse({"error": "Run not found"}, status=404)
 
     source = request.GET.get("source", "hr")
-    mode = request.GET.get("mode", "natural")
+    mode = request.GET.get("mode", "care_ai")
     domains_param = request.GET.get("domains", "")
 
     if domains_param:
@@ -3911,7 +3926,7 @@ def api_stats_data(request, run_id: str):
     if not run_path.exists():
         return JsonResponse({"error": "Run not found"}, status=404)
 
-    mode = request.GET.get("mode", "natural")
+    mode = request.GET.get("mode", "care_ai")
 
     cache_path = run_path / "validation" / f"csr_stats_{mode}.json"
     sim_dir = run_path / "simulations"
