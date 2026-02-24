@@ -21,6 +21,7 @@ services:
       MEDGEMMA4B_BASE_VLLM_BASE_URL: "http://clara-medgemma4b-base:8000/v1"
       MEDGEMMA4B_BASE_MODEL_ID: "medgemma-1.5-4b-it"
       GOOGLE_API_KEY: "${GOOGLE_API_KEY}"
+      CARE_AI_API_URL: "http://clara-care-ai:8300"
       PYTHONPATH: "/app"
     networks:
       - vital-net
@@ -161,6 +162,43 @@ services:
               capabilities: [gpu]
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/api/health')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 20
+      start_period: 180s
+    networks:
+      - vital-net
+
+  care-ai-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.care-ai
+    container_name: clara-care-ai
+    restart: unless-stopped
+    ports:
+      - "38005:8300"
+    profiles:
+      - care-ai
+    environment:
+      CARE_AI_GPU: "0"
+      CARE_AI_PORT: "8300"
+      MEDGEMMA_MODEL: "/model_repo/snapshots/290cda5eeccbee130f987c4ad74a59ae6f196408"
+      GOOGLE_API_KEY: "${GOOGLE_API_KEY}"
+      HF_HUB_OFFLINE: "1"
+      TRANSFORMERS_OFFLINE: "1"
+    volumes:
+      - /data2/huggingface/hub/models--google--medgemma-4b-it:/model_repo:ro
+      - /data2/workspace/ClinicalTrialEngine/data:/data:ro
+    shm_size: "4g"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["${GPU_CARE_AI:-3}"]
+              capabilities: [gpu]
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8300/v1/health')\" || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 20
