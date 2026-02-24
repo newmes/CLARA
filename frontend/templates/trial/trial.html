@@ -16,7 +16,7 @@
 
   /* ── HUD Toolbar ── */
   .toolbar {
-    position: sticky; top: 0; z-index: 100;
+    flex-shrink: 0; z-index: 100;
     background: linear-gradient(180deg, rgba(13,17,23,0.95) 0%, rgba(22,27,34,0.9) 100%);
     backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
     border-bottom: 1px solid rgba(57,210,192,0.12);
@@ -55,7 +55,7 @@
     width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 5px;
     background: var(--bg-elevated); color: var(--text-secondary);
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.15s; font-size: 0.8em; padding: 0;
+    cursor: pointer; transition: all 0.15s; font-size: 0.88em; padding: 0;
   }
   .hud-nav-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(57,210,192,0.08); }
   .hud-nav-btn:active { transform: scale(0.92); }
@@ -75,7 +75,7 @@
     min-width: auto; text-align: center;
   }
   .hud-cycle {
-    font: 600 0.8em 'JetBrains Mono', monospace; color: var(--accent-purple);
+    font: 600 0.88em 'JetBrains Mono', monospace; color: var(--accent-purple);
     background: rgba(188,140,255,0.1); border: 1px solid rgba(188,140,255,0.25);
     padding: 3px 9px; border-radius: 4px; white-space: nowrap;
   }
@@ -85,13 +85,13 @@
     width: 36px; height: 34px; border: 1px solid rgba(57,210,192,0.3); border-radius: 5px;
     background: rgba(57,210,192,0.08); color: var(--accent-cyan);
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.15s; font-size: 0.85em; padding: 0;
+    cursor: pointer; transition: all 0.15s; font-size: 0.92em; padding: 0;
   }
   .hud-play-btn:hover { background: rgba(57,210,192,0.15); box-shadow: 0 0 10px rgba(57,210,192,0.2); }
   .hud-play-btn:active { transform: scale(0.92); }
   .hud-play-btn svg { width: 18px; height: 18px; pointer-events: none; }
   .hud-speed {
-    padding: 4px 6px; font: 600 0.82em 'JetBrains Mono', monospace;
+    padding: 4px 6px; font: 600 0.88em 'JetBrains Mono', monospace;
     background: var(--bg-elevated); color: var(--accent-cyan);
     border: 1px solid var(--border); border-radius: 4px;
     cursor: pointer; outline: none;
@@ -111,7 +111,7 @@
   .hud-xp-fill {
     position: absolute; top: 1px; left: 1px; bottom: 1px; border-radius: 6px;
     background: linear-gradient(90deg, rgba(57,210,192,0.4), rgba(88,166,255,0.5));
-    transition: width 0.3s ease; min-width: 4px;
+    transition: width 0.3s ease; min-width: 4px; max-width: calc(100% - 6px);
   }
   .hud-xp-fill::after {
     content: ''; position: absolute; top: 0; left: 0; right: 0; height: 50%;
@@ -123,7 +123,7 @@
     opacity: 0; cursor: pointer; z-index: 2; margin: 0;
   }
   .hud-xp-label {
-    font: 700 0.88em 'JetBrains Mono', monospace; color: var(--text-secondary);
+    font: 700 0.95em 'JetBrains Mono', monospace; color: var(--text-secondary);
     white-space: nowrap; min-width: 52px; text-align: right;
   }
 
@@ -133,7 +133,7 @@
     display: flex; align-items: center; gap: 6px;
     padding: 6px 14px; border-radius: 20px;
     background: rgba(248,81,73,0.15); border: 1px solid rgba(248,81,73,0.4);
-    font: 700 0.82em 'JetBrains Mono', monospace; color: #f85149;
+    font: 700 0.88em 'JetBrains Mono', monospace; color: #f85149;
     backdrop-filter: blur(8px);
   }
   .live-badge .dot {
@@ -145,7 +145,7 @@
     50% { opacity: 0.4; transform: scale(0.8); }
   }
   .live-badge .phase-text {
-    color: var(--text-secondary); font-weight: 500; font-size: 0.92em;
+    color: var(--text-secondary); font-weight: 500; font-size: 0.95em;
   }
 
   body.is-live .hud-xp-fill {
@@ -189,7 +189,7 @@
     display: inline-flex; gap: 2px;
   }
   .hud-slot-group .hud-label {
-    font: 500 0.7em 'JetBrains Mono', monospace; color: var(--text-secondary);
+    font: 500 0.82em 'JetBrains Mono', monospace; color: var(--text-secondary);
     text-transform: uppercase; letter-spacing: 1px; margin-right: 4px;
     align-self: center;
   }
@@ -199,7 +199,7 @@
   }
   .pill-group button {
     padding: 7px 13px; border: none; cursor: pointer; position: relative;
-    font: 600 0.85em 'JetBrains Mono', monospace;
+    font: 600 0.92em 'JetBrains Mono', monospace;
     background: transparent; color: var(--text-secondary);
     transition: all 0.2s; line-height: 1.2; white-space: nowrap;
     display: flex; align-items: center; gap: 5px;
@@ -234,12 +234,93 @@
     text-shadow: 0 0 8px rgba(88,166,255,0.3);
   }
 
+  /* ── DCA Switch Toggle (iOS-style + pulse) ── */
+  @keyframes dca-pulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(57,210,192,0.8); }
+    50% { box-shadow: 0 0 16px rgba(57,210,192,1), 0 0 24px rgba(57,210,192,0.4); }
+  }
+  @keyframes dca-track-pulse {
+    0%, 100% { box-shadow: 0 0 12px rgba(57,210,192,0.3), inset 0 0 8px rgba(57,210,192,0.15); }
+    50% { box-shadow: 0 0 20px rgba(57,210,192,0.5), inset 0 0 10px rgba(57,210,192,0.25); }
+  }
+  .dca-switch {
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    user-select: none; -webkit-user-select: none;
+  }
+  .dca-switch input { display: none; }
+  .dca-label {
+    font: 700 0.92em 'JetBrains Mono', monospace;
+    color: var(--text-muted); letter-spacing: 0.5px;
+    opacity: 0.5; transition: color 0.3s, text-shadow 0.3s, opacity 0.3s;
+  }
+  .dca-slider {
+    position: relative; width: 44px; height: 24px;
+    background: rgba(110,118,129,0.2); border-radius: 12px;
+    transition: background 0.3s, box-shadow 0.3s;
+    flex-shrink: 0;
+  }
+  .dca-slider::before {
+    content: ''; position: absolute; left: 2px; top: 2px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #6e7681; transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
+  }
+  .dca-switch input:checked + .dca-slider {
+    background: rgba(57,210,192,0.35);
+    animation: dca-track-pulse 2s ease-in-out infinite;
+  }
+  .dca-switch input:checked + .dca-slider::before {
+    transform: translateX(20px); background: #39d2c0;
+    animation: dca-pulse 2s ease-in-out infinite;
+  }
+  .dca-switch input:checked ~ .dca-label,
+  .dca-switch:has(input:checked) .dca-label {
+    color: #39d2c0; text-shadow: 0 0 8px rgba(57,210,192,0.5); opacity: 1;
+  }
+
+  /* ── View Switch Toggle (Observed ◉─── Real) ── */
+  .view-switch {
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    user-select: none; -webkit-user-select: none;
+  }
+  .view-switch input { display: none; }
+  .view-sw-label {
+    font: 700 0.92em 'JetBrains Mono', monospace;
+    letter-spacing: 0.5px; transition: color 0.3s, text-shadow 0.3s;
+  }
+  .view-sw-track {
+    position: relative; width: 44px; height: 24px;
+    background: rgba(210,153,34,0.35); border-radius: 12px;
+    transition: background 0.3s, box-shadow 0.3s;
+    box-shadow: 0 0 12px rgba(210,153,34,0.3), inset 0 0 8px rgba(210,153,34,0.15);
+    flex-shrink: 0;
+  }
+  .view-sw-track::before {
+    content: ''; position: absolute; left: 2px; top: 2px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #d29922; box-shadow: 0 0 8px rgba(210,153,34,0.8);
+    transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
+  }
+  /* Default (unchecked) = HR active: thumb left, amber */
+  .view-sw-label.hr-side { color: #d29922; text-shadow: 0 0 8px rgba(210,153,34,0.5); }
+  .view-sw-label.gt-side { color: var(--text-muted); text-shadow: none; }
+  /* Checked = GT active: thumb right, cyan */
+  .view-switch input:checked + .view-sw-track {
+    background: rgba(57,210,192,0.35);
+    box-shadow: 0 0 12px rgba(57,210,192,0.3), inset 0 0 8px rgba(57,210,192,0.15);
+  }
+  .view-switch input:checked + .view-sw-track::before {
+    transform: translateX(20px); background: #39d2c0;
+    box-shadow: 0 0 8px rgba(57,210,192,0.8);
+  }
+  .view-switch:has(input:checked) .view-sw-label.hr-side { color: var(--text-muted); text-shadow: none; }
+  .view-switch:has(input:checked) .view-sw-label.gt-side { color: #39d2c0; text-shadow: 0 0 8px rgba(57,210,192,0.5); }
+
   /* ── Alert Toggle ── */
   .hud-alert-btn {
     width: 30px; height: 28px; border: 1px solid var(--border); border-radius: 4px;
     background: var(--bg-elevated); color: var(--text-muted);
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.15s; padding: 0; font-size: 0.85em;
+    cursor: pointer; transition: all 0.15s; padding: 0; font-size: 0.92em;
   }
   .hud-alert-btn:hover { border-color: var(--accent-cyan); color: var(--text-secondary); }
   .hud-alert-btn.muted { color: var(--accent-orange); border-color: rgba(210,153,34,0.4); background: rgba(210,153,34,0.08); }
@@ -249,17 +330,20 @@
   .tb-spacer { flex: 1; }
   .alert-mute-toggle { display: none; }
   .tb-label {
-    font: 600 0.6em 'JetBrains Mono', monospace; color: var(--text-muted);
+    font: 600 0.78em 'JetBrains Mono', monospace; color: var(--text-muted);
     text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;
   }
 
   /* ── Main Content (Sidebar + Map) ── */
   .main-content {
     display: flex;
-    height: calc(100vh - 44px - 55px);
+    height: calc(100vh - 44px);
+  }
+  .content-col {
+    flex: 1; min-width: 0; display: flex; flex-direction: column;
   }
   .list-sidebar {
-    width: 260px; flex-shrink: 0; order: 2;
+    width: 300px; flex-shrink: 0;
     background: rgba(13,17,23,0.95);
     backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
     border-left: 1px solid rgba(57,210,192,0.1);
@@ -270,11 +354,11 @@
     display: flex; justify-content: space-between; align-items: center;
     padding: 10px 12px 8px; flex-shrink: 0;
     border-bottom: 1px solid var(--border);
-    font: 600 0.8em 'JetBrains Mono', monospace;
+    font: 600 0.88em 'JetBrains Mono', monospace;
     color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;
   }
   .sidebar-header .count {
-    font-size: 0.88em; color: var(--text-muted); font-weight: 400;
+    font-size: 0.95em; color: var(--text-muted); font-weight: 400;
   }
   .sidebar-cards-scroll {
     flex: 1; overflow-y: auto; min-height: 0;
@@ -302,7 +386,7 @@
   }
   .events-overlay-header {
     padding: 8px 12px; flex-shrink: 0;
-    font: 600 0.75em 'JetBrains Mono', monospace;
+    font: 600 0.85em 'JetBrains Mono', monospace;
     color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;
     display: flex; align-items: center; gap: 8px;
     cursor: pointer; user-select: none;
@@ -326,7 +410,7 @@
     display: flex; align-items: flex-start; gap: 8px;
     padding: 6px 0;
     border-bottom: 1px solid rgba(48,54,61,0.4);
-    font-size: 0.78em; line-height: 1.45;
+    font-size: 0.88em; line-height: 1.45;
   }
   .event-item:last-child { border-bottom: none; }
   .event-item .ev-icon {
@@ -357,7 +441,7 @@
     border: 1px solid rgba(63,185,80,0.2);
   }
   .event-low .ev-text { color: var(--accent-green); }
-  .no-events { color: var(--text-muted); font-style: italic; padding: 8px 0; font-size: 0.88em; }
+  .no-events { color: var(--text-muted); font-style: italic; padding: 8px 0; font-size: 0.95em; }
 
   /* ── Patient Cards (sidebar, 1-column) ── */
   .patient-cards {
@@ -391,7 +475,7 @@
     background: rgba(57,210,192,0.06);
   }
   .patient-card .pid {
-    font-weight: 700; font-size: 0.78em;
+    font-weight: 700; font-size: 0.88em;
     font-family: 'JetBrains Mono', monospace;
     color: var(--accent-cyan); flex-shrink: 0;
   }
@@ -404,19 +488,19 @@
     background-repeat: no-repeat;
   }
   .patient-card .meta {
-    font-size: 0.68em; color: var(--text-muted);
+    font-size: 0.82em; color: var(--text-muted);
     font-family: 'JetBrains Mono', monospace;
     white-space: nowrap;
   }
   .patient-card .ae-badge {
     display: inline-block; border-radius: 3px;
-    padding: 1px 5px; font-size: 0.62em;
+    padding: 1px 5px; font-size: 0.78em;
     font-family: 'JetBrains Mono', monospace; font-weight: 600;
   }
   .patient-card .ae-badge.danger {
     background: rgba(248,81,73,0.15); color: var(--accent-red);
     border: 1px solid rgba(248,81,73,0.3);
-    font-size: 0.72em; font-weight: 700;
+    font-size: 0.82em; font-weight: 700;
   }
   .patient-card .ae-badge.safe {
     background: rgba(63,185,80,0.1); color: var(--accent-green);
@@ -496,7 +580,7 @@
     margin-top: 5px;
     padding: 3px 12px;
     border-radius: 10px;
-    font: 600 0.78em 'JetBrains Mono', monospace;
+    font: 600 0.88em 'JetBrains Mono', monospace;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     border: 1px solid;
@@ -556,7 +640,7 @@
   }
   .char-stat-row {
     display: flex; align-items: center; gap: 6px;
-    font: 500 0.85em 'JetBrains Mono', monospace;
+    font: 500 0.92em 'JetBrains Mono', monospace;
   }
   .char-stat-label {
     width: 32px; text-align: right; color: var(--text-muted);
@@ -583,7 +667,7 @@
     flex-shrink: 0;
   }
   .char-stats-title {
-    font: 700 0.72em 'JetBrains Mono', monospace;
+    font: 700 0.82em 'JetBrains Mono', monospace;
     text-transform: uppercase; letter-spacing: 1.5px;
     color: var(--text-muted); margin-bottom: 3px;
     opacity: 0.7;
@@ -647,7 +731,7 @@
     font: 500 0.95em 'JetBrains Mono', monospace;
   }
   .status-chip .chip-label {
-    font-size: 0.8em; color: var(--text-muted); text-transform: uppercase;
+    font-size: 0.88em; color: var(--text-muted); text-transform: uppercase;
     letter-spacing: 0.5px;
   }
   .status-chip .chip-val { color: var(--text-primary); font-weight: 600; }
@@ -669,14 +753,14 @@
   .ae-list .grade {
     display: inline-flex; align-items: center; justify-content: center;
     min-width: 34px; padding: 3px 8px; border-radius: 4px;
-    font: 700 0.85em 'JetBrains Mono', monospace; color: #fff;
+    font: 700 0.92em 'JetBrains Mono', monospace; color: #fff;
     flex-shrink: 0;
   }
   .ae-list .grade-1 { background: var(--grade-1); }
   .ae-list .grade-2 { background: var(--grade-2); }
   .ae-list .grade-3 { background: var(--grade-3); }
   .ae-list .grade-4 { background: var(--grade-4); }
-  .ae-list .ae-dur { color: var(--text-muted); font-size: 0.88em; margin-left: auto; }
+  .ae-list .ae-dur { color: var(--text-muted); font-size: 0.95em; margin-left: auto; }
 
   /* Lab/vitals grid */
   .lab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 5px; }
@@ -688,14 +772,14 @@
   .lab-item.lab-ok { border-left-color: #2ea04366; }
   .lab-item.lab-high { border-left-color: #f85149; background: rgba(248,81,73,0.04); }
   .lab-item.lab-low { border-left-color: #58a6ff; background: rgba(88,166,255,0.04); }
-  .lab-item .lab-name { color: var(--text-muted); font-size: 0.72em; line-height: 1.2; text-transform: uppercase; letter-spacing: 0.3px; }
+  .lab-item .lab-name { color: var(--text-muted); font-size: 0.82em; line-height: 1.2; text-transform: uppercase; letter-spacing: 0.3px; }
   .lab-item .lab-val-row { display: flex; align-items: baseline; gap: 4px; }
   .lab-item .lab-val {
     font: 600 1.05em 'JetBrains Mono', monospace; color: var(--text-primary);
   }
   .lab-item.lab-high .lab-val { color: #f85149; }
   .lab-item.lab-low .lab-val { color: #58a6ff; }
-  .lab-item .lab-unit { font-size: 0.68em; color: var(--text-muted); }
+  .lab-item .lab-unit { font-size: 0.82em; color: var(--text-muted); }
   .lab-item .lab-range-bar {
     height: 3px; border-radius: 2px; background: rgba(255,255,255,0.06); position: relative; margin-top: 1px;
   }
@@ -705,7 +789,7 @@
   }
   .lab-item.lab-high .lab-range-fill { background: #f85149; }
   .lab-item.lab-low .lab-range-fill { background: #58a6ff; }
-  .lab-item .lab-flag { position: absolute; top: 5px; right: 7px; font-size: 0.6em; font-weight: 700; letter-spacing: 0.5px; }
+  .lab-item .lab-flag { position: absolute; top: 5px; right: 7px; font-size: 0.78em; font-weight: 700; letter-spacing: 0.5px; }
   .lab-flag-h { color: #f85149; }
   .lab-flag-l { color: #58a6ff; }
 
@@ -714,7 +798,7 @@
     display: inline-flex; align-items: center; gap: 5px;
     padding: 7px 16px; background: rgba(57,210,192,0.08);
     border: 1px solid rgba(57,210,192,0.3); border-radius: 6px;
-    color: var(--accent-cyan); font: 600 0.92em 'JetBrains Mono', monospace;
+    color: var(--accent-cyan); font: 600 0.95em 'JetBrains Mono', monospace;
     transition: all 0.15s; text-decoration: none; flex-shrink: 0;
   }
   .full-record-link:hover {
@@ -725,7 +809,7 @@
   /* Subjective block */
   .subj-awareness {
     display: inline-flex; align-items: center; gap: 5px;
-    padding: 4px 12px; border-radius: 5px; font: 700 0.92em 'JetBrains Mono', monospace;
+    padding: 4px 12px; border-radius: 5px; font: 700 0.95em 'JetBrains Mono', monospace;
     margin-bottom: 8px;
   }
   .subj-awareness.aw-concerned { background: rgba(210,153,34,0.12); color: #d29922; }
@@ -733,7 +817,7 @@
   .subj-awareness.aw-unaware { background: rgba(63,185,80,0.08); color: var(--accent-green); }
   .subj-awareness.aw-noticed { background: rgba(88,166,255,0.1); color: var(--accent-blue); }
   .subj-symptom { font-size: 1em; padding: 3px 0; color: var(--text-secondary); }
-  .subj-quote { color: var(--text-muted); font-style: italic; font-size: 0.92em; padding-left: 14px; }
+  .subj-quote { color: var(--text-muted); font-style: italic; font-size: 0.95em; padding-left: 14px; }
 
   /* Care AI chat — KakaoTalk style */
   .care-chat-container { }
@@ -768,7 +852,7 @@
   .chat-row.is-patient .chat-content { align-items: flex-start; }
   .chat-row.is-nurse .chat-content { align-items: flex-end; }
   .chat-name {
-    font-size: 0.72em; color: var(--text-muted); margin-bottom: 2px;
+    font-size: 0.82em; color: var(--text-muted); margin-bottom: 2px;
     font-family: 'JetBrains Mono', monospace;
   }
   .chat-bubble {
@@ -783,7 +867,7 @@
   }
   .chat-row.is-nurse .chat-bubble + .chat-bubble { margin-top: 4px; }
   .chat-meta {
-    font-size: 0.75em; color: var(--text-muted); margin-top: 4px;
+    font-size: 0.85em; color: var(--text-muted); margin-top: 4px;
     line-height: 1.4;
   }
   .chat-meta .meta-tag {
@@ -804,12 +888,12 @@
     display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
   }
   .chat-assessment-card .assess-summary {
-    font-size: 0.88em; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px;
+    font-size: 0.95em; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px;
   }
   .chat-assessment-card .assess-actions { display: flex; flex-wrap: wrap; gap: 4px; }
   .severity-badge {
     display: inline-block; padding: 2px 10px; border-radius: 3px;
-    font: 700 0.78em 'JetBrains Mono', monospace;
+    font: 700 0.88em 'JetBrains Mono', monospace;
   }
   .sev-green { background: rgba(63,185,80,0.15); color: var(--accent-green); border: 1px solid rgba(63,185,80,0.3); }
   .sev-yellow { background: rgba(227,179,65,0.15); color: #e3b341; border: 1px solid rgba(227,179,65,0.3); }
@@ -817,22 +901,20 @@
   .sev-red { background: rgba(248,81,73,0.15); color: var(--accent-red); border: 1px solid rgba(248,81,73,0.3); }
   .action-tag {
     display: inline-block; padding: 2px 8px; border-radius: 3px;
-    font: 500 0.78em 'JetBrains Mono', monospace; margin: 2px 2px 2px 0;
+    font: 500 0.88em 'JetBrains Mono', monospace; margin: 2px 2px 2px 0;
     background: var(--bg-elevated); border: 1px solid var(--border);
     color: var(--text-secondary);
   }
 
   /* Mood bars */
   .mood-bars { display: flex; flex-direction: column; gap: 4px; }
-  .mood-row { display: flex; align-items: center; gap: 6px; font-size: 0.8em; }
-  .mood-label { width: 58px; color: var(--text-muted); text-align: right; font: 500 0.85em 'JetBrains Mono', monospace; flex-shrink: 0; }
+  .mood-row { display: flex; align-items: center; gap: 6px; font-size: 0.88em; }
+  .mood-label { width: 58px; color: var(--text-muted); text-align: right; font: 500 0.92em 'JetBrains Mono', monospace; flex-shrink: 0; }
   .mood-track { flex: 1; height: 8px; background: var(--bg-elevated); border-radius: 4px; overflow: hidden; }
   .mood-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
-  .mood-val { width: 36px; font: 600 0.85em 'JetBrains Mono', monospace; text-align: right; flex-shrink: 0; }
+  .mood-val { width: 36px; font: 600 0.92em 'JetBrains Mono', monospace; text-align: right; flex-shrink: 0; }
 
   /* HR/GT toggle glow */
-  #record-view-toggle button.active-amber { box-shadow: inset 0 -2px 0 #d29922, 0 0 6px rgba(210,153,34,0.15); }
-  #record-view-toggle button.active-cyan { box-shadow: inset 0 -2px 0 var(--accent-cyan), 0 0 6px rgba(57,210,192,0.15); }
 
   /* (chat/mood/toggle styles consolidated in modal CSS block above) */
 
@@ -861,7 +943,7 @@
   }
   .map-toolbar button {
     background: transparent; border: 1px solid var(--border);
-    color: var(--text-secondary); font: 600 0.85em 'JetBrains Mono', monospace;
+    color: var(--text-secondary); font: 600 0.92em 'JetBrains Mono', monospace;
     padding: 6px 13px; border-radius: 5px; cursor: pointer;
     transition: all 0.15s; display: inline-flex; align-items: center; gap: 5px;
   }
@@ -879,21 +961,21 @@
     display: flex; align-items: center; gap: 12px; margin-left: auto;
   }
   .map-loc-chip {
-    display: inline-flex; align-items: center; gap: 6px;
-    padding: 5px 12px; border-radius: 5px;
-    font: 700 0.88em 'JetBrains Mono', monospace;
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 4px 10px; border-radius: 5px;
+    font: 600 0.88em 'JetBrains Mono', monospace;
   }
-  .map-loc-chip svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .map-loc-chip svg { width: 14px; height: 14px; flex-shrink: 0; opacity: 0.5; }
   .map-loc-chip.loc-hospital {
-    background: rgba(57,210,192,0.1); border: 1px solid rgba(57,210,192,0.25);
-    color: var(--accent-cyan);
+    background: rgba(110,118,129,0.08); border: 1px solid rgba(110,118,129,0.2);
+    color: var(--text-muted);
   }
   .map-loc-chip.loc-home {
-    background: rgba(88,166,255,0.1); border: 1px solid rgba(88,166,255,0.25);
-    color: var(--accent-blue);
+    background: rgba(110,118,129,0.08); border: 1px solid rgba(110,118,129,0.2);
+    color: var(--text-muted);
   }
   .map-loc-chip .loc-num {
-    font-size: 1.15em; min-width: 16px; text-align: center;
+    font-size: 1em; min-width: 14px; text-align: center;
   }
 
   /* ── Phone Call Popup ── */
@@ -937,16 +1019,16 @@
     to { transform: rotate(12deg); }
   }
   .phone-header .phone-title {
-    flex: 1; font-size: 0.85em; font-weight: 700; color: var(--text-primary);
+    flex: 1; font-size: 0.92em; font-weight: 700; color: var(--text-primary);
   }
   .phone-header .phone-sev {
-    font-size: 0.7em; padding: 2px 8px; border-radius: 10px; font-weight: 700;
+    font-size: 0.82em; padding: 2px 8px; border-radius: 10px; font-weight: 700;
     font-family: 'JetBrains Mono', monospace;
   }
   .phone-sev.sev-red { background: rgba(248,81,73,0.15); color: var(--accent-red); }
   .phone-sev.sev-orange { background: rgba(227,135,62,0.15); color: #e3871e; }
   .phone-body {
-    padding: 12px 16px; font-size: 0.82em; color: var(--text-secondary);
+    padding: 12px 16px; font-size: 0.88em; color: var(--text-secondary);
     line-height: 1.6; max-height: 200px; overflow-y: auto;
   }
   .phone-body .phone-patient {
@@ -958,7 +1040,7 @@
   }
   .phone-body .phone-actions .action-tag {
     display: inline-block; padding: 2px 8px; border-radius: 4px;
-    font-size: 0.78em; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88em; font-family: 'JetBrains Mono', monospace;
     background: var(--bg-elevated); border: 1px solid var(--border);
     color: var(--text-secondary);
   }
@@ -968,7 +1050,7 @@
   }
   .phone-footer button {
     flex: 1; padding: 8px; border-radius: 8px; border: 1px solid;
-    font-size: 0.8em; font-weight: 600; cursor: pointer;
+    font-size: 0.88em; font-weight: 600; cursor: pointer;
     font-family: 'JetBrains Mono', monospace;
     transition: all 0.15s; text-align: center;
   }
@@ -984,7 +1066,7 @@
   .phone-btn-dismiss:hover { background: rgba(110,118,129,0.2); }
   .phone-badge {
     position: absolute; top: -6px; left: -6px;
-    background: var(--accent-red); color: #fff; font-size: 0.65em;
+    background: var(--accent-red); color: #fff; font-size: 0.8em;
     font-weight: 700; width: 20px; height: 20px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-family: 'JetBrains Mono', monospace;
@@ -1002,138 +1084,83 @@
 
   <a href="{% url 'trial_viewer' run_id %}" class="sb-active" title="Simulation"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><span>Sim</span></a>
   <a href="{% url 'crf_tables' run_id %}" title="Data"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg><span>Data</span></a>
-  <a href="{% url 'compare_dashboard' run_id %}" title="A/B Test"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>A/B</span></a>
 </nav>
 {% endblock %}
 
 {% block content %}
 
-<!-- ═══ HUD Toolbar ═══ -->
-<div class="toolbar">
-  <div class="toolbar-row">
-    <!-- Day Navigation -->
-    <div class="hud-section">
-      <div class="hud-day-group">
-        <button class="hud-nav-btn" id="btn-prev" title="Previous Day (←)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        </button>
-        <div class="hud-day-badge">
-          <span class="day-label">DAY</span>
-          <span class="day-num" id="day-display">{{ day }}</span>
-        </div>
-        <button class="hud-nav-btn" id="btn-next" title="Next Day (→)">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </button>
-      </div>
-      <span class="hud-cycle" id="cycle-display" title="Treatment Cycle &amp; Day within cycle">C{{ cycle }}D{{ cycle_day }}</span>
-    </div>
-
-    <!-- Playback -->
-    <div class="hud-section">
-      <button class="hud-play-btn" id="btn-play" title="Auto-play (Space)">
-        <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 20,12 6,21"/></svg>
-        </button>
-      <button class="hud-play-btn" id="btn-pause" title="Pause" style="display:none">
-        <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
-        </button>
-      <select id="speed-select" class="hud-speed" title="Playback speed">
-        <option value="1">&times;1</option><option value="5">&times;5</option><option value="10">&times;10</option>
-      </select>
-      </div>
-
-    <!-- XP Progress Bar -->
-    <div class="hud-section hud-progress">
-      <div class="hud-xp-wrapper">
-        <div class="hud-xp-track">
-          <div class="hud-xp-fill" id="hud-xp-fill" style="width:{{ day|floatformat:0 }}%"></div>
-          <input type="range" id="day-slider" min="1" max="{{ total_days }}" value="{{ day }}" step="1">
-        </div>
-        <span class="hud-xp-label" id="slider-value">{{ day }}/{{ total_days }}</span>
-      </div>
-    </div>
-
-    <!-- Mode Toggle -->
-    {% if available_modes|length > 1 %}
-    <div class="hud-section">
-      <div class="pill-group" id="mode-toggle">
-        <button {% if mode == 'natural' %}class="active-green"{% endif %} data-mode="natural" title="Natural course">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22c4-4 8-7 8-12a8 8 0 10-16 0c0 5 4 8 8 12z"/><circle cx="12" cy="10" r="3"/></svg>
-          Natural
-        </button>
-        <button {% if mode == 'care_ai' %}class="active-blue"{% endif %} data-mode="care_ai" title="Care AI monitoring">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 00-3 3v4a3 3 0 006 0V5a3 3 0 00-3-3z"/><path d="M19 10v1a7 7 0 01-14 0v-1"/><line x1="12" y1="18" x2="12" y2="22"/></svg>
-          Care AI
-        </button>
-  </div>
-</div>
-    {% endif %}
-
-    <!-- Record View Toggle -->
-    <div class="hud-section">
-      <div class="pill-group" id="view-toggle">
-        <button {% if view_mode == 'hr' %}class="active-amber"{% endif %} data-view="hr" title="Hospital Record">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
-          HR
-        </button>
-        <button {% if view_mode == 'gt' %}class="active-cyan"{% endif %} data-view="gt" title="Ground Truth">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          GT
-        </button>
-      </div>
-</div>
-
-  </div>
-</div>
-
 <!-- ══════════════════════════════════════════════════════════ -->
-<!-- MAIN CONTENT: SIDEBAR + MAP                                 -->
+<!-- MAIN CONTENT: TOOLBAR + MAP + SIDEBAR                       -->
 <!-- ══════════════════════════════════════════════════════════ -->
 <div class="main-content">
+  <div class="content-col">
 
-  <!-- ── Left Sidebar: Patients + Events ── -->
-  <aside class="list-sidebar" id="list-sidebar">
-    <div class="sidebar-header">
-      Patients <span class="count" id="patient-count">{{ patients|length }}</span>
+  <!-- ═══ HUD Toolbar ═══ -->
+  <div class="toolbar">
+    <div class="toolbar-row">
+      <!-- Day Navigation -->
+      <div class="hud-section">
+        <div class="hud-day-group">
+          <button class="hud-nav-btn" id="btn-prev" title="Previous Day (←)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+          </button>
+          <div class="hud-day-badge">
+            <span class="day-label">DAY</span>
+            <span class="day-num" id="day-display">{{ day }}</span>
+          </div>
+          <button class="hud-nav-btn" id="btn-next" title="Next Day (→)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
         </div>
-    <div class="sidebar-cards-scroll">
-  <div class="patient-cards" id="patient-cards">
-    {% for p in patients %}
-    <div class="patient-card" data-pid="{{ p.patient_id }}" id="card-{{ p.patient_id }}">
-          <div class="char-sprite" data-pid="{{ p.patient_id }}" data-sex="{{ p.sex }}" data-race="{{ p.race }}"></div>
-      <div class="pid">{{ p.patient_id }}</div>
-          <div class="meta">{{ p.age }}{{ p.sex }} · E{{ p.ecog|default:"?" }}</div>
-      {% if p.active_aes %}
-        {% for ae in p.active_aes %}
-          <span class="ae-badge danger">{{ ae.term }} G{{ ae.grade }}</span>
-        {% endfor %}
-      {% else %}
-            <span class="ae-badge safe">OK</span>
-      {% endif %}
+        <span class="hud-cycle" id="cycle-display" title="Treatment Cycle &amp; Day within cycle">C{{ cycle }}D{{ cycle_day }}</span>
+      </div>
+
+      <!-- Playback -->
+      <div class="hud-section">
+        <button class="hud-play-btn" id="btn-play" title="Auto-play (Space)">
+          <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="6,3 20,12 6,21"/></svg>
+          </button>
+        <button class="hud-play-btn" id="btn-pause" title="Pause" style="display:none">
+          <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          </button>
+        <select id="speed-select" class="hud-speed" title="Playback speed">
+          <option value="1">&times;1</option><option value="5">&times;5</option><option value="10">&times;10</option>
+        </select>
+        </div>
+
+      <!-- XP Progress Bar -->
+      <div class="hud-section hud-progress">
+        <div class="hud-xp-wrapper">
+          <div class="hud-xp-track">
+            <div class="hud-xp-fill" id="hud-xp-fill" style="width:{{ day|floatformat:0 }}%"></div>
+            <input type="range" id="day-slider" min="1" max="{{ total_days }}" value="{{ day }}" step="1">
+          </div>
+          <span class="hud-xp-label" id="slider-value">{{ day }}/{{ total_days }}</span>
+        </div>
+      </div>
+
     </div>
-    {% endfor %}
   </div>
-    </div>
-  </aside>
 
   <!-- ── Map Area ── -->
   <div class="map-area" id="map-view">
     <div class="map-toolbar">
-      <button onclick="trialMap.focusHospital()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V7l8-4 8 4v14"/><path d="M9 21v-4h6v4"/><path d="M10 9h4"/><path d="M12 9v4"/></svg>
-        Hospital
-      </button>
-      <button onclick="trialMap.setZoom(1.8)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-        Zoom +
-      </button>
-      <button onclick="trialMap.setZoom(0.8)">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><line x1="8" y1="11" x2="14" y2="11"/></svg>
-        Zoom −
-      </button>
-      <button onclick="trialMap.fitMap()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 3H5a2 2 0 00-2 2v3"/><path d="M21 8V5a2 2 0 00-2-2h-3"/><path d="M3 16v3a2 2 0 002 2h3"/><path d="M16 21h3a2 2 0 002-2v-3"/></svg>
-        Fit
-      </button>
+      {% if available_modes|length > 1 %}
+      <label class="dca-switch" id="dca-toggle">
+        <span class="dca-label">DCA</span>
+        <input type="checkbox" data-mode-on="care_ai" data-mode-off="natural"
+               {% if mode == 'care_ai' %}checked{% endif %}>
+        <span class="dca-slider"></span>
+      </label>
+      <div class="map-sep"></div>
+      {% endif %}
+      <label class="view-switch" id="hr-toggle">
+        <span class="view-sw-label hr-side">Observed</span>
+        <input type="checkbox" data-view-on="gt" data-view-off="hr"
+               {% if view_mode == 'gt' %}checked{% endif %}>
+        <span class="view-sw-track"></span>
+        <span class="view-sw-label gt-side">Real</span>
+      </label>
       <div class="map-sep"></div>
       <div class="map-loc-group" id="map-location-count">
         <span class="map-loc-chip loc-hospital">
@@ -1167,6 +1194,32 @@
       </div>
     </div>
   </div>
+  </div><!-- /content-col -->
+
+  <!-- ── Right Sidebar: Patients ── -->
+  <aside class="list-sidebar" id="list-sidebar">
+    <div class="sidebar-header">
+      Patients <span class="count" id="patient-count">{{ patients|length }}</span>
+    </div>
+    <div class="sidebar-cards-scroll">
+      <div class="patient-cards" id="patient-cards">
+        {% for p in patients %}
+        <div class="patient-card" data-pid="{{ p.patient_id }}" id="card-{{ p.patient_id }}">
+          <div class="char-sprite" data-pid="{{ p.patient_id }}" data-sex="{{ p.sex }}" data-race="{{ p.race }}"></div>
+          <div class="pid">{{ p.patient_id }}</div>
+          <div class="meta">{{ p.age }}{{ p.sex }} · E{{ p.ecog|default:"?" }}</div>
+          {% if p.active_aes %}
+            {% for ae in p.active_aes %}
+            <span class="ae-badge danger">{{ ae.term }} G{{ ae.grade }}</span>
+            {% endfor %}
+          {% else %}
+            <span class="ae-badge safe">OK</span>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </aside>
 
 </div><!-- /main-content -->
 
@@ -1206,13 +1259,16 @@
       <!-- Actions Column (top-right) -->
       <div class="char-actions-col">
         <div class="char-actions-top">
-          <div class="pill-group" id="record-view-toggle" style="flex-shrink:0;">
-            <button data-view="hr" style="min-width:68px;" title="Hospital Record — data visible to medical staff">HR</button>
-            <button data-view="gt" style="min-width:68px;" title="Ground Truth — actual simulation state">GT</button>
-            </div>
+          <label class="view-switch" id="record-view-toggle" style="flex-shrink:0;">
+            <span class="view-sw-label hr-side">Observed</span>
+            <input type="checkbox" data-view-on="gt" data-view-off="hr"
+                   {% if view_mode == 'gt' %}checked{% endif %}>
+            <span class="view-sw-track"></span>
+            <span class="view-sw-label gt-side">Real</span>
+          </label>
           <button class="patient-modal-close" id="patient-modal-close" title="Close">&#10005;</button>
             </div>
-        <span id="modal-view-hint" style="font-size:0.82em; color:var(--text-muted); white-space:nowrap;"></span>
+        <span id="modal-view-hint" style="font-size:0.88em; color:var(--text-muted); white-space:nowrap;"></span>
         <div class="char-actions-bottom">
           <a href="#" id="detail-link" class="full-record-link">Full Record &#8594;</a>
             </div>
@@ -1281,9 +1337,10 @@
 {% block js_content %}
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
 {% load static %}
-<script src="{% static 'js/trial_map.js' %}?v=2"></script>
+<script src="{% static 'js/trial_map.js' %}?v=5"></script>
 <script>
 (function() {
+  function _esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
   const RUN_ID = "{{ run_id }}";
   setSpriteOffset(RUN_ID);
   const LAB_RANGES = JSON.parse('{{ lab_ranges_json|escapejs }}' || '{}');
@@ -1336,13 +1393,13 @@
         <button id="live-stop-btn" title="Stop Simulation"
                 style="margin-left:8px; padding:3px 10px; border:1px solid var(--accent-red);
                        background:rgba(248,81,73,0.1); color:var(--accent-red); border-radius:4px;
-                       font:600 0.78em 'JetBrains Mono',monospace; cursor:pointer;">
+                       font:600 0.88em 'JetBrains Mono',monospace; cursor:pointer;">
           Stop
         </button>
         <button id="live-toggle-btn" title="Toggle Log"
                 style="margin-left:4px; padding:3px 8px; border:1px solid var(--border);
                        background:var(--bg-elevated); color:var(--text-muted); border-radius:4px;
-                       font:600 0.78em 'JetBrains Mono',monospace; cursor:pointer;">
+                       font:600 0.88em 'JetBrains Mono',monospace; cursor:pointer;">
           ▼
         </button>
       </div>
@@ -1353,7 +1410,7 @@
       #live-panel {
         position:fixed; bottom:0; left:0; right:0; z-index:900;
         background:var(--bg-secondary); border-top:2px solid var(--accent-cyan);
-        font: 400 0.8em 'JetBrains Mono', monospace;
+        font: 400 0.88em 'JetBrains Mono', monospace;
         box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
       }
       #live-header {
@@ -1366,7 +1423,7 @@
       }
       #live-log .log-line {
         padding:1px 0; color:var(--text-secondary); white-space:pre-wrap;
-        word-break:break-all; font-size:0.92em; line-height:1.5;
+        word-break:break-all; font-size:0.95em; line-height:1.5;
       }
       #live-log .log-line.event { color:var(--text-primary); }
       #live-log .log-line.error { color:var(--accent-red); }
@@ -1725,11 +1782,11 @@
         : '<span class="ae-badge safe">No AEs</span>';
 
       const staleNote = (currentView === 'hr' && p.labs_stale_days > 0)
-        ? `<div style="font-size:0.65em;color:#d29922;margin-top:2px">Labs ${p.labs_stale_days}d old</div>`
+        ? `<div style="font-size:0.8em;color:#d29922;margin-top:2px">Labs ${p.labs_stale_days}d old</div>`
         : '';
 
       const visitBadge = (currentView === 'hr' && p.is_visit_day)
-        ? '<span class="ae-badge" style="background:rgba(88,166,255,0.2);color:var(--accent-blue);border:1px solid rgba(88,166,255,0.3);font-size:0.6em">Visit</span> '
+        ? '<span class="ae-badge" style="background:rgba(88,166,255,0.2);color:var(--accent-blue);border:1px solid rgba(88,166,255,0.3);font-size:0.78em">Visit</span> '
         : '';
 
       const spriteUrl = getCharSpriteUrl(p.patient_id, p.sex, p.race);
@@ -1773,11 +1830,11 @@
         if (m) {
           const pid = m[1];
           const slug = m[2].replace(/\s+/g, '_');
-          reportLink = ` <a href="/doc/${RUN_ID}/${pid}/${slug}/" style="font-size:0.85em;color:var(--accent-blue);text-decoration:none;" title="SAE Report">&#8599;</a>`;
+          reportLink = ` <a href="/doc/${RUN_ID}/${pid}/${slug}/" style="font-size:0.92em;color:var(--accent-blue);text-decoration:none;" title="SAE Report">&#8599;</a>`;
         }
       }
       const svg = EVENT_ICONS[e.type] || EVENT_ICON_DEFAULT;
-      return `<div class="event-item event-${e.severity}"><span class="ev-icon">${svg}</span><span class="ev-text">${e.text}${reportLink}</span></div>`;
+      return `<div class="event-item event-${_esc(e.severity)}"><span class="ev-icon">${svg}</span><span class="ev-text">${_esc(e.text)}${reportLink}</span></div>`;
     }).join('');
   }
 
@@ -1839,7 +1896,7 @@
   function renderCharStatBars(mood) {
     const el = document.getElementById('char-stat-bars');
     if (!mood || Object.keys(mood).length === 0) {
-      el.innerHTML = '<div class="char-stats-title">Mood Stats</div><span style="color:var(--text-muted);font-size:0.72em;">No mood data</span>';
+      el.innerHTML = '<div class="char-stats-title">Mood Stats</div><span style="color:var(--text-muted);font-size:0.82em;">No mood data</span>';
       return;
     }
     const dims = [
@@ -1925,7 +1982,7 @@
         ecogHtml += `<span></span>`;
       }
     }
-    if (ecog !== null) ecogHtml += `<span style="font-size:0.85em;color:var(--text-muted);margin-left:3px;">${ecog}</span>`;
+    if (ecog !== null) ecogHtml += `<span style="font-size:0.92em;color:var(--text-muted);margin-left:3px;">${ecog}</span>`;
     ecogEl.innerHTML = ecogHtml;
 
     // AE count
@@ -1984,7 +2041,7 @@
   function renderCareChat(cr, patientId, sex, race) {
     const el = document.getElementById('detail-care');
     if (!cr) {
-      el.innerHTML = '<em style="color:var(--text-muted); font-size:0.85em">No video call today</em>';
+      el.innerHTML = '<em style="color:var(--text-muted); font-size:0.92em">No video call today</em>';
       return;
     }
     const sevLevel = cr.severity_level || 'green';
@@ -1993,7 +2050,7 @@
     let html = '<div class="care-chat-container">';
     html += `<div class="care-chat-header">
       <span class="severity-badge ${sevClass}">${sevLevel.toUpperCase()}</span>
-      ${cr.terminated_early ? '<span style="color:var(--accent-orange); font-size:0.78em">Early end</span>' : ''}
+      ${cr.terminated_early ? '<span style="color:var(--accent-orange); font-size:0.88em">Early end</span>' : ''}
     </div>`;
     html += '<div class="care-chat">';
 
@@ -2004,14 +2061,14 @@
       const c = t.content || {};
       const rowCls = isP ? 'is-patient' : 'is-nurse';
       const avatar = isP ? makePatientAvatar(patientId, sex, race) : AVATAR_NURSE;
-      const name = isP ? 'Patient' : 'Care AI Nurse';
+      const name = isP ? 'Patient' : 'DCA Nurse';
 
       if (!isP && t.turn === 4) {
         // T4: assessment card instead of chat bubble
         const assess = c.assessment || {};
         const actions = c.actions || [];
         assessmentHtml += '<div class="chat-assessment"><div class="chat-assessment-card">';
-        assessmentHtml += `<div class="assess-header"><span class="severity-badge ${sevClass}">${sevLevel.toUpperCase()}</span><span style="font-size:0.78em; color:var(--text-muted)">Nurse Assessment</span></div>`;
+        assessmentHtml += `<div class="assess-header"><span class="severity-badge ${sevClass}">${sevLevel.toUpperCase()}</span><span style="font-size:0.88em; color:var(--text-muted)">Nurse Assessment</span></div>`;
         assessmentHtml += `<div class="assess-summary">${assess.summary || ''}</div>`;
         if (actions.length) {
           assessmentHtml += '<div class="assess-actions">';
@@ -2054,7 +2111,7 @@
         // T2: acknowledgment bubble, then each question as separate bubble
         if (c.acknowledgment) html += `<div class="chat-bubble">${c.acknowledgment}</div>`;
         (c.questions || []).forEach(q => {
-          html += `<div class="chat-bubble">${q.question}${q.target_ae ? ` <span style="color:var(--text-muted); font-size:0.82em">(${q.target_ae})</span>` : ''}</div>`;
+          html += `<div class="chat-bubble">${q.question}${q.target_ae ? ` <span style="color:var(--text-muted); font-size:0.88em">(${q.target_ae})</span>` : ''}</div>`;
         });
 
       } else if (isP && t.turn === 3) {
@@ -2091,55 +2148,49 @@
     renderCharStatBars(mood);
   }
 
-  // ── Mode Toggle ──
-  document.querySelectorAll('#mode-toggle button').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-      const b = e.target.closest('button');
-      if (!b) return;
-      const newMode = b.dataset.mode;
+  // ── DCA Switch Toggle ──
+  const dcaToggle = document.querySelector('#dca-toggle input');
+  if (dcaToggle) {
+    dcaToggle.addEventListener('change', function() {
+      const newMode = this.checked ? this.dataset.modeOn : this.dataset.modeOff;
       if (newMode === currentMode) return;
       currentMode = newMode;
       const url = new URL(window.location);
       url.searchParams.set('mode', newMode);
       window.location.href = url.toString();
     });
-  });
+  }
 
-  // ── Global View Toggle (GT vs Hospital Record) ──
-  document.querySelectorAll('#view-toggle button').forEach(btn => {
-    btn.addEventListener('click', function(e) {
-      const clicked = e.target.closest('button');
-      if (!clicked) return;
-      const newView = clicked.dataset.view;
+  // ── Global View Toggle (Observed ◉─── Real) ──
+  const hrToggle = document.querySelector('#hr-toggle input');
+  if (hrToggle) {
+    hrToggle.addEventListener('change', function() {
+      const newView = this.checked ? this.dataset.viewOn : this.dataset.viewOff;
       if (newView === currentView) return;
       currentView = newView;
-      document.querySelectorAll('#view-toggle button').forEach(b => {
-        b.classList.remove('active-amber', 'active-cyan');
-      });
-      clicked.classList.add(newView === 'hr' ? 'active-amber' : 'active-cyan');
       const url = new URL(window.location);
       url.searchParams.set('view', newView);
       history.replaceState(null, '', url.toString());
+      syncModalToggle(newView);
       fetchDayData(currentDay);
     });
-  });
+  }
 
-  // ── Record View Toggle (GT vs Hospital) — detail panel ──
+  // ── Record View Toggle — detail panel ──
   function syncModalToggle(view) {
-    document.querySelectorAll('#record-view-toggle button').forEach(b => {
-      b.classList.remove('active-amber', 'active-cyan');
-    });
-    const btn = document.querySelector(`#record-view-toggle button[data-view="${view}"]`);
-    if (btn) btn.classList.add(view === 'hr' ? 'active-amber' : 'active-cyan');
+    const modalCb = document.querySelector('#record-view-toggle input');
+    if (modalCb) modalCb.checked = (view === 'gt');
     const hint = document.getElementById('modal-view-hint');
     if (hint) hint.textContent = view === 'hr' ? 'Only hospital-observed data' : 'Full ground truth';
   }
 
   let modalViewMode = currentView;
 
-  document.querySelectorAll('#record-view-toggle button').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const view = this.dataset.view;
+  const modalHrToggle = document.querySelector('#record-view-toggle input');
+  if (modalHrToggle) {
+    modalHrToggle.checked = (currentView === 'gt');
+    modalHrToggle.addEventListener('change', function() {
+      const view = this.checked ? this.dataset.viewOn : this.dataset.viewOff;
       modalViewMode = view;
       syncModalToggle(view);
       if (selectedPatient) {
@@ -2147,7 +2198,7 @@
         if (p) renderModalDetail(p, view);
       }
     });
-  });
+  }
 
   function renderModalDetail(p, viewMode) {
     const hr = p.hospital_record || {};
@@ -2166,7 +2217,7 @@
         const g = ae.grade || ae._grade || '?';
         const term = ae.term || ae.ae || ae.AETERM || '?';
         const days = ae.days_active || ae._days_active || '?';
-        return `<li><span class="grade grade-${g}">G${g}</span> <span>${term}</span> <span class="ae-dur">${days}d</span></li>`;
+        return `<li><span class="grade grade-${_esc(g)}">G${_esc(g)}</span> <span>${_esc(term)}</span> <span class="ae-dur">${_esc(days)}d</span></li>`;
       }).join('');
     } else {
       aeList.innerHTML = `<li style="color:var(--text-muted)">No active AEs</li>`;
@@ -2176,7 +2227,7 @@
       const gtCount = (p.active_aes || []).length;
       const hrCount = hrAes.length;
       if (gtCount > hrCount) {
-        aeList.innerHTML += `<li style="color:var(--accent-orange);font-size:0.82em;border-top:1px dashed var(--border);padding-top:6px;">🏥 Hospital: ${hrCount}/${gtCount} AEs detected</li>`;
+        aeList.innerHTML += `<li style="color:var(--accent-orange);font-size:0.88em;border-top:1px dashed var(--border);padding-top:6px;">🏥 Hospital: ${hrCount}/${gtCount} AEs detected</li>`;
       }
     }
 
@@ -2199,7 +2250,7 @@
     const staleDays = viewMode === 'hr' ? (hrObj.labs_stale_days || 0) : 0;
     let labHtml = '';
     if (staleDays > 0) {
-      labHtml += `<div style="grid-column:1/-1;font-size:0.72em;color:#d29922;margin-bottom:4px;">Labs ${staleDays}d old</div>`;
+      labHtml += `<div style="grid-column:1/-1;font-size:0.82em;color:#d29922;margin-bottom:4px;">Labs ${staleDays}d old</div>`;
     }
     labHtml += Object.entries(labs).map(([n, o]) => {
       const ref = LAB_RANGES[n];
@@ -2221,7 +2272,7 @@
       const barHtml = (isNum && lo != null) ? `<div class="lab-range-bar"><div class="lab-range-fill" style="width:${barPct}%"></div></div>` : '';
       return `<div class="lab-item ${cls}">${flag}<span class="lab-name">${n}</span><div class="lab-val-row"><span class="lab-val">${displayVal}${tIcon}</span>${unitHtml}</div>${barHtml}</div>`;
     }).join('');
-    labGrid.innerHTML = labHtml || '<div style="color:var(--text-muted);font-size:0.82em;">No labs</div>';
+    labGrid.innerHTML = labHtml || '<div style="color:var(--text-muted);font-size:0.88em;">No labs</div>';
 
     // ── Vitals (color-coded) ──
     const vitalGrid = document.getElementById('detail-vitals');
@@ -2249,7 +2300,7 @@
     const vSD = viewMode === 'hr' ? (hrObj.vitals_stale_days || 0) : 0;
     let vHtml = '';
     if (vSD > 0) {
-      vHtml += `<div style="grid-column:1/-1;font-size:0.72em;color:#d29922;margin-bottom:4px;">Vitals ${vSD}d old</div>`;
+      vHtml += `<div style="grid-column:1/-1;font-size:0.82em;color:#d29922;margin-bottom:4px;">Vitals ${vSD}d old</div>`;
     }
     const bpVal = (rawVitals.sbp != null && rawVitals.dbp != null) ? `${rawVitals.sbp}/${rawVitals.dbp}` : '—';
     const bpCls = (rawVitals.sbp > 140 || rawVitals.dbp > 90) ? 'lab-high' : (rawVitals.sbp != null && rawVitals.sbp < 90) ? 'lab-low' : 'lab-ok';
@@ -2275,16 +2326,16 @@
     }
     const awCls = awareness.includes('DISTRESS') ? 'aw-distressed' : awareness.includes('CONCERN') ? 'aw-concerned' : awareness.includes('NOTIC') ? 'aw-noticed' : 'aw-unaware';
     if (symptoms.length > 0) {
-      let html = `<div class="subj-awareness ${awCls}">${awareness}</div>`;
+      let html = `<div class="subj-awareness ${awCls}">${_esc(awareness)}</div>`;
       symptoms.forEach(s => {
         const sym = typeof s === 'string' ? s : s.symptom;
         const expr = typeof s === 'object' ? s.verbal_expression : null;
-        html += `<div class="subj-symptom">• ${sym}</div>`;
-        if (expr) html += `<div class="subj-quote">"${expr}"</div>`;
+        html += `<div class="subj-symptom">• ${_esc(sym)}</div>`;
+        if (expr) html += `<div class="subj-quote">"${_esc(expr)}"</div>`;
       });
       subjEl.innerHTML = html;
     } else {
-      subjEl.innerHTML = `<div class="subj-awareness ${awCls}">${awareness}</div><em style="color:var(--text-muted); font-size:0.85em">No symptoms perceived</em>`;
+      subjEl.innerHTML = `<div class="subj-awareness ${awCls}">${_esc(awareness)}</div><em style="color:var(--text-muted); font-size:0.92em">No symptoms perceived</em>`;
     }
 
     // ── Status chips ──

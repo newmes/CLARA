@@ -1,0 +1,316 @@
+{% comment %}
+  Simulation Engine — Stepper Navigation Bar + Footer Nav (shared partial)
+  Usage:
+    TOP:    {% include "demo/_sim_stepper.html" with current_step=N stepper_part="top" %}
+    BOTTOM: {% include "demo/_sim_stepper.html" with current_step=N stepper_part="bottom" %}
+  where N = 1 (Rule Set), 2 (Patient Init), 3 (Daily Sim), 4 (Validate Sim)
+{% endcomment %}
+
+{% with step1_url="demo_ruleset_generation" step2_url="demo_patient_init" step3_url="demo_daily_sim" step4_url="demo_validate_sim" %}
+
+{% if stepper_part == "top" %}
+<style>
+/* =================================================================
+   Sim Stepper — CLARA Aurora Dark Theme
+   ================================================================= */
+
+/* ── Stepper Container ── */
+.sim-stepper {
+  max-width: 720px;
+  margin: 0 auto 36px;
+  padding: 0 16px;
+  user-select: none;
+}
+
+/* ── Step Track (horizontal rail) ── */
+.sim-stepper__track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0;
+}
+
+/* ── Single Step Node ── */
+.sim-stepper__step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-decoration: none;
+  position: relative;
+  flex: 0 0 auto;
+  min-width: 80px;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+.sim-stepper__step:hover {
+  text-decoration: none;
+  opacity: 0.85;
+}
+
+/* ── Circle (node indicator) ── */
+.sim-stepper__circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font: 700 0.72em 'JetBrains Mono', monospace;
+  position: relative;
+  z-index: 2;
+  transition: all 0.3s ease;
+}
+
+/* Upcoming (default) */
+.sim-stepper__step--upcoming .sim-stepper__circle {
+  background: rgba(110, 118, 129, 0.12);
+  border: 2px solid #30363d;
+  color: #6e7681;
+}
+
+/* Completed */
+.sim-stepper__step--completed .sim-stepper__circle {
+  background: rgba(57, 210, 192, 0.15);
+  border: 2px solid #39d2c0;
+  color: #39d2c0;
+}
+
+/* Current (active) */
+.sim-stepper__step--current .sim-stepper__circle {
+  background: rgba(57, 210, 192, 0.18);
+  border: 2px solid #39d2c0;
+  color: #fff;
+  box-shadow:
+    0 0 0 4px rgba(57, 210, 192, 0.10),
+    0 0 16px rgba(57, 210, 192, 0.25);
+  animation: sim-stepper-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes sim-stepper-pulse {
+  0%, 100% { box-shadow: 0 0 0 4px rgba(57,210,192,0.10), 0 0 16px rgba(57,210,192,0.20); }
+  50%      { box-shadow: 0 0 0 7px rgba(57,210,192,0.06), 0 0 24px rgba(57,210,192,0.35); }
+}
+
+/* Checkmark SVG inside completed circles */
+.sim-stepper__check {
+  width: 14px;
+  height: 14px;
+  stroke: #39d2c0;
+  stroke-width: 3;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* ── Step Label ── */
+.sim-stepper__label {
+  margin-top: 8px;
+  font: 600 0.68em -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  letter-spacing: 0.2px;
+  text-align: center;
+  white-space: nowrap;
+  transition: color 0.2s;
+}
+
+.sim-stepper__step--upcoming .sim-stepper__label { color: #6e7681; }
+.sim-stepper__step--completed .sim-stepper__label { color: #8b949e; }
+.sim-stepper__step--current .sim-stepper__label { color: #39d2c0; }
+
+/* ── Connector Line ── */
+.sim-stepper__connector {
+  flex: 1;
+  height: 2px;
+  min-width: 40px;
+  max-width: 80px;
+  border-radius: 1px;
+  position: relative;
+  top: -10px;
+  z-index: 1;
+  transition: background 0.3s;
+}
+.sim-stepper__connector--done {
+  background: linear-gradient(90deg, rgba(57,210,192,0.6), rgba(57,210,192,0.4));
+}
+.sim-stepper__connector--pending {
+  background: rgba(48, 54, 61, 0.6);
+}
+
+/* ── Footer Navigation (Prev / Next) ── */
+.sim-stepper-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 720px;
+  margin: 48px auto 0;
+  padding: 0 16px;
+  gap: 16px;
+}
+
+.sim-stepper-footer__btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 22px;
+  border-radius: 10px;
+  font: 600 0.82em -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  text-decoration: none;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: 1px solid rgba(57, 210, 192, 0.25);
+  background: rgba(57, 210, 192, 0.06);
+  color: #39d2c0;
+}
+.sim-stepper-footer__btn:hover {
+  background: rgba(57, 210, 192, 0.14);
+  border-color: rgba(57, 210, 192, 0.5);
+  color: #39d2c0;
+  text-decoration: none;
+  box-shadow: 0 0 12px rgba(57, 210, 192, 0.1);
+}
+.sim-stepper-footer__btn:active {
+  transform: scale(0.98);
+}
+.sim-stepper-footer__btn svg {
+  width: 16px;
+  height: 16px;
+  stroke: currentColor;
+  fill: none;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  flex-shrink: 0;
+}
+
+.sim-stepper-footer__spacer { width: 140px; }
+
+.sim-stepper-footer__indicator {
+  font: 500 0.72em 'JetBrains Mono', monospace;
+  color: #6e7681;
+  letter-spacing: 0.5px;
+}
+
+/* ── Responsive ── */
+@media (max-width: 600px) {
+  .sim-stepper__step { min-width: 56px; }
+  .sim-stepper__label { font-size: 0.58em; }
+  .sim-stepper__circle { width: 26px; height: 26px; font-size: 0.65em; }
+  .sim-stepper__check { width: 11px; height: 11px; }
+  .sim-stepper__connector { min-width: 20px; max-width: 48px; }
+  .sim-stepper-footer__btn { padding: 8px 14px; font-size: 0.75em; }
+  .sim-stepper-footer__spacer { width: 80px; }
+}
+</style>
+
+<nav class="sim-stepper" aria-label="Simulation Engine Steps">
+  <div class="sim-stepper__track">
+
+    {# ── Step 1: Rule Set ── #}
+    <a href="{% url step1_url %}"
+       class="sim-stepper__step {% if current_step == 1 %}sim-stepper__step--current{% elif current_step > 1 %}sim-stepper__step--completed{% else %}sim-stepper__step--upcoming{% endif %}"
+       {% if current_step == 1 %}aria-current="step"{% endif %}>
+      <div class="sim-stepper__circle">
+        {% if current_step > 1 %}
+          <svg class="sim-stepper__check" viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg>
+        {% else %}
+          1
+        {% endif %}
+      </div>
+      <span class="sim-stepper__label">Rule Set</span>
+    </a>
+
+    {# ── Connector 1→2 ── #}
+    <div class="sim-stepper__connector {% if current_step > 1 %}sim-stepper__connector--done{% else %}sim-stepper__connector--pending{% endif %}"></div>
+
+    {# ── Step 2: Patient Init ── #}
+    <a href="{% url step2_url %}"
+       class="sim-stepper__step {% if current_step == 2 %}sim-stepper__step--current{% elif current_step > 2 %}sim-stepper__step--completed{% else %}sim-stepper__step--upcoming{% endif %}"
+       {% if current_step == 2 %}aria-current="step"{% endif %}>
+      <div class="sim-stepper__circle">
+        {% if current_step > 2 %}
+          <svg class="sim-stepper__check" viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg>
+        {% else %}
+          2
+        {% endif %}
+      </div>
+      <span class="sim-stepper__label">Patient Init</span>
+    </a>
+
+    {# ── Connector 2→3 ── #}
+    <div class="sim-stepper__connector {% if current_step > 2 %}sim-stepper__connector--done{% else %}sim-stepper__connector--pending{% endif %}"></div>
+
+    {# ── Step 3: Daily Sim ── #}
+    <a href="{% url step3_url %}"
+       class="sim-stepper__step {% if current_step == 3 %}sim-stepper__step--current{% elif current_step > 3 %}sim-stepper__step--completed{% else %}sim-stepper__step--upcoming{% endif %}"
+       {% if current_step == 3 %}aria-current="step"{% endif %}>
+      <div class="sim-stepper__circle">
+        {% if current_step > 3 %}
+          <svg class="sim-stepper__check" viewBox="0 0 24 24"><polyline points="4 12 10 18 20 6"/></svg>
+        {% else %}
+          3
+        {% endif %}
+      </div>
+      <span class="sim-stepper__label">Daily Sim</span>
+    </a>
+
+    {# ── Connector 3→4 ── #}
+    <div class="sim-stepper__connector {% if current_step > 3 %}sim-stepper__connector--done{% else %}sim-stepper__connector--pending{% endif %}"></div>
+
+    {# ── Step 4: Validate Sim ── #}
+    <a href="{% url step4_url %}"
+       class="sim-stepper__step {% if current_step == 4 %}sim-stepper__step--current{% else %}sim-stepper__step--upcoming{% endif %}"
+       {% if current_step == 4 %}aria-current="step"{% endif %}>
+      <div class="sim-stepper__circle">4</div>
+      <span class="sim-stepper__label">Validate Sim</span>
+    </a>
+
+  </div>
+</nav>
+
+{% elif stepper_part == "bottom" %}
+<nav class="sim-stepper-footer" aria-label="Step navigation">
+
+  {% if current_step == 1 %}
+    <div class="sim-stepper-footer__spacer"></div>
+  {% elif current_step == 2 %}
+    <a href="{% url step1_url %}" class="sim-stepper-footer__btn">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Rule Set
+    </a>
+  {% elif current_step == 3 %}
+    <a href="{% url step2_url %}" class="sim-stepper-footer__btn">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Patient Init
+    </a>
+  {% elif current_step == 4 %}
+    <a href="{% url step3_url %}" class="sim-stepper-footer__btn">
+      <svg viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"/></svg>
+      Daily Sim
+    </a>
+  {% endif %}
+
+  <span class="sim-stepper-footer__indicator">{{ current_step }} / 4</span>
+
+  {% if current_step == 4 %}
+    <div class="sim-stepper-footer__spacer"></div>
+  {% elif current_step == 1 %}
+    <a href="{% url step2_url %}" class="sim-stepper-footer__btn">
+      Patient Init
+      <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+    </a>
+  {% elif current_step == 2 %}
+    <a href="{% url step3_url %}" class="sim-stepper-footer__btn">
+      Daily Sim
+      <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+    </a>
+  {% elif current_step == 3 %}
+    <a href="{% url step4_url %}" class="sim-stepper-footer__btn">
+      Validate Sim
+      <svg viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>
+    </a>
+  {% endif %}
+
+</nav>
+
+{% endif %}
+
+{% endwith %}

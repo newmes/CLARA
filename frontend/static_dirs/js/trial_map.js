@@ -21,8 +21,16 @@ const SPRITE_MAP = {
     dark:   [4,19,22,23,27,35,39,43,47,57,60],
   },
 };
-// Flat list of ALL indices (for preloading)
+// Flat list of ALL indices (sorted for atlas mapping)
 const SPRITE_INDICES = [].concat(...Object.values(SPRITE_MAP.F), ...Object.values(SPRITE_MAP.M));
+// Sorted unique indices — position in this array = cell position in atlas
+const _SORTED_INDICES = [...new Set(SPRITE_INDICES)].sort((a, b) => a - b);
+const _ATLAS_COLS = 10;
+const _ATLAS_CELL_W = 96;   // 3 cols × 32px per character sheet
+const _ATLAS_CELL_H = 128;  // 4 rows × 32px per character sheet
+// Map sprite index → atlas cell position
+const _ATLAS_POS = {};
+_SORTED_INDICES.forEach((idx, pos) => { _ATLAS_POS[idx] = pos; });
 
 // Per-run sprite offset — set via setSpriteOffset(runId) from each page
 let _spriteOffset = 0;
@@ -63,10 +71,11 @@ function _buildBubbleText(p) {
 }
 
 class TrialMap {
-  constructor(containerId, patients, onPatientClick, runId) {
+  constructor(containerId, patients, onPatientClick, runId, options) {
     this.patients = patients || [];
     this.onPatientClick = onPatientClick;
     this.runId = runId;
+    this.options = options || {};
     this.sprites = {};
     this.nameLabels = {};
     this.statusDots = {};
@@ -224,7 +233,7 @@ class TrialMap {
   _preload() {
     const s = this.game.scene.scenes[0];
     // Tilemap from per-run API (sized to actual patient count)
-    s.load.tilemapTiledJSON('map', `/api/map/${this.runId}/tilemap/?v=${Date.now()}`);
+    s.load.tilemapTiledJSON('map', `/api/map/${this.runId}/tilemap/?v=4`);
     s.load.image('tiny-town', `${STATIC}/tiles/kenney/tiny-town/Tilemap/tilemap_packed.png`);
     // Custom building sprites
     s.load.image('hospital-building', `${STATIC}/buildings/hospital.png`);
@@ -243,19 +252,32 @@ class TrialMap {
     // Auto-tile road & grass spritesheets
     s.load.spritesheet('road-autotile', `${STATIC}/tiles/road_autotile.png`, { frameWidth: 16, frameHeight: 16 });
     s.load.spritesheet('grass-tiles', `${STATIC}/tiles/grass_tiles.png`, { frameWidth: 16, frameHeight: 16 });
-    // Character spritesheets
-    SPRITE_INDICES.forEach(i => {
-      const key = `patient_${String(i).padStart(2, '0')}`;
-      s.load.spritesheet(key, `${STATIC}/characters/${key}.png`, {
-        frameWidth: 32, frameHeight: 32,
-      });
-    });
+    // Character atlas (97 sprites in one image — 98 HTTP requests → 1)
+    s.load.image('patient-atlas', `${STATIC}/characters/patient_atlas.png`);
   }
 
   // ─── Create ──────────────────────────────────────────
   _create() {
     this._scene = this.game.scene.scenes[0];
     const scene = this._scene;
+
+    // ── Extract individual spritesheets from atlas ──
+    const atlasTex = scene.textures.get('patient-atlas');
+    const atlasSource = atlasTex.source[0];
+    _SORTED_INDICES.forEach((idx, pos) => {
+      const col = pos % _ATLAS_COLS;
+      const row = Math.floor(pos / _ATLAS_COLS);
+      const key = `patient_${String(idx).padStart(2, '0')}`;
+      const sx = col * _ATLAS_CELL_W;
+      const sy = row * _ATLAS_CELL_H;
+      // Create a spritesheet texture from the atlas region (3×4 grid of 32×32 frames)
+      const canvas = document.createElement('canvas');
+      canvas.width = _ATLAS_CELL_W;
+      canvas.height = _ATLAS_CELL_H;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(atlasSource.image, sx, sy, _ATLAS_CELL_W, _ATLAS_CELL_H, 0, 0, _ATLAS_CELL_W, _ATLAS_CELL_H);
+      scene.textures.addSpriteSheet(key, canvas, { frameWidth: 32, frameHeight: 32 });
+    });
 
     // Load tilemap for layout data (positions, tile types)
     const map = scene.make.tilemap({ key: 'map' });
@@ -461,7 +483,12 @@ class TrialMap {
       const bh = (cb.max_y - cb.min_y + 1) * TILE;
       const fitZoom = Math.min(this.game.config.width / bw, this.game.config.height / bh) * 0.9;
       camera.setZoom(Math.max(fitZoom, 1.0));
-      camera.centerOn((cb.min_x + cb.max_x + 1) / 2 * TILE, (cb.min_y + cb.max_y + 1) / 2 * TILE);
+      // Center on hospital when requested (landing page), otherwise on content bounds center
+      if (this.options.centerOnHospital && this.hospitalPos) {
+        camera.centerOn(this.hospitalPos.x * TILE + TILE / 2, this.hospitalPos.y * TILE + TILE / 2);
+      } else {
+        camera.centerOn((cb.min_x + cb.max_x + 1) / 2 * TILE, (cb.min_y + cb.max_y + 1) / 2 * TILE);
+      }
     } else {
       const fitZoom = Math.min(this.game.config.width / map.widthInPixels, this.game.config.height / map.heightInPixels) * 0.95;
       camera.setZoom(Math.max(fitZoom, 1.0));
@@ -617,6 +644,13 @@ class TrialMap {
     }
 
     this.dayText = null;
+
+    // Notify caller that scene is ready (used by landing page zoom-in)
+    // Delay by 1 frame so Phaser RESIZE scale mode has settled
+    if (this.options.onReady) {
+      const self = this;
+      scene.time.delayedCall(50, () => { self.options.onReady(self); });
+    }
   }
 
   _createAnimations(scene) {
@@ -700,7 +734,15 @@ class TrialMap {
       // Handle newly deceased patients
       if (isDead) {
         if (!this.tombstones[p.patient_id]) {
-          // Place tombstone in front of house, slightly lower
+          // Immediately hide character sprite (no walk home)
+          this._scene.tweens.killTweensOf(sprite);
+          sprite.setAlpha(0);
+          sprite.setVisible(false);
+          // Hide emotion icon immediately
+          const oldDot = this.statusDots[p.patient_id];
+          if (oldDot) oldDot.destroy();
+          this.statusDots[p.patient_id] = null;
+          // Place tombstone in front of house with fade-in
           const tx = home.x * TILE + TILE / 2;
           const ty = home.y * TILE + TILE + 4;
           const tombFrame = 0;
@@ -709,17 +751,14 @@ class TrialMap {
           tomb.setAlpha(0);
           this._scene.tweens.add({ targets: tomb, alpha: 1, duration: 600 });
           this.tombstones[p.patient_id] = tomb;
-          // Fade out character sprite
-          this._scene.tweens.add({ targets: sprite, alpha: 0, duration: 600, onComplete: () => sprite.setVisible(false) });
           // Move label above tombstone and grey out
           const label = this.nameLabels[p.patient_id];
           if (label) {
-            this._scene.tweens.add({ targets: label, x: tx, y: ty - 28, duration: 600 });
+            label.setX(tx);
+            label.setY(ty - 28);
             label.setColor('#888888');
           }
-          // Replace emotion icon with skull
-          const oldDot = this.statusDots[p.patient_id];
-          if (oldDot) oldDot.destroy();
+          // Skull icon at tombstone
           const skull = this._scene.add.image(tx - 18, ty - 28, 'skull');
           skull.setOrigin(0.5, 1).setScale(0.7).setDepth(21).setAlpha(0);
           this._scene.tweens.add({ targets: skull, alpha: 1, duration: 600 });

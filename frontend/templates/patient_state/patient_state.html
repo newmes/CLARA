@@ -38,31 +38,92 @@
   .ps-nav-day button {
     padding: 3px 8px; background: var(--bg-elevated); border: 1px solid var(--border);
     border-radius: 4px; color: var(--text-muted); cursor: pointer;
-    font-size: 0.85em; transition: all 0.15s;
+    font-size: 0.92em; transition: all 0.15s;
   }
   .ps-nav-day button:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); }
   .ps-nav-slider { flex: 1; min-width: 80px; }
   .ps-nav-slider input[type=range] { width: 100%; }
-  .ps-view-bar {
-    display: inline-flex; border-radius: 4px; overflow: hidden;
-    border: 1px solid var(--border); flex-shrink: 0;
+  /* ── DCA Switch Toggle (iOS-style + pulse) ── */
+  @keyframes dca-pulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(57,210,192,0.8); }
+    50% { box-shadow: 0 0 16px rgba(57,210,192,1), 0 0 24px rgba(57,210,192,0.4); }
   }
-  .ps-view-bar button {
-    padding: 4px 12px; border: none; cursor: pointer;
-    font: 600 0.8em 'JetBrains Mono', monospace;
-    background: var(--bg-elevated); color: var(--text-muted);
-    transition: all 0.15s; line-height: 1.2;
+  @keyframes dca-track-pulse {
+    0%, 100% { box-shadow: 0 0 12px rgba(57,210,192,0.3), inset 0 0 8px rgba(57,210,192,0.15); }
+    50% { box-shadow: 0 0 20px rgba(57,210,192,0.5), inset 0 0 10px rgba(57,210,192,0.25); }
   }
-  .ps-view-bar button.active-hr {
-    background: rgba(210,153,34,0.2); color: #d29922;
-    box-shadow: inset 0 -2px 0 #d29922;
+  .dca-switch {
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    user-select: none; -webkit-user-select: none;
   }
-  .ps-view-bar button.active-gt {
-    background: rgba(57,210,192,0.15); color: var(--accent-cyan);
-    box-shadow: inset 0 -2px 0 var(--accent-cyan);
+  .dca-switch input { display: none; }
+  .dca-label {
+    font: 700 0.88em 'JetBrains Mono', monospace;
+    color: var(--text-muted); letter-spacing: 0.5px;
+    opacity: 0.5; transition: color 0.3s, text-shadow 0.3s, opacity 0.3s;
   }
+  .dca-slider {
+    position: relative; width: 44px; height: 24px;
+    background: rgba(110,118,129,0.2); border-radius: 12px;
+    transition: background 0.3s, box-shadow 0.3s;
+    flex-shrink: 0;
+  }
+  .dca-slider::before {
+    content: ''; position: absolute; left: 2px; top: 2px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #6e7681; transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
+  }
+  .dca-switch input:checked + .dca-slider {
+    background: rgba(57,210,192,0.35);
+    animation: dca-track-pulse 2s ease-in-out infinite;
+  }
+  .dca-switch input:checked + .dca-slider::before {
+    transform: translateX(20px); background: #39d2c0;
+    animation: dca-pulse 2s ease-in-out infinite;
+  }
+  .dca-switch input:checked ~ .dca-label,
+  .dca-switch:has(input:checked) .dca-label {
+    color: #39d2c0; text-shadow: 0 0 8px rgba(57,210,192,0.5); opacity: 1;
+  }
+  /* ── View Switch Toggle (Observed ◉─── Real) ── */
+  .view-switch {
+    display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+    user-select: none; -webkit-user-select: none;
+  }
+  .view-switch input { display: none; }
+  .view-sw-label {
+    font: 700 0.88em 'JetBrains Mono', monospace;
+    letter-spacing: 0.5px; transition: color 0.3s, text-shadow 0.3s;
+  }
+  .view-sw-track {
+    position: relative; width: 44px; height: 24px;
+    background: rgba(210,153,34,0.35); border-radius: 12px;
+    transition: background 0.3s, box-shadow 0.3s;
+    box-shadow: 0 0 12px rgba(210,153,34,0.3), inset 0 0 8px rgba(210,153,34,0.15);
+    flex-shrink: 0;
+  }
+  .view-sw-track::before {
+    content: ''; position: absolute; left: 2px; top: 2px;
+    width: 20px; height: 20px; border-radius: 50%;
+    background: #d29922; box-shadow: 0 0 8px rgba(210,153,34,0.8);
+    transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
+  }
+  /* Default (unchecked) = HR active: thumb left, amber */
+  .view-sw-label.hr-side { color: #d29922; text-shadow: 0 0 8px rgba(210,153,34,0.5); }
+  .view-sw-label.gt-side { color: var(--text-muted); text-shadow: none; }
+  /* Checked = GT active: thumb right, cyan */
+  .view-switch input:checked + .view-sw-track {
+    background: rgba(57,210,192,0.35);
+    box-shadow: 0 0 12px rgba(57,210,192,0.3), inset 0 0 8px rgba(57,210,192,0.15);
+  }
+  .view-switch input:checked + .view-sw-track::before {
+    transform: translateX(20px); background: #39d2c0;
+    box-shadow: 0 0 8px rgba(57,210,192,0.8);
+  }
+  .view-switch:has(input:checked) .view-sw-label.hr-side { color: var(--text-muted); text-shadow: none; }
+  .view-switch:has(input:checked) .view-sw-label.gt-side { color: #39d2c0; text-shadow: 0 0 8px rgba(57,210,192,0.5); }
   .ps-visit-badge {
-    font: 600 0.72em 'JetBrains Mono', monospace;
+    font: 600 0.82em 'JetBrains Mono', monospace;
     padding: 2px 8px; border-radius: 3px; white-space: nowrap;
   }
   .ps-visit-badge.visit { background: rgba(88,166,255,0.15); color: var(--accent-blue); border: 1px solid rgba(88,166,255,0.3); box-shadow: 0 0 8px rgba(88,166,255,0.2); }
@@ -94,7 +155,7 @@
     font-family: 'JetBrains Mono', monospace; font-weight: 700; font-size: 1.25em;
   }
   .patient-header .diagnosis {
-    font-size: 0.82em; color: var(--accent-purple); font-weight: 500; margin-top: 2px;
+    font-size: 0.88em; color: var(--accent-purple); font-weight: 500; margin-top: 2px;
   }
   .section-card {
     background: var(--bg-card); border: 1px solid var(--border);
@@ -108,7 +169,7 @@
     display: flex; align-items: center; gap: 8px;
     margin-top: 0; color: var(--text-secondary);
     border-bottom: 1px solid var(--border); padding-bottom: 0.5em;
-    margin-bottom: 0.8em; font-size: 0.85em; font-weight: 700;
+    margin-bottom: 0.8em; font-size: 0.92em; font-weight: 700;
     text-transform: uppercase; letter-spacing: 1px; line-height: 1.4;
   }
   .section-card h4::before {
@@ -118,17 +179,17 @@
   .info-table { width: 100%; border-collapse: collapse; }
   .info-table td { padding: 5px 8px; font-size: 0.9em; vertical-align: top; }
   .info-table td:first-child { font-weight: 600; width: 35%; color: var(--text-secondary); }
-  .info-table td:last-child { color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.88em; }
+  .info-table td:last-child { color: var(--text-primary); font-family: 'JetBrains Mono', monospace; font-size: 0.95em; }
 
   /* Lab grid */
   .lab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(175px, 1fr)); gap: 6px; }
   .lab-item {
-    font-size: 0.85em; padding: 7px 10px; background: var(--bg-elevated);
+    font-size: 0.92em; padding: 7px 10px; background: var(--bg-elevated);
     border-radius: 4px; border-left: 3px solid var(--border);
   }
-  .lab-item .lab-name { color: var(--text-muted); font-size: 0.8em; line-height: 1.2; }
+  .lab-item .lab-name { color: var(--text-muted); font-size: 0.88em; line-height: 1.2; }
   .lab-item .lab-val { font-weight: 600; display: block; font-family: 'JetBrains Mono', monospace; margin-top: 2px; }
-  .lab-item .lab-trend { font-size: 0.78em; }
+  .lab-item .lab-trend { font-size: 0.88em; }
   .lab-item.abnormal { border-left-color: var(--accent-red); background: rgba(248,81,73,0.03); }
   .lab-item.normal { border-left-color: var(--accent-green); }
   .lab-trend.up { color: var(--accent-red); }
@@ -140,16 +201,16 @@
   @media (max-width: 900px) { .three-col { grid-template-columns: 1fr; } }
 
   /* AE table */
-  .ae-table { width: 100%; font-size: 0.88em; border-collapse: collapse; }
+  .ae-table { width: 100%; font-size: 0.95em; border-collapse: collapse; }
   .ae-table th {
     background: var(--bg-elevated); text-align: left; padding: 6px 8px;
     font-weight: 600; color: var(--text-secondary); border-bottom: 1px solid var(--border);
-    font-size: 0.8em; text-transform: uppercase; letter-spacing: 0.5px;
+    font-size: 0.88em; text-transform: uppercase; letter-spacing: 0.5px;
   }
   .ae-table td { padding: 6px 8px; border-bottom: 1px solid var(--border-light); color: var(--text-primary); }
   .ae-table .grade-badge {
     display: inline-block; padding: 1px 8px; border-radius: 3px;
-    font-weight: 700; font-size: 0.82em; color: #fff;
+    font-weight: 700; font-size: 0.88em; color: #fff;
     font-family: 'JetBrains Mono', monospace;
   }
   .ae-table .grade-1 { background: var(--grade-1); color: #fff; }
@@ -163,7 +224,7 @@
   .btn-doc-gen {
     padding: 2px 8px; border-radius: 4px; border: 1px solid var(--accent-blue);
     background: rgba(88,166,255,0.1); color: var(--accent-blue);
-    cursor: pointer; font-size: 0.78em; font-weight: 600;
+    cursor: pointer; font-size: 0.88em; font-weight: 600;
     transition: all 0.15s; white-space: nowrap; text-decoration: none;
     display: inline-block;
   }
@@ -176,18 +237,18 @@
     padding: 12px 14px; margin-right: 8px; margin-bottom: 8px;
     min-width: 220px; vertical-align: top;
   }
-  .drug-card h5 { margin: 0 0 8px 0; color: var(--accent-blue); font-size: 0.92em; font-weight: 700; }
-  .drug-card .drug-stat { font-size: 0.82em; margin: 3px 0; color: var(--text-secondary); line-height: 1.4; }
+  .drug-card h5 { margin: 0 0 8px 0; color: var(--accent-blue); font-size: 0.95em; font-weight: 700; }
+  .drug-card .drug-stat { font-size: 0.88em; margin: 3px 0; color: var(--text-secondary); line-height: 1.4; }
   .drug-card .drug-stat .label-text { color: var(--text-muted); }
   .drug-card .held { color: var(--accent-red); font-weight: 700; }
   .drug-card .active { color: var(--accent-green); font-weight: 700; }
 
   /* CM list */
   .cm-list { list-style: none; padding: 0; margin: 0; }
-  .cm-list li { padding: 5px 0; border-bottom: 1px solid var(--border-light); font-size: 0.88em; }
+  .cm-list li { padding: 5px 0; border-bottom: 1px solid var(--border-light); font-size: 0.95em; }
   .cm-list .cm-name { font-weight: 600; color: var(--text-primary); }
-  .cm-list .cm-indication { color: var(--text-muted); font-size: 0.82em; }
-  .cm-list .cm-badge { font-size: 0.7em; padding: 1px 6px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; }
+  .cm-list .cm-indication { color: var(--text-muted); font-size: 0.88em; }
+  .cm-list .cm-badge { font-size: 0.82em; padding: 1px 6px; border-radius: 3px; font-family: 'JetBrains Mono', monospace; }
   .cm-list .baseline { background: var(--bg-elevated); color: var(--text-muted); border: 1px solid var(--border); }
   .cm-list .treatment { background: rgba(63,185,80,0.1); color: var(--accent-green); border: 1px solid rgba(63,185,80,0.3); }
 
@@ -229,12 +290,12 @@
   .chat-content { max-width: 82%; display: flex; flex-direction: column; }
   .chat-row.is-patient .chat-content { align-items: flex-start; }
   .chat-row.is-nurse .chat-content { align-items: flex-end; }
-  .chat-name { font-size: 0.72em; color: var(--text-muted); margin-bottom: 2px; font-family: 'JetBrains Mono', monospace; }
-  .chat-bubble { padding: 10px 14px; font-size: 0.88em; line-height: 1.55; color: var(--text-primary); }
+  .chat-name { font-size: 0.82em; color: var(--text-muted); margin-bottom: 2px; font-family: 'JetBrains Mono', monospace; }
+  .chat-bubble { padding: 10px 14px; font-size: 0.95em; line-height: 1.55; color: var(--text-primary); }
   .chat-row.is-patient .chat-bubble { background: var(--bg-elevated); border-radius: 2px 12px 12px 12px; }
   .chat-row.is-nurse .chat-bubble { background: rgba(57,210,192,0.1); border-radius: 12px 2px 12px 12px; }
   .chat-row.is-nurse .chat-bubble + .chat-bubble { margin-top: 4px; }
-  .chat-meta { font-size: 0.75em; color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
+  .chat-meta { font-size: 0.85em; color: var(--text-muted); margin-top: 4px; line-height: 1.4; }
   .chat-meta .meta-tag { display: inline-block; padding: 1px 6px; border-radius: 3px; font-size: 0.9em; margin: 1px 2px 1px 0; }
   .chat-meta .meta-hiding { background: rgba(248,81,73,0.1); color: var(--accent-red); }
   .chat-meta .meta-visible { background: rgba(188,140,255,0.1); color: var(--accent-purple); }
@@ -245,31 +306,31 @@
     border: 1px solid var(--border);
   }
   .chat-assessment-card .assess-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
-  .chat-assessment-card .assess-summary { font-size: 0.88em; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px; }
+  .chat-assessment-card .assess-summary { font-size: 0.95em; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px; }
   .chat-assessment-card .assess-actions { display: flex; flex-wrap: wrap; gap: 4px; }
-  .severity-badge { display: inline-block; padding: 2px 10px; border-radius: 3px; font-size: 0.78em; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+  .severity-badge { display: inline-block; padding: 2px 10px; border-radius: 3px; font-size: 0.88em; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
   .sev-green { background: rgba(63,185,80,0.15); color: var(--accent-green); border: 1px solid rgba(63,185,80,0.3); }
   .sev-yellow { background: rgba(227,179,65,0.15); color: #e3b341; border: 1px solid rgba(227,179,65,0.3); }
   .sev-orange { background: rgba(219,148,54,0.15); color: #db9436; border: 1px solid rgba(219,148,54,0.3); }
   .sev-red { background: rgba(248,81,73,0.15); color: var(--accent-red); border: 1px solid rgba(248,81,73,0.3); }
-  .action-tag { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 0.75em; margin: 2px; font-family: 'JetBrains Mono', monospace; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-secondary); }
+  .action-tag { display: inline-block; padding: 2px 8px; border-radius: 3px; font-size: 0.85em; margin: 2px; font-family: 'JetBrains Mono', monospace; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-secondary); }
 
   /* Event log */
-  .event-log-item { padding: 5px 0; border-bottom: 1px solid var(--border-light); font-size: 0.88em; }
+  .event-log-item { padding: 5px 0; border-bottom: 1px solid var(--border-light); font-size: 0.95em; }
   .event-log-item .day-badge {
     display: inline-block; background: var(--bg-elevated); border: 1px solid var(--border);
-    border-radius: 3px; padding: 1px 8px; font-size: 0.75em; min-width: 52px;
+    border-radius: 3px; padding: 1px 8px; font-size: 0.85em; min-width: 52px;
     text-align: center; margin-right: 6px; font-weight: 600;
     font-family: 'JetBrains Mono', monospace; color: var(--accent-cyan);
   }
 
   /* AE timeline bars */
   .ae-bar-container { margin-bottom: 10px; }
-  .ae-bar-label { font-size: 0.82em; font-weight: 600; margin-bottom: 3px; color: var(--text-secondary); line-height: 1.3; }
+  .ae-bar-label { font-size: 0.88em; font-weight: 600; margin-bottom: 3px; color: var(--text-secondary); line-height: 1.3; }
   .ae-bar-track { height: 22px; background: var(--bg-elevated); border-radius: 4px; position: relative; overflow: hidden; border: 1px solid var(--border); }
   .ae-bar-fill {
     position: absolute; top: 0; height: 100%; border-radius: 3px;
-    font-size: 0.68em; color: #fff; padding: 0 6px; line-height: 22px;
+    font-size: 0.82em; color: #fff; padding: 0 6px; line-height: 22px;
     font-family: 'JetBrains Mono', monospace; font-weight: 600;
     white-space: nowrap;
   }
@@ -282,7 +343,7 @@
     border: 1px solid var(--border);
     display: flex; flex-direction: column; align-items: center; justify-content: center;
   }
-  .risk-item .risk-label { font-size: 0.7em; color: var(--text-muted); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2; }
+  .risk-item .risk-label { font-size: 0.82em; color: var(--text-muted); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.5px; line-height: 1.2; }
   .risk-item .risk-val { font-size: 1.2em; font-weight: 700; font-family: 'JetBrains Mono', monospace; line-height: 1.3; }
   .risk-low { color: var(--accent-green); }
   .risk-med { color: var(--accent-orange); }
@@ -296,7 +357,7 @@
     display: flex; flex-direction: column; align-items: center; justify-content: center;
   }
   .vital-item .vital-val { font-size: 1.15em; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text-primary); line-height: 1.3; }
-  .vital-item .vital-label { font-size: 0.7em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; line-height: 1.2; }
+  .vital-item .vital-label { font-size: 0.82em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; line-height: 1.2; }
 
   /* Quick Status Chips */
   #status-summary > div {
@@ -324,7 +385,6 @@
 
   <a href="{% url 'trial_viewer' run_id %}" class="sb-active" title="Simulation"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg><span>Sim</span></a>
   <a href="{% url 'crf_tables' run_id %}" title="Data"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg><span>Data</span></a>
-  <a href="{% url 'compare_dashboard' run_id %}" title="A/B Test"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg><span>A/B</span></a>
 </nav>
 {% endblock %}
 
@@ -347,19 +407,21 @@
     <span class="ps-visit-badge" id="psVisitBadge"></span>
     <div class="ps-nav-sep"></div>
     {% if available_modes|length > 1 %}
-    <div class="ps-view-bar" id="ps-mode-toggle">
-      {% for m in available_modes %}
-      <button class="{% if mode == m %}active-gt{% endif %}" data-mode="{{ m }}" title="{{ m }}" style="font-size:0.72em">
-        {{ m }}
-      </button>
-      {% endfor %}
-    </div>
+    <label class="dca-switch" id="dca-toggle">
+      <span class="dca-label">DCA</span>
+      <input type="checkbox" data-mode-on="care_ai" data-mode-off="natural"
+             {% if mode == 'care_ai' %}checked{% endif %}>
+      <span class="dca-slider"></span>
+    </label>
     <div class="ps-nav-sep"></div>
     {% endif %}
-    <div class="ps-view-bar" id="ps-view-toggle">
-      <button class="{% if view_mode == 'hr' %}active-hr{% endif %}" data-view="hr" title="Hospital Record — what clinicians actually see">Hospital Record</button>
-      <button class="{% if view_mode == 'gt' %}active-gt{% endif %}" data-view="gt" title="Ground Truth — full simulation state">Ground Truth</button>
-    </div>
+    <label class="view-switch" id="hr-toggle">
+      <span class="view-sw-label hr-side">Observed</span>
+      <input type="checkbox" data-view-on="gt" data-view-off="hr"
+             {% if view_mode == 'gt' %}checked{% endif %}>
+      <span class="view-sw-track"></span>
+      <span class="view-sw-label gt-side">Real</span>
+    </label>
   </div>
 </div>
 
@@ -371,7 +433,7 @@
       <div>
         <h2>{{ patient_id }}</h2>
         {% if profile.persona %}
-        <p style="margin:0; font-style:italic; color:var(--text-muted); font-size:0.85em">
+        <p style="margin:0; font-style:italic; color:var(--text-muted); font-size:0.92em">
           <strong style="color:var(--accent-orange)">{{ profile.persona.type }}</strong> — {{ profile.persona.description }}
         </p>
         {% endif %}
@@ -415,7 +477,7 @@
     const c = document.getElementById('status-summary');
     c.innerHTML = items.map(i => `
       <div style="background:var(--bg-card); border:1px solid var(--border); border-radius:6px; padding:8px 12px; text-align:center;">
-        <div style="font-size:0.7em; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">${i.label}</div>
+        <div style="font-size:0.82em; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px;">${i.label}</div>
         <div style="font:600 0.95em 'JetBrains Mono',monospace; color:${i.color}; margin-top:2px;">${i.val}</div>
       </div>
     `).join('');
@@ -425,7 +487,7 @@
 
   <!-- ═══ Patient Background (collapsible) ═══ -->
   <details style="margin-bottom:1em;">
-    <summary style="cursor:pointer; font-size:0.88em; color:var(--text-secondary); font-weight:600; padding:6px 0;">
+    <summary style="cursor:pointer; font-size:0.95em; color:var(--text-secondary); font-weight:600; padding:6px 0;">
       Patient Background (Demographics, Persona, Medical History)
     </summary>
 
@@ -460,17 +522,17 @@
     <div class="section-card">
       <h4>Medical History</h4>
       {% for mh in profile.MH %}
-      <div style="font-size:0.88em; padding:5px 0; border-bottom:1px solid var(--border-light)">
+      <div style="font-size:0.95em; padding:5px 0; border-bottom:1px solid var(--border-light)">
         <strong style="color:var(--text-primary)">{{ mh.MHTERM }}</strong>
-        {% if mh.MHONGO %}<span style="color:var(--accent-orange); font-size:0.78em"> (ongoing)</span>{% endif %}
+        {% if mh.MHONGO %}<span style="color:var(--accent-orange); font-size:0.88em"> (ongoing)</span>{% endif %}
       </div>
       {% empty %}
       <p style="color:var(--text-muted); font-size:0.9em">No medical history recorded</p>
       {% endfor %}
       {% if profile.emr.baseline_tumor %}
       <div style="margin-top:8px; padding-top:6px; border-top:1px solid var(--border)">
-        <strong style="font-size:0.82em; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px">Baseline Tumor</strong>
-        <div style="font-size:0.85em; font-family:'JetBrains Mono',monospace; color:var(--text-primary); margin-top:2px">
+        <strong style="font-size:0.88em; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.5px">Baseline Tumor</strong>
+        <div style="font-size:0.92em; font-family:'JetBrains Mono',monospace; color:var(--text-primary); margin-top:2px">
           Sum of diameters: {{ profile.emr.baseline_tumor.sum_of_diameters_mm }}mm
         </div>
       </div>
@@ -485,8 +547,8 @@
   {% if current_day %}
   <div class="section-card">
     <h4>Treatment & Status
-      {% if view_mode == 'hr' %}<span style="float:right; font-size:0.82em; color:#d29922; font-weight:400; letter-spacing:0.5px"><strong style="font-size:0.9em; border:1px solid rgba(210,153,34,0.4); border-radius:3px; padding:0 4px; margin-right:4px">HR</strong> Hospital Record</span>{% endif %}
-      {% if view_mode == 'gt' %}<span style="float:right; font-size:0.82em; color:var(--accent-cyan); font-weight:400; letter-spacing:0.5px"><strong style="font-size:0.9em; border:1px solid rgba(57,210,192,0.4); border-radius:3px; padding:0 4px; margin-right:4px">GT</strong> Ground Truth</span>{% endif %}
+      {% if view_mode == 'hr' %}<span style="float:right; font-size:0.88em; color:#d29922; font-weight:400; letter-spacing:0.5px"><strong style="font-size:0.9em; border:1px solid rgba(210,153,34,0.4); border-radius:3px; padding:0 4px; margin-right:4px">HR</strong> Hospital Record</span>{% endif %}
+      {% if view_mode == 'gt' %}<span style="float:right; font-size:0.88em; color:var(--accent-cyan); font-weight:400; letter-spacing:0.5px"><strong style="font-size:0.9em; border:1px solid rgba(57,210,192,0.4); border-radius:3px; padding:0 4px; margin-right:4px">GT</strong> Ground Truth</span>{% endif %}
     </h4>
     <div id="drug-status"></div>
   </div>
@@ -536,7 +598,7 @@
   <!-- ══════════════════════════════════════════════════════ -->
   {% if view_mode == 'gt' %}
   <div class="section-card">
-    <h4>Risk Assessment <span style="float:right; font-size:0.82em; color:var(--text-muted); font-weight:400">GT only</span></h4>
+    <h4>Risk Assessment <span style="float:right; font-size:0.88em; color:var(--text-muted); font-weight:400">GT only</span></h4>
     <div class="risk-row" id="risk-gauges"></div>
   </div>
   {% endif %}
@@ -547,7 +609,7 @@
   <!-- ══════════════════════════════════════════════════════ -->
   {% if view_mode == 'gt' %}
   <div class="section-card">
-    <h4>Mood Trajectory <span style="float:right; font-size:0.82em; color:var(--text-muted); font-weight:400">GT only</span></h4>
+    <h4>Mood Trajectory <span style="float:right; font-size:0.88em; color:var(--text-muted); font-weight:400">GT only</span></h4>
     <div id="mood-chart-container" style="height:250px; position:relative">
       <canvas id="mood-chart"></canvas>
     </div>
@@ -559,7 +621,7 @@
   <!-- ══════════════════════════════════════════════════════ -->
   {% if mode == 'care_ai' %}
   <div class="section-card">
-    <h4>Care AI Video Call (Day {{ day }})</h4>
+    <h4 title="Data Collection Agent">DCA Video Call (Day {{ day }})</h4>
     <div id="care-call-detail" style="font-size:0.9em">
       <em style="color:var(--text-muted)">No video call data</em>
     </div>
@@ -655,7 +717,7 @@
       <div style="font-size:1.1em; font-weight:700; color:${locColor}">${displayLocation}</div>
       <div class="drug-stat"><span class="label-text">Treatment:</span> ${obj.treatment_status || '—'}</div>
       <div class="drug-stat"><span class="label-text">ECOG:</span> <strong>${obj.ecog != null ? obj.ecog : '—'}</strong>
-        ${obj._ecog_note ? '<span style="font-size:0.72em; color:#888; margin-left:2px">(' + obj._ecog_note + ')</span>' : ''}
+        ${obj._ecog_note ? '<span style="font-size:0.82em; color:#888; margin-left:2px">(' + obj._ecog_note + ')</span>' : ''}
       </div>
     </div>`;
 
@@ -690,7 +752,7 @@
     html += `<div class="drug-card" style="border-color:${tumorBorderColor}">
       <h5>${SVG.target} Tumor Response</h5>
       <div style="font-size:1.8em; font-weight:700; color:${color}">${hasTumor ? (pct > 0 ? '+' : '') + pct.toFixed(1) + '%' : '—'}</div>
-      <div class="drug-stat"><span class="label-text" style="font-size:0.78em; color:#888">${tumorNote || 'from baseline'}</span></div>
+      <div class="drug-stat"><span class="label-text" style="font-size:0.88em; color:#888">${tumorNote || 'from baseline'}</span></div>
     </div>`;
 
     html += '</div>';
@@ -723,7 +785,7 @@
           <td><strong>${(ae.AETERM || '').replace(/_/g, ' ')}</strong></td>
           <td><span class="grade-badge grade-${g}">G${g}</span></td>
           <td>${detDay}</td>
-          <td style="font-size:0.82em">${channel}</td>
+          <td style="font-size:0.88em">${channel}</td>
           <td>${status}</td>
         </tr>`;
       });
@@ -750,7 +812,7 @@
           <td>Day ${ae.AESTDAT || '?'}</td>
           <td>${ae.days_active || ae._days_active || '?'} days</td>
           <td>${ae.AEREL ? '<span style="color:var(--accent-green)">' + SVG.check + ' Yes</span>' : '<span style="color:var(--text-muted)">' + SVG.x + ' No</span>'}</td>
-          <td style="font-size:0.85em">${ae.AEACN || '—'}</td>
+          <td style="font-size:0.92em">${ae.AEACN || '—'}</td>
           <td>${isSAE ? '<span style="color:var(--accent-orange)">' + SVG.warn + ' Yes</span>' : 'No'}</td>
           <td>${docBtn}</td>
         </tr>`;
@@ -767,11 +829,11 @@
     let html = '';
 
     if (isHR && labsStaleDays > 0) {
-      html += `<div style="padding:6px 10px; background:rgba(210,153,34,0.1); border:1px solid rgba(210,153,34,0.3); border-radius:6px; margin-bottom:8px; font-size:0.82em; color:#d29922;">
+      html += `<div style="padding:6px 10px; background:rgba(210,153,34,0.1); border:1px solid rgba(210,153,34,0.3); border-radius:6px; margin-bottom:8px; font-size:0.88em; color:#d29922;">
         ${SVG.warn} Lab values are ${labsStaleDays} days old (last drawn at clinic visit)
       </div>`;
     } else if (isHR && labsStaleDays === 0 && isVisitDay) {
-      html += `<div style="padding:6px 10px; background:rgba(63,185,80,0.08); border:1px solid rgba(63,185,80,0.25); border-radius:6px; margin-bottom:8px; font-size:0.82em; color:var(--accent-green);">
+      html += `<div style="padding:6px 10px; background:rgba(63,185,80,0.08); border:1px solid rgba(63,185,80,0.25); border-radius:6px; margin-bottom:8px; font-size:0.88em; color:var(--accent-green);">
         ${SVG.check} Fresh labs — drawn today at clinic visit (values match Ground Truth)
       </div>`;
     }
@@ -785,7 +847,7 @@
 
       html += `<div class="lab-item">
         <span class="lab-name">${name}</span>
-        <span class="lab-val">${value !== null && value !== undefined ? value : '—'} <span style="font-weight:normal; color:#888; font-size:0.85em">${unit}</span></span>
+        <span class="lab-val">${value !== null && value !== undefined ? value : '—'} <span style="font-weight:normal; color:#888; font-size:0.92em">${unit}</span></span>
         ${trend ? `<span class="lab-trend" style="color:${trendColor}">${trendIcon} ${trend.replace(/_/g, ' ')}</span>` : ''}
       </div>`;
     }
@@ -799,11 +861,11 @@
     const grid = document.getElementById('vitals-full-grid');
     let staleHtml = '';
     if (isHR && vitalsStaleDays > 0) {
-      staleHtml = `<div style="grid-column:1/-1; padding:6px 10px; background:rgba(210,153,34,0.1); border:1px solid rgba(210,153,34,0.3); border-radius:6px; margin-bottom:4px; font-size:0.82em; color:#d29922;">
+      staleHtml = `<div style="grid-column:1/-1; padding:6px 10px; background:rgba(210,153,34,0.1); border:1px solid rgba(210,153,34,0.3); border-radius:6px; margin-bottom:4px; font-size:0.88em; color:#d29922;">
         ${SVG.warn} Vitals are ${vitalsStaleDays} days old (last measured at clinic)
       </div>`;
     } else if (isHR && vitalsStaleDays === 0 && isVisitDay) {
-      staleHtml = `<div style="grid-column:1/-1; padding:6px 10px; background:rgba(63,185,80,0.08); border:1px solid rgba(63,185,80,0.25); border-radius:6px; margin-bottom:4px; font-size:0.82em; color:var(--accent-green);">
+      staleHtml = `<div style="grid-column:1/-1; padding:6px 10px; background:rgba(63,185,80,0.08); border:1px solid rgba(63,185,80,0.25); border-radius:6px; margin-bottom:4px; font-size:0.88em; color:var(--accent-green);">
         ${SVG.check} Fresh vitals — measured today at clinic visit
       </div>`;
     }
@@ -886,8 +948,8 @@
 
         html += `<div style="margin:8px 0; padding-left:30px">
           <strong>${symptom}</strong>`;
-        if (awareness) html += ` <span style="font-size:0.78em; padding:1px 6px; border-radius:3px; background:rgba(210,153,34,0.1); color:#d29922">${awareness}</span>`;
-        if (wouldReport) html += ` <span style="font-size:0.8em; color:#888">(${wouldReport})</span>`;
+        if (awareness) html += ` <span style="font-size:0.88em; padding:1px 6px; border-radius:3px; background:rgba(210,153,34,0.1); color:#d29922">${awareness}</span>`;
+        if (wouldReport) html += ` <span style="font-size:0.88em; color:#888">(${wouldReport})</span>`;
         if (expression) html += `<div class="speech-bubble">"${expression}"</div>`;
         html += '</div>';
       });
@@ -1024,7 +1086,7 @@
     let html = '<div class="care-chat-container">';
     html += `<div class="care-chat-header">
       <span class="severity-badge ${sevClass}">${sevLevel.toUpperCase()}</span>
-      ${cr.terminated_early ? '<span style="color:var(--accent-orange); font-size:0.78em">Early end</span>' : ''}
+      ${cr.terminated_early ? '<span style="color:var(--accent-orange); font-size:0.88em">Early end</span>' : ''}
     </div>`;
     html += '<div class="care-chat">';
 
@@ -1035,13 +1097,13 @@
       const c = t.content || {};
       const rowCls = isP ? 'is-patient' : 'is-nurse';
       const avatar = isP ? makePatientAvatar() : AVATAR_NURSE;
-      const name = isP ? 'Patient' : 'Care AI Nurse';
+      const name = isP ? 'Patient' : 'DCA Nurse';
 
       if (!isP && t.turn === 4) {
         const assess = c.assessment || {};
         const actions = c.actions || [];
         assessmentHtml += '<div class="chat-assessment"><div class="chat-assessment-card">';
-        assessmentHtml += `<div class="assess-header"><span class="severity-badge ${sevClass}">${sevLevel.toUpperCase()}</span><span style="font-size:0.78em; color:var(--text-muted)">Nurse Assessment</span></div>`;
+        assessmentHtml += `<div class="assess-header"><span class="severity-badge ${sevClass}">${sevLevel.toUpperCase()}</span><span style="font-size:0.88em; color:var(--text-muted)">Nurse Assessment</span></div>`;
         assessmentHtml += `<div class="assess-summary">${assess.summary || assessment.summary || ''}</div>`;
         if (actions.length) {
           assessmentHtml += '<div class="assess-actions">';
@@ -1075,7 +1137,7 @@
       } else if (!isP && t.turn === 2) {
         if (c.acknowledgment) html += `<div class="chat-bubble">${c.acknowledgment}</div>`;
         (c.questions || []).forEach(q => {
-          html += `<div class="chat-bubble">${q.question}${q.target_ae ? ` <span style="color:var(--text-muted); font-size:0.82em">(${q.target_ae})</span>` : ''}</div>`;
+          html += `<div class="chat-bubble">${q.question}${q.target_ae ? ` <span style="color:var(--text-muted); font-size:0.88em">(${q.target_ae})</span>` : ''}</div>`;
         });
 
       } else if (isP && t.turn === 3) {
@@ -1098,7 +1160,7 @@
     // Detection summary inside assessment area
     const det = cr.detection || {};
     if ((det.aes_detected||[]).length || (det.early_warning_signs||[]).length) {
-      assessmentHtml += '<div style="margin-top:8px; font-size:0.85em;">';
+      assessmentHtml += '<div style="margin-top:8px; font-size:0.92em;">';
       if ((det.aes_detected||[]).length) assessmentHtml += `<div><strong style="color:var(--accent-green)">Detected:</strong> ${det.aes_detected.join(', ')}</div>`;
       if ((det.early_warning_signs||[]).length) assessmentHtml += `<div><strong style="color:var(--accent-orange)">Early warnings:</strong> ${det.early_warning_signs.join(', ')}</div>`;
       assessmentHtml += '</div>';
@@ -1187,27 +1249,29 @@ function goToDay(day) {
   window.location.href = url.toString();
 }
 
-// View toggle (HR/GT)
-document.querySelectorAll('#ps-view-toggle button').forEach(btn => {
-  btn.addEventListener('click', function() {
-    const newView = this.dataset.view;
+// View Switch Toggle (Observed ◉─── Real)
+const hrToggle = document.querySelector('#hr-toggle input');
+if (hrToggle) {
+  hrToggle.addEventListener('change', function() {
+    const newView = this.checked ? this.dataset.viewOn : this.dataset.viewOff;
     const url = new URL(window.location);
     if (url.searchParams.get('view') === newView) return;
     url.searchParams.set('view', newView);
     window.location.href = url.toString();
   });
-});
+}
 
-// Mode toggle (natural/care_ai)
-document.querySelectorAll('#ps-mode-toggle button').forEach(btn => {
-  btn.addEventListener('click', function() {
-    const newMode = this.dataset.mode;
+// DCA Switch Toggle
+const dcaToggle = document.querySelector('#dca-toggle input');
+if (dcaToggle) {
+  dcaToggle.addEventListener('change', function() {
+    const newMode = this.checked ? this.dataset.modeOn : this.dataset.modeOff;
     const url = new URL(window.location);
     if (url.searchParams.get('mode') === newMode) return;
     url.searchParams.set('mode', newMode);
     window.location.href = url.toString();
   });
-});
+}
 
 // Keyboard navigation
 document.addEventListener('keydown', e => {

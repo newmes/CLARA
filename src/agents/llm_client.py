@@ -33,8 +33,23 @@ def set_caller(agent_name: str | None = None):
     _thread_local.caller_context = agent_name
 
 
+def set_api_key(api_key: str):
+    """현재 스레드에 API 키를 설정한다 (스레드 격리).
+
+    각 스레드(시뮬레이션, 룰셋 생성 등)가 독립적인 클라이언트를 사용하므로
+    다른 스레드의 키를 덮어쓰지 않는다.
+    """
+    _thread_local.client = genai.Client(api_key=api_key)
+
+
 def _get_client() -> genai.Client:
-    """Gemini Client 싱글톤을 반환한다 (스레드 안전)."""
+    """Gemini Client를 반환한다. 스레드 로컬 → 전역 싱글톤 → 환경변수 순으로 탐색."""
+    # 1) 스레드별 클라이언트 (set_api_key로 설정된 것)
+    thread_client = getattr(_thread_local, "client", None)
+    if thread_client is not None:
+        return thread_client
+
+    # 2) 전역 싱글톤 (환경변수 기반, 최초 1회 생성)
     global _client
     if _client is not None:
         return _client

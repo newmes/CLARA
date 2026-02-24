@@ -1,0 +1,3560 @@
+{
+  "drug_name": "Carboplatin + Etoposide",
+  "indication": "extensive-stage small cell lung cancer (ES-SCLC)",
+  "trial_design": {
+    "cycle_length_days": 21
+  },
+  "demographics": {
+    "age": {
+      "type": "numeric",
+      "distribution": "normal",
+      "params": {
+        "mean": 67.3,
+        "std": 8.3,
+        "min": 48,
+        "max": 85
+      }
+    },
+    "sex": {
+      "type": "categorical",
+      "options": {
+        "Male": 0.422,
+        "Female": 0.578
+      }
+    },
+    "race": {
+      "type": "categorical",
+      "options": {
+        "White": 0.933,
+        "Black": 0.044,
+        "Other": 0.022
+      }
+    },
+    "ecog_ps": {
+      "type": "categorical",
+      "options": {
+        "0": 0.357,
+        "1": 0.571,
+        "2": 0.071
+      }
+    },
+    "bmi": {
+      "type": "numeric",
+      "distribution": "normal",
+      "params": {
+        "mean": 28.7,
+        "std": 6.7,
+        "min": 19.0,
+        "max": 52.5
+      }
+    }
+  },
+  "comorbidities": [
+    {
+      "condition": "cardiac_disease",
+      "base_probability": 0.13,
+      "conditional_modifiers": [
+        {
+          "if_condition": "age > 65",
+          "multiplier": 1.4
+        }
+      ]
+    },
+    {
+      "condition": "smoking_history",
+      "base_probability": 0.196,
+      "conditional_modifiers": []
+    }
+  ],
+  "disease_baseline": {
+    "tumor_sites": {
+      "lung": 0.881,
+      "lymph_node": 0.738,
+      "liver": 0.286,
+      "adrenal": 0.214
+    },
+    "n_target_lesions": {
+      "type": "numeric",
+      "distribution": "normal",
+      "params": {
+        "mean": 4.1,
+        "std": 1.2,
+        "min": 2,
+        "max": 6
+      }
+    },
+    "sum_of_diameters_mm": {
+      "type": "numeric",
+      "distribution": "normal",
+      "params": {
+        "mean": 233.8,
+        "std": 116.6,
+        "min": 48.0,
+        "max": 564.0
+      }
+    },
+    "tumor_response_distribution": {
+      "CR": 0.051,
+      "PR": 0.821,
+      "SD": 0.103,
+      "PD": 0.026
+    }
+  },
+  "ae_profile": [
+    {
+      "ae_term": "fatigue",
+      "incidence_all_grade": 0.543,
+      "grade_distribution": {
+        "1": 0.32,
+        "2": 0.56,
+        "3": 0.12
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 53.6,
+          "std": 47.5,
+          "min": 1,
+          "max": 163
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 32.0,
+          "std": 38.8,
+          "min": 2,
+          "max": 133
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": true,
+      "reversible": true
+    },
+    {
+      "ae_term": "neutropenia",
+      "incidence_all_grade": 0.5,
+      "grade_distribution": {
+        "2": 0.043,
+        "3": 0.348,
+        "4": 0.609
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 48.9,
+          "std": 34.5,
+          "min": 10,
+          "max": 121
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 7.5,
+          "std": 4.3,
+          "min": 2,
+          "max": 25
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "anaemia",
+      "incidence_all_grade": 0.457,
+      "grade_distribution": {
+        "1": 0.048,
+        "2": 0.333,
+        "3": 0.571,
+        "4": 0.048
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 70.2,
+          "std": 40.8,
+          "min": 1,
+          "max": 176
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 18.7,
+          "std": 15.4,
+          "min": 3,
+          "max": 71
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": true,
+      "reversible": true
+    },
+    {
+      "ae_term": "nausea",
+      "incidence_all_grade": 0.413,
+      "grade_distribution": {
+        "1": 0.474,
+        "2": 0.421,
+        "3": 0.105
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 31.2,
+          "std": 34.6,
+          "min": 1,
+          "max": 153
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 22.7,
+          "std": 36.1,
+          "min": 1,
+          "max": 149
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "thrombocytopenia",
+      "incidence_all_grade": 0.391,
+      "grade_distribution": {
+        "1": 0.222,
+        "2": 0.389,
+        "3": 0.056,
+        "4": 0.333
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 80.1,
+          "std": 42.0,
+          "min": 8,
+          "max": 163
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 10.9,
+          "std": 10.1,
+          "min": 3,
+          "max": 63
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": true,
+      "reversible": true
+    },
+    {
+      "ae_term": "constipation",
+      "incidence_all_grade": 0.391,
+      "grade_distribution": {
+        "1": 0.667,
+        "2": 0.333
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 36.0,
+          "std": 42.0,
+          "min": 1,
+          "max": 143
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 16.3,
+          "std": 18.2,
+          "min": 3,
+          "max": 59
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "alopecia",
+      "incidence_all_grade": 0.37,
+      "grade_distribution": {
+        "1": 0.353,
+        "2": 0.647
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 31.3,
+          "std": 23.6,
+          "min": 11,
+          "max": 113
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 102.7,
+          "std": 69.0,
+          "min": 9,
+          "max": 182
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "cough",
+      "incidence_all_grade": 0.261,
+      "grade_distribution": {
+        "1": 0.583,
+        "2": 0.417
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 50.7,
+          "std": 40.1,
+          "min": 1,
+          "max": 122
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 15.6,
+          "std": 14.9,
+          "min": 1,
+          "max": 43
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "decreased_appetite",
+      "incidence_all_grade": 0.239,
+      "grade_distribution": {
+        "1": 0.273,
+        "2": 0.636,
+        "3": 0.091
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 34.2,
+          "std": 33.9,
+          "min": 1,
+          "max": 119
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 43.0,
+          "std": 45.0,
+          "min": 8,
+          "max": 121
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": true,
+      "reversible": true
+    },
+    {
+      "ae_term": "oedema_peripheral",
+      "incidence_all_grade": 0.217,
+      "grade_distribution": {
+        "1": 0.8,
+        "2": 0.2
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 39.1,
+          "std": 43.1,
+          "min": 1,
+          "max": 139
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 37.6,
+          "std": 31.7,
+          "min": 2,
+          "max": 101
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": true,
+      "reversible": true
+    },
+    {
+      "ae_term": "dyspnoea",
+      "incidence_all_grade": 0.217,
+      "grade_distribution": {
+        "1": 0.3,
+        "2": 0.4,
+        "3": 0.3
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 44.6,
+          "std": 44.1,
+          "min": 1,
+          "max": 127
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 28.4,
+          "std": 44.5,
+          "min": 3,
+          "max": 134
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": true,
+      "reversible": true
+    },
+    {
+      "ae_term": "diarrhoea",
+      "incidence_all_grade": 0.196,
+      "grade_distribution": {
+        "1": 0.556,
+        "2": 0.444
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 32.5,
+          "std": 25.0,
+          "min": 4,
+          "max": 85
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 11.1,
+          "std": 20.9,
+          "min": 1,
+          "max": 64
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "hyponatraemia",
+      "incidence_all_grade": 0.174,
+      "grade_distribution": {
+        "1": 0.375,
+        "3": 0.375,
+        "4": 0.25
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 36.9,
+          "std": 36.5,
+          "min": 1,
+          "max": 125
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 13.6,
+          "std": 14.6,
+          "min": 4,
+          "max": 47
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "headache",
+      "incidence_all_grade": 0.174,
+      "grade_distribution": {
+        "1": 0.75,
+        "2": 0.25
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 56.1,
+          "std": 50.3,
+          "min": 1,
+          "max": 139
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 9.0,
+          "std": 4.8,
+          "min": 2,
+          "max": 13
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "vomiting",
+      "incidence_all_grade": 0.174,
+      "grade_distribution": {
+        "1": 0.625,
+        "2": 0.25,
+        "3": 0.125
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 19.9,
+          "std": 24.5,
+          "min": 1,
+          "max": 84
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 14.6,
+          "std": 26.9,
+          "min": 1,
+          "max": 80
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "insomnia",
+      "incidence_all_grade": 0.174,
+      "grade_distribution": {
+        "1": 0.75,
+        "2": 0.125,
+        "3": 0.125
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 19.6,
+          "std": 26.9,
+          "min": 1,
+          "max": 85
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 5.5,
+          "std": 8.3,
+          "min": 1,
+          "max": 18
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "hypomagnesaemia",
+      "incidence_all_grade": 0.152,
+      "grade_distribution": {
+        "1": 0.714,
+        "2": 0.286
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 72.1,
+          "std": 48.2,
+          "min": 15,
+          "max": 161
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 76.8,
+          "std": 86.7,
+          "min": 16,
+          "max": 224
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": true,
+      "reversible": true
+    },
+    {
+      "ae_term": "asthenia",
+      "incidence_all_grade": 0.152,
+      "grade_distribution": {
+        "1": 0.286,
+        "2": 0.429,
+        "3": 0.286
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 75.0,
+          "std": 56.8,
+          "min": 9,
+          "max": 168
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 32.2,
+          "std": 49.2,
+          "min": 7,
+          "max": 106
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": true,
+      "reversible": true
+    },
+    {
+      "ae_term": "arthralgia",
+      "incidence_all_grade": 0.13,
+      "grade_distribution": {
+        "1": 0.833,
+        "2": 0.167
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 79.3,
+          "std": 60.1,
+          "min": 1,
+          "max": 141
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 66.5,
+          "std": 54.0,
+          "min": 15,
+          "max": 134
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "weight_decreased",
+      "incidence_all_grade": 0.13,
+      "grade_distribution": {
+        "1": 0.5,
+        "2": 0.5
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 41.7,
+          "std": 15.4,
+          "min": 17,
+          "max": 55
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 31.7,
+          "std": 15.5,
+          "min": 19,
+          "max": 49
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": true,
+      "reversible": true
+    },
+    {
+      "ae_term": "hypotension",
+      "incidence_all_grade": 0.13,
+      "grade_distribution": {
+        "1": 0.5,
+        "2": 0.333,
+        "3": 0.167
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 54.0,
+          "std": 29.5,
+          "min": 7,
+          "max": 78
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 2.5,
+          "std": 2.4,
+          "min": 1,
+          "max": 6
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "musculoskeletal_chest_pain",
+      "incidence_all_grade": 0.13,
+      "grade_distribution": {
+        "1": 0.5,
+        "2": 0.5
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 66.8,
+          "std": 43.6,
+          "min": 28,
+          "max": 130
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 11.0,
+          "std": 7.1,
+          "min": 6,
+          "max": 16
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "hypokalaemia",
+      "incidence_all_grade": 0.109,
+      "grade_distribution": {
+        "1": 0.6,
+        "2": 0.2,
+        "4": 0.2
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 28.6,
+          "std": 25.1,
+          "min": 7,
+          "max": 68
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 10.6,
+          "std": 4.7,
+          "min": 6,
+          "max": 18
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "urinary_tract_infection",
+      "incidence_all_grade": 0.109,
+      "grade_distribution": {
+        "2": 1.0
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 86.6,
+          "std": 72.4,
+          "min": 20,
+          "max": 201
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 22.0,
+          "std": 14.5,
+          "min": 7,
+          "max": 43
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "rash",
+      "incidence_all_grade": 0.087,
+      "grade_distribution": {
+        "1": 1.0
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 55.2,
+          "std": 45.6,
+          "min": 3,
+          "max": 113
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 12.5,
+          "std": 12.0,
+          "min": 4,
+          "max": 21
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "myalgia",
+      "incidence_all_grade": 0.087,
+      "grade_distribution": {
+        "1": 0.5,
+        "2": 0.5
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 28.8,
+          "std": 27.2,
+          "min": 1,
+          "max": 70
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 7.0,
+          "std": 2.9,
+          "min": 3,
+          "max": 10
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "leukopenia",
+      "incidence_all_grade": 0.087,
+      "grade_distribution": {
+        "1": 0.25,
+        "2": 0.25,
+        "3": 0.5
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 50.8,
+          "std": 36.9,
+          "min": 10,
+          "max": 99
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 6.0,
+          "std": 2.6,
+          "min": 3,
+          "max": 10
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "pain",
+      "incidence_all_grade": 0.087,
+      "grade_distribution": {
+        "1": 0.25,
+        "2": 0.75
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 29.0,
+          "std": 24.3,
+          "min": 6,
+          "max": 64
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 25.8,
+          "std": 19.1,
+          "min": 4,
+          "max": 50
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "anxiety",
+      "incidence_all_grade": 0.087,
+      "grade_distribution": {
+        "1": 0.5,
+        "2": 0.5
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 22.6,
+          "std": 33.8,
+          "min": 1,
+          "max": 78
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 0,
+          "std": 0,
+          "min": 0,
+          "max": 0
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "dehydration",
+      "incidence_all_grade": 0.087,
+      "grade_distribution": {
+        "2": 0.75,
+        "3": 0.25
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 32.5,
+          "std": 24.6,
+          "min": 8,
+          "max": 57
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 3.8,
+          "std": 4.9,
+          "min": 1,
+          "max": 11
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "bone_pain",
+      "incidence_all_grade": 0.087,
+      "grade_distribution": {
+        "1": 0.5,
+        "2": 0.5
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 43.8,
+          "std": 32.4,
+          "min": 17,
+          "max": 89
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 4.5,
+          "std": 2.4,
+          "min": 1,
+          "max": 6
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "blood_creatinine_increased",
+      "incidence_all_grade": 0.087,
+      "grade_distribution": {
+        "1": 0.75,
+        "2": 0.25
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 37.0,
+          "std": 21.7,
+          "min": 17,
+          "max": 64
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 14.5,
+          "std": 6.6,
+          "min": 6,
+          "max": 22
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": true,
+      "reversible": true
+    },
+    {
+      "ae_term": "dizziness",
+      "incidence_all_grade": 0.087,
+      "grade_distribution": {
+        "1": 0.75,
+        "2": 0.25
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 48.8,
+          "std": 26.6,
+          "min": 22,
+          "max": 78
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 38.2,
+          "std": 57.6,
+          "min": 2,
+          "max": 124
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "abdominal_pain",
+      "incidence_all_grade": 0.065,
+      "grade_distribution": {
+        "1": 0.667,
+        "2": 0.333
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 17.3,
+          "std": 3.5,
+          "min": 14,
+          "max": 21
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 4.0,
+          "std": 2.8,
+          "min": 2,
+          "max": 6
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "back_pain",
+      "incidence_all_grade": 0.065,
+      "grade_distribution": {
+        "1": 1.0
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 22.0,
+          "std": 36.4,
+          "min": 1,
+          "max": 64
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 34.0,
+          "std": 44.6,
+          "min": 2,
+          "max": 85
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "blood_alkaline_phosphatase_increased",
+      "incidence_all_grade": 0.065,
+      "grade_distribution": {
+        "1": 1.0
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 30.7,
+          "std": 29.0,
+          "min": 7,
+          "max": 63
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 67.7,
+          "std": 31.3,
+          "min": 39,
+          "max": 101
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": true,
+      "reversible": true
+    },
+    {
+      "ae_term": "blood_lactate_dehydrogenase_increased",
+      "incidence_all_grade": 0.065,
+      "grade_distribution": {
+        "1": 1.0
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 8.3,
+          "std": 12.7,
+          "min": 1,
+          "max": 23
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 0,
+          "std": 0,
+          "min": 0,
+          "max": 0
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "dyspepsia",
+      "incidence_all_grade": 0.065,
+      "grade_distribution": {
+        "1": 0.667,
+        "2": 0.333
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 40.8,
+          "std": 41.7,
+          "min": 3,
+          "max": 87
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 25.5,
+          "std": 17.7,
+          "min": 13,
+          "max": 38
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "haemoptysis",
+      "incidence_all_grade": 0.065,
+      "grade_distribution": {
+        "1": 0.667,
+        "3": 0.333
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 51.6,
+          "std": 53.7,
+          "min": 8,
+          "max": 113
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 28.2,
+          "std": 39.2,
+          "min": 1,
+          "max": 86
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "hyperkalaemia",
+      "incidence_all_grade": 0.065,
+      "grade_distribution": {
+        "1": 0.333,
+        "3": 0.667
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 52.8,
+          "std": 39.8,
+          "min": 22,
+          "max": 106
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 13.6,
+          "std": 10.6,
+          "min": 2,
+          "max": 22
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "mucosal_inflammation",
+      "incidence_all_grade": 0.065,
+      "grade_distribution": {
+        "1": 1.0
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 18.3,
+          "std": 12.3,
+          "min": 8,
+          "max": 32
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 29.0,
+          "std": 19.8,
+          "min": 15,
+          "max": 43
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "pain_in_extremity",
+      "incidence_all_grade": 0.065,
+      "grade_distribution": {
+        "1": 0.333,
+        "2": 0.667
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 69.5,
+          "std": 76.9,
+          "min": 1,
+          "max": 141
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 79.0,
+          "std": 108.9,
+          "min": 2,
+          "max": 156
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "oropharyngeal_pain",
+      "incidence_all_grade": 0.065,
+      "grade_distribution": {
+        "1": 1.0
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 85.3,
+          "std": 33.3,
+          "min": 57,
+          "max": 122
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 6.0,
+          "std": 5.3,
+          "min": 2,
+          "max": 12
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "neutrophil_count_decreased",
+      "incidence_all_grade": 0.065,
+      "grade_distribution": {
+        "3": 0.667,
+        "4": 0.333
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 50.7,
+          "std": 51.4,
+          "min": 10,
+          "max": 120
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 9.3,
+          "std": 5.1,
+          "min": 5,
+          "max": 18
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "platelet_count_decreased",
+      "incidence_all_grade": 0.065,
+      "grade_distribution": {
+        "1": 0.667,
+        "2": 0.333
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 58.7,
+          "std": 31.9,
+          "min": 14,
+          "max": 106
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 7.8,
+          "std": 3.1,
+          "min": 5,
+          "max": 12
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": true,
+      "reversible": true
+    },
+    {
+      "ae_term": "pyrexia",
+      "incidence_all_grade": 0.065,
+      "grade_distribution": {
+        "1": 1.0
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 29.7,
+          "std": 38.5,
+          "min": 5,
+          "max": 74
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 4.0,
+          "std": 1.0,
+          "min": 3,
+          "max": 5
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "pneumonia",
+      "incidence_all_grade": 0.065,
+      "grade_distribution": {
+        "1": 0.333,
+        "2": 0.667
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 30.3,
+          "std": 18.9,
+          "min": 9,
+          "max": 45
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 16.5,
+          "std": 3.5,
+          "min": 14,
+          "max": 19
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "upper_respiratory_tract_infection",
+      "incidence_all_grade": 0.065,
+      "grade_distribution": {
+        "1": 0.333,
+        "2": 0.667
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 106.7,
+          "std": 48.3,
+          "min": 51,
+          "max": 137
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 10.5,
+          "std": 4.9,
+          "min": 7,
+          "max": 14
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    }
+  ],
+  "efficacy": {
+    "overall_response_rate": 0.872,
+    "complete_response_rate": 0.051,
+    "progression_free_survival_months": {
+      "type": "numeric",
+      "distribution": "exponential",
+      "params": {
+        "mean": 5.55,
+        "std": 3.15,
+        "min": 0.36,
+        "max": 13.34
+      }
+    },
+    "overall_survival_months": {
+      "type": "numeric",
+      "distribution": "exponential",
+      "params": {
+        "mean": 10.48,
+        "std": 5.88,
+        "min": 0.36,
+        "max": 25.1
+      }
+    }
+  },
+  "lab_reference_ranges": {
+    "hemoglobin": {
+      "LLN": 11.5,
+      "ULN": 15.8,
+      "unit": "g/dL",
+      "normal_range": {
+        "min": 11.5,
+        "max": 15.8
+      }
+    },
+    "wbc": {
+      "LLN": 3.8,
+      "ULN": 10.7,
+      "unit": "x10^3/uL",
+      "normal_range": {
+        "min": 3.8,
+        "max": 10.7
+      }
+    },
+    "neutrophils": {
+      "LLN": 1.96,
+      "ULN": 7.23,
+      "unit": "x10^3/uL",
+      "normal_range": {
+        "min": 1.96,
+        "max": 7.23
+      }
+    },
+    "platelets": {
+      "LLN": 130.0,
+      "ULN": 394.0,
+      "unit": "x10^3/uL",
+      "normal_range": {
+        "min": 130.0,
+        "max": 394.0
+      }
+    },
+    "lymphocytes": {
+      "LLN": 0.8,
+      "ULN": 3.0,
+      "unit": "x10^3/uL",
+      "normal_range": {
+        "min": 0.8,
+        "max": 3.0
+      }
+    },
+    "rbc": {
+      "LLN": 3.9,
+      "ULN": 5.5,
+      "unit": "x10^6/uL",
+      "normal_range": {
+        "min": 3.9,
+        "max": 5.5
+      }
+    },
+    "creatinine": {
+      "LLN": 0.4,
+      "ULN": 1.2,
+      "unit": "mg/dL",
+      "normal_range": {
+        "min": 0.4,
+        "max": 1.2
+      }
+    },
+    "alt": {
+      "LLN": 6.0,
+      "ULN": 34.0,
+      "unit": "U/L",
+      "normal_range": {
+        "min": 6.0,
+        "max": 34.0
+      }
+    },
+    "ast": {
+      "LLN": 9.0,
+      "ULN": 34.0,
+      "unit": "U/L",
+      "normal_range": {
+        "min": 9.0,
+        "max": 34.0
+      }
+    },
+    "total_bilirubin": {
+      "LLN": 0.2,
+      "ULN": 1.2,
+      "unit": "mg/dL",
+      "normal_range": {
+        "min": 0.2,
+        "max": 1.2
+      }
+    },
+    "alkaline_phosphatase": {
+      "LLN": 35.0,
+      "ULN": 123.0,
+      "unit": "U/L",
+      "normal_range": {
+        "min": 35.0,
+        "max": 123.0
+      }
+    },
+    "ldh": {
+      "LLN": 53.0,
+      "ULN": 234.0,
+      "unit": "U/L",
+      "normal_range": {
+        "min": 53.0,
+        "max": 234.0
+      }
+    },
+    "albumin": {
+      "LLN": 3.3,
+      "ULN": 4.9,
+      "unit": "g/dL",
+      "normal_range": {
+        "min": 3.3,
+        "max": 4.9
+      }
+    },
+    "glucose": {
+      "LLN": 70.0,
+      "ULN": 100.0,
+      "unit": "mg/dL",
+      "normal_range": {
+        "min": 70.0,
+        "max": 100.0
+      }
+    },
+    "sodium": {
+      "LLN": 135.0,
+      "ULN": 145.0,
+      "unit": "mEq/L",
+      "normal_range": {
+        "min": 135.0,
+        "max": 145.0
+      }
+    },
+    "potassium": {
+      "LLN": 3.4,
+      "ULN": 5.4,
+      "unit": "mEq/L",
+      "normal_range": {
+        "min": 3.4,
+        "max": 5.4
+      }
+    },
+    "calcium": {
+      "LLN": 8.3,
+      "ULN": 10.6,
+      "unit": "mg/dL",
+      "normal_range": {
+        "min": 8.3,
+        "max": 10.6
+      }
+    },
+    "magnesium": {
+      "LLN": 1.5,
+      "ULN": 3.1,
+      "unit": "mg/dL",
+      "normal_range": {
+        "min": 1.5,
+        "max": 3.1
+      }
+    },
+    "chloride": {
+      "LLN": 94.0,
+      "ULN": 112.0,
+      "unit": "mEq/L",
+      "normal_range": {
+        "min": 94.0,
+        "max": 112.0
+      }
+    },
+    "urea_nitrogen": {
+      "LLN": 4.0,
+      "ULN": 24.0,
+      "unit": "mg/dL",
+      "normal_range": {
+        "min": 4.0,
+        "max": 24.0
+      }
+    },
+    "uric_acid": {
+      "LLN": 2.5,
+      "ULN": 7.5,
+      "unit": "mg/dL",
+      "normal_range": {
+        "min": 2.5,
+        "max": 7.5
+      }
+    },
+    "total_protein": {
+      "LLN": 6.0,
+      "ULN": 8.0,
+      "unit": "g/dL",
+      "normal_range": {
+        "min": 6.0,
+        "max": 8.0
+      }
+    }
+  },
+  "administration_schedule": [
+    {
+      "drug_name": "Carboplatin",
+      "dose_per_administration": "AUC 5",
+      "dose_value": 5,
+      "dose_unit": "AUC",
+      "route": "INTRAVENOUS",
+      "cycle_days": [
+        1
+      ]
+    },
+    {
+      "drug_name": "Etoposide",
+      "dose_per_administration": "100 mg/m2",
+      "dose_value": 100,
+      "dose_unit": "mg/m2",
+      "route": "INTRAVENOUS",
+      "cycle_days": [
+        1,
+        2,
+        3
+      ]
+    }
+  ],
+  "dose_modification_rules": [
+    {
+      "ae_term": "default",
+      "grade_actions": {
+        "1": "DOSE NOT CHANGED",
+        "2": "DOSE NOT CHANGED",
+        "3": "DRUG INTERRUPTED",
+        "4": "DRUG WITHDRAWN"
+      },
+      "dose_reduction_levels": [
+        1.0,
+        0.75,
+        0.5
+      ],
+      "rechallenge_criteria": "If toxicity resolves to Grade 1 or less, may resume at next lower dose level."
+    },
+    {
+      "ae_term": "neutropenia",
+      "grade_actions": {
+        "3": "DOSE REDUCED",
+        "4": "DOSE REDUCED"
+      },
+      "dose_reduction_levels": [
+        0.75,
+        0.5
+      ],
+      "rechallenge_criteria": "Resolution to Grade <= 1 or baseline"
+    },
+    {
+      "ae_term": "thrombocytopenia",
+      "grade_actions": {
+        "4": "DOSE REDUCED"
+      },
+      "dose_reduction_levels": [
+        0.75,
+        0.5
+      ],
+      "rechallenge_criteria": "Platelets >= 100 x 10^3/uL"
+    }
+  ],
+  "supportive_care_rules": [
+    {
+      "ae_term": "neutropenia",
+      "treatments": [
+        {
+          "drug": "FILGRASTIM",
+          "dose": "480",
+          "unit": "mcg",
+          "route": "sq",
+          "frequency": "qd",
+          "probability": 0.5652
+        },
+        {
+          "drug": "FLUCONAZOLE",
+          "dose": "200",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "daily",
+          "probability": 0.0435
+        },
+        {
+          "drug": "LEVOFLOXACIN",
+          "dose": "500",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "daily",
+          "probability": 0.0435
+        },
+        {
+          "drug": "PEGFILGRASTIM",
+          "dose": "6",
+          "unit": "mg",
+          "route": "subQ",
+          "frequency": "once",
+          "probability": 0.0435
+        }
+      ]
+    },
+    {
+      "ae_term": "anaemia",
+      "treatments": [
+        {
+          "drug": "EPOETIN ALFA",
+          "dose": "40000",
+          "unit": "units",
+          "route": "sq",
+          "frequency": "once",
+          "probability": 0.2727
+        },
+        {
+          "drug": "DARBEPOETIN ALFA",
+          "dose": "500",
+          "unit": "mcg",
+          "route": "SQ",
+          "frequency": "Q 3 WEEKS",
+          "probability": 0.0909
+        },
+        {
+          "drug": "ALBUMIN NOS W/DARBEPOETIN ALFA",
+          "dose": "100",
+          "unit": "mcg",
+          "route": "sq",
+          "frequency": "weekly",
+          "probability": 0.0455
+        },
+        {
+          "drug": "IRON",
+          "dose": "1",
+          "unit": "tab",
+          "route": "po",
+          "frequency": "daily",
+          "probability": 0.0455
+        },
+        {
+          "drug": "IRON DEXTRAN",
+          "dose": "1000",
+          "unit": "mg",
+          "route": "IV",
+          "frequency": "One time",
+          "probability": 0.0455
+        }
+      ]
+    },
+    {
+      "ae_term": "nausea",
+      "treatments": [
+        {
+          "drug": "ONDANSETRON",
+          "dose": "8",
+          "unit": "mg",
+          "route": "iv",
+          "frequency": "once",
+          "probability": 0.9524
+        },
+        {
+          "drug": "PALONOSETRON HYDROCHLORIDE",
+          "dose": "0.25",
+          "unit": "mg",
+          "route": "iv",
+          "frequency": "qd",
+          "probability": 0.9048
+        },
+        {
+          "drug": "DEXAMETHASONE",
+          "dose": "10",
+          "unit": "mg",
+          "route": "iv",
+          "frequency": "qd",
+          "probability": 0.8571
+        },
+        {
+          "drug": "PROCHLORPERAZINE",
+          "dose": "10",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.7143
+        },
+        {
+          "drug": "PROMETHAZINE",
+          "dose": "25",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.4286
+        },
+        {
+          "drug": "GRANISETRON HYDROCHLORIDE",
+          "dose": "1",
+          "unit": "mg",
+          "route": "iv",
+          "frequency": "qd",
+          "probability": 0.2381
+        },
+        {
+          "drug": "PROMETHAZINE HYDROCHLORIDE",
+          "dose": "25",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.2381
+        },
+        {
+          "drug": "APREPITANT",
+          "dose": "125",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "C3 D1, D2, D3",
+          "probability": 0.0952
+        },
+        {
+          "drug": "METOCLOPRAMIDE HYDROCHLORIDE",
+          "dose": "10",
+          "unit": "mg",
+          "route": "IV",
+          "frequency": "once",
+          "probability": 0.0952
+        },
+        {
+          "drug": "ONDANSETRON HYDROCHLORIDE",
+          "dose": "8",
+          "unit": "mg",
+          "route": "by mouth",
+          "frequency": "Q8 hr PRN",
+          "probability": 0.0952
+        },
+        {
+          "drug": "PROCHLORPERAZINE MALEATE",
+          "dose": "10",
+          "unit": "mg",
+          "route": "oral",
+          "frequency": "oto",
+          "probability": 0.0952
+        },
+        {
+          "drug": "DEXTROSE AND SODIUM CHLORIDE INJECTION",
+          "dose": "1000",
+          "unit": "ml",
+          "route": "iv",
+          "frequency": "one time",
+          "probability": 0.0476
+        },
+        {
+          "drug": "DIPHENHYDRAMINE HYDROCHLORIDE",
+          "dose": "25",
+          "unit": "mg",
+          "route": "IV",
+          "frequency": "once",
+          "probability": 0.0476
+        },
+        {
+          "drug": "FAMOTIDINE",
+          "dose": "20",
+          "unit": "mg",
+          "route": "iv",
+          "frequency": "once",
+          "probability": 0.0476
+        },
+        {
+          "drug": "HYOSCINE",
+          "dose": "1",
+          "unit": "PATCH",
+          "route": "TOPICAL",
+          "frequency": "Q 72 HOURS",
+          "probability": 0.0476
+        },
+        {
+          "drug": "LORAZEPAM",
+          "dose": "0.5",
+          "unit": "mg",
+          "route": "IV",
+          "frequency": "ONCE",
+          "probability": 0.0476
+        },
+        {
+          "drug": "METHYLPREDNISOLONE",
+          "dose": "1",
+          "unit": "TABLET",
+          "route": "po",
+          "frequency": "AS PRESCRIBED",
+          "probability": 0.0476
+        },
+        {
+          "drug": "PALONOSETRON",
+          "dose": "0.25",
+          "unit": "mg",
+          "route": "IV",
+          "frequency": "Once",
+          "probability": 0.0476
+        },
+        {
+          "drug": "POTASSIUM CHLORIDE",
+          "dose": "10",
+          "unit": "meq",
+          "route": "iv",
+          "frequency": "one time",
+          "probability": 0.0476
+        },
+        {
+          "drug": "SODIUM CHLORIDE",
+          "dose": "500",
+          "unit": "ml",
+          "route": "iv",
+          "frequency": "oto",
+          "probability": 0.0476
+        }
+      ]
+    },
+    {
+      "ae_term": "thrombocytopenia",
+      "treatments": [
+        {
+          "drug": "PLATELETS",
+          "dose": "1",
+          "unit": "unit",
+          "route": "iv",
+          "frequency": "once",
+          "probability": 0.1111
+        }
+      ]
+    },
+    {
+      "ae_term": "constipation",
+      "treatments": [
+        {
+          "drug": "MACROGOL",
+          "dose": "17",
+          "unit": "gm",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.4074
+        },
+        {
+          "drug": "BISACODYL",
+          "dose": "10",
+          "unit": "mg",
+          "route": "oral",
+          "frequency": "prn",
+          "probability": 0.2222
+        },
+        {
+          "drug": "SENNA ALEXANDRINA",
+          "dose": "1-2",
+          "unit": "tablets",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.2222
+        },
+        {
+          "drug": "DOCUSATE SODIUM",
+          "dose": "100",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.1852
+        },
+        {
+          "drug": "MAGNESIUM HYDROXIDE",
+          "dose": "30",
+          "unit": "ml",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.1481
+        },
+        {
+          "drug": "LACTULOSE",
+          "dose": "15",
+          "unit": "ml",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.0741
+        },
+        {
+          "drug": "COLOXYL WITH SENNA",
+          "dose": "1-2",
+          "unit": "tablets",
+          "route": "po",
+          "frequency": "qid",
+          "probability": 0.037
+        },
+        {
+          "drug": "DOCUSATE",
+          "dose": "1-2",
+          "unit": "tablets",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.037
+        },
+        {
+          "drug": "LAXATIVES",
+          "dose": "per_protocol",
+          "unit": "per_protocol",
+          "route": "per_protocol",
+          "frequency": "once",
+          "probability": 0.037
+        },
+        {
+          "drug": "MAGNESIUM CITRATE",
+          "dose": "1",
+          "unit": "bottle",
+          "route": "po",
+          "frequency": "X1",
+          "probability": 0.037
+        },
+        {
+          "drug": "MAGNESIUM OXIDE",
+          "dose": "500",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn qd",
+          "probability": 0.037
+        },
+        {
+          "drug": "PHOSPHO-LAX",
+          "dose": "1",
+          "unit": "enema",
+          "route": "pr",
+          "frequency": "prn",
+          "probability": 0.037
+        },
+        {
+          "drug": "PROBIOTICS",
+          "dose": "1",
+          "unit": "tab",
+          "route": "po",
+          "frequency": "qd",
+          "probability": 0.037
+        },
+        {
+          "drug": "SENOKOT-S",
+          "dose": "1",
+          "unit": "tab",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.037
+        }
+      ]
+    },
+    {
+      "ae_term": "cough",
+      "treatments": [
+        {
+          "drug": "GUAIFENESIN",
+          "dose": "140",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "TID",
+          "probability": 0.1111
+        },
+        {
+          "drug": "BENZONATATE",
+          "dose": "100",
+          "unit": "mg",
+          "route": "PO",
+          "frequency": "Twice a day",
+          "probability": 0.0741
+        },
+        {
+          "drug": "CHERATUSSIN AC",
+          "dose": "1",
+          "unit": "tsp",
+          "route": "PO",
+          "frequency": "PRN Q 4 hrs",
+          "probability": 0.0741
+        },
+        {
+          "drug": "HYDROCODONE COMPOUND",
+          "dose": "1",
+          "unit": "dose",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.0741
+        },
+        {
+          "drug": "AMOXICILLIN",
+          "dose": "500",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "tid x 15 days",
+          "probability": 0.037
+        },
+        {
+          "drug": "BACLOFEN",
+          "dose": "10",
+          "unit": "mg",
+          "route": "PO",
+          "frequency": "q8hrs PRN",
+          "probability": 0.037
+        },
+        {
+          "drug": "CEFTRIAXONE SODIUM",
+          "dose": "2000",
+          "unit": "mg",
+          "route": "iv",
+          "frequency": "qd",
+          "probability": 0.037
+        },
+        {
+          "drug": "DIAZEPAM",
+          "dose": "2",
+          "unit": "mg",
+          "route": "PO",
+          "frequency": "PRN",
+          "probability": 0.037
+        },
+        {
+          "drug": "LORAZEPAM",
+          "dose": "1",
+          "unit": "mg",
+          "route": "PO",
+          "frequency": "Q4h prn",
+          "probability": 0.037
+        },
+        {
+          "drug": "OTHER COUGH SUPPRESSANTS",
+          "dose": "1",
+          "unit": "dose",
+          "route": "oral",
+          "frequency": "one time",
+          "probability": 0.037
+        },
+        {
+          "drug": "TUSSIONEX",
+          "dose": "5",
+          "unit": "ml",
+          "route": "po",
+          "frequency": "bid prn",
+          "probability": 0.037
+        }
+      ]
+    },
+    {
+      "ae_term": "decreased_appetite",
+      "treatments": [
+        {
+          "drug": "MEGESTROL ACETATE",
+          "dose": "400",
+          "unit": "mg",
+          "route": "oral",
+          "frequency": "qd",
+          "probability": 0.2
+        },
+        {
+          "drug": "DRONABINOL",
+          "dose": "2.5",
+          "unit": "mg",
+          "route": "by mouth",
+          "frequency": "PO",
+          "probability": 0.1333
+        }
+      ]
+    },
+    {
+      "ae_term": "oedema_peripheral",
+      "treatments": [
+        {
+          "drug": "FUROSEMIDE",
+          "dose": "20",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "ad",
+          "probability": 0.1818
+        },
+        {
+          "drug": "BUMETANIDE",
+          "dose": "1",
+          "unit": "mg",
+          "route": "oral",
+          "frequency": "daily",
+          "probability": 0.0909
+        },
+        {
+          "drug": "MAGNESIUM OXIDE",
+          "dose": "200",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "qd",
+          "probability": 0.0909
+        },
+        {
+          "drug": "SPIRONOLACTONE",
+          "dose": "50",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "qd",
+          "probability": 0.0909
+        }
+      ]
+    },
+    {
+      "ae_term": "dyspnoea",
+      "treatments": [
+        {
+          "drug": "PREDNISONE",
+          "dose": "30",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "qd",
+          "probability": 0.0952
+        },
+        {
+          "drug": "SALBUTAMOL",
+          "dose": "2.5",
+          "unit": "mg",
+          "route": "inhalation",
+          "frequency": "as needed",
+          "probability": 0.0952
+        },
+        {
+          "drug": "COMBIVENT",
+          "dose": "2",
+          "unit": "puffs",
+          "route": "inhaled",
+          "frequency": "prn",
+          "probability": 0.0476
+        },
+        {
+          "drug": "SALBUTAMOL SULFATE",
+          "dose": "90",
+          "unit": "mcg",
+          "route": "inhillation",
+          "frequency": "2 puffs q 6 hrs",
+          "probability": 0.0476
+        },
+        {
+          "drug": "TIOTROPIUM",
+          "dose": "18",
+          "unit": "mcg",
+          "route": "inhalation",
+          "frequency": "daily",
+          "probability": 0.0476
+        }
+      ]
+    },
+    {
+      "ae_term": "diarrhoea",
+      "treatments": [
+        {
+          "drug": "LOPERAMIDE HYDROCHLORIDE",
+          "dose": "2",
+          "unit": "mg",
+          "route": "Oral",
+          "frequency": "PRN",
+          "probability": 0.1667
+        },
+        {
+          "drug": "BISMUTH SUBSALICYLATE",
+          "dose": "1",
+          "unit": "tablet",
+          "route": "po",
+          "frequency": "prn q 4 hrs",
+          "probability": 0.0833
+        },
+        {
+          "drug": "LOMOTIL",
+          "dose": "2.5",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.0833
+        },
+        {
+          "drug": "POTASSIUM CHLORIDE",
+          "dose": "20",
+          "unit": "meq",
+          "route": "iv",
+          "frequency": "once",
+          "probability": 0.0833
+        },
+        {
+          "drug": "SODIUM CHLORIDE",
+          "dose": "1000",
+          "unit": "ml",
+          "route": "iv",
+          "frequency": "once",
+          "probability": 0.0833
+        }
+      ]
+    },
+    {
+      "ae_term": "hyponatraemia",
+      "treatments": [
+        {
+          "drug": "SODIUM CHLORIDE",
+          "dose": "1",
+          "unit": "%",
+          "route": "IV",
+          "frequency": "1X",
+          "probability": 0.375
+        },
+        {
+          "drug": "DEMECLOCYCLINE",
+          "dose": "300",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "bid",
+          "probability": 0.125
+        }
+      ]
+    },
+    {
+      "ae_term": "headache",
+      "treatments": [
+        {
+          "drug": "IBUPROFEN",
+          "dose": "200",
+          "unit": "mg",
+          "route": "oral",
+          "frequency": "prn",
+          "probability": 0.1667
+        },
+        {
+          "drug": "AXOTAL",
+          "dose": "50",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.0833
+        },
+        {
+          "drug": "DEXAMETHASONE",
+          "dose": "10",
+          "unit": "mg",
+          "route": "IV",
+          "frequency": "once",
+          "probability": 0.0833
+        },
+        {
+          "drug": "HYDROMORPHONE HYDROCHLORIDE",
+          "dose": "2",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.0833
+        },
+        {
+          "drug": "NAPROXEN SODIUM",
+          "dose": "220",
+          "unit": "mg.",
+          "route": "oral",
+          "frequency": "prn",
+          "probability": 0.0833
+        },
+        {
+          "drug": "ONDANSETRON",
+          "dose": "8",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "take 1 q 8 hrs prn",
+          "probability": 0.0833
+        },
+        {
+          "drug": "VICODIN",
+          "dose": "1",
+          "unit": "tab",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.0833
+        }
+      ]
+    },
+    {
+      "ae_term": "insomnia",
+      "treatments": [
+        {
+          "drug": "ZOLPIDEM TARTRATE",
+          "dose": "10",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "qd",
+          "probability": 0.3
+        },
+        {
+          "drug": "ALPRAZOLAM",
+          "dose": "1",
+          "unit": "mg",
+          "route": "oral",
+          "frequency": "prn",
+          "probability": 0.05
+        },
+        {
+          "drug": "DOZOL",
+          "dose": "1",
+          "unit": "tablet",
+          "route": "po",
+          "frequency": "qhs prn",
+          "probability": 0.05
+        },
+        {
+          "drug": "ESZOPICLONE",
+          "dose": "2",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "qhs",
+          "probability": 0.05
+        },
+        {
+          "drug": "QUETIAPINE",
+          "dose": "50",
+          "unit": "mg",
+          "route": "oral",
+          "frequency": "daily-bedtime",
+          "probability": 0.05
+        },
+        {
+          "drug": "TEMAZEPAM",
+          "dose": "15",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.05
+        },
+        {
+          "drug": "TRIAZOLAM",
+          "dose": ".25",
+          "unit": "mg",
+          "route": "by mouth",
+          "frequency": "as needed",
+          "probability": 0.05
+        },
+        {
+          "drug": "ZOLPIDEM",
+          "dose": "10",
+          "unit": "mg",
+          "route": "by mouth",
+          "frequency": "1 PO q HS",
+          "probability": 0.05
+        }
+      ]
+    },
+    {
+      "ae_term": "hypomagnesaemia",
+      "treatments": [
+        {
+          "drug": "MAGNESIUM SULFATE",
+          "dose": "1",
+          "unit": "gm",
+          "route": "iv",
+          "frequency": "once",
+          "probability": 0.5714
+        },
+        {
+          "drug": "MAGNESIUM OXIDE",
+          "dose": "400",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "bid",
+          "probability": 0.4286
+        },
+        {
+          "drug": "MAGNESIUM",
+          "dose": "2",
+          "unit": "gm",
+          "route": "iv",
+          "frequency": "one time",
+          "probability": 0.2857
+        },
+        {
+          "drug": "MAG64",
+          "dose": "64",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "tid",
+          "probability": 0.1429
+        }
+      ]
+    },
+    {
+      "ae_term": "arthralgia",
+      "treatments": [
+        {
+          "drug": "IBUPROFEN",
+          "dose": "200",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "bid",
+          "probability": 0.1111
+        },
+        {
+          "drug": "VICODIN",
+          "dose": "10",
+          "unit": "mg",
+          "route": "PO",
+          "frequency": "q 4-6 hours",
+          "probability": 0.1111
+        }
+      ]
+    },
+    {
+      "ae_term": "weight_decreased",
+      "treatments": [
+        {
+          "drug": "POTASSIUM CHLORIDE",
+          "dose": "20",
+          "unit": "meq",
+          "route": "iv",
+          "frequency": "one time",
+          "probability": 0.1111
+        },
+        {
+          "drug": "SODIUM CHLORIDE",
+          "dose": "1000",
+          "unit": "ml",
+          "route": "iv",
+          "frequency": "one time",
+          "probability": 0.1111
+        }
+      ]
+    },
+    {
+      "ae_term": "musculoskeletal_chest_pain",
+      "treatments": [
+        {
+          "drug": "HYDROMORPHONE HYDROCHLORIDE",
+          "dose": "2",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn q 2 to 3 hrs",
+          "probability": 0.1429
+        }
+      ]
+    },
+    {
+      "ae_term": "hypokalaemia",
+      "treatments": [
+        {
+          "drug": "POTASSIUM CHLORIDE",
+          "dose": "20",
+          "unit": "meq",
+          "route": "po",
+          "frequency": "bid",
+          "probability": 0.6667
+        },
+        {
+          "drug": "POTASSIUM",
+          "dose": "20",
+          "unit": "meq",
+          "route": "iv",
+          "frequency": "once",
+          "probability": 0.1667
+        }
+      ]
+    },
+    {
+      "ae_term": "urinary_tract_infection",
+      "treatments": [
+        {
+          "drug": "CIPROFLOXACIN",
+          "dose": "500",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "bid",
+          "probability": 0.8
+        },
+        {
+          "drug": "AMPICILLIN",
+          "dose": "500",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "qid",
+          "probability": 0.2
+        },
+        {
+          "drug": "DEXAMETHASONE SODIUM PHOSPHATE",
+          "dose": "10",
+          "unit": "mg",
+          "route": "iv",
+          "frequency": "once a day for three days",
+          "probability": 0.2
+        },
+        {
+          "drug": "LEVOFLOXACIN",
+          "dose": "500",
+          "unit": "mg",
+          "route": "qd",
+          "frequency": "po",
+          "probability": 0.2
+        },
+        {
+          "drug": "NITROFURANTOIN",
+          "dose": "100",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "bid",
+          "probability": 0.2
+        }
+      ]
+    },
+    {
+      "ae_term": "rash",
+      "treatments": [
+        {
+          "drug": "ACICLOVIR",
+          "dose": "400",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "bid",
+          "probability": 0.2
+        }
+      ]
+    },
+    {
+      "ae_term": "myalgia",
+      "treatments": [
+        {
+          "drug": "IBUPROFEN",
+          "dose": "200",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.4
+        },
+        {
+          "drug": "HYDROCODONE",
+          "dose": "1",
+          "unit": "tab",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.2
+        },
+        {
+          "drug": "MORPHINE SULFATE",
+          "dose": "15",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "bid",
+          "probability": 0.2
+        }
+      ]
+    },
+    {
+      "ae_term": "pain",
+      "treatments": [
+        {
+          "drug": "OXYCODONE",
+          "dose": "5",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.625
+        },
+        {
+          "drug": "MORPHINE SULFATE",
+          "dose": "30",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "1 PO q BID",
+          "probability": 0.5
+        },
+        {
+          "drug": "PARACETAMOL",
+          "dose": "650",
+          "unit": "mg",
+          "route": "PO",
+          "frequency": "prn",
+          "probability": 0.5
+        },
+        {
+          "drug": "PROCET",
+          "dose": "7.5",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.5
+        },
+        {
+          "drug": "MORPHINE",
+          "dose": "30",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.375
+        },
+        {
+          "drug": "VICODIN",
+          "dose": "1",
+          "unit": "mg",
+          "route": "oral",
+          "frequency": "prn",
+          "probability": 0.375
+        },
+        {
+          "drug": "FENTANYL",
+          "dose": "10",
+          "unit": "mcg",
+          "route": "IV",
+          "frequency": "as needed",
+          "probability": 0.25
+        },
+        {
+          "drug": "IBUPROFEN",
+          "dose": "200",
+          "unit": "MG",
+          "route": "PO",
+          "frequency": "PRN",
+          "probability": 0.25
+        },
+        {
+          "drug": "NAPROXEN SODIUM",
+          "dose": "1",
+          "unit": "tab",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.25
+        },
+        {
+          "drug": "OXYCODONE HYDROCHLORIDE",
+          "dose": "40",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn q 4 hrs",
+          "probability": 0.25
+        },
+        {
+          "drug": "TRAMADOL",
+          "dose": "50",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "qd",
+          "probability": 0.25
+        },
+        {
+          "drug": "ACETYLSALICYLIC ACID",
+          "dose": "81",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "qd",
+          "probability": 0.125
+        },
+        {
+          "drug": "ANTACIDS",
+          "dose": "2",
+          "unit": "teaspoons",
+          "route": "po",
+          "frequency": "tid",
+          "probability": 0.125
+        },
+        {
+          "drug": "CYCLOBENZAPRINE",
+          "dose": "10",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "qd",
+          "probability": 0.125
+        },
+        {
+          "drug": "CYCLOBENZAPRINE HYDROCHLORIDE",
+          "dose": "10",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.125
+        },
+        {
+          "drug": "DULOXETINE HYDROCHLORIDE",
+          "dose": "60",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "qd",
+          "probability": 0.125
+        },
+        {
+          "drug": "HYDROCODONE",
+          "dose": "10",
+          "unit": "mg",
+          "route": "PO",
+          "frequency": "Q 4 hrs as needed",
+          "probability": 0.125
+        },
+        {
+          "drug": "HYDROMORPHONE HYDROCHLORIDE",
+          "dose": "4",
+          "unit": "mg",
+          "route": "PO",
+          "frequency": "PRN",
+          "probability": 0.125
+        },
+        {
+          "drug": "LIDOCAINE",
+          "dose": "0.05",
+          "unit": "%",
+          "route": "Topical",
+          "frequency": "As directed",
+          "probability": 0.125
+        },
+        {
+          "drug": "MELOXICAM",
+          "dose": "7.5",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "qd",
+          "probability": 0.125
+        },
+        {
+          "drug": "METHADONE",
+          "dose": "120",
+          "unit": "mg",
+          "route": "oral",
+          "frequency": "daily",
+          "probability": 0.125
+        },
+        {
+          "drug": "OMEPRAZOLE",
+          "dose": "20",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "bid",
+          "probability": 0.125
+        },
+        {
+          "drug": "OXYCOCET",
+          "dose": "10325",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "PRN",
+          "probability": 0.125
+        },
+        {
+          "drug": "OXYCODONE/APAP",
+          "dose": "5-325",
+          "unit": "mg",
+          "route": "PO",
+          "frequency": "6x/day",
+          "probability": 0.125
+        },
+        {
+          "drug": "VICOPROFEN",
+          "dose": "200",
+          "unit": "MG",
+          "route": "PO",
+          "frequency": "PRN",
+          "probability": 0.125
+        }
+      ]
+    },
+    {
+      "ae_term": "anxiety",
+      "treatments": [
+        {
+          "drug": "LORAZEPAM",
+          "dose": "1",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "Q 4 hours PRN",
+          "probability": 0.2381
+        },
+        {
+          "drug": "ALPRAZOLAM",
+          "dose": "0.5",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.1905
+        },
+        {
+          "drug": "DIAZEPAM",
+          "dose": "5",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.0952
+        },
+        {
+          "drug": "BUSPIRONE HYDROCHLORIDE",
+          "dose": "15",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "qd",
+          "probability": 0.0476
+        },
+        {
+          "drug": "CHLORDIAZEPOXIDE W/CLIDINIUM",
+          "dose": "1",
+          "unit": "tablet",
+          "route": "oral",
+          "frequency": "daily",
+          "probability": 0.0476
+        },
+        {
+          "drug": "CITALOPRAM HYDROBROMIDE",
+          "dose": "20",
+          "unit": "mg",
+          "route": "PO",
+          "frequency": "Once Daily",
+          "probability": 0.0476
+        },
+        {
+          "drug": "CLONAZEPAM",
+          "dose": "0.5",
+          "unit": "mg",
+          "route": "oral",
+          "frequency": "as needed",
+          "probability": 0.0476
+        },
+        {
+          "drug": "ESCITALOPRAM OXALATE",
+          "dose": "10",
+          "unit": "mg",
+          "route": "PO",
+          "frequency": "QD",
+          "probability": 0.0476
+        },
+        {
+          "drug": "SERTRALINE",
+          "dose": "150",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "bid",
+          "probability": 0.0476
+        },
+        {
+          "drug": "ZONISAMIDE",
+          "dose": "200",
+          "unit": "mg",
+          "route": "PO",
+          "frequency": "BID",
+          "probability": 0.0476
+        }
+      ]
+    },
+    {
+      "ae_term": "dehydration",
+      "treatments": [
+        {
+          "drug": "SODIUM CHLORIDE",
+          "dose": "1000",
+          "unit": "ml",
+          "route": "IV",
+          "frequency": "X1",
+          "probability": 0.6
+        }
+      ]
+    },
+    {
+      "ae_term": "bone_pain",
+      "treatments": [
+        {
+          "drug": "DENOSUMAB",
+          "dose": "120",
+          "unit": "mg",
+          "route": "SC",
+          "frequency": "once",
+          "probability": 0.2857
+        },
+        {
+          "drug": "LORATADINE",
+          "dose": "10",
+          "unit": "mg",
+          "route": "PO",
+          "frequency": "QD",
+          "probability": 0.1429
+        },
+        {
+          "drug": "PARACETAMOL W/TRAMADOL",
+          "dose": "37.5",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.1429
+        },
+        {
+          "drug": "VICODIN",
+          "dose": "7.5",
+          "unit": "mg",
+          "route": "PO",
+          "frequency": "Q 6 hours",
+          "probability": 0.1429
+        },
+        {
+          "drug": "ZOLEDRONIC ACID",
+          "dose": "3",
+          "unit": "mg",
+          "route": "IV",
+          "frequency": "Q 6 WEEKS",
+          "probability": 0.1429
+        }
+      ]
+    },
+    {
+      "ae_term": "blood_creatinine_increased",
+      "treatments": [
+        {
+          "drug": "SODIUM CHLORIDE",
+          "dose": "500",
+          "unit": "ml",
+          "route": "iv",
+          "frequency": "once",
+          "probability": 0.25
+        }
+      ]
+    },
+    {
+      "ae_term": "dizziness",
+      "treatments": [
+        {
+          "drug": "MECLOZINE",
+          "dose": "25",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "tid",
+          "probability": 0.2
+        }
+      ]
+    },
+    {
+      "ae_term": "back_pain",
+      "treatments": [
+        {
+          "drug": "VICODIN",
+          "dose": "10",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.1818
+        },
+        {
+          "drug": "FENTANYL",
+          "dose": "1",
+          "unit": "patch",
+          "route": "td",
+          "frequency": "q 3 days",
+          "probability": 0.0909
+        },
+        {
+          "drug": "HYDROCODONE COMPOUND",
+          "dose": "5",
+          "unit": "ml",
+          "route": "po",
+          "frequency": "bid prn",
+          "probability": 0.0909
+        },
+        {
+          "drug": "IBUPROFEN",
+          "dose": "200",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "prn",
+          "probability": 0.0909
+        },
+        {
+          "drug": "MORPHINE SULFATE",
+          "dose": "15",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "q12h",
+          "probability": 0.0909
+        },
+        {
+          "drug": "OXYCOCET",
+          "dose": "10",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "bid",
+          "probability": 0.0909
+        }
+      ]
+    },
+    {
+      "ae_term": "dyspepsia",
+      "treatments": [
+        {
+          "drug": "METOCLOPRAMIDE HYDROCHLORIDE",
+          "dose": "10",
+          "unit": "mg",
+          "route": "by mouth",
+          "frequency": "three times a day",
+          "probability": 0.3333
+        },
+        {
+          "drug": "OMEPRAZOLE",
+          "dose": "20",
+          "unit": "mg",
+          "route": "by mouth",
+          "frequency": "QD",
+          "probability": 0.3333
+        },
+        {
+          "drug": "RANITIDINE HYDROCHLORIDE",
+          "dose": "300",
+          "unit": "mg",
+          "route": "by mouth",
+          "frequency": "QD hs",
+          "probability": 0.3333
+        }
+      ]
+    },
+    {
+      "ae_term": "hyperkalaemia",
+      "treatments": [
+        {
+          "drug": "SODIUM POLYSTYRENE SULFONATE",
+          "dose": "15",
+          "unit": "gm",
+          "route": "po",
+          "frequency": "one-time",
+          "probability": 0.3333
+        }
+      ]
+    },
+    {
+      "ae_term": "mucosal_inflammation",
+      "treatments": [
+        {
+          "drug": "STOMATOLOGICALS, MOUTH PREPARATIONS",
+          "dose": "1",
+          "unit": "ml",
+          "route": "oral",
+          "frequency": "prn",
+          "probability": 0.6667
+        },
+        {
+          "drug": "DIPHENHYDRAMINE",
+          "dose": "12.5",
+          "unit": "mg/5ml",
+          "route": "PO",
+          "frequency": "5cc's QID PRN",
+          "probability": 0.3333
+        },
+        {
+          "drug": "HYDROCORTISONE SODIUM SUCCINATE",
+          "dose": "100/2",
+          "unit": "mg/ml",
+          "route": "PO",
+          "frequency": "5cc's QID PRN",
+          "probability": 0.3333
+        },
+        {
+          "drug": "NYSTATIN",
+          "dose": "10000",
+          "unit": "unit/mL",
+          "route": "PO",
+          "frequency": "5cc\"s QID PRN",
+          "probability": 0.3333
+        },
+        {
+          "drug": "TETRACYCLINE",
+          "dose": "125/5",
+          "unit": "mg/ml",
+          "route": "PO",
+          "frequency": "5cc's QID",
+          "probability": 0.3333
+        }
+      ]
+    },
+    {
+      "ae_term": "oropharyngeal_pain",
+      "treatments": [
+        {
+          "drug": "THROAT PREPARATIONS",
+          "dose": "5.4",
+          "unit": "mg",
+          "route": "oral",
+          "frequency": "PRN",
+          "probability": 0.3333
+        }
+      ]
+    },
+    {
+      "ae_term": "pyrexia",
+      "treatments": [
+        {
+          "drug": "MOXIFLOXACIN HYDROCHLORIDE",
+          "dose": "400",
+          "unit": "MG",
+          "route": "PO",
+          "frequency": "Q DAY",
+          "probability": 0.3333
+        }
+      ]
+    },
+    {
+      "ae_term": "upper_respiratory_tract_infection",
+      "treatments": [
+        {
+          "drug": "ALLOPURINOL",
+          "dose": "100",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "qd",
+          "probability": 0.3333
+        },
+        {
+          "drug": "AZITHROMYCIN",
+          "dose": "250",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "qd",
+          "probability": 0.3333
+        },
+        {
+          "drug": "CIPROFLOXACIN",
+          "dose": "500",
+          "unit": "mg",
+          "route": "PO",
+          "frequency": "BID x 7 days",
+          "probability": 0.3333
+        },
+        {
+          "drug": "CYSTEX",
+          "dose": "2",
+          "unit": "tabs",
+          "route": "po",
+          "frequency": "tid",
+          "probability": 0.3333
+        },
+        {
+          "drug": "DEXAMETHASONE",
+          "dose": "1",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "qd",
+          "probability": 0.3333
+        },
+        {
+          "drug": "LEVOFLOXACIN",
+          "dose": "500",
+          "unit": "mg",
+          "route": "PO",
+          "frequency": "qd",
+          "probability": 0.3333
+        },
+        {
+          "drug": "METHYLPREDNISOLONE",
+          "dose": "4",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "as directed",
+          "probability": 0.3333
+        },
+        {
+          "drug": "METHYLPREDNISOLONE SODIUM SUCCINATE",
+          "dose": "50",
+          "unit": "mg",
+          "route": "iv",
+          "frequency": "once",
+          "probability": 0.3333
+        },
+        {
+          "drug": "OSELTAMIVIR PHOSPHATE",
+          "dose": "75",
+          "unit": "mg",
+          "route": "po",
+          "frequency": "bid",
+          "probability": 0.3333
+        },
+        {
+          "drug": "SILODOSIN",
+          "dose": "4",
+          "unit": "mg",
+          "route": "oral",
+          "frequency": "once daily",
+          "probability": 0.3333
+        },
+        {
+          "drug": "UROLOGICALS",
+          "dose": "25",
+          "unit": "mg",
+          "route": "oral",
+          "frequency": "once daily",
+          "probability": 0.3333
+        }
+      ]
+    }
+  ],
+  "mortality_model": {
+    "baseline_annual_mortality": 0.682,
+    "channels": {
+      "disease_progression": {
+        "pd_multiplier": 3.5,
+        "response_lag_days": 28,
+        "response_reduction": 0.25
+      },
+      "treatment_toxicity": {
+        "ae_grade_multipliers": {
+          "3": 1.5,
+          "4": 3.0
+        },
+        "concurrent_ae_threshold": 3,
+        "concurrent_ae_multiplier": 1.75
+      }
+    }
+  },
+  "ecog_model": {
+    "ae_burden_weight": 0.0,
+    "disease_weight": 0.0,
+    "response_lag_days": 0,
+    "response_benefit": 0.0,
+    "comorbidity_penalty": 0.0
+  },
+  "ae_cascade_rules": [
+    {
+      "trigger_ae": "nausea",
+      "grade_threshold": 2,
+      "target_ae": "vomiting",
+      "multiplier": 2.88
+    },
+    {
+      "trigger_ae": "anaemia",
+      "grade_threshold": 2,
+      "target_ae": "dyspnoea",
+      "multiplier": 1.84
+    },
+    {
+      "trigger_ae": "thrombocytopenia",
+      "grade_threshold": 3,
+      "target_ae": "anaemia",
+      "multiplier": 1.56
+    }
+  ],
+  "disposition_model": {
+    "independent_hazards": {
+      "consent_withdrawal": {
+        "base_daily_rate": 0.000518,
+        "risk_factors": {
+          "active_ae_grade_3_plus": 2.5,
+          "ecog_worsened": 2.0,
+          "treatment_weeks_gt_12": 1.5,
+          "poor_response": 1.3
+        }
+      },
+      "physician_decision": {
+        "base_daily_rate": 0.000345,
+        "risk_factors": {
+          "ecog_ge_3": 3.0,
+          "multiple_dose_reductions": 2.0,
+          "poor_tumor_response": 2.0,
+          "severe_ae": 1.5
+        }
+      }
+    }
+  }
+}

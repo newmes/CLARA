@@ -1,0 +1,3273 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}CLARA — Data Analysis Agent{% endblock %}
+
+{% block extra_head %}
+<style>
+/* =================================================================
+   Data Analysis Agent — Anti-Hallucination Purple Theme
+   Aligned with MedGemma page quality level (CLARA Design System)
+   ================================================================= */
+
+/* -- Static Ambient Glow (purple aurora) -- */
+.ah-aurora-bg {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1; pointer-events: none; overflow: hidden;
+}
+.ah-aurora-bg::before {
+  content: '';
+  position: absolute;
+  top: -10%; left: 5%; right: 5%;
+  height: 55%;
+  background:
+    radial-gradient(ellipse 60% 55% at 20% 0%, rgba(188,140,255,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 55% 50% at 80% 5%, rgba(163,113,247,0.04) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 35% at 50% 15%, rgba(180,150,255,0.03) 0%, transparent 60%);
+}
+.ah-aurora-bg::after {
+  content: '';
+  position: absolute;
+  bottom: -5%; left: 10%; right: 10%;
+  height: 30%;
+  background:
+    radial-gradient(ellipse 50% 60% at 30% 100%, rgba(188,140,255,0.04) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 70% 100%, rgba(163,113,247,0.03) 0%, transparent 70%);
+}
+
+/* -- Dot Grid Background (purple tint, subtle) -- */
+.ah-dot-grid {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+  z-index: -1; pointer-events: none;
+  background-image: radial-gradient(rgba(188,140,255,0.03) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(ellipse 70% 40% at 50% 20%, black 10%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse 70% 40% at 50% 20%, black 10%, transparent 70%);
+}
+
+/* -- Layout Container -- */
+.ah-main {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 32px 4em;
+  position: relative;
+  z-index: 1;
+  transition: max-width 0.3s ease;
+}
+/* Widen container when chatbot tab is active for split panel */
+.ah-main.da-wide { max-width: 1440px; }
+
+/* -- Scroll-triggered reveal -- */
+.ah-reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+              transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ah-reveal.visible { opacity: 1; transform: translateY(0); }
+.ah-reveal-d1 { transition-delay: 0.1s; }
+.ah-reveal-d2 { transition-delay: 0.2s; }
+.ah-reveal-d3 { transition-delay: 0.3s; }
+.ah-reveal-d4 { transition-delay: 0.4s; }
+
+/* =================================================================
+   HERO SECTION
+   ================================================================= */
+.ah-hero {
+  padding: 4em 0 2.5em;
+  text-align: center;
+  position: relative;
+}
+
+/* Overline badge */
+.ah-hero-overline {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font: 600 0.82em 'JetBrains Mono', monospace;
+  color: #bc8cff;
+  padding: 5px 16px;
+  border: 1px solid rgba(188,140,255,0.2);
+  border-radius: 24px;
+  background: rgba(188,140,255,0.05);
+  margin-bottom: 1.6em;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+}
+.ah-hero-overline .ah-pulse-pip {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #bc8cff;
+  animation: ahPipPulse 2s ease-in-out infinite;
+  box-shadow: 0 0 8px rgba(188,140,255,0.6);
+}
+/* -- LIVE / CACHED inference badge -- */
+.ah-live-badge {
+  display: inline-flex; align-items: center; gap: 6px;
+  font: 600 0.8em 'JetBrains Mono', monospace;
+  padding: 3px 12px; border-radius: 20px;
+  letter-spacing: 0.6px; text-transform: uppercase;
+  transition: all 0.4s ease;
+}
+.ah-live-badge[data-mode="live"] {
+  color: #bc8cff; border: 1px solid rgba(188,140,255,0.3);
+  background: rgba(188,140,255,0.08);
+}
+.ah-live-badge[data-mode="cached"] {
+  color: #8b949e; border: 1px solid rgba(139,148,158,0.2);
+  background: rgba(139,148,158,0.06);
+}
+.ah-live-badge[data-mode="offline"] {
+  color: #f85149; border: 1px solid rgba(248,81,73,0.2);
+  background: rgba(248,81,73,0.06);
+}
+.ah-live-badge .ah-live-pip {
+  width: 6px; height: 6px; border-radius: 50%;
+  transition: all 0.4s ease;
+}
+.ah-live-badge[data-mode="live"] .ah-live-pip {
+  background: #bc8cff;
+  box-shadow: 0 0 8px rgba(188,140,255,0.6);
+  animation: ahPipPulse 2s ease-in-out infinite;
+}
+.ah-live-badge[data-mode="cached"] .ah-live-pip {
+  background: #8b949e; box-shadow: none; animation: none;
+}
+.ah-live-badge[data-mode="offline"] .ah-live-pip {
+  background: #f85149; box-shadow: none; animation: none;
+}
+
+@keyframes ahPipPulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.8); }
+}
+
+/* MedGemma icon in hero */
+.ah-hero-icon {
+  display: flex;
+  justify-content: center;
+  margin-top: 0.5em;
+  margin-bottom: 0.8em;
+  opacity: 0;
+  animation: ahIconReveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.05s;
+}
+.ah-hero-icon-inner {
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ah-hero-icon-inner:hover {
+  transform: scale(1.08) rotate(2deg);
+}
+.ah-hero-icon-inner img {
+  filter: drop-shadow(0 0 16px rgba(188,140,255,0.3));
+}
+@keyframes ahIconReveal {
+  from { opacity: 0; transform: translateY(-16px) scale(0.9); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* Title - large manifesto style */
+.ah-hero-title {
+  font-size: 3em;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.12;
+  margin-bottom: 0.5em;
+  position: relative;
+}
+.ah-hero-title .ah-title-line {
+  display: block;
+}
+.ah-hero-title .ah-title-line-sub {
+  display: block;
+  font-size: 0.72em;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  margin-top: 0.3em;
+}
+.ah-hero-title .ah-word {
+  display: inline-block;
+  opacity: 0;
+  transform: translateY(30px);
+  animation: ahWordReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+.ah-hero-title .ah-word-accent {
+  background: linear-gradient(135deg, #a855f7 0%, #bc8cff 40%, #d2a8ff 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  filter: drop-shadow(0 0 30px rgba(188,140,255,0.25));
+}
+.ah-hero-title .ah-word-dim {
+  color: var(--text-secondary);
+  -webkit-text-fill-color: var(--text-secondary);
+}
+@keyframes ahWordReveal {
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Subtitle */
+.ah-hero-subtitle {
+  font-size: 1.05em;
+  color: var(--text-muted);
+  font-weight: 400;
+  max-width: 700px;
+  margin: 0 auto 1.2em;
+  line-height: 1.7;
+  opacity: 0;
+  animation: ahFadeUpSoft 0.8s ease forwards 0.8s;
+}
+.ah-hero-subtitle strong {
+  color: var(--text-secondary);
+  font-weight: 600;
+}
+@keyframes ahFadeUpSoft {
+  from { opacity: 0; transform: translateY(16px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Hero badges */
+.ah-hero-badges {
+  display: flex; gap: 10px; margin-top: 1.2em; flex-wrap: wrap;
+  justify-content: center;
+  opacity: 0;
+  animation: ahFadeUpSoft 0.8s ease forwards 1s;
+}
+.ah-hero-badge {
+  display: flex; align-items: center; gap: 6px;
+  padding: 6px 14px; border-radius: 20px;
+  background: rgba(188,140,255,0.05); border: 1px solid rgba(188,140,255,0.15);
+  font-size: 0.82em; font-family: 'JetBrains Mono', monospace; font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.25s ease;
+}
+.ah-hero-badge:hover {
+  border-color: rgba(188,140,255,0.3);
+  background: rgba(188,140,255,0.08);
+  transform: translateY(-1px);
+}
+.ah-hero-badge .bv { color: #bc8cff; }
+.ah-hero-badge.green { background: rgba(163,113,247,0.05); border-color: rgba(163,113,247,0.15); }
+.ah-hero-badge.green:hover { border-color: rgba(163,113,247,0.3); background: rgba(163,113,247,0.08); }
+.ah-hero-badge.green .bv { color: #a371f7; }
+
+/* =================================================================
+   SECTION SHARED
+   ================================================================= */
+.ah-section-label-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 2em;
+}
+.ah-section-label-row .ah-sl-marker {
+  width: 3px; height: 18px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.ah-section-label-row .ah-sl-marker-red {
+  background: linear-gradient(180deg, #bc8cff, rgba(188,140,255,0.4));
+}
+.ah-section-label-row .ah-sl-marker-green {
+  background: linear-gradient(180deg, var(--accent-green), rgba(188,140,255,0.4));
+}
+.ah-section-label-row .ah-sl-text {
+  font-size: 0.88em;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+}
+.ah-section-label-row .ah-sl-line {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--border), transparent);
+}
+
+/* =================================================================
+   INPUT CARD (glass morphism)
+   ================================================================= */
+.ah-input-card {
+  background: rgba(22,27,34,0.75);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(48,54,61,0.6);
+  border-radius: 18px;
+  padding: 24px 28px;
+  margin-bottom: 20px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ah-input-card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, #bc8cff, #a371f7, #a371f7);
+  opacity: 0.5;
+  transition: opacity 0.35s;
+}
+.ah-input-card:hover {
+  border-color: rgba(188,140,255,0.12);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+}
+.ah-input-card:hover::before { opacity: 0.8; }
+
+.ah-input-label {
+  font-size: 0.78em; font-weight: 700; text-transform: uppercase;
+  letter-spacing: 1.5px; color: var(--text-muted); margin-bottom: 12px;
+}
+
+.ah-input-row {
+  display: flex; gap: 10px; align-items: center;
+}
+.ah-input {
+  flex: 1;
+  padding: 14px 18px;
+  background: rgba(13,17,23,0.6);
+  border: 1px solid rgba(48,54,61,0.6);
+  border-radius: 12px;
+  color: var(--text-primary); font-family: inherit; font-size: 0.9em;
+  outline: none; transition: border-color 0.25s, box-shadow 0.25s;
+}
+.ah-input:focus {
+  border-color: rgba(188,140,255,0.4);
+  box-shadow: 0 0 0 3px rgba(188,140,255,0.08);
+}
+.ah-input::placeholder { color: var(--text-muted); font-size: 0.95em; }
+
+/* Buttons */
+.ah-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 14px 24px; border: none; border-radius: 12px;
+  font-family: 'JetBrains Mono', monospace; font-size: 0.88em; font-weight: 700;
+  cursor: pointer; transition: all 0.3s; white-space: nowrap;
+}
+.ah-btn-primary {
+  background: linear-gradient(135deg, rgba(188,140,255,0.15), rgba(188,140,255,0.25));
+  border: 1px solid rgba(188,140,255,0.35);
+  color: #bc8cff;
+}
+.ah-btn-primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, rgba(188,140,255,0.25), rgba(188,140,255,0.35));
+  box-shadow: 0 0 20px rgba(188,140,255,0.2);
+  transform: translateY(-1px);
+}
+.ah-btn-primary:disabled {
+  opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none;
+}
+.ah-btn-primary .ah-spinner {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(188,140,255,0.3);
+  border-top-color: #bc8cff; border-radius: 50%;
+  animation: ahSpin 0.8s linear infinite; display: none;
+}
+.ah-btn-primary.loading .ah-spinner { display: inline-block; }
+@keyframes ahSpin { to { transform: rotate(360deg); } }
+
+.ah-btn-auto {
+  background: rgba(163,113,247,0.06);
+  border: 1px solid rgba(163,113,247,0.2);
+  color: #a371f7;
+}
+.ah-btn-auto:hover {
+  background: rgba(163,113,247,0.12);
+  border-color: rgba(163,113,247,0.35);
+}
+.ah-btn-auto.active {
+  background: rgba(255,80,80,0.08);
+  border-color: rgba(255,80,80,0.5);
+  color: #ff5050;
+  box-shadow: 0 0 12px rgba(255,80,80,0.1);
+}
+.ah-btn-auto.active:hover {
+  background: rgba(255,80,80,0.15);
+  border-color: rgba(255,80,80,0.7);
+}
+.ah-auto-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  background: #a371f7; display: inline-block;
+}
+.ah-btn-auto.active .ah-auto-dot {
+  background: #ff5050;
+  box-shadow: 0 0 6px rgba(255,80,80,0.6);
+  animation: ahPipPulse 1s ease-in-out infinite;
+}
+
+/* =================================================================
+   EXAMPLE PILLS — Tab-based category selector (MedGemma pattern)
+   ================================================================= */
+.ah-examples-container {
+  background: rgba(22,27,34,0.75);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(48,54,61,0.6);
+  border-radius: 18px;
+  margin-bottom: 16px;
+  position: relative;
+  overflow: hidden;
+}
+.ah-examples-container::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, rgba(188,140,255,0.5), rgba(170,130,250,0.3), rgba(163,113,247,0.4), rgba(180,150,255,0.3));
+  opacity: 0.5;
+}
+
+/* Category Tabs — single-line horizontal scroll, compact */
+.ah-cat-tabs {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 2px;
+  padding: 10px 16px 0;
+  border-bottom: none;
+  position: relative;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.ah-cat-tabs::-webkit-scrollbar { display: none; }
+.ah-cat-tabs::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 16px; right: 16px;
+  height: 1px;
+  background: rgba(48,54,61,0.4);
+}
+.ah-cat-tab {
+  padding: 6px 12px 8px;
+  border-radius: 8px 8px 0 0;
+  border: 1px solid transparent;
+  border-bottom: none;
+  background: transparent;
+  color: var(--text-muted);
+  font: 700 0.8em 'JetBrains Mono', monospace;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: relative;
+  margin-bottom: -1px;
+  flex-shrink: 0;
+}
+.ah-cat-tab::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 2px;
+  background: transparent;
+  border-radius: 2px 2px 0 0;
+  transition: background 0.25s ease;
+}
+.ah-cat-tab:hover {
+  color: var(--text-secondary);
+  background: rgba(48,54,61,0.15);
+}
+.ah-cat-tab .ah-tab-count {
+  display: inline-flex;
+  align-items: center; justify-content: center;
+  min-width: 16px; height: 16px;
+  border-radius: 4px;
+  font-size: 0.92em;
+  margin-left: 5px;
+  padding: 0 4px;
+  background: rgba(48,54,61,0.3);
+  color: var(--text-muted);
+  transition: all 0.25s ease;
+}
+/* Active tab — color is set dynamically via inline style;
+   ::after underline + raised background give "selected tab" feel */
+.ah-cat-tab.active {
+  background: rgba(48,54,61,0.2);
+  border-color: rgba(48,54,61,0.4) rgba(48,54,61,0.4) transparent;
+}
+.ah-cat-tab.active::after {
+  background: currentColor;
+}
+
+/* Pills area — horizontal scrolling chips */
+.ah-pills-area {
+  padding: 12px 16px 14px;
+}
+.ah-pills-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 4px;
+}
+.ah-pill {
+  display: flex; align-items: center; gap: 8px;
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 1px solid rgba(48,54,61,0.4);
+  background: rgba(0,0,0,0.15);
+  color: var(--text-muted); font-family: inherit; font-size: 0.82em;
+  cursor: pointer; transition: all 0.25s ease;
+  font-weight: 400;
+  white-space: normal;
+  position: relative;
+  text-align: left;
+  line-height: 1.4;
+  width: 100%;
+  box-sizing: border-box;
+}
+.ah-pill .ah-pill-num {
+  display: flex; align-items: center; justify-content: center;
+  width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+  background: rgba(188,140,255,0.06);
+  border: 1px solid rgba(188,140,255,0.12);
+  font: 700 0.82em 'JetBrains Mono', monospace;
+  color: rgba(188,140,255,0.5);
+  transition: all 0.25s;
+}
+.ah-pill:hover {
+  border-color: rgba(188,140,255,0.3);
+  color: var(--text-secondary);
+  background: rgba(188,140,255,0.04);
+  transform: translateY(-1px);
+}
+.ah-pill:hover .ah-pill-num {
+  background: rgba(188,140,255,0.12);
+  border-color: rgba(188,140,255,0.25);
+  color: #bc8cff;
+}
+.ah-pill.active {
+  border-color: rgba(188,140,255,0.4);
+  color: var(--text-primary);
+  background: rgba(188,140,255,0.08);
+  box-shadow: 0 2px 12px rgba(188,140,255,0.1);
+}
+.ah-pill.active .ah-pill-num {
+  background: rgba(188,140,255,0.2);
+  border-color: rgba(188,140,255,0.4);
+  color: #bc8cff;
+}
+
+/* =================================================================
+   VS DIVIDER (center element between cards)
+   ================================================================= */
+.ah-vs-wrapper {
+  position: relative;
+  margin-bottom: 24px;
+}
+.ah-vs-divider {
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  width: 48px; height: 48px;
+  border-radius: 50%;
+  background: rgba(13,17,23,0.95);
+  border: 2px solid rgba(48,54,61,0.8);
+  display: flex; align-items: center; justify-content: center;
+  font: 800 0.82em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  letter-spacing: 1px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.4);
+  pointer-events: none;
+}
+
+/* =================================================================
+   COMPARISON CARDS (dramatic red vs green)
+   ================================================================= */
+.ah-comparison {
+  display: grid; grid-template-columns: 1fr 1fr; gap: 20px;
+}
+
+/* Card shared */
+.ah-card {
+  background: rgba(22,27,34,0.75);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border-radius: 18px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ah-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  transition: opacity 0.35s;
+}
+
+/* Baseline (RED - danger) */
+.ah-card-baseline {
+  border: 1.5px solid rgba(248,81,73,0.25);
+}
+.ah-card-baseline::before {
+  background: linear-gradient(90deg, var(--accent-red), rgba(248,81,73,0.3));
+  opacity: 0.8;
+}
+.ah-card-baseline:hover {
+  border-color: rgba(248,81,73,0.35);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.3), 0 0 32px rgba(248,81,73,0.06);
+}
+.ah-card-baseline:hover::before { opacity: 1; }
+
+/* Defended (GREEN - safe) */
+.ah-card-defended {
+  border: 1.5px solid rgba(63,185,80,0.25);
+}
+.ah-card-defended::before {
+  background: linear-gradient(90deg, var(--accent-green), rgba(63,185,80,0.3));
+  opacity: 0.8;
+}
+.ah-card-defended:hover {
+  border-color: rgba(63,185,80,0.35);
+  transform: translateY(-3px);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.3), 0 0 32px rgba(63,185,80,0.06);
+}
+.ah-card-defended:hover::before { opacity: 1; }
+
+/* Card header */
+.ah-card-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 14px 20px;
+  border-bottom: 1px solid rgba(48,54,61,0.4);
+  position: relative;
+}
+.ah-card-baseline .ah-card-header {
+  background: linear-gradient(135deg, rgba(248,81,73,0.04), transparent);
+}
+.ah-card-defended .ah-card-header {
+  background: linear-gradient(135deg, rgba(63,185,80,0.04), transparent);
+}
+.ah-card-label {
+  display: flex; align-items: center; gap: 10px;
+}
+.ah-card-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+}
+.ah-card-dot.baseline {
+  background: var(--accent-red);
+  box-shadow: 0 0 8px rgba(248,81,73,0.5);
+}
+.ah-card-dot.defended {
+  background: var(--accent-green);
+  box-shadow: 0 0 8px rgba(63,185,80,0.5);
+}
+.ah-card-name {
+  font-size: 0.82em; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.5px;
+}
+.ah-card-baseline .ah-card-name { color: var(--accent-red); }
+.ah-card-defended .ah-card-name { color: var(--accent-green); }
+.ah-card-tag {
+  font-size: 0.78em; font-weight: 700;
+  padding: 3px 10px; border-radius: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  letter-spacing: 0.3px;
+}
+.ah-card-baseline .ah-card-tag {
+  background: rgba(248,81,73,0.08);
+  border: 1px solid rgba(248,81,73,0.15);
+  color: rgba(248,81,73,0.7);
+}
+.ah-card-defended .ah-card-tag {
+  background: rgba(63,185,80,0.08);
+  border: 1px solid rgba(63,185,80,0.15);
+  color: rgba(63,185,80,0.7);
+}
+.ah-card-model {
+  font-size: 0.78em; color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+
+/* Card body */
+.ah-card-body {
+  padding: 20px 22px; min-height: 160px;
+  position: relative;
+}
+
+/* Response text */
+.ah-response {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.88em; line-height: 1.75;
+  color: var(--text-primary);
+  white-space: pre-wrap; word-break: break-word;
+}
+.ah-response.empty {
+  color: var(--text-muted); font-style: italic;
+  font-family: inherit;
+  display: flex; align-items: center; justify-content: center;
+  min-height: 120px; text-align: center;
+}
+
+/* Typing cursor */
+.ah-cursor {
+  display: inline-block; width: 2px; height: 1em;
+  margin-left: 1px;
+  animation: ahBlink 0.8s step-end infinite;
+  vertical-align: text-bottom;
+}
+.ah-card-baseline .ah-cursor { background: var(--accent-red); }
+.ah-card-defended .ah-cursor { background: var(--accent-green); }
+@keyframes ahBlink { 50% { opacity: 0; } }
+
+/* -- Metrics footer -- */
+.ah-card-metrics {
+  padding: 12px 20px;
+  border-top: 1px solid rgba(48,54,61,0.4);
+  display: none;
+  animation: ahMetricsFade 0.4s ease forwards;
+}
+@keyframes ahMetricsFade {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.ah-card-baseline .ah-card-metrics {
+  background: linear-gradient(135deg, rgba(248,81,73,0.03), transparent);
+}
+.ah-card-defended .ah-card-metrics {
+  background: linear-gradient(135deg, rgba(63,185,80,0.03), transparent);
+}
+.ah-metric-row {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 6px;
+}
+.ah-metric-row:last-child { margin-bottom: 0; }
+.ah-metric-label {
+  font-size: 0.78em; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 2px; color: var(--text-muted);
+}
+.ah-metric-value {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.88em; font-weight: 600;
+}
+
+/* Risk badges */
+.ah-risk {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 3px 10px; border-radius: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8em; font-weight: 700; letter-spacing: 0.3px;
+}
+.ah-risk.safe {
+  background: rgba(63,185,80,0.12); color: var(--accent-green);
+  border: 1px solid rgba(63,185,80,0.25);
+}
+.ah-risk.uncertain {
+  background: rgba(210,153,34,0.12); color: var(--accent-orange);
+  border: 1px solid rgba(210,153,34,0.25);
+}
+.ah-risk.elevated {
+  background: rgba(248,81,73,0.12); color: #ff7b72;
+  border: 1px solid rgba(248,81,73,0.2);
+}
+.ah-risk.high {
+  background: rgba(248,81,73,0.2); color: var(--accent-red);
+  border: 1px solid rgba(248,81,73,0.35);
+}
+
+/* -- Probe Activation Visual Bar -- */
+.ah-probe-bar-wrap {
+  margin-top: 8px;
+}
+.ah-probe-bar-track {
+  width: 100%;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(48,54,61,0.5);
+  overflow: hidden;
+  position: relative;
+}
+.ah-probe-bar-fill {
+  height: 100%;
+  border-radius: 3px;
+  width: 0%;
+  transition: width 0.8s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s ease;
+}
+.ah-probe-bar-fill.probe-low {
+  background: linear-gradient(90deg, #3fb950, #56d364);
+  box-shadow: 0 0 8px rgba(63,185,80,0.3);
+}
+.ah-probe-bar-fill.probe-medium {
+  background: linear-gradient(90deg, #d29922, #e3b341);
+  box-shadow: 0 0 8px rgba(210,153,34,0.3);
+}
+.ah-probe-bar-fill.probe-elevated {
+  background: linear-gradient(90deg, #f0883e, #f85149);
+  box-shadow: 0 0 8px rgba(248,81,73,0.3);
+}
+.ah-probe-bar-fill.probe-high {
+  background: linear-gradient(90deg, #f85149, #da3633);
+  box-shadow: 0 0 10px rgba(248,81,73,0.4);
+}
+.ah-probe-bar-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.ah-probe-bar-pct {
+  font: 700 0.82em 'JetBrains Mono', monospace;
+  letter-spacing: 0.3px;
+}
+
+.ah-latency {
+  color: var(--text-muted); font-family: 'JetBrains Mono', monospace; font-size: 0.82em;
+}
+
+
+
+/* -- Loading skeleton -- */
+.ah-skeleton { position: relative; overflow: hidden; }
+.ah-skeleton::after {
+  content: ''; position: absolute; inset: 0;
+  background: linear-gradient(90deg, transparent 0%, rgba(188,140,255,0.04) 50%, transparent 100%);
+  animation: ahSkeletonPulse 1.5s ease-in-out infinite;
+}
+@keyframes ahSkeletonPulse { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }
+.ah-skeleton-line {
+  height: 12px; background: rgba(48,54,61,0.4);
+  border-radius: 6px; margin-bottom: 10px;
+}
+.ah-skeleton-line:nth-child(1) { width: 92%; }
+.ah-skeleton-line:nth-child(2) { width: 78%; }
+.ah-skeleton-line:nth-child(3) { width: 85%; }
+.ah-skeleton-line:nth-child(4) { width: 62%; }
+
+/* Slide-in animations for cards */
+.ah-card-baseline.ah-slide-in {
+  animation: ahSlideInLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.ah-card-defended.ah-slide-in {
+  animation: ahSlideInRight 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+@keyframes ahSlideInLeft {
+  from { opacity: 0; transform: translateX(-20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+@keyframes ahSlideInRight {
+  from { opacity: 0; transform: translateX(20px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+/* =================================================================
+   STATS BAR (Dashboard style, 4-col)
+   ================================================================= */
+.ah-stats-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+}
+.ah-stat-block {
+  text-align: center;
+  padding: 22px 16px;
+  background: rgba(22,27,34,0.75);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(48,54,61,0.6);
+  border-radius: 16px;
+  transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  position: relative;
+  overflow: hidden;
+}
+.ah-stat-block::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  opacity: 0.5;
+}
+.ah-stat-block:nth-child(1)::before {
+  background: linear-gradient(90deg, #bc8cff, rgba(188,140,255,0.2));
+}
+.ah-stat-block:nth-child(2)::before {
+  background: linear-gradient(90deg, var(--accent-red), rgba(248,81,73,0.2));
+}
+.ah-stat-block:nth-child(3)::before {
+  background: linear-gradient(90deg, var(--accent-green), rgba(188,140,255,0.2));
+}
+.ah-stat-block:nth-child(4)::before {
+  background: linear-gradient(90deg, var(--accent-orange), rgba(210,153,34,0.2));
+}
+.ah-stat-block:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+}
+.ah-stat-block:nth-child(1):hover { border-color: rgba(188,140,255,0.15); }
+.ah-stat-block:nth-child(2):hover { border-color: rgba(248,81,73,0.15); }
+.ah-stat-block:nth-child(3):hover { border-color: rgba(188,140,255,0.15); }
+.ah-stat-block:nth-child(4):hover { border-color: rgba(210,153,34,0.15); }
+
+.ah-stat-value {
+  font: 800 1.8em 'JetBrains Mono', monospace;
+  line-height: 1.2;
+  margin-bottom: 4px;
+  transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.ah-stat-value.bump {
+  transform: scale(1.15);
+}
+.ah-stat-value.cyan {
+  background: linear-gradient(135deg, #bc8cff, #a371f7);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.ah-stat-value.red { color: var(--accent-red); }
+.ah-stat-value.green { color: var(--accent-green); }
+.ah-stat-value.amber { color: var(--accent-orange); }
+.ah-stat-label {
+  font-size: 0.78em; font-weight: 700;
+  text-transform: uppercase; letter-spacing: 1.5px;
+  color: var(--text-muted); margin-top: 2px;
+}
+
+/* AI Notice (disclaimer) */
+.ah-ai-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 32px;
+  padding: 14px 20px;
+  border: 1px solid rgba(48,54,61,0.3);
+  border-radius: 12px;
+  font: 400 0.82em/1.6 'JetBrains Mono', 'SF Mono', monospace;
+  color: var(--text-muted);
+  opacity: 0.6;
+  letter-spacing: 0.2px;
+  text-align: left;
+}
+.ah-ai-notice svg {
+  flex-shrink: 0; width: 16px; height: 16px; opacity: 0.7;
+  margin-top: 1px;
+}
+.ah-ai-notice strong {
+  color: var(--text-secondary); font-weight: 600; opacity: 0.85;
+}
+
+/* =================================================================
+   TAB BAR (Data Analysis Agent tabs)
+   ================================================================= */
+.ah-tab-bar {
+  display: flex; gap: 4px; justify-content: center;
+  margin-bottom: 2.5em; padding: 4px;
+  background: rgba(22,27,34,0.6);
+  border: 1px solid rgba(48,54,61,0.5);
+  border-radius: 12px;
+  width: fit-content; margin-left: auto; margin-right: auto;
+}
+.ah-tab-link {
+  padding: 10px 24px; border-radius: 8px;
+  font: 600 0.88em 'JetBrains Mono', monospace;
+  color: var(--text-muted); background: transparent; border: none;
+  cursor: pointer; transition: all 0.25s; white-space: nowrap;
+  display: flex; align-items: center; gap: 8px;
+}
+.ah-tab-link:hover {
+  color: var(--text-secondary);
+  background: rgba(188,140,255,0.06);
+}
+.ah-tab-link.active {
+  color: #bc8cff;
+  background: rgba(188,140,255,0.1);
+  border: 1px solid rgba(188,140,255,0.2);
+}
+.ah-tab-link .tab-icon { width: 14px; height: 14px; flex-shrink: 0; }
+.ah-tab-pane { display: none; }
+.ah-tab-pane.active { display: block; }
+
+
+/* =================================================================
+   CHATBOT TAB -- IDE Split Panel (v3 redesign)
+   All classes prefixed with da-
+   ================================================================= */
+
+/* -- IDE split layout: left panel + right chat -- */
+.da-split-layout {
+  display: flex;
+  height: calc(100vh - 350px);
+  min-height: 520px;
+  gap: 0;
+  position: relative;
+}
+
+/* -- Vertical resize handle between panels -- */
+.da-split-handle {
+  width: 5px; flex-shrink: 0;
+  cursor: col-resize;
+  background: rgba(48,54,61,0.3);
+  position: relative;
+  z-index: 5;
+  transition: background 0.2s;
+}
+.da-split-handle:hover,
+.da-split-handle.da-dragging {
+  background: rgba(188,140,255,0.4);
+}
+.da-split-handle::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%, -50%);
+  width: 3px; height: 32px;
+  border-radius: 2px;
+  background: rgba(188,140,255,0.25);
+  transition: background 0.2s;
+}
+.da-split-handle:hover::after { background: rgba(188,140,255,0.6); }
+
+/* ================================================================
+   LEFT PANEL — Data Explorer
+   ================================================================ */
+.da-left-panel {
+  flex: 0 0 57%;
+  min-width: 340px;
+  background: rgba(22,27,34,0.75);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(48,54,61,0.6);
+  border-radius: 18px 0 0 18px;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+.da-left-panel::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, #bc8cff 0%, #a371f7 50%, rgba(188,140,255,0.15) 100%);
+  opacity: 0.6; z-index: 2;
+}
+
+/* -- Top bar: patient selector + stat badges -- */
+.da-topbar {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba(48,54,61,0.5);
+  flex-shrink: 0;
+  background: rgba(0,0,0,0.08);
+}
+.da-topbar-label {
+  font: 700 0.78em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+}
+.da-patient-select {
+  padding: 7px 28px 7px 10px;
+  background: rgba(22,27,34,0.6);
+  border: 1px solid rgba(48,54,61,0.5);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font: 600 0.88em 'JetBrains Mono', monospace;
+  outline: none;
+  appearance: none; -webkit-appearance: none;
+  cursor: pointer;
+  transition: border-color 0.2s;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%236e7681' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  min-width: 130px;
+}
+.da-patient-select:focus { border-color: rgba(188,140,255,0.4); }
+.da-patient-select option { background: #161b22; color: var(--text-primary); }
+
+/* Stat badges row */
+.da-stat-badges {
+  display: flex; align-items: center; gap: 8px;
+  flex: 1; justify-content: flex-end;
+  flex-wrap: wrap;
+}
+.da-stat-badge {
+  display: inline-flex; align-items: center; gap: 5px;
+  padding: 4px 10px; border-radius: 6px;
+  font: 600 0.78em 'JetBrains Mono', monospace;
+  white-space: nowrap;
+  transition: all 0.2s;
+}
+.da-stat-badge.da-badge-ae {
+  background: rgba(188,140,255,0.08);
+  border: 1px solid rgba(188,140,255,0.2);
+  color: #bc8cff;
+}
+.da-stat-badge.da-badge-lab {
+  background: rgba(224,175,104,0.08);
+  border: 1px solid rgba(224,175,104,0.2);
+  color: #e0af68;
+}
+.da-stat-badge.da-badge-sae {
+  background: rgba(247,118,142,0.08);
+  border: 1px solid rgba(247,118,142,0.2);
+  color: #f7768e;
+}
+
+/* -- Sub-tabs: CRF / SAE List / Report / PDF -- */
+.da-subtab-bar {
+  display: flex; gap: 2px;
+  padding: 0 14px;
+  border-bottom: 1px solid rgba(48,54,61,0.4);
+  flex-shrink: 0;
+  background: rgba(0,0,0,0.04);
+}
+.da-subtab {
+  padding: 9px 16px;
+  border: none; background: transparent;
+  font: 600 0.82em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.2s;
+  position: relative;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+}
+.da-subtab::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 8px; right: 8px;
+  height: 2px; border-radius: 2px 2px 0 0;
+  background: transparent;
+  transition: background 0.2s;
+}
+.da-subtab:hover {
+  color: var(--text-secondary);
+  background: rgba(188,140,255,0.04);
+}
+.da-subtab.da-active {
+  color: #bc8cff;
+  background: rgba(188,140,255,0.06);
+}
+.da-subtab.da-active::after {
+  background: #bc8cff;
+}
+.da-subtab-count {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 16px; height: 16px; border-radius: 4px;
+  font-size: 0.92em; margin-left: 5px;
+  padding: 0 4px;
+  background: rgba(48,54,61,0.3);
+  color: var(--text-muted);
+}
+.da-subtab.da-active .da-subtab-count {
+  background: rgba(188,140,255,0.2);
+  color: #bc8cff;
+}
+
+/* -- Sub-tab content panes -- */
+.da-subtab-pane {
+  display: none;
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 18px;
+}
+.da-subtab-pane.da-active { display: block; }
+.da-subtab-pane::-webkit-scrollbar { width: 4px; }
+.da-subtab-pane::-webkit-scrollbar-track { background: transparent; }
+.da-subtab-pane::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+
+/* CRF sub-tab: domain selector row */
+.da-crf-domain-bar {
+  display: flex; gap: 4px; flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.da-crf-domain-btn {
+  padding: 5px 12px; border-radius: 6px;
+  border: 1px solid rgba(48,54,61,0.4);
+  background: rgba(0,0,0,0.12);
+  font: 600 0.8em 'JetBrains Mono', monospace;
+  color: var(--text-muted); cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase; letter-spacing: 0.4px;
+}
+.da-crf-domain-btn:hover {
+  border-color: rgba(188,140,255,0.3);
+  color: #bc8cff;
+  background: rgba(188,140,255,0.04);
+}
+.da-crf-domain-btn.da-active {
+  border-color: rgba(188,140,255,0.4);
+  color: #bc8cff;
+  background: rgba(188,140,255,0.1);
+}
+
+/* CRF data table */
+.da-crf-table-wrap {
+  background: rgba(0,0,0,0.1);
+  border: 1px solid rgba(48,54,61,0.35);
+  border-radius: 10px;
+  overflow: hidden;
+}
+.da-crf-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 0.88em; line-height: 1.6;
+}
+.da-crf-table th {
+  text-align: left;
+  padding: 8px 12px;
+  background: rgba(188,140,255,0.06);
+  border-bottom: 1px solid rgba(48,54,61,0.5);
+  font: 600 0.92em 'JetBrains Mono', monospace;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  position: sticky; top: 0; z-index: 1;
+}
+.da-crf-table td {
+  padding: 7px 12px;
+  border-bottom: 1px solid rgba(48,54,61,0.2);
+  color: var(--text-muted);
+  font-family: 'JetBrains Mono', monospace;
+}
+.da-crf-table tr:hover td {
+  background: rgba(188,140,255,0.03);
+}
+.da-crf-table tr:last-child td { border-bottom: none; }
+
+/* SAE list items */
+.da-sae-item {
+  display: flex; align-items: center; gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid rgba(48,54,61,0.35);
+  border-radius: 10px;
+  background: rgba(0,0,0,0.08);
+  margin-bottom: 8px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.da-sae-item:hover {
+  border-color: rgba(247,118,142,0.25);
+  background: rgba(247,118,142,0.03);
+}
+.da-sae-item:last-child { margin-bottom: 0; }
+.da-sae-item-info { flex: 1; min-width: 0; }
+.da-sae-item-term {
+  font: 600 0.92em 'Inter', sans-serif;
+  color: var(--text-secondary);
+  margin-bottom: 2px;
+}
+.da-sae-item-meta {
+  font: 400 0.82em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+}
+.da-grade-badge {
+  display: inline-flex; align-items: center; justify-content: center;
+  min-width: 28px; height: 24px; border-radius: 6px;
+  font: 700 0.82em 'JetBrains Mono', monospace;
+  flex-shrink: 0; padding: 0 6px;
+}
+.da-grade-badge.g1 { background: rgba(158,206,106,0.12); color: #9ece6a; border: 1px solid rgba(158,206,106,0.25); }
+.da-grade-badge.g2 { background: rgba(224,175,104,0.12); color: #e0af68; border: 1px solid rgba(224,175,104,0.25); }
+.da-grade-badge.g3 { background: rgba(247,118,142,0.12); color: #f7768e; border: 1px solid rgba(247,118,142,0.25); }
+.da-grade-badge.g4 { background: rgba(248,81,73,0.15); color: #f85149; border: 1px solid rgba(248,81,73,0.3); }
+.da-grade-badge.g5 { background: rgba(248,81,73,0.2); color: #ff4040; border: 1px solid rgba(248,81,73,0.4); }
+.da-sae-gen-btn {
+  padding: 5px 12px; border-radius: 6px;
+  border: 1px solid rgba(158,206,106,0.25);
+  background: rgba(158,206,106,0.06);
+  font: 600 0.8em 'JetBrains Mono', monospace;
+  color: #9ece6a; cursor: pointer;
+  transition: all 0.2s; flex-shrink: 0;
+}
+.da-sae-gen-btn:hover {
+  background: rgba(158,206,106,0.14);
+  border-color: rgba(158,206,106,0.4);
+}
+
+/* Report / PDF preview pane */
+.da-report-content {
+  font: 400 0.92em 'Inter', sans-serif;
+  color: var(--text-secondary);
+  line-height: 1.7;
+}
+.da-report-content h3 {
+  color: var(--text-primary);
+  font-size: 1em;
+  margin: 16px 0 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid rgba(48,54,61,0.3);
+}
+.da-report-content .da-report-field {
+  display: flex; gap: 12px; margin: 4px 0;
+}
+.da-report-content .da-report-field-label {
+  font: 600 0.95em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  min-width: 130px; flex-shrink: 0;
+}
+.da-report-content .da-report-field-value { color: var(--text-secondary); }
+.da-report-content table {
+  border-collapse: collapse; width: 100%; margin: 12px 0; font-size: 0.9em;
+}
+.da-report-content th, .da-report-content td {
+  border: 1px solid rgba(48,54,61,0.5); padding: 8px 12px; text-align: left;
+}
+.da-report-content th {
+  background: rgba(188,140,255,0.06); font-weight: 600; color: var(--text-secondary);
+}
+
+/* PDF embed */
+.da-pdf-embed {
+  width: 100%; height: 100%; border: none; border-radius: 8px;
+  background: rgba(0,0,0,0.15);
+}
+
+/* Empty state */
+.da-empty-state {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  padding: 48px 24px; text-align: center; gap: 12px;
+}
+.da-empty-icon {
+  width: 52px; height: 52px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(48,54,61,0.2);
+  border: 1px solid rgba(48,54,61,0.3);
+}
+.da-empty-icon svg { width: 24px; height: 24px; color: var(--text-muted); opacity: 0.4; }
+.da-empty-text {
+  font: 500 0.88em 'Inter', sans-serif;
+  color: var(--text-muted); opacity: 0.6;
+  line-height: 1.6;
+}
+.da-empty-sub {
+  font: 400 0.82em 'JetBrains Mono', monospace;
+  color: var(--text-muted); opacity: 0.4;
+}
+
+/* -- No data / loading states -- */
+.da-loading-spinner {
+  display: flex; align-items: center; justify-content: center;
+  padding: 32px; gap: 10px;
+}
+.da-loading-spinner::before {
+  content: '';
+  width: 20px; height: 20px;
+  border: 2px solid rgba(188,140,255,0.2);
+  border-top-color: #bc8cff; border-radius: 50%;
+  animation: ahSpin 0.8s linear infinite;
+}
+.da-loading-text {
+  font: 500 0.88em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+}
+
+/* ================================================================
+   RIGHT PANEL — Chat
+   ================================================================ */
+.da-right-panel {
+  flex: 0 0 43%;
+  min-width: 300px;
+  background: rgba(22,27,34,0.75);
+  backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(48,54,61,0.6);
+  border-left: none;
+  border-radius: 0 18px 18px 0;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
+.da-right-panel::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, rgba(188,140,255,0.15) 0%, #a371f7 50%, #bc8cff 100%);
+  opacity: 0.6; z-index: 2;
+}
+
+/* -- Chat header -- */
+.da-chat-header {
+  display: flex; align-items: center; gap: 10px;
+  padding: 12px 18px;
+  border-bottom: 1px solid rgba(48,54,61,0.5);
+  flex-shrink: 0;
+}
+.da-chat-header-icon {
+  width: 32px; height: 32px; border-radius: 9px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(188,140,255,0.08);
+  border: 1px solid rgba(188,140,255,0.15);
+  flex-shrink: 0;
+}
+.da-chat-header-icon img { width: 20px; height: 20px; object-fit: contain; }
+.da-chat-header-text { flex: 1; }
+.da-chat-header-title {
+  font: 700 0.92em 'Inter', sans-serif;
+  color: var(--text-primary);
+  display: flex; align-items: center; gap: 6px;
+}
+.da-chat-header-sub {
+  font: 500 0.78em 'JetBrains Mono', monospace;
+  color: var(--text-muted);
+  margin-top: 1px;
+}
+
+/* -- Chat messages area -- */
+.da-chat-messages {
+  flex: 1; overflow-y: auto;
+  padding: 16px 18px;
+  display: flex; flex-direction: column; gap: 14px;
+}
+.da-chat-messages::-webkit-scrollbar { width: 4px; }
+.da-chat-messages::-webkit-scrollbar-track { background: transparent; }
+.da-chat-messages::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.08); border-radius: 2px; }
+
+/* -- Welcome state in chat -- */
+.da-chat-welcome {
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  flex: 1; gap: 16px; text-align: center;
+  padding: 24px 12px;
+}
+.da-chat-welcome-icon {
+  display: flex; align-items: center; justify-content: center;
+}
+.da-chat-welcome-icon img { width: 64px; height: 64px; }
+.da-chat-welcome-title {
+  font: 700 1em 'Inter', sans-serif;
+  color: var(--text-primary);
+}
+.da-chat-welcome-desc {
+  font-size: 0.88em; color: var(--text-muted);
+  line-height: 1.7; max-width: 360px;
+}
+
+/* -- Suggestion pills in chat -- */
+.da-suggestions {
+  display: flex; flex-wrap: wrap; gap: 6px;
+  justify-content: flex-start;
+  padding: 0 12px 8px;
+}
+.da-suggestion-pill {
+  padding: 6px 12px; border-radius: 18px;
+  border: 1px solid rgba(48,54,61,0.5);
+  background: rgba(22,27,34,0.4);
+  font: 500 0.82em 'JetBrains Mono', monospace;
+  color: var(--text-muted); cursor: pointer;
+  transition: all 0.25s;
+}
+.da-suggestion-pill:hover {
+  border-color: rgba(188,140,255,0.3);
+  color: #bc8cff;
+  background: rgba(188,140,255,0.06);
+  transform: translateY(-1px);
+}
+
+/* -- Message bubbles -- */
+.da-msg { display: flex; gap: 10px; max-width: 92%; animation: daMsgIn 0.3s ease; }
+.da-msg.user { align-self: flex-end; flex-direction: row-reverse; }
+@keyframes daMsgIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.da-msg-bubble {
+  padding: 12px 16px; border-radius: 14px;
+  font-size: 0.84em; line-height: 1.75;
+  position: relative;
+}
+.da-msg.user .da-msg-bubble {
+  background: rgba(188,140,255,0.15);
+  border: 1px solid rgba(188,140,255,0.25);
+  color: var(--text-primary);
+  border-bottom-right-radius: 4px;
+}
+.da-msg.assistant .da-msg-bubble {
+  background: rgba(22,27,34,0.6);
+  border: 1px solid rgba(48,54,61,0.5);
+  color: var(--text-secondary);
+  border-bottom-left-radius: 4px;
+}
+
+/* Markdown in assistant messages */
+.da-msg.assistant .da-msg-bubble code {
+  background: rgba(0,0,0,0.3); padding: 2px 6px;
+  border-radius: 4px; font-family: 'JetBrains Mono', monospace;
+  font-size: 0.95em;
+}
+.da-msg.assistant .da-msg-bubble pre {
+  background: rgba(0,0,0,0.25);
+  border: 1px solid rgba(48,54,61,0.4);
+  border-radius: 8px;
+  padding: 10px 12px; margin: 8px 0; overflow-x: auto;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.92em; line-height: 1.6;
+}
+.da-msg.assistant .da-msg-bubble pre code { background: transparent; padding: 0; }
+.da-msg.assistant .da-msg-bubble table {
+  border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 0.9em;
+}
+.da-msg.assistant .da-msg-bubble th,
+.da-msg.assistant .da-msg-bubble td {
+  border: 1px solid rgba(48,54,61,0.5);
+  padding: 5px 8px; text-align: left;
+}
+.da-msg.assistant .da-msg-bubble th {
+  background: rgba(188,140,255,0.06);
+  font-weight: 600; color: var(--text-secondary); font-size: 0.95em;
+}
+.da-msg.assistant .da-msg-bubble td { color: var(--text-muted); }
+.da-msg.assistant .da-msg-bubble ul,
+.da-msg.assistant .da-msg-bubble ol { padding-left: 1.4em; margin: 6px 0; }
+.da-msg.assistant .da-msg-bubble li { margin-bottom: 3px; line-height: 1.65; }
+.da-msg.assistant .da-msg-bubble h1,
+.da-msg.assistant .da-msg-bubble h2,
+.da-msg.assistant .da-msg-bubble h3 {
+  color: var(--text-primary); margin: 10px 0 5px; line-height: 1.3;
+}
+.da-msg.assistant .da-msg-bubble h1 { font-size: 1.1em; }
+.da-msg.assistant .da-msg-bubble h2 { font-size: 1em; }
+.da-msg.assistant .da-msg-bubble h3 { font-size: 0.95em; }
+.da-msg.assistant .da-msg-bubble blockquote {
+  border-left: 3px solid rgba(188,140,255,0.3);
+  padding-left: 10px; margin: 8px 0;
+  color: var(--text-muted); font-style: italic;
+}
+.da-msg.assistant .da-msg-bubble hr {
+  border: none; border-top: 1px solid rgba(48,54,61,0.4); margin: 8px 0;
+}
+
+/* "View in left panel" link */
+.da-panel-link {
+  display: inline-flex; align-items: center; gap: 4px;
+  margin-top: 8px;
+  padding: 4px 10px; border-radius: 6px;
+  border: 1px solid rgba(188,140,255,0.2);
+  background: rgba(188,140,255,0.06);
+  font: 600 0.82em 'JetBrains Mono', monospace;
+  color: #bc8cff; cursor: pointer;
+  transition: all 0.2s;
+}
+.da-panel-link:hover {
+  background: rgba(188,140,255,0.12);
+  border-color: rgba(188,140,255,0.4);
+}
+.da-panel-link svg { width: 12px; height: 12px; }
+
+/* Copy button on assistant messages */
+.da-msg-copy {
+  position: absolute; top: 6px; right: 6px;
+  width: 26px; height: 26px; border-radius: 6px;
+  border: 1px solid rgba(48,54,61,0.4);
+  background: rgba(22,27,34,0.7);
+  color: var(--text-muted);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.2s; opacity: 0;
+}
+.da-msg.assistant:hover .da-msg-copy { opacity: 1; }
+.da-msg-copy:hover {
+  border-color: rgba(188,140,255,0.3); color: #bc8cff;
+  background: rgba(188,140,255,0.08);
+}
+.da-msg-copy.copied {
+  border-color: rgba(188,140,255,0.3); color: #bc8cff;
+  background: rgba(188,140,255,0.08);
+}
+.da-msg-copy svg { width: 13px; height: 13px; }
+
+/* Source citation */
+.da-msg-source {
+  display: flex; align-items: center; gap: 5px;
+  margin-top: 8px; padding-top: 6px;
+  border-top: 1px solid rgba(48,54,61,0.3);
+  font: 500 0.66em 'JetBrains Mono', monospace;
+  color: var(--text-muted); opacity: 0.7;
+}
+.da-msg-source svg { width: 11px; height: 11px; flex-shrink: 0; opacity: 0.6; }
+
+/* -- Report card (inline in chat) -- */
+.da-report-card {
+  width: 100%; max-width: 380px;
+  padding: 14px 16px; border-radius: 12px;
+  border: 1px solid rgba(158,206,106,0.25);
+  background: rgba(158,206,106,0.04);
+  animation: daMsgIn 0.3s ease;
+}
+.da-report-card-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+}
+.da-report-card-check {
+  width: 22px; height: 22px; border-radius: 50%;
+  background: rgba(158,206,106,0.15);
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.da-report-card-check svg { width: 13px; height: 13px; color: #9ece6a; }
+.da-report-card-status {
+  font: 700 0.82em 'JetBrains Mono', monospace;
+  color: #9ece6a; text-transform: uppercase; letter-spacing: 0.8px;
+}
+.da-report-card-title {
+  font: 600 0.88em 'Inter', sans-serif;
+  color: var(--text-primary); margin-bottom: 3px;
+}
+.da-report-card-meta {
+  font: 400 0.82em 'JetBrains Mono', monospace;
+  color: var(--text-muted); line-height: 1.6; margin-bottom: 10px;
+}
+.da-report-card-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+.da-report-card-btn {
+  padding: 5px 12px; border-radius: 6px;
+  font: 600 0.8em 'JetBrains Mono', monospace;
+  cursor: pointer; transition: all 0.2s;
+  border: 1px solid;
+  display: flex; align-items: center; gap: 4px;
+  text-decoration: none;
+}
+.da-report-card-btn svg { width: 11px; height: 11px; }
+.da-report-card-btn.da-btn-panel {
+  background: rgba(188,140,255,0.1); border-color: rgba(188,140,255,0.25); color: #bc8cff;
+}
+.da-report-card-btn.da-btn-panel:hover {
+  background: rgba(188,140,255,0.18); border-color: rgba(188,140,255,0.4);
+}
+.da-report-card-btn.da-btn-pdf {
+  background: rgba(158,206,106,0.1); border-color: rgba(158,206,106,0.25); color: #9ece6a;
+}
+.da-report-card-btn.da-btn-pdf:hover {
+  background: rgba(158,206,106,0.18); border-color: rgba(158,206,106,0.4);
+}
+.da-report-card-btn.da-btn-xml {
+  background: rgba(224,175,104,0.1); border-color: rgba(224,175,104,0.25); color: #e0af68;
+}
+.da-report-card-btn.da-btn-xml:hover {
+  background: rgba(224,175,104,0.18); border-color: rgba(224,175,104,0.4);
+}
+
+/* -- Report progress card -- */
+.da-report-progress {
+  width: 100%; max-width: 380px;
+  padding: 14px 16px; border-radius: 12px;
+  border: 1px solid rgba(188,140,255,0.2);
+  background: rgba(188,140,255,0.03);
+  animation: daMsgIn 0.3s ease;
+}
+.da-report-progress-header {
+  display: flex; align-items: center; gap: 8px; margin-bottom: 8px;
+}
+.da-report-progress-spinner {
+  width: 18px; height: 18px;
+  border: 2px solid rgba(188,140,255,0.2);
+  border-top-color: #bc8cff; border-radius: 50%;
+  animation: ahSpin 0.8s linear infinite; flex-shrink: 0;
+}
+.da-report-progress-text {
+  font: 600 0.82em 'JetBrains Mono', monospace;
+  color: #bc8cff; text-transform: uppercase; letter-spacing: 0.8px;
+}
+.da-report-progress-bar {
+  width: 100%; height: 3px; border-radius: 2px;
+  background: rgba(188,140,255,0.1); overflow: hidden;
+}
+.da-report-progress-fill {
+  height: 100%; width: 0%; border-radius: 2px;
+  background: linear-gradient(90deg, #bc8cff, #a371f7);
+  transition: width 0.5s ease;
+}
+.da-report-progress-detail {
+  font: 400 0.64em 'JetBrains Mono', monospace;
+  color: var(--text-muted); margin-top: 6px;
+}
+
+/* -- Typing indicator -- */
+.da-typing-indicator {
+  display: flex; gap: 4px; padding: 10px 14px;
+  background: rgba(22,27,34,0.6);
+  border: 1px solid rgba(48,54,61,0.5);
+  border-radius: 14px; border-bottom-left-radius: 4px;
+  width: fit-content;
+}
+.da-typing-indicator span {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: var(--text-muted); opacity: 0.4;
+  animation: daTyping 1.2s ease-in-out infinite;
+}
+.da-typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+.da-typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes daTyping {
+  0%, 60%, 100% { opacity: 0.4; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-4px); }
+}
+
+/* -- Chat input area -- */
+.da-chat-input-area {
+  display: flex; flex-direction: column; gap: 6px;
+  padding: 12px 18px 14px;
+  border-top: 1px solid rgba(48,54,61,0.5);
+  background: rgba(0,0,0,0.15);
+  flex-shrink: 0;
+}
+.da-chat-input-context {
+  display: flex; align-items: center; gap: 5px;
+  font: 500 0.78em 'JetBrains Mono', monospace;
+  color: var(--text-muted); opacity: 0.7;
+}
+.da-chat-input-context-dot {
+  width: 5px; height: 5px; border-radius: 50%;
+  background: #bc8cff;
+  box-shadow: 0 0 6px rgba(188,140,255,0.4);
+}
+.da-chat-input-row {
+  display: flex; align-items: flex-end; gap: 8px;
+}
+.da-chat-input {
+  flex: 1; resize: none; border: none; outline: none;
+  background: rgba(22,27,34,0.6);
+  border: 1px solid rgba(48,54,61,0.5);
+  border-radius: 10px;
+  padding: 10px 14px;
+  font: 400 0.84em 'Inter', sans-serif;
+  color: var(--text-primary);
+  min-height: 42px; max-height: 120px;
+  transition: border-color 0.25s;
+  line-height: 1.5;
+}
+.da-chat-input::placeholder { color: var(--text-muted); opacity: 0.6; }
+.da-chat-input:focus { border-color: rgba(188,140,255,0.3); }
+.da-chat-send {
+  width: 42px; height: 42px; border-radius: 10px;
+  border: 1px solid rgba(48,54,61,0.5);
+  background: rgba(188,140,255,0.1);
+  color: #bc8cff;
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; transition: all 0.25s; flex-shrink: 0;
+}
+.da-chat-send:hover {
+  background: rgba(188,140,255,0.2);
+  border-color: rgba(188,140,255,0.3);
+  transform: translateY(-1px);
+}
+.da-chat-send svg { width: 16px; height: 16px; }
+
+@keyframes daSlideDown {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =================================================================
+   RESPONSIVE
+   ================================================================= */
+@media (max-width: 1024px) {
+  .ah-comparison { grid-template-columns: 1fr; }
+  .ah-vs-divider { display: none; }
+  .ah-stats-row { grid-template-columns: repeat(2, 1fr); }
+  .ah-hero-title { font-size: 2.2em; }
+  /* Tablet: stack panels vertically */
+  .da-split-layout {
+    flex-direction: column;
+    height: auto;
+  }
+  .da-left-panel {
+    flex: none; width: 100%;
+    min-width: 0;
+    border-radius: 18px 18px 0 0;
+    max-height: 50vh;
+  }
+  .da-split-handle {
+    width: 100%; height: 5px;
+    cursor: row-resize;
+  }
+  .da-split-handle::after {
+    width: 32px; height: 3px;
+  }
+  .da-right-panel {
+    flex: none; width: 100%;
+    min-width: 0;
+    border-radius: 0 0 18px 18px;
+    border-left: 1px solid rgba(48,54,61,0.6);
+    border-top: none;
+    min-height: 400px;
+  }
+}
+@media (max-width: 768px) {
+  .ah-main { padding: 0 16px 3em; }
+  .ah-hero { padding: 2.5em 0 1.5em; }
+  .ah-hero-title { font-size: 1.8em; }
+  .ah-input-row { flex-direction: column; }
+  .ah-btn { width: 100%; justify-content: center; }
+  .ah-stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
+  .ah-hero-badges { gap: 6px; }
+  .ah-hero-badge { font-size: 0.8em; padding: 5px 10px; }
+  .ah-cat-tabs { gap: 2px; padding: 8px 12px 0; }
+  .ah-cat-tab { font-size: 0.78em; padding: 5px 8px 7px; }
+  .ah-pills-row { gap: 6px; }
+  .ah-pill { font-size: 0.82em; padding: 6px 10px; }
+  .ah-tab-link { padding: 8px 16px; font-size: 0.82em; }
+  .da-split-layout { min-height: 0; }
+  .da-left-panel { max-height: 45vh; }
+  .da-right-panel { min-height: 350px; }
+  .da-topbar { flex-wrap: wrap; gap: 8px; padding: 10px 14px; }
+  .da-stat-badges { justify-content: flex-start; }
+  .da-subtab { padding: 7px 10px; font-size: 0.78em; }
+  .da-chat-messages { padding: 12px 14px; }
+  .da-chat-input-area { padding: 10px 14px 12px; }
+  .da-suggestions { gap: 4px; }
+  .da-suggestion-pill { font-size: 0.78em; padding: 5px 10px; }
+}
+</style>
+{% endblock %}
+
+{% block nav_items %}
+<span class="nav-sep">/</span>
+<a href="/" class="nav-crumb">Home</a>
+<span class="nav-sep">/</span>
+<span class="nav-crumb nav-active">Data Analysis Agent</span>
+{% endblock %}
+
+{% block content %}
+<!-- Aurora Mesh Gradient BG (Purple) -->
+<div class="ah-aurora-bg"></div>
+
+<!-- Dot Grid -->
+<div class="ah-dot-grid"></div>
+
+<div class="ah-main">
+
+<!-- ============================================================
+     HERO SECTION
+     ============================================================ -->
+<section class="ah-hero">
+  <div class="ah-hero-overline">
+    <span class="ah-pulse-pip"></span>
+    Data Analysis Agent
+  </div>
+
+  <div class="ah-hero-icon">
+    <div class="ah-hero-icon-inner">
+      <img src="{% static 'assets/ui/gemma.png' %}" alt="MedGemma" style="width:80px;height:80px;">
+    </div>
+  </div>
+
+  <h1 class="ah-hero-title">
+    <span class="ah-title-line">
+      <span class="ah-word ah-word-accent" style="animation-delay:0.1s">Data Analysis Agent</span>
+    </span>
+    <span class="ah-title-line-sub">
+      <span class="ah-word ah-word-dim" style="animation-delay:0.26s">Anti-hallucination</span>
+      <span class="ah-word ah-word-dim" style="animation-delay:0.36s">MedGemma</span>
+      <span class="ah-word ah-word-dim" style="animation-delay:0.46s">&amp;</span>
+      <span class="ah-word ah-word-dim" style="animation-delay:0.56s">Data Analysis</span>
+    </span>
+  </h1>
+
+  <p class="ah-hero-subtitle">
+    RLFR-defended <strong>Anti-hallucination MedGemma</strong> ensures factual accuracy, while
+    <strong>Data Analysis (Chatbot &amp; Report)</strong> enables interactive exploration of
+    simulation results, CRF tables, and statistical analyses.
+  </p>
+
+  <div class="ah-hero-badges">
+    <div class="ah-hero-badge"><span class="bv">5</span> Trap Categories</div>
+    <div class="ah-hero-badge"><span class="bv">15</span> Test Prompts</div>
+    <div class="ah-hero-badge green"><span class="bv">RLFR</span> Anti-hallucination MedGemma</div>
+    <div class="ah-hero-badge green"><span class="bv">Chatbot</span> &amp; Report</div>
+  </div>
+</section>
+
+<!-- ============================================================
+     TAB BAR
+     ============================================================ -->
+<div class="ah-tab-bar">
+  <button class="ah-tab-link active" onclick="switchDaTab('antihallu', this)">
+    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+    Anti-hallucination MedGemma
+  </button>
+  <button class="ah-tab-link" onclick="switchDaTab('chatbot', this)">
+    <svg class="tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+    Data Analysis (Chatbot &amp; Report)
+  </button>
+</div>
+
+<!-- ============================================================
+     TAB 1: ANTI-HALLUCINATION
+     ============================================================ -->
+<div class="ah-tab-pane active" id="tabAntihallu">
+
+<!-- ============================================================
+     INTERACTIVE COMPARISON
+     ============================================================ -->
+<div class="ah-section-label-row ah-reveal">
+  <span class="ah-sl-marker ah-sl-marker-red"></span>
+  <span class="ah-sl-text">Interactive Comparison</span>
+  <span class="ah-sl-line"></span>
+</div>
+
+<!-- Example Prompts — Tab-based category selector -->
+<div class="ah-examples-container ah-reveal ah-reveal-d1" id="ahExamplesContainer">
+  <div class="ah-cat-tabs" id="ahCatTabs">
+    <!-- Populated by JS -->
+  </div>
+  <div class="ah-pills-area">
+    <div class="ah-pills-row" id="ahPillsRow">
+      <!-- Populated by JS on tab select -->
+    </div>
+  </div>
+</div>
+
+<!-- Input Card -->
+<div class="ah-input-card ah-reveal ah-reveal-d2">
+  <div class="ah-input-label">Ask a medical question to test hallucination defenses</div>
+  <form id="ahForm" onsubmit="return false;">
+    <div class="ah-input-row">
+      <input type="text" id="ahInput" class="ah-input"
+             placeholder="e.g., What is the plasma half-life of Dravimotide?" autocomplete="off">
+      <button type="submit" class="ah-btn ah-btn-primary" id="ahBtnSubmit" onclick="handleSubmit()">
+        <span class="ah-spinner"></span>
+        <svg width="14" height="14" viewBox="0 0 16 16" fill="none"><path d="M2 8h12M10 4l4 4-4 4" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="ah-btn-text">Generate</span>
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Comparison Cards -->
+<div class="ah-vs-wrapper ah-reveal ah-reveal-d3">
+  <div class="ah-vs-divider">VS</div>
+  <div class="ah-comparison">
+    <!-- Baseline (left, red) -->
+    <div class="ah-card ah-card-baseline" id="ahCardBaseline">
+      <div class="ah-card-header">
+        <div class="ah-card-label">
+          <span class="ah-card-dot baseline"></span>
+          <span class="ah-card-name">MedGemma 1.5-4B</span>
+          <span class="ah-card-tag">Undefended</span>
+        </div>
+      </div>
+      <div class="ah-card-body">
+        <div class="ah-response empty" id="ahResponseOriginal">Select a trap prompt or type a question above</div>
+      </div>
+      <div class="ah-card-metrics" id="ahMetricsOriginal">
+        <div class="ah-metric-row">
+          <span class="ah-metric-label">Probe Activation</span>
+          <span id="ahRiskOriginal"></span>
+        </div>
+        <div class="ah-probe-bar-wrap" id="ahProbeBarOriginal">
+          <div class="ah-probe-bar-track">
+            <div class="ah-probe-bar-fill" id="ahProbeFillOriginal"></div>
+          </div>
+        </div>
+        <div class="ah-metric-row" style="margin-top: 8px;">
+          <span class="ah-metric-label">Latency</span>
+          <span class="ah-latency" id="ahLatencyOriginal"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Defended (right, green) -->
+    <div class="ah-card ah-card-defended" id="ahCardDefended">
+      <div class="ah-card-header">
+        <div class="ah-card-label">
+          <span class="ah-card-dot defended"></span>
+          <span class="ah-card-name">AntiHallu</span>
+          <span class="ah-card-tag">RLFR-Trained</span>
+        </div>
+      </div>
+      <div class="ah-card-body">
+        <div class="ah-response empty" id="ahResponseDefended">Select a trap prompt or type a question above</div>
+      </div>
+      <div class="ah-card-metrics" id="ahMetricsDefended">
+        <div class="ah-metric-row">
+          <span class="ah-metric-label">Probe Activation</span>
+          <span id="ahRiskDefended"></span>
+        </div>
+        <div class="ah-probe-bar-wrap" id="ahProbeBarDefended">
+          <div class="ah-probe-bar-track">
+            <div class="ah-probe-bar-fill" id="ahProbeFillDefended"></div>
+          </div>
+        </div>
+        <div class="ah-metric-row" style="margin-top: 8px;">
+          <span class="ah-metric-label">Latency</span>
+          <span class="ah-latency" id="ahLatencyDefended"></span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- Cumulative Stats Bar -->
+<div class="ah-stats-row ah-reveal ah-reveal-d4" id="ahStatsRow" style="margin-bottom: 24px;">
+  <div class="ah-stat-block">
+    <div class="ah-stat-value cyan" id="ahStatQueries">0</div>
+    <div class="ah-stat-label">Total Queries</div>
+  </div>
+  <div class="ah-stat-block">
+    <div class="ah-stat-value red" id="ahStatBaseline">0</div>
+    <div class="ah-stat-label">Baseline Hallucinations</div>
+  </div>
+  <div class="ah-stat-block">
+    <div class="ah-stat-value green" id="ahStatCatches">0</div>
+    <div class="ah-stat-label">Defense Catches</div>
+  </div>
+  <div class="ah-stat-block">
+    <div class="ah-stat-value amber" id="ahStatRate">--</div>
+    <div class="ah-stat-label">Defense Rate</div>
+  </div>
+</div>
+
+<!-- AI Disclaimer + Paradox Note -->
+<div class="ah-ai-notice ah-reveal ah-reveal-d4">
+  <svg viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M8 1L2 4v4c0 3.5 2.6 6.4 6 7 3.4-.6 6-3.5 6-7V4L8 1z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/>
+    <circle cx="8" cy="6.5" r="0.8" fill="currentColor"/>
+    <path d="M8 8.5v2.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+  </svg>
+  <span>
+    <strong>The AntiHallu Paradox — Controlled Behavioral Override.</strong>
+    Counterintuitively, the probe registers high activation precisely when the model successfully refuses to hallucinate. This reveals a two-step internal dynamic:<br><br>
+    <strong>1. The Impulse</strong> — Pre-trained weights exert strong generative pressure to fabricate data, activating hallucination-associated neurons.<br>
+    <strong>2. The Override</strong> — RLFR acts as a behavioral control layer, intercepting this impulse and overriding the internal state with a calibrated refusal.
+  </span>
+</div>
+
+</div><!-- /tabAntihallu -->
+
+<!-- ============================================================
+     TAB 2: DATA CHATBOT — IDE Split Panel
+     ============================================================ -->
+<div class="ah-tab-pane" id="tabChatbot">
+  <div class="da-split-layout" id="daSplitLayout">
+
+    <!-- ==================== LEFT PANEL: Data Explorer ==================== -->
+    <div class="da-left-panel" id="daLeftPanel">
+
+      <!-- Top Bar: Patient selector + stat badges -->
+      <div class="da-topbar">
+        <span class="da-topbar-label">Patient:</span>
+        <select class="da-patient-select" id="daPatientSelect" onchange="daOnPatientChange()">
+          <option value="">Loading...</option>
+        </select>
+        <div class="da-stat-badges" id="daStatBadges">
+          <span class="da-stat-badge da-badge-ae" id="daBadgeAe">AEs: --</span>
+          <span class="da-stat-badge da-badge-lab" id="daBadgeLab">Labs: --</span>
+          <span class="da-stat-badge da-badge-sae" id="daBadgeSae">SAE: --</span>
+        </div>
+      </div>
+
+      <!-- Sub-tabs -->
+      <div class="da-subtab-bar" id="daSubtabBar">
+        <button class="da-subtab da-active" data-pane="crf" onclick="daSwitchSubtab('crf', this)">CRF</button>
+        <button class="da-subtab" data-pane="saelist" onclick="daSwitchSubtab('saelist', this)">SAE List <span class="da-subtab-count" id="daSaeCount">0</span></button>
+        <button class="da-subtab" data-pane="report" onclick="daSwitchSubtab('report', this)">Report</button>
+        <button class="da-subtab" data-pane="pdf" onclick="daSwitchSubtab('pdf', this)">PDF</button>
+      </div>
+
+      <!-- CRF Pane -->
+      <div class="da-subtab-pane da-active" id="daPane_crf">
+        <div class="da-crf-domain-bar" id="daCrfDomainBar">
+          <button class="da-crf-domain-btn da-active" data-domain="DM" onclick="daSwitchCrfDomain('DM', this)">DM</button>
+          <button class="da-crf-domain-btn" data-domain="AE" onclick="daSwitchCrfDomain('AE', this)">AE</button>
+          <button class="da-crf-domain-btn" data-domain="LB" onclick="daSwitchCrfDomain('LB', this)">LB</button>
+          <button class="da-crf-domain-btn" data-domain="VS" onclick="daSwitchCrfDomain('VS', this)">VS</button>
+          <button class="da-crf-domain-btn" data-domain="EC" onclick="daSwitchCrfDomain('EC', this)">EC</button>
+          <button class="da-crf-domain-btn" data-domain="CM" onclick="daSwitchCrfDomain('CM', this)">CM</button>
+        </div>
+        <div id="daCrfContent">
+          <div class="da-loading-spinner"><span class="da-loading-text">Loading CRF data...</span></div>
+        </div>
+      </div>
+
+      <!-- SAE List Pane -->
+      <div class="da-subtab-pane" id="daPane_saelist">
+        <div id="daSaeListContent">
+          <div class="da-loading-spinner"><span class="da-loading-text">Loading SAE data...</span></div>
+        </div>
+      </div>
+
+      <!-- Report Pane -->
+      <div class="da-subtab-pane" id="daPane_report">
+        <div id="daReportContent">
+          <div class="da-empty-state">
+            <div class="da-empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="da-empty-text">No report generated yet.</div>
+            <div class="da-empty-sub">Generate an SAE report from the SAE List tab or via chat.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PDF Pane -->
+      <div class="da-subtab-pane" id="daPane_pdf">
+        <div id="daPdfContent">
+          <div class="da-empty-state">
+            <div class="da-empty-icon">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            </div>
+            <div class="da-empty-text">No PDF available.</div>
+            <div class="da-empty-sub">Generate an SAE report first to preview its PDF here.</div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /da-left-panel -->
+
+    <!-- Resize Handle -->
+    <div class="da-split-handle" id="daSplitHandle"></div>
+
+    <!-- ==================== RIGHT PANEL: Chat ==================== -->
+    <div class="da-right-panel" id="daRightPanel">
+
+      <!-- Chat Header -->
+      <div class="da-chat-header">
+        <div class="da-chat-header-text">
+          <div class="da-chat-header-title">Chat</div>
+        </div>
+      </div>
+
+      <!-- Chat Messages -->
+      <div class="da-chat-messages" id="daChatMessages">
+        <div class="da-chat-welcome" id="daChatWelcome">
+          <div class="da-chat-welcome-icon">
+            <img src="{% static 'assets/ui/gemma.png' %}" alt="MedGemma">
+          </div>
+          <div class="da-chat-welcome-title">Data Analysis Agent</div>
+          <div class="da-chat-welcome-desc">
+            Ask about patient data, request reports, or analyze CRF tables.
+            AI responses can update the left panel.
+          </div>
+        </div>
+      </div>
+
+      <!-- Chat Input -->
+      <div class="da-chat-input-area">
+        <!-- Suggestion pills — directly above input -->
+        <div class="da-suggestions" id="daSuggestions">
+          <button class="da-suggestion-pill" onclick="daChatAsk('Summarize the overall safety profile')">Safety overview</button>
+          <button class="da-suggestion-pill" onclick="daChatAsk('What is the ORR and how does it compare to historical data?')">Efficacy (ORR)</button>
+          <button class="da-suggestion-pill" onclick="daChatAsk('What are the most common Grade 3+ adverse events?')">Grade 3+ AEs</button>
+          <button class="da-suggestion-pill" onclick="daChatAsk('Summarize patient demographics including age and sex distribution')">Demographics</button>
+          <button class="da-suggestion-pill" onclick="daChatAsk('What percentage of patients had dose interruptions or reductions?')">Dose modifications</button>
+        </div>
+        <div class="da-chat-input-context" id="daChatContext">
+          <span class="da-chat-input-context-dot"></span>
+          <span id="daChatContextText">Loading data sources...</span>
+        </div>
+        <div class="da-chat-input-row">
+          <textarea class="da-chat-input" id="daChatInput"
+                   placeholder="Ask about patient data or request a report..."
+                   rows="1"
+                   onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();daChatSend();}"></textarea>
+          <button class="da-chat-send" onclick="daChatSend()" title="Send message">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /da-right-panel -->
+
+  </div><!-- /da-split-layout -->
+</div><!-- /tabChatbot -->
+
+</div>
+
+
+<script>
+/* =================================================================
+   AntiHallu Demo — Interactive JS Controller (Premium)
+   ================================================================= */
+
+var isLoading = false;
+var ahStats = { queries: 0, baselineHalluc: 0, defenseHalluc: 0 };
+var autoInterval = null;
+var autoQueue = [];
+var autoIdx = 0;
+var ahCategories = [];  /* loaded from API */
+var ahActiveTab = 0;    /* currently selected tab index */
+
+/* ── Init ── */
+document.addEventListener('DOMContentLoaded', function() {
+  loadExamples();
+  initScrollReveal();
+  document.getElementById('ahInput').focus();
+
+  /* Enter key submits */
+  document.getElementById('ahInput').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') { e.preventDefault(); handleSubmit(); }
+  });
+});
+
+/* ── Scroll reveal (IntersectionObserver) ── */
+function initScrollReveal() {
+  var els = document.querySelectorAll('.ah-reveal');
+  if (!('IntersectionObserver' in window)) {
+    els.forEach(function(el) { el.classList.add('visible'); });
+    return;
+  }
+  var obs = new IntersectionObserver(function(entries) {
+    entries.forEach(function(entry) {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible');
+        obs.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+  els.forEach(function(el) { obs.observe(el); });
+}
+
+/* ── Load examples ── */
+function loadExamples() {
+  fetch('/api/antihallu/examples/')
+    .then(function(r) { return r.json(); })
+    .then(function(data) { renderExamples(data.categories); })
+    .catch(function() {});
+}
+
+function renderExamples(categories) {
+  ahCategories = categories;
+  var tabsContainer = document.getElementById('ahCatTabs');
+  tabsContainer.textContent = '';
+
+  for (var c = 0; c < categories.length; c++) {
+    (function(idx) {
+      var cat = categories[idx];
+      var tab = document.createElement('button');
+      tab.className = 'ah-cat-tab' + (idx === 0 ? ' active' : '');
+      tab.dataset.idx = idx;
+      tab.innerHTML = _esc(cat.name) + '<span class="ah-tab-count">' + cat.questions.length + '</span>';
+
+      /* Apply unified theme color */
+      var col = '#bc8cff';
+      if (idx === 0) applyTabColor(tab, col);
+      tab.addEventListener('mouseenter', function() {
+        if (!tab.classList.contains('active')) {
+          tab.style.color = col;
+          tab.style.background = 'rgba(188,140,255,0.06)';
+        }
+      });
+      tab.addEventListener('mouseleave', function() {
+        if (!tab.classList.contains('active')) {
+          tab.style.color = '';
+          tab.style.background = '';
+        }
+      });
+      tab.addEventListener('click', function() { selectCatTab(idx); });
+      tabsContainer.appendChild(tab);
+    })(c);
+  }
+
+  /* Show first tab's pills */
+  renderPillsForTab(0);
+}
+
+function applyTabColor(tab, col) {
+  /* Only set color (used by ::after underline via currentColor) and count badge.
+     Border structure (3-sided tab shape) is handled by CSS .ah-cat-tab.active. */
+  tab.style.color = col;
+  tab.style.background = col + '0d';
+  var countEl = tab.querySelector('.ah-tab-count');
+  if (countEl) { countEl.style.background = col + '26'; countEl.style.color = col; }
+}
+
+function selectCatTab(idx) {
+  ahActiveTab = idx;
+  var tabs = document.querySelectorAll('.ah-cat-tab');
+  tabs.forEach(function(t, i) {
+    var isActive = (i === idx);
+    t.classList.toggle('active', isActive);
+    if (isActive) {
+      applyTabColor(t, '#bc8cff');
+    } else {
+      t.style.color = '';
+      t.style.background = '';
+      var countEl = t.querySelector('.ah-tab-count');
+      if (countEl) { countEl.style.background = ''; countEl.style.color = ''; }
+    }
+  });
+  renderPillsForTab(idx);
+}
+
+function renderPillsForTab(idx) {
+  var row = document.getElementById('ahPillsRow');
+  row.textContent = '';
+  var cat = ahCategories[idx];
+  if (!cat) return;
+
+  for (var q = 0; q < cat.questions.length; q++) {
+    (function(question, qIdx) {
+      var pill = document.createElement('button');
+      pill.className = 'ah-pill';
+      var num = document.createElement('span');
+      num.className = 'ah-pill-num';
+      num.textContent = qIdx + 1;
+      pill.appendChild(num);
+      var txt = document.createElement('span');
+      txt.textContent = question;
+      pill.appendChild(txt);
+      pill.title = question;
+      if (document.getElementById('ahInput').value.trim() === question) {
+        pill.classList.add('active');
+      }
+      pill.addEventListener('click', function() {
+        document.getElementById('ahInput').value = question;
+        document.querySelectorAll('.ah-pill').forEach(function(p) { p.classList.remove('active'); });
+        pill.classList.add('active');
+        handleSubmit();
+      });
+      row.appendChild(pill);
+    })(cat.questions[q], q);
+  }
+}
+
+/* ── Submit ── */
+function handleSubmit() {
+  var question = document.getElementById('ahInput').value.trim();
+  if (!question || isLoading) return;
+
+  setLoading(true);
+
+  /* Scroll input card into view so input + results are visible together */
+  var inputCard = document.getElementById('ahForm');
+  if (inputCard) {
+    inputCard.closest('.ah-input-card').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  fetch('/api/antihallu/generate/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ question: question }),
+  })
+  .then(function(r) {
+    if (!r.ok) return r.json().then(function(d) { throw new Error(d.error || 'Request failed'); });
+    return r.json();
+  })
+  .then(function(data) { renderResults(data); })
+  .catch(function(err) { renderError(err.message); })
+  .finally(function() { setLoading(false); });
+}
+
+/* ── Loading state ── */
+function setLoading(loading) {
+  isLoading = loading;
+  var btn = document.getElementById('ahBtnSubmit');
+  btn.disabled = loading;
+
+  if (loading) {
+    btn.classList.add('loading');
+    btn.querySelector('.ah-btn-text').textContent = 'Generating...';
+    ['Original', 'Defended'].forEach(function(side) {
+      var el = document.getElementById('ahResponse' + side);
+      el.className = 'ah-response ah-skeleton';
+      el.textContent = '';
+      for (var i = 0; i < 4; i++) {
+        var line = document.createElement('div');
+        line.className = 'ah-skeleton-line';
+        el.appendChild(line);
+      }
+      document.getElementById('ahMetrics' + side).style.display = 'none';
+      /* Reset probe bar */
+      var fill = document.getElementById('ahProbeFill' + side);
+      if (fill) { fill.style.width = '0%'; fill.className = 'ah-probe-bar-fill'; }
+    });
+  } else {
+    btn.classList.remove('loading');
+    btn.querySelector('.ah-btn-text').textContent = 'Generate';
+  }
+}
+
+/* ── Render results ── */
+function renderResults(data) {
+  typeResponse('Original', data.original);
+  typeResponse('Defended', data.defended);
+
+
+  ahStats.queries++;
+  if (data.original.hallucination_prob >= 0.5) ahStats.baselineHalluc++;
+  if (data.defended.hallucination_prob >= 0.5) ahStats.defenseHalluc++;
+  updateStatsBar();
+}
+
+/* ── Strip markdown bold ── */
+function stripMarkdown(text) {
+  return text.replace(/\*\*(.*?)\*\*/g, '$1');
+}
+
+/* ── Typewriter effect ── */
+function typeResponse(side, result) {
+  var el = document.getElementById('ahResponse' + side);
+  el.className = 'ah-response';
+  el.textContent = '';
+
+  var text = stripMarkdown(result.response || '(No response generated)');
+  var i = 0;
+  var cursor = document.createElement('span');
+  cursor.className = 'ah-cursor';
+  el.appendChild(cursor);
+
+  var interval = setInterval(function() {
+    if (i < text.length) {
+      cursor.before(document.createTextNode(text[i]));
+      i++;
+    } else {
+      clearInterval(interval);
+      cursor.remove();
+      showMetrics(side, result);
+    }
+  }, 12);
+}
+
+/* ── Show metrics ── */
+function showMetrics(side, result) {
+  var metricsEl = document.getElementById('ahMetrics' + side);
+  metricsEl.style.display = 'block';
+
+  /* Probe Activation (risk score) */
+  var riskEl = document.getElementById('ahRisk' + side);
+  if (riskEl && result.hallucination_prob !== undefined) {
+    var prob = result.hallucination_prob;
+    var pct = (prob * 100).toFixed(1) + '%';
+    var level = result.risk_level || '';
+    var cls = 'safe';
+    if (prob >= 0.7) cls = 'high';
+    else if (prob >= 0.5) cls = 'elevated';
+    else if (prob >= 0.3) cls = 'uncertain';
+    riskEl.innerHTML = '<span class="ah-risk ' + cls + '">' + pct + ' · ' + level + '</span>';
+
+    /* Probe activation visual bar */
+    var fillEl = document.getElementById('ahProbeFill' + side);
+    if (fillEl) {
+      var barCls = 'probe-low';
+      if (prob >= 0.7) barCls = 'probe-high';
+      else if (prob >= 0.5) barCls = 'probe-elevated';
+      else if (prob >= 0.3) barCls = 'probe-medium';
+      fillEl.className = 'ah-probe-bar-fill ' + barCls;
+      /* Trigger animation with a small delay so transition fires */
+      fillEl.style.width = '0%';
+      setTimeout(function() {
+        fillEl.style.width = (prob * 100).toFixed(1) + '%';
+      }, 50);
+    }
+  }
+
+  var latency = result.latency_ms || 0;
+  document.getElementById('ahLatency' + side).textContent =
+    latency >= 1000 ? (latency / 1000).toFixed(1) + 's' : latency + 'ms';
+}
+
+/* ── Update cumulative stats bar ── */
+function updateStatsBar() {
+  var qEl = document.getElementById('ahStatQueries');
+  var bEl = document.getElementById('ahStatBaseline');
+  var cEl = document.getElementById('ahStatCatches');
+  var rEl = document.getElementById('ahStatRate');
+
+  if (qEl) qEl.textContent = ahStats.queries;
+  if (bEl) bEl.textContent = ahStats.baselineHalluc;
+
+  /* Defense catches = baseline hallucs minus defense hallucs (i.e. caught by defense) */
+  var catches = ahStats.baselineHalluc - ahStats.defenseHalluc;
+  if (catches < 0) catches = 0;
+  if (cEl) cEl.textContent = catches;
+
+  /* Defense rate */
+  if (rEl) {
+    if (ahStats.baselineHalluc > 0) {
+      var rate = ((catches / ahStats.baselineHalluc) * 100).toFixed(0);
+      rEl.textContent = rate + '%';
+    } else if (ahStats.queries > 0) {
+      rEl.textContent = '100%';
+    } else {
+      rEl.textContent = '--';
+    }
+  }
+
+  /* Bump animation */
+  [qEl, bEl, cEl, rEl].forEach(function(el) {
+    if (!el) return;
+    el.classList.add('bump');
+    setTimeout(function() { el.classList.remove('bump'); }, 300);
+  });
+}
+
+/* ── Error display ── */
+function renderError(message) {
+  ['Original', 'Defended'].forEach(function(side) {
+    var el = document.getElementById('ahResponse' + side);
+    el.className = 'ah-response empty';
+    el.textContent = 'Error: ' + message;
+  });
+}
+
+/* =================================================================
+   AUTO DEMO — cycles through all 20 cached examples
+   ================================================================= */
+
+function toggleAutoDemo() {
+  var btn = document.getElementById('ahBtnAuto');
+  if (autoInterval) {
+    stopAutoDemo();
+    return;
+  }
+
+  /* Build queue from all categories (not just visible pills) */
+  autoQueue = [];
+  for (var ci = 0; ci < ahCategories.length; ci++) {
+    for (var qi = 0; qi < ahCategories[ci].questions.length; qi++) {
+      autoQueue.push(ahCategories[ci].questions[qi]);
+    }
+  }
+  if (autoQueue.length === 0) return;
+
+  btn.classList.add('active');
+  btn.querySelector('.ah-auto-text').textContent = 'Stop';
+  autoIdx = 0;
+
+  function nextAutoQuestion() {
+    if (!autoInterval) return;
+    if (isLoading) return; /* wait for current to finish */
+    if (autoIdx >= autoQueue.length) autoIdx = 0; /* loop */
+
+    var question = autoQueue[autoIdx];
+    document.getElementById('ahInput').value = question;
+
+    /* Switch to the correct tab and highlight the matching pill */
+    var cumulative = 0, catIdx = 0;
+    for (var ci = 0; ci < ahCategories.length; ci++) {
+      cumulative += ahCategories[ci].questions.length;
+      if (autoIdx < cumulative) { catIdx = ci; break; }
+    }
+    if (catIdx !== ahActiveTab && catIdx < ahCategories.length) {
+      selectCatTab(catIdx);
+    }
+    document.querySelectorAll('.ah-pill').forEach(function(p) {
+      p.classList.toggle('active', p.textContent === question);
+    });
+
+    autoIdx++;
+    handleSubmit();
+  }
+
+  autoInterval = setInterval(nextAutoQuestion, 6000);
+  nextAutoQuestion();
+}
+
+function stopAutoDemo() {
+  if (autoInterval) { clearInterval(autoInterval); autoInterval = null; }
+  autoIdx = 0;
+  autoQueue = [];
+  var btn = document.getElementById('ahBtnAuto');
+  if (btn) {
+    btn.classList.remove('active');
+    btn.querySelector('.ah-auto-text').textContent = 'Auto Demo';
+  }
+}
+
+/* =================================================================
+   TAB SWITCHING — Data Analysis Agent tabs
+   ================================================================= */
+window.switchDaTab = function(tab, btn) {
+  /* Stop auto demo when switching tabs */
+  if (tab !== 'antihallu') stopAutoDemo();
+
+  document.querySelectorAll('.ah-tab-link').forEach(function(t) { t.classList.remove('active'); });
+  document.querySelectorAll('.ah-tab-pane').forEach(function(p) { p.classList.remove('active'); });
+  btn.classList.add('active');
+  var paneId = tab === 'antihallu' ? 'tabAntihallu' : 'tabChatbot';
+  document.getElementById(paneId).classList.add('active');
+
+  /* Toggle wide layout for split panel */
+  var main = document.querySelector('.ah-main');
+  if (main) main.classList.toggle('da-wide', tab === 'chatbot');
+
+  /* Focus chat input and refresh data when switching to chatbot tab */
+  if (tab === 'chatbot') {
+    setTimeout(function() {
+      var input = document.getElementById('daChatInput');
+      if (input) input.focus({ preventScroll: true });
+      /* Refresh current sub-tab data */
+      if (daCurrentPatient) daRefreshSubtab();
+    }, 100);
+  }
+};
+
+/* =================================================================
+   DATA CHATBOT — IDE Split Panel (v3)
+   ================================================================= */
+var daChatHistory = [];
+var daReportsList = [];
+var daSaeData = null;
+var daCurrentPatient = null;
+var daPatientMap = {};   /* { patient_id: [sae, ...] } */
+function _esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+var daRunId = null;
+var daCurrentCrfDomain = 'DM';
+var daCurrentSubtab = 'crf';
+
+/* ================================================================
+   INIT: Load patient data on page ready
+   ================================================================ */
+document.addEventListener('DOMContentLoaded', function() {
+  daLoadPatientData();
+  daSetupTextareaResize();
+  daSetupSplitResize();
+});
+
+/* -- Load patient/SAE data from API -- */
+function daLoadPatientData() {
+  fetch('/api/demo/saes/?mode=natural')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.error) {
+        daShowNoData(data.error);
+        return;
+      }
+      daSaeData = data;
+      daRunId = data.run_id || null;
+      daPatientMap = {};
+      (data.saes || []).forEach(function(s) {
+        if (!daPatientMap[s.patient_id]) daPatientMap[s.patient_id] = [];
+        daPatientMap[s.patient_id].push(s);
+      });
+
+      /* Use all_patient_ids from backend (includes patients without SAEs) */
+      var allPids = (data.all_patient_ids || Object.keys(daPatientMap)).sort();
+
+      /* Populate patient dropdown — all patients */
+      var sel = document.getElementById('daPatientSelect');
+      if (allPids.length === 0) {
+        sel.innerHTML = '<option value="">No patients</option>';
+        daShowNoData('No simulation data found');
+        return;
+      }
+      sel.innerHTML = '';
+      allPids.forEach(function(pid) {
+        var opt = document.createElement('option');
+        opt.value = pid;
+        opt.textContent = pid;
+        sel.appendChild(opt);
+      });
+
+      /* Select first patient */
+      daCurrentPatient = allPids[0];
+      sel.value = daCurrentPatient;
+      daOnPatientChange();
+
+      /* Show global stats in badges */
+      var allSaes = data.saes || [];
+      var totalSae = allSaes.filter(function(s) { return s.serious || s.grade >= 3; }).length;
+      var totalAe = allSaes.length;
+      var totalLab = allSaes.filter(function(s) {
+        var t = (s.ae_term || '').toLowerCase();
+        return t.indexOf('neutrop') >= 0 || t.indexOf('thrombocyt') >= 0 || t.indexOf('anemia') >= 0 ||
+               t.indexOf('leukop') >= 0 || t.indexOf('lymphop') >= 0 || t.indexOf('creatinine') >= 0;
+      }).length;
+      document.getElementById('daBadgeAe').textContent = 'AEs: ' + totalAe;
+      document.getElementById('daBadgeLab').textContent = 'Labs: ' + totalLab + (totalLab > 0 ? '\u2193' : '');
+      document.getElementById('daBadgeSae').textContent = 'SAE: ' + totalSae;
+      document.getElementById('daSaeCount').textContent = totalSae;
+
+      /* Update context label */
+      var ctxText = document.getElementById('daChatContextText');
+      if (ctxText) ctxText.textContent = allPids.length + ' patients loaded' + (daRunId ? ' | ' + daRunId : '');
+    })
+    .catch(function(err) {
+      daShowNoData('Failed to load data');
+    });
+
+  /* Also load existing reports */
+  daLoadExistingReports();
+}
+
+function daShowNoData(msg) {
+  var content = document.getElementById('daCrfContent');
+  if (content) {
+    content.innerHTML = '<div class="da-empty-state">'
+      + '<div class="da-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div>'
+      + '<div class="da-empty-text">' + (msg || 'No simulation data') + '</div>'
+      + '<div class="da-empty-sub">Run a simulation first to see data here.</div>'
+      + '</div>';
+  }
+}
+
+/* ================================================================
+   PATIENT CHANGE HANDLER
+   ================================================================ */
+function daOnPatientChange() {
+  var sel = document.getElementById('daPatientSelect');
+  daCurrentPatient = sel.value;
+  if (!daCurrentPatient) return;
+
+  /* Reload current sub-tab content */
+  daRefreshSubtab();
+
+  /* Update chat suggestions */
+  daUpdateSuggestions();
+}
+
+/* ================================================================
+   SUB-TABS
+   ================================================================ */
+function daSwitchSubtab(pane, btn) {
+  daCurrentSubtab = pane;
+  document.querySelectorAll('.da-subtab').forEach(function(t) { t.classList.remove('da-active'); });
+  document.querySelectorAll('.da-subtab-pane').forEach(function(p) { p.classList.remove('da-active'); });
+  btn.classList.add('da-active');
+  var paneEl = document.getElementById('daPane_' + pane);
+  if (paneEl) paneEl.classList.add('da-active');
+  daRefreshSubtab();
+}
+
+function daRefreshSubtab() {
+  if (daCurrentSubtab === 'crf') daLoadCrfData();
+  else if (daCurrentSubtab === 'saelist') daLoadSaeList();
+}
+
+/* -- Switch to sub-tab programmatically (used by chat integration) -- */
+function daActivateSubtab(pane) {
+  var btn = document.querySelector('.da-subtab[data-pane="' + pane + '"]');
+  if (btn) daSwitchSubtab(pane, btn);
+}
+
+/* ================================================================
+   CRF DATA
+   ================================================================ */
+function daSwitchCrfDomain(domain, btn) {
+  daCurrentCrfDomain = domain;
+  document.querySelectorAll('.da-crf-domain-btn').forEach(function(b) { b.classList.remove('da-active'); });
+  btn.classList.add('da-active');
+  daLoadCrfData();
+}
+
+function daLoadCrfData() {
+  if (!daCurrentPatient || !daRunId) return;
+  var content = document.getElementById('daCrfContent');
+  content.innerHTML = '<div class="da-loading-spinner"><span class="da-loading-text">Loading ' + daCurrentCrfDomain + ' data...</span></div>';
+
+  var url = '/api/crf/' + daRunId + '/' + daCurrentCrfDomain.toLowerCase() + '/?source=simulation&mode=natural&per_page=50&patient=' + daCurrentPatient;
+  fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.error) {
+        content.innerHTML = '<div class="da-empty-state"><div class="da-empty-text">' + _esc(data.error) + '</div></div>';
+        return;
+      }
+      var rows = data.data || data.rows || [];
+      var rawCols = data.columns || [];
+      /* Normalize columns: may be strings or {key, label} objects */
+      var cols = rawCols.map(function(c) {
+        if (typeof c === 'object' && c !== null) return { key: c.key || c.field || '', label: c.label || c.key || '' };
+        return { key: c, label: c };
+      });
+      if (rows.length === 0 && cols.length === 0) {
+        if (rows.length > 0) cols = Object.keys(rows[0]).map(function(k) { return { key: k, label: k }; });
+      }
+      if (rows.length === 0) {
+        content.innerHTML = '<div class="da-empty-state"><div class="da-empty-text">No ' + daCurrentCrfDomain + ' data for ' + daCurrentPatient + '</div></div>';
+        return;
+      }
+      if (cols.length === 0 && rows.length > 0) cols = Object.keys(rows[0]).map(function(k) { return { key: k, label: k }; });
+
+      var html = '<div class="da-crf-table-wrap"><table class="da-crf-table"><thead><tr>';
+      cols.forEach(function(c) { html += '<th>' + _esc(c.label) + '</th>'; });
+      html += '</tr></thead><tbody>';
+      rows.forEach(function(row) {
+        html += '<tr>';
+        cols.forEach(function(c) {
+          var val = row[c.key];
+          if (val === null || val === undefined) val = '';
+          html += '<td>' + _esc(val) + '</td>';
+        });
+        html += '</tr>';
+      });
+      html += '</tbody></table></div>';
+      content.innerHTML = html;
+    })
+    .catch(function(err) {
+      content.innerHTML = '<div class="da-empty-state"><div class="da-empty-text">Error loading CRF data</div><div class="da-empty-sub">' + _esc(err.message || '') + '</div></div>';
+    });
+}
+
+/* ================================================================
+   SAE LIST
+   ================================================================ */
+function daLoadSaeList() {
+  var content = document.getElementById('daSaeListContent');
+  if (!daCurrentPatient || !daSaeData) {
+    content.innerHTML = '<div class="da-empty-state"><div class="da-empty-text">No SAE data available.</div></div>';
+    return;
+  }
+  var saes = (daSaeData.saes || []).filter(function(s) { return s.patient_id === daCurrentPatient; });
+  if (saes.length === 0) {
+    content.innerHTML = '<div class="da-empty-state"><div class="da-empty-text">No SAEs for ' + daCurrentPatient + '</div></div>';
+    return;
+  }
+
+  var html = '';
+  saes.forEach(function(s, idx) {
+    var grade = s.grade || 0;
+    var gCls = 'g' + Math.min(grade, 5);
+    html += '<div class="da-sae-item" onclick="daSelectSae(' + idx + ')">'
+      + '<div class="da-sae-item-info">'
+      + '<div class="da-sae-item-term">' + _esc(s.ae_term || 'Unknown') + '</div>'
+      + '<div class="da-sae-item-meta">Onset Day ' + _esc(s.onset_day || '?') + (s.serious ? ' | Serious' : '') + '</div>'
+      + '</div>'
+      + '<div class="da-grade-badge ' + gCls + '">G' + grade + '</div>'
+      + '<button class="da-sae-gen-btn" onclick="event.stopPropagation();daGenerateReportFor(' + idx + ')" title="Generate MedWatch 3500A">Report</button>'
+      + '</div>';
+  });
+  content.innerHTML = html;
+}
+
+function daSelectSae(idx) {
+  var saes = (daSaeData.saes || []).filter(function(s) { return s.patient_id === daCurrentPatient; });
+  if (!saes[idx]) return;
+  var s = saes[idx];
+  daChatAsk('Tell me about the adverse event "' + s.ae_term + '" for patient ' + daCurrentPatient + ' (Grade ' + s.grade + ', onset day ' + s.onset_day + ')');
+}
+
+function daGenerateReportFor(idx) {
+  var saes = (daSaeData.saes || []).filter(function(s) { return s.patient_id === daCurrentPatient; });
+  if (!saes[idx]) return;
+  var s = saes[idx];
+  daGenerateReport(daCurrentPatient, s.ae_term, s.onset_day);
+}
+
+/* ================================================================
+   REPORT GENERATION
+   ================================================================ */
+function daGenerateReport(pid, aeTerm, onsetDay) {
+  if (!pid) pid = daCurrentPatient;
+  if (!pid || !aeTerm) return;
+
+  /* Hide welcome */
+  var welcome = document.getElementById('daChatWelcome');
+  if (welcome) welcome.style.display = 'none';
+
+  /* Show progress card in chat */
+  var progressId = 'daProgress_' + Date.now();
+  var progressHtml = '<div class="da-report-progress" id="' + progressId + '">'
+    + '<div class="da-report-progress-header">'
+    + '<div class="da-report-progress-spinner"></div>'
+    + '<div class="da-report-progress-text">Generating Report</div>'
+    + '</div>'
+    + '<div class="da-report-progress-bar"><div class="da-report-progress-fill" id="' + progressId + '_fill"></div></div>'
+    + '<div class="da-report-progress-detail">MedWatch 3500A for ' + pid + ' - ' + aeTerm + '...</div>'
+    + '</div>';
+  var messages = document.getElementById('daChatMessages');
+  messages.insertAdjacentHTML('beforeend', progressHtml);
+  scrollDaChat();
+
+  /* Animate progress bar */
+  var fillEl = document.getElementById(progressId + '_fill');
+  var progressPct = 0;
+  var progressTimer = setInterval(function() {
+    progressPct = Math.min(progressPct + Math.random() * 8, 90);
+    if (fillEl) fillEl.style.width = progressPct + '%';
+  }, 500);
+
+  fetch('/api/demo/generate/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      patient_id: pid,
+      ae_term: aeTerm,
+      ae_day: onsetDay,
+      mode: 'natural'
+    }),
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) {
+    clearInterval(progressTimer);
+    var progressEl = document.getElementById(progressId);
+    if (progressEl) progressEl.remove();
+
+    if (data.error) {
+      daChatAppend('assistant', 'Error generating report: ' + data.error);
+      return;
+    }
+
+    var pdfUrl = data.pdf_url || '';
+    var xmlUrl = data.xml_url || '';
+    var meddra = data.meddra || {};
+
+    /* Add to reports list */
+    daReportsList.push({
+      patient_id: pid,
+      ae_term: aeTerm,
+      meddra: meddra,
+      pdf_path: pdfUrl,
+      xml_path: xmlUrl,
+      data: data,
+      created_at: new Date().toISOString()
+    });
+
+    /* Show report card in chat with panel link */
+    daShowReportCard(pid, aeTerm, meddra, pdfUrl, xmlUrl, data);
+
+    /* Update left panel: show report */
+    daRenderReportInPanel(data, pid, aeTerm, meddra);
+    daActivateSubtab('report');
+
+    /* If PDF available, load it */
+    if (pdfUrl) daRenderPdfInPanel(pdfUrl);
+  })
+  .catch(function(err) {
+    clearInterval(progressTimer);
+    var progressEl = document.getElementById(progressId);
+    if (progressEl) progressEl.remove();
+    daChatAppend('assistant', 'Error: ' + (err.message || 'Report generation failed'));
+  });
+}
+
+/* -- Show report card in chat -- */
+function daShowReportCard(pid, aeTerm, meddra, pdfUrl, xmlUrl, fullData) {
+  var messages = document.getElementById('daChatMessages');
+  var card = document.createElement('div');
+  card.className = 'da-report-card';
+  var meddraCode = (meddra && meddra.pt_code) ? meddra.pt_code : '';
+  var meddraText = meddraCode ? '\nMedDRA: ' + meddraCode : '';
+  var gradeText = fullData.grade ? ', Grade ' + fullData.grade : '';
+
+  card.innerHTML = '<div class="da-report-card-header">'
+    + '<div class="da-report-card-check"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg></div>'
+    + '<div class="da-report-card-status">Report Ready</div>'
+    + '</div>'
+    + '<div class="da-report-card-title">MedWatch 3500A - ' + pid + '</div>'
+    + '<div class="da-report-card-meta">' + aeTerm + gradeText + meddraText + '</div>'
+    + '<div class="da-report-card-actions">'
+    + '<button class="da-report-card-btn da-btn-panel" onclick="daActivateSubtab(\'report\')">'
+    + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> View in Panel</button>'
+    + (pdfUrl ? '<button class="da-report-card-btn da-btn-pdf" onclick="daActivateSubtab(\'pdf\')">'
+    + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> PDF</button>' : '')
+    + (xmlUrl ? '<button class="da-report-card-btn da-btn-xml" onclick="window.open(\'' + xmlUrl + '\')">'
+    + '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> XML</button>' : '')
+    + '</div>';
+
+  messages.appendChild(card);
+  scrollDaChat();
+}
+
+/* -- Render report in left panel -- */
+function daRenderReportInPanel(data, pid, aeTerm, meddra) {
+  var container = document.getElementById('daReportContent');
+  var medwatch = data.medwatch_data || data;
+  var html = '<div class="da-report-content">';
+
+  html += '<h3>Patient Information</h3>';
+  html += '<div class="da-report-field"><span class="da-report-field-label">Patient ID</span><span class="da-report-field-value">' + (pid || '') + '</span></div>';
+  html += '<div class="da-report-field"><span class="da-report-field-label">AE Term</span><span class="da-report-field-value">' + (aeTerm || '') + '</span></div>';
+  if (meddra && meddra.pt_code) {
+    html += '<div class="da-report-field"><span class="da-report-field-label">MedDRA PT Code</span><span class="da-report-field-value">' + _esc(meddra.pt_code) + '</span></div>';
+    html += '<div class="da-report-field"><span class="da-report-field-label">MedDRA PT Term</span><span class="da-report-field-value">' + _esc(meddra.pt_term || '') + '</span></div>';
+    if (meddra.soc_term) {
+      html += '<div class="da-report-field"><span class="da-report-field-label">SOC</span><span class="da-report-field-value">' + _esc(meddra.soc_term) + '</span></div>';
+    }
+    html += '<div class="da-report-field"><span class="da-report-field-label">Confidence</span><span class="da-report-field-value">' + ((meddra.confidence || 0) * 100).toFixed(0) + '%</span></div>';
+  }
+
+  if (medwatch.section_a || medwatch.section_b || medwatch.section_c) {
+    ['section_a', 'section_b', 'section_c'].forEach(function(secKey) {
+      var sec = medwatch[secKey];
+      if (!sec) return;
+      var titles = { section_a: 'Section A: Patient Information', section_b: 'Section B: Adverse Event', section_c: 'Section C: Suspect Product' };
+      html += '<h3>' + titles[secKey] + '</h3>';
+      Object.keys(sec).forEach(function(k) {
+        var val = sec[k];
+        if (val && typeof val !== 'object') {
+          html += '<div class="da-report-field"><span class="da-report-field-label">' + _esc(k.replace(/_/g, ' ')) + '</span><span class="da-report-field-value">' + _esc(val) + '</span></div>';
+        }
+      });
+    });
+  } else {
+    html += '<h3>Report Data</h3>';
+    html += '<pre style="white-space:pre-wrap;word-break:break-word;font-size:0.88em;color:var(--text-muted);">' + JSON.stringify(data, null, 2).replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</pre>';
+  }
+
+  html += '</div>';
+  container.innerHTML = html;
+}
+
+/* -- Render PDF in left panel -- */
+function daRenderPdfInPanel(pdfUrl) {
+  var container = document.getElementById('daPdfContent');
+  container.innerHTML = '<iframe class="da-pdf-embed" src="' + pdfUrl + '" style="min-height:calc(100vh - 500px);"></iframe>';
+}
+
+/* ================================================================
+   CHAT
+   ================================================================ */
+function daChatAsk(text) {
+  /* Switch to chatbot tab if not already active */
+  var pane = document.getElementById('tabChatbot');
+  if (pane && !pane.classList.contains('active')) {
+    var chatBtn = document.querySelector('.ah-tab-link:nth-child(2)');
+    if (chatBtn) switchDaTab('chatbot', chatBtn);
+  }
+  document.getElementById('daChatInput').value = text;
+  daChatSend();
+}
+
+function daChatSend() {
+  var input = document.getElementById('daChatInput');
+  var message = input.value.trim();
+  if (!message) return;
+
+  /* Hide welcome on first message */
+  var welcome = document.getElementById('daChatWelcome');
+  if (welcome) welcome.style.display = 'none';
+
+  /* Add user message */
+  daChatAppend('user', message);
+  daChatHistory.push({ role: 'user', content: message });
+  input.value = '';
+  input.style.height = 'auto';
+
+  /* Show typing indicator */
+  var typing = document.createElement('div');
+  typing.className = 'da-typing-indicator';
+  typing.id = 'daTyping';
+  typing.innerHTML = '<span></span><span></span><span></span>';
+  document.getElementById('daChatMessages').appendChild(typing);
+  scrollDaChat();
+
+  /* Detect report generation request */
+  var lower = message.toLowerCase();
+  if ((lower.indexOf('generate') >= 0 || lower.indexOf('create') >= 0) &&
+      (lower.indexOf('report') >= 0 || lower.indexOf('sae') >= 0 || lower.indexOf('medwatch') >= 0)) {
+    /* Auto-generate report for current patient's first SAE */
+    var saes = (daSaeData && daSaeData.saes || []).filter(function(s) { return s.patient_id === daCurrentPatient; });
+    if (saes.length > 0) {
+      var t = document.getElementById('daTyping');
+      if (t) t.remove();
+      daChatAppend('assistant', 'Generating MedWatch 3500A report for ' + daCurrentPatient + ' - ' + saes[0].ae_term + '...');
+      daChatHistory.push({ role: 'assistant', content: 'Generating report...' });
+      daGenerateReport(daCurrentPatient, saes[0].ae_term, saes[0].onset_day);
+      return;
+    }
+  }
+
+  /* Detect CRF request -> switch left panel */
+  if (lower.indexOf('crf') >= 0 || lower.indexOf('demograph') >= 0) {
+    daActivateSubtab('crf');
+  }
+
+  /* Call API */
+  fetch('/api/stats/chat/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: message, history: daChatHistory.slice(-10) }),
+  })
+  .then(function(r) { return r.json().then(function(data) { return { ok: r.ok, data: data }; }); })
+  .then(function(result) {
+    var t = document.getElementById('daTyping');
+    if (t) t.remove();
+    if (!result.ok || result.data.error) {
+      daChatAppend('assistant', 'Error: ' + (result.data.error || 'Request failed'));
+      return;
+    }
+    var reply = result.data.reply || result.data.response || 'No response received.';
+    var source = result.data.source || inferDaSource(message);
+    daChatAppend('assistant', reply, source);
+    daChatHistory.push({ role: 'assistant', content: reply });
+  })
+  .catch(function(err) {
+    var t = document.getElementById('daTyping');
+    if (t) t.remove();
+    daChatAppend('assistant', 'Error: ' + (err.message || 'Request failed'));
+  });
+}
+
+/* -- Infer source citation -- */
+function inferDaSource(msg) {
+  var lower = msg.toLowerCase();
+  if (lower.indexOf('ae') >= 0 || lower.indexOf('adverse') >= 0 || lower.indexOf('safety') >= 0) return 'AE Reports';
+  if (lower.indexOf('crf') >= 0 || lower.indexOf('demograph') >= 0 || lower.indexOf('lab') >= 0 || lower.indexOf('vital') >= 0) return 'CRF Tables';
+  if (lower.indexOf('statistic') >= 0 || lower.indexOf('p-value') >= 0 || lower.indexOf('confidence') >= 0) return 'Statistical Analysis';
+  if (lower.indexOf('compare') >= 0 || lower.indexOf('care ai') >= 0 || lower.indexOf('dca') >= 0 || lower.indexOf('natural') >= 0) return 'AE Reports, Statistical Analysis';
+  return 'Simulation Data';
+}
+
+/* -- Append message to chat -- */
+function daChatAppend(role, text, source) {
+  var messages = document.getElementById('daChatMessages');
+  var msg = document.createElement('div');
+  msg.className = 'da-msg ' + role;
+  var bubble = document.createElement('div');
+  bubble.className = 'da-msg-bubble';
+
+  if (role === 'assistant') {
+    bubble.innerHTML = formatDaChat(text);
+
+    /* Copy button */
+    var copyBtn = document.createElement('button');
+    copyBtn.className = 'da-msg-copy';
+    copyBtn.title = 'Copy to clipboard';
+    copyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+    copyBtn.addEventListener('click', function() {
+      var plain = text.replace(/<[^>]*>/g, '').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+      navigator.clipboard.writeText(plain).then(function() {
+        copyBtn.classList.add('copied');
+        copyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+        setTimeout(function() {
+          copyBtn.classList.remove('copied');
+          copyBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+        }, 2000);
+      });
+    });
+    bubble.appendChild(copyBtn);
+
+    /* Source citation */
+    if (source) {
+      var srcEl = document.createElement('div');
+      srcEl.className = 'da-msg-source';
+      srcEl.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg> Source: ' + source;
+      bubble.appendChild(srcEl);
+    }
+  } else {
+    bubble.innerHTML = formatDaChatUser(text);
+  }
+
+  msg.appendChild(bubble);
+  messages.appendChild(msg);
+  scrollDaChat();
+}
+
+/* -- Format user messages -- */
+function formatDaChatUser(text) {
+  return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\n/g, '<br>');
+}
+
+/* -- Format assistant messages (rich markdown) -- */
+function formatDaChat(text) {
+  var s = text;
+  s = s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  s = s.replace(/```(\w*)\n?([\s\S]*?)```/g, function(m, lang, code) {
+    return '<pre><code>' + code.trim() + '</code></pre>';
+  });
+  s = s.replace(/((?:^|\n)\|.+\|(?:\n\|[-: |]+\|)?(?:\n\|.+\|)+)/g, function(tableBlock) {
+    var rows = tableBlock.trim().split('\n').filter(function(r) { return r.trim(); });
+    var html = '<table>'; var headerDone = false;
+    for (var ri = 0; ri < rows.length; ri++) {
+      var row = rows[ri].trim();
+      if (/^\|[\s\-:|]+\|$/.test(row)) { headerDone = true; continue; }
+      var cells = row.split('|').filter(function(c, i, arr) { return i > 0 && i < arr.length - 1; });
+      var tag = (!headerDone && ri === 0) ? 'th' : 'td';
+      html += '<tr>'; cells.forEach(function(c) { html += '<' + tag + '>' + c.trim() + '</' + tag + '>'; }); html += '</tr>';
+      if (tag === 'th') headerDone = true;
+    }
+    html += '</table>'; return html;
+  });
+  s = s.replace(/^### (.+)$/gm, '<h3>$1</h3>');
+  s = s.replace(/^## (.+)$/gm, '<h2>$1</h2>');
+  s = s.replace(/^# (.+)$/gm, '<h1>$1</h1>');
+  s = s.replace(/^&gt; (.+)$/gm, '<blockquote>$1</blockquote>');
+  s = s.replace(/^---$/gm, '<hr>');
+  s = s.replace(/((?:^|\n)(?:- .+\n?)+)/g, function(block) {
+    var items = block.trim().split('\n'); var html = '<ul>';
+    items.forEach(function(item) { var c = item.replace(/^- /, '').trim(); if (c) html += '<li>' + c + '</li>'; });
+    return html + '</ul>';
+  });
+  s = s.replace(/((?:^|\n)(?:\d+\. .+\n?)+)/g, function(block) {
+    var items = block.trim().split('\n'); var html = '<ol>';
+    items.forEach(function(item) { var c = item.replace(/^\d+\. /, '').trim(); if (c) html += '<li>' + c + '</li>'; });
+    return html + '</ol>';
+  });
+  s = s.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
+  s = s.replace(/`([^`]+)`/g, '<code>$1</code>');
+  s = s.replace(/\n/g, '<br>');
+  s = s.replace(/<br><(h[1-3]|ul|ol|table|pre|blockquote|hr)/g, '<$1');
+  s = s.replace(/<\/(h[1-3]|ul|ol|table|pre|blockquote)><br>/g, '</$1>');
+  return s;
+}
+
+function scrollDaChat() {
+  var el = document.getElementById('daChatMessages');
+  setTimeout(function() { el.scrollTop = el.scrollHeight; }, 50);
+}
+
+/* -- Update chat suggestions based on selected patient -- */
+function daUpdateSuggestions() {
+  var container = document.getElementById('daSuggestions');
+  if (!container) return;
+  var pid = daCurrentPatient || 'this patient';
+  var saes = daPatientMap[daCurrentPatient] || [];
+
+  container.innerHTML = '';
+  var suggestions = [
+    { text: 'Safety overview', query: 'Summarize the overall safety profile including AE incidence rates' },
+    { text: 'Efficacy (ORR)', query: 'What is the ORR and how does it compare to historical data?' },
+    { text: 'Grade 3+ AEs', query: 'What are the most common Grade 3+ adverse events and their incidence rates?' },
+  ];
+  if (saes.length > 0) {
+    suggestions.push({ text: 'Report: ' + saes[0].ae_term, query: 'Generate SAE report for ' + pid });
+  }
+  suggestions.push({ text: 'Dose modifications', query: 'What percentage of patients had dose interruptions or reductions?' });
+  suggestions.push({ text: 'Demographics', query: 'Summarize patient demographics including age and sex distribution' });
+
+  suggestions.forEach(function(s) {
+    var btn = document.createElement('button');
+    btn.className = 'da-suggestion-pill';
+    btn.textContent = s.text;
+    btn.addEventListener('click', function() { daChatAsk(s.query); });
+    container.appendChild(btn);
+  });
+}
+
+/* -- Load existing reports on page init -- */
+function daLoadExistingReports() {
+  fetch('/api/demo/reports/')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.reports && data.reports.length > 0) {
+        data.reports.forEach(function(r) {
+          daReportsList.push({
+            patient_id: r.patient_id,
+            ae_term: r.ae_term,
+            meddra: {},
+            pdf_path: r.pdf_path || '',
+            xml_path: r.xml_path || '',
+            data: r,
+            created_at: r.created_at || ''
+          });
+        });
+        /* If we have reports, show last one in panel */
+        if (daReportsList.length > 0) {
+          var last = daReportsList[daReportsList.length - 1];
+          daRenderReportInPanel(last.data, last.patient_id, last.ae_term, last.meddra);
+          if (last.pdf_path) daRenderPdfInPanel(last.pdf_path);
+        }
+      }
+    })
+    .catch(function() { /* silently fail */ });
+}
+
+/* ================================================================
+   SPLIT PANEL RESIZE
+   ================================================================ */
+function daSetupSplitResize() {
+  var handle = document.getElementById('daSplitHandle');
+  var left = document.getElementById('daLeftPanel');
+  var right = document.getElementById('daRightPanel');
+  var layout = document.getElementById('daSplitLayout');
+  if (!handle || !left || !right || !layout) return;
+
+  var dragging = false;
+  var startX, startLeftW;
+
+  handle.addEventListener('mousedown', function(e) {
+    e.preventDefault();
+    dragging = true;
+    startX = e.clientX;
+    startLeftW = left.offsetWidth;
+    handle.classList.add('da-dragging');
+    document.addEventListener('mousemove', onDrag);
+    document.addEventListener('mouseup', onUp);
+  });
+
+  function onDrag(e) {
+    if (!dragging) return;
+    var layoutW = layout.offsetWidth;
+    var delta = e.clientX - startX;
+    var newLeftW = startLeftW + delta;
+    var minLeft = 300, minRight = 280;
+    var maxLeft = layoutW - minRight - 5;
+    newLeftW = Math.max(minLeft, Math.min(maxLeft, newLeftW));
+    var pct = (newLeftW / layoutW * 100).toFixed(2);
+    left.style.flex = '0 0 ' + pct + '%';
+    right.style.flex = '0 0 ' + (100 - parseFloat(pct) - 0.5).toFixed(2) + '%';
+  }
+
+  function onUp() {
+    dragging = false;
+    handle.classList.remove('da-dragging');
+    document.removeEventListener('mousemove', onDrag);
+    document.removeEventListener('mouseup', onUp);
+  }
+}
+
+/* -- Textarea auto-resize -- */
+function daSetupTextareaResize() {
+  var ta = document.getElementById('daChatInput');
+  if (ta) {
+    ta.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+  }
+}
+</script>
+{% endblock %}

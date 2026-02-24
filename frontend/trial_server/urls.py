@@ -10,14 +10,14 @@ urlpatterns = [
     path('simulations/', views.simulation_list, name='simulation_list'),
 
     # Demo pages
-    path('demo/anti-hallucination/',
-         views.demo_anti_hallucination, name='demo_anti_hallucination'),
+    path('demo/data-analysis-agent/',
+         views.demo_anti_hallucination, name='demo_data_analysis_agent'),
     path('demo/care-agent/',
          views.demo_care_agent, name='demo_care_agent'),
     path('demo/care-agent/vision/',
          views.demo_medgemma, name='demo_medgemma'),
-    path('demo/care-agent/live/',
-         views.demo_care_agent, name='demo_care_agent_live'),
+    path('demo/data-collection-agent/',
+         views.demo_care_agent, name='demo_data_collection_agent'),
     path('demo/hazard/',
          views.demo_hazard, name='demo_hazard'),
     path('demo/patient-init/',
@@ -66,6 +66,8 @@ urlpatterns = [
          views.api_care_agent_patients, name='api_care_agent_patients'),
     path('api/care-agent/media/<str:media_type>/<path:filename>',
          views.api_care_agent_media, name='api_care_agent_media'),
+    path('api/care-agent/chat/',
+         views.api_care_agent_chat, name='api_care_agent_chat'),
 
     # Compare dashboard
     path('compare/<str:run_id>/',
@@ -127,8 +129,16 @@ urlpatterns = [
     # Statistical Analysis (CSR)
     path("doc/<str:run_id>/stats/",
          views.statistical_analysis, name="statistical_analysis"),
+    path("api/stats/chat/",
+         views.api_stats_chat_demo, name="api_stats_chat_demo"),
     path("api/stats/<str:run_id>/",
          views.api_stats_data, name="api_stats_data"),
+    path("api/stats/<str:run_id>/chat/",
+         views.api_stats_chat, name="api_stats_chat"),
+
+    # Unified Doc Chat API (stats / crf / sae)
+    path("api/doc/<str:run_id>/chat/",
+         views.api_doc_chat, name="api_doc_chat"),
 
     # Multimodal Enhance API
     path('api/multimodal/enhance',
@@ -147,4 +157,12 @@ urlpatterns = [
          views.api_ruleset_generate, name='api_ruleset_generate'),
     path('api/ruleset/generate/status/<str:job_id>/',
          views.api_ruleset_generate_status, name='api_ruleset_generate_status'),
+
+    # Demo API — auto-select latest run (no run_id needed)
+    path('api/demo/saes/',
+         views.api_demo_saes, name='api_demo_saes'),
+    path('api/demo/generate/',
+         views.api_demo_generate, name='api_demo_generate'),
+    path('api/demo/reports/',
+         views.api_demo_reports, name='api_demo_reports'),
 ]

@@ -23,6 +23,7 @@ from django.views.decorators.http import require_POST, require_GET
 
 DATA_DIR = settings.DATA_DIR
 MAP_ASSETS_DIR = Path(settings.BASE_DIR) / "static_dirs" / "assets" / "map"
+PINNED_RUN_ID = "20260224_061414_Etoposide___Cisplatin_100pt_126d"
 
 
 def _get_runs():
@@ -651,8 +652,22 @@ def _patient_summary(profile: dict, day_data: dict | None,
 # ─── Page views ───────────────────────────────────────────────
 
 def landing(request):
-    """Landing page: pure technology showcase (no runs context)."""
-    return render(request, "landing/landing.html")
+    """Landing page: pure technology showcase + demo map preview."""
+    # Fixed to the 100-patient Etoposide + Cisplatin run for a visually rich map
+    demo_run_id = PINNED_RUN_ID
+    # Verify the run exists, fall back to dynamic selection if not
+    run_path = _get_run_path(demo_run_id)
+    if not run_path.exists() or not (run_path / "simulations").exists():
+        runs = _get_runs()
+        demo_run_id = ""
+        for r in runs:
+            if r.get("status") == "completed" and (r.get("n_patients") or 0) >= 5:
+                demo_run_id = r["id"]
+                break
+        if not demo_run_id and runs:
+            demo_run_id = runs[0]["id"]
+    context = {"demo_run_id": demo_run_id}
+    return render(request, "landing/landing.html", context)
 
 
 def simulation_list(request):
@@ -666,7 +681,7 @@ def simulation_list(request):
 
 def demo_anti_hallucination(request):
     """Anti-Hallucination technology demo page."""
-    return render(request, "demo/anti_hallucination.html")
+    return render(request, "demo/data_analysis_agent.html")
 
 
 def demo_medgemma(request):
@@ -802,7 +817,7 @@ def api_medgemma_analyze(request):
         return JsonResponse({"error": "baseline and current are required"}, status=400)
 
     vllm_url = os.environ.get("MEDGEMMA4B_VLLM_BASE_URL", "http://clara-medgemma4b-ft:8000/v1")
-    model_id = os.environ.get("MEDGEMMA4B_MODEL_ID", "medgemma-4b-finetuned")
+    model_id = os.environ.get("MEDGEMMA4B_MODEL_ID", "medgemma-4b-ctcae")
 
     result, err = _medgemma_infer(baseline_name, current_name, vllm_url, model_id)
     if err:
@@ -853,7 +868,7 @@ def demo_daily_sim(request):
 def demo_validate_sim(request):
     """Validate Simulation — rule-set vs simulation statistical comparison."""
     import json as _json
-    run_id = "20260224_061414_Etoposide___Cisplatin_100pt_126d"
+    run_id = PINNED_RUN_ID
     run_dir = DATA_DIR / "runs" / run_id
     ctx = {"run_id": run_id}
     val_path = run_dir / "validation" / "ruleset_validation_natural_v4.json"
@@ -871,15 +886,8 @@ def demo_validate_sim(request):
 ANTIHALLU_ASSETS = Path(settings.BASE_DIR) / "static_dirs" / "assets" / "antihallu"
 _antihallu_log = logging.getLogger("antihallu")
 
-# vLLM endpoints for antihallu demo (base + defended)
-_AH_BASE_URL = os.environ.get("MEDGEMMA4B_BASE_VLLM_BASE_URL", "").rstrip("/")
-_AH_BASE_MODEL = os.environ.get("MEDGEMMA4B_BASE_MODEL_ID", "medgemma-1.5-4b-it")
-_AH_DEF_URL = os.environ.get("CTE_VLLM_BASE_URL", "").rstrip("/")
-_AH_DEF_MODEL = os.environ.get("CTE_VLLM_MODEL_ID", "medgemma-4b-antihallu")
-_AH_SYSTEM_PROMPT = (
-    "You are a helpful medical AI assistant. If you are not sure about something, "
-    "say so. Do not make up information. Always recommend consulting a healthcare professional."
-)
+# FastAPI endpoint for antihallu demo
+_AH_FASTAPI_URL = os.environ.get("ANTIHALLU_FASTAPI_URL", "http://clara-antihallu:8000").rstrip("/")
 
 
 @require_GET
@@ -892,57 +900,25 @@ def api_antihallu_examples(request):
     return JsonResponse(data)
 
 
-def _vllm_chat(base_url: str, model_id: str, question: str, system_prompt: str = None):
-    """Call vLLM OpenAI-compatible chat completions. Returns dict or None."""
-    if not base_url:
+def _fastapi_antihallu_generate(question: str):
+    """Call the AntiHallu FastAPI server (/api/generate). Returns dict or None."""
+    if not _AH_FASTAPI_URL:
         return None
-    messages = []
-    if system_prompt:
-        messages.append({"role": "system", "content": system_prompt})
-    messages.append({"role": "user", "content": question})
-    payload = {
-        "model": model_id,
-        "messages": messages,
-        "max_tokens": 256,
-        "temperature": 0,
-    }
+    payload = {"question": question}
     body_bytes = json.dumps(payload).encode("utf-8")
     req = Request(
-        f"{base_url}/chat/completions",
+        f"{_AH_FASTAPI_URL}/api/generate",
         data=body_bytes,
-        headers={"Content-Type": "application/json", "Authorization": "Bearer EMPTY"},
+        headers={"Content-Type": "application/json"},
         method="POST",
     )
     try:
-        t0 = time.time()
         with urlopen(req, timeout=120) as resp:
             data = json.loads(resp.read().decode("utf-8"))
-        latency_ms = round((time.time() - t0) * 1000)
-        return {
-            "response": data["choices"][0]["message"]["content"],
-            "latency_ms": latency_ms,
-        }
+        return data
     except (URLError, OSError, json.JSONDecodeError, TimeoutError, KeyError) as exc:
-        _antihallu_log.warning("vLLM antihallu call failed (%s): %s", base_url, exc)
+        _antihallu_log.warning("AntiHallu FastAPI call failed (%s): %s", _AH_FASTAPI_URL, exc)
         return None
-
-
-def _vllm_antihallu_generate(question: str):
-    """Generate responses from both base and defended vLLM models in parallel."""
-    from concurrent.futures import ThreadPoolExecutor
-    with ThreadPoolExecutor(max_workers=2) as pool:
-        fut_orig = pool.submit(_vllm_chat, _AH_BASE_URL, _AH_BASE_MODEL, question)
-        fut_def = pool.submit(_vllm_chat, _AH_DEF_URL, _AH_DEF_MODEL, question, _AH_SYSTEM_PROMPT)
-        original = fut_orig.result()
-        defended = fut_def.result()
-    if original is None or defended is None:
-        return None
-    return {
-        "question": question,
-        "original": original,
-        "defended": defended,
-        "cached": False,
-    }
 
 
 def _cache_lookup(question: str):
@@ -959,7 +935,7 @@ def _cache_lookup(question: str):
 @csrf_exempt
 @require_POST
 def api_antihallu_generate(request):
-    """Generate AntiHallu comparison: vLLM live inference with cache fallback."""
+    """Generate AntiHallu comparison: FastAPI live inference with cache fallback."""
     try:
         body = json.loads(request.body)
     except (json.JSONDecodeError, ValueError):
@@ -969,8 +945,8 @@ def api_antihallu_generate(request):
     if not question:
         return JsonResponse({"error": "question is required"}, status=400)
 
-    # 1) Try live inference via vLLM (base + defended in parallel)
-    live_result = _vllm_antihallu_generate(question)
+    # 1) Try live inference via FastAPI server
+    live_result = _fastapi_antihallu_generate(question)
     if live_result is not None:
         live_result["live"] = True
         return JsonResponse(live_result)
@@ -987,7 +963,7 @@ def api_antihallu_generate(request):
         })
 
     return JsonResponse(
-        {"error": "vLLM models unavailable and question not in cache"},
+        {"error": "AntiHallu server unavailable and question not in cache"},
         status=503,
     )
 
@@ -1007,10 +983,10 @@ def trial_viewer(request, run_id: str, day: int = 1):
                    if "_hospital" not in f.stem]
     care_files = [f for f in sim_dir.glob("*_care_ai.jsonl")
                 if "_hospital" not in f.stem]
-    if natural_files:
-        available_modes.append("natural")
     if care_files:
         available_modes.append("care_ai")
+    if natural_files:
+        available_modes.append("natural")
 
     # Default to first available mode if requested mode doesn't exist
     mode = request.GET.get("mode", "")
@@ -1592,18 +1568,19 @@ def _load_virtual_patients():
 def demo_care_agent(request):
     """Care Agent demo page — Tab 1: MedGemma Vision, Tab 2: Care Agent Live."""
     config = _load_virtual_patients()
-    return render(request, "demo/care_agent.html", {"vpatients": config.get("patients", [])})
+    return render(request, "demo/data_collection_agent.html", {"vpatients": config.get("patients", [])})
 
 
 @csrf_exempt
 @require_POST
 def api_care_agent_run(request):
-    """Run Care Agent for a virtual patient — SSE stream with images + audio."""
+    """Run Care Agent for a virtual patient — SSE stream via Care AI /v1/consult API."""
     from django.http import StreamingHttpResponse
-    import queue, threading
+    import queue, threading, base64, requests as _requests
 
     body = json.loads(request.body)
     patient_id = body.get("patient_id", "")
+    user_api_key = body.get("api_key", "").strip()
 
     config = _load_virtual_patients()
     vpt = None
@@ -1618,135 +1595,25 @@ def api_care_agent_run(request):
     indication = config.get("indication", "")
     rep = vpt.get("representative_day", {})
     demographics = vpt.get("profile", {})
-    persona_type = vpt.get("persona", "minimizer")
 
     q = queue.Queue()
 
-    def _run_medgemma(baseline_name, current_name):
-        """Call MedGemma finetuned model for real visual AE inference."""
-        import base64, urllib.request as ureq, re as _re
-        img_dir = Path(settings.BASE_DIR).parent / "data" / "multimodal" / "v3_images"
-        bl_path = img_dir / baseline_name
-        cur_path = img_dir / current_name
-        if not bl_path.exists():
-            bl_path = Path(settings.BASE_DIR) / "static_dirs" / "assets" / "medgemma" / baseline_name
-        if not cur_path.exists():
-            cur_path = Path(settings.BASE_DIR) / "static_dirs" / "assets" / "medgemma" / current_name
-        if not bl_path.exists() or not cur_path.exists():
-            return []
-        b64_bl = base64.b64encode(bl_path.read_bytes()).decode()
-        b64_cur = base64.b64encode(cur_path.read_bytes()).decode()
-        vllm_url = "http://clara-medgemma4b-ctcae:8000/v1"
-        model_id = "medgemma-4b-finetuned"
-        payload = json.dumps({
-            "model": model_id, "max_completion_tokens": 512, "temperature": 0,
-            "messages": [{"role": "user", "content": [
-                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64_bl}"}},
-                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64_cur}"}},
-                {"type": "text", "text": _MEDGEMMA_PROMPT},
-            ]}],
-        }).encode()
-        req = Request(f"{vllm_url}/chat/completions", data=payload,
-                           headers={"Content-Type": "application/json"})
-        try:
-            with urlopen(req, timeout=60) as resp:
-                result = json.loads(resp.read())
-            text = result["choices"][0]["message"]["content"]
-            text = text.strip()
-            if text.startswith("```"):
-                text = _re.sub(r"^```\w*\n?", "", text)
-                text = _re.sub(r"\n?```$", "", text)
-            parsed = json.loads(text)
-            return parsed if isinstance(parsed, list) else []
-        except Exception as exc:
-            import logging
-            logging.getLogger("care_agent").error("MedGemma inference error: %s", exc)
-            return []
+    CARE_AI_URL = os.environ.get("CARE_AI_API_URL", "http://clara-data-collection-agent:8300")
 
     def _run():
         try:
-            if not os.environ.get("GOOGLE_API_KEY"):
-                env_path = Path(settings.BASE_DIR).parent / ".env"
-                if env_path.exists():
-                    for line in env_path.read_text().splitlines():
-                        if line.startswith("GOOGLE_API_KEY="):
-                            os.environ["GOOGLE_API_KEY"] = line.split("=", 1)[1].strip()
+            import time as _time
+            import logging
+            log = logging.getLogger("care_agent")
 
-            from src.agents.llm_client import generate_json, set_caller
-            from src.experiments.eval_prompt_templates import template_f_realistic, generate_final_assessment
-
-            padcev_ae_profile = [
-                {"ae_term": "rash_maculopapular", "incidence_pct": "55%", "common_symptoms": "skin rash, itching, redness"},
-                {"ae_term": "peripheral_neuropathy", "incidence_pct": "53%", "common_symptoms": "tingling, numbness in hands/feet"},
-                {"ae_term": "alopecia", "incidence_pct": "50%", "common_symptoms": "hair thinning or loss"},
-                {"ae_term": "fatigue", "incidence_pct": "50%", "common_symptoms": "tiredness, lack of energy"},
-                {"ae_term": "decreased_appetite", "incidence_pct": "44%", "common_symptoms": "reduced appetite, weight loss"},
-                {"ae_term": "nausea", "incidence_pct": "42%", "common_symptoms": "stomach upset, queasiness"},
-                {"ae_term": "pruritus", "incidence_pct": "32%", "common_symptoms": "itching without visible rash"},
-                {"ae_term": "pneumonitis", "incidence_pct": "10%", "common_symptoms": "cough, shortness of breath"},
-                {"ae_term": "stomatitis", "incidence_pct": "20%", "common_symptoms": "mouth sores, lip blisters"},
-                {"ae_term": "periorbital_edema", "incidence_pct": "15%", "common_symptoms": "swelling around eyes"},
-            ]
-
-            day = rep.get("day", 7)
+            face_idx = vpt["face_idx"]
             ae_term = rep.get("ae")
             ae_grade = rep.get("grade", 0)
             image_file = rep.get("image", "")
             audio_label = rep.get("audio_label", "none")
-            baseline_image = f"normal_{vpt['face_idx']}.png"
-
-            q.put(json.dumps({"type": "session_start", "patient_id": patient_id,
-                              "total_days": 1}))
-
-            # --- Step 1: MedGemma visual inference ---
-            q.put(json.dumps({"type": "medgemma_start"}))
-            import time as _time
-            t0 = _time.time()
-            mg_findings = _run_medgemma(baseline_image, image_file)
-            mg_elapsed = round((_time.time() - t0) * 1000)
-            if not isinstance(mg_findings, list):
-                mg_findings = []
-
-            visual_findings = []
-            for f in mg_findings:
-                visual_findings.append({
-                    "ae_term": f.get("ae_term", "unknown"),
-                    "grade": f.get("grade", 1),
-                    "confidence": f.get("confidence", 0.5),
-                    "reasoning": f.get("reasoning", ""),
-                })
-            visual_obs = []
-            if visual_findings:
-                for vf in visual_findings:
-                    visual_obs.append(f"{vf['ae_term'].replace('_',' ')} G{vf['grade']}")
-            else:
-                visual_obs.append("No visual AE changes detected")
-
-            q.put(json.dumps({
-                "type": "medgemma_result",
-                "findings": visual_findings,
-                "latency_ms": mg_elapsed,
-                "baseline_image": baseline_image,
-                "current_image": image_file,
-            }))
-
-            audio_assessment = "No cough detected"
-            if audio_label == "dry":
-                audio_assessment = "Dry cough detected — possible pneumonitis indicator"
-            elif audio_label == "wet":
-                audio_assessment = "Wet/productive cough detected — possible infection or fluid"
-
-            q.put(json.dumps({
-                "type": "day_start", "day": day,
-                "image": image_file,
-                "baseline_image": baseline_image,
-                "audio_label": audio_label,
-                "has_visual_ae": len(visual_findings) > 0,
-                "gt_ae": ae_term or "none",
-                "gt_grade": ae_grade,
-            }))
-
-            visual_assessment = {"findings": visual_findings, "general_observations": visual_obs}
+            baseline_image = f"normal_{face_idx}.png"
+            patient_text = vpt.get("patient_text", "")
+            audio_file = vpt.get("audio_file", f"patient_{face_idx}.wav")
 
             current_labs = vpt.get("current_labs", {})
             baseline_labs = vpt.get("baseline_labs", {})
@@ -1756,11 +1623,166 @@ def api_care_agent_run(request):
             ecog = vpt.get("ecog", 1)
             mood_data = vpt.get("mood", {})
 
+            # --- Load image + audio as base64 ---
+            data_dir = Path(settings.BASE_DIR).parent / "data" / "multimodal"
+            img_path = data_dir / "v3_images" / image_file
+            audio_path = data_dir / "audio" / "patient1" / audio_file
+
+            image_b64 = None
+            if img_path.exists():
+                image_b64 = base64.b64encode(img_path.read_bytes()).decode()
+
+            audio_b64 = None
+            if audio_path.exists():
+                audio_b64 = base64.b64encode(audio_path.read_bytes()).decode()
+
+            # --- SSE: session_start ---
+            q.put(json.dumps({"type": "session_start", "patient_id": patient_id,
+                              "total_days": 1}))
+
+            # --- SSE: day_start ---
             q.put(json.dumps({
-                "type": "nurse_context", "day": day,
-                "visual_assessment": visual_assessment,
-                "audio_assessment": audio_assessment,
-                "ae_profile_used": [a["ae_term"] for a in padcev_ae_profile],
+                "type": "day_start",
+                "image": image_file,
+                "baseline_image": baseline_image,
+                "audio_label": audio_label,
+                "audio_url": f"/api/care-agent/media/audio/{audio_file}" if audio_b64 else None,
+                "has_visual_ae": bool(ae_term),
+                "gt_ae": ae_term or "none",
+                "gt_grade": ae_grade,
+            }))
+
+            # --- SSE: patient_greet (patient text — before inference starts) ---
+            q.put(json.dumps({
+                "type": "patient_greet",
+                "text": patient_text,
+                "audio_url": f"/api/care-agent/media/audio/{audio_file}" if audio_b64 else None,
+                "symptoms": [],
+                "mood": "neutral",
+            }))
+
+            # --- SSE: inference_start (thinking bubble appears) ---
+            q.put(json.dumps({"type": "inference_start", "has_audio": bool(audio_b64)}))
+
+            # ===== Step 1: HeAR (cough detection) =====
+            audio_assessment = None
+            audio_text = "No cough detected"
+            hear_result = {}
+            if audio_b64:
+                try:
+                    t0 = _time.time()
+                    resp = _requests.post(
+                        f"{CARE_AI_URL}/v1/cough",
+                        json={"audio_b64": audio_b64},
+                        timeout=60,
+                    )
+                    resp.raise_for_status()
+                    cough_data = resp.json()
+                    audio_assessment = cough_data.get("audio_assessment")
+                    cough_ms = cough_data.get("latency_ms", 0)
+                    if audio_assessment:
+                        hear_result = {
+                            "cough_detected": audio_assessment.get("cough_detected", False),
+                            "majority_type": audio_assessment.get("majority_type"),
+                            "num_cough_segments": audio_assessment.get("num_cough_segments", 0),
+                            "num_energy_segments": audio_assessment.get("num_energy_segments", 0),
+                            "duration_sec": audio_assessment.get("duration_sec", 0),
+                            "vote_counts": audio_assessment.get("vote_counts", {}),
+                            "latency_ms": cough_ms,
+                        }
+                        if audio_assessment.get("cough_detected"):
+                            mtype = audio_assessment.get("majority_type", "dry")
+                            audio_text = f"{mtype.capitalize()} cough detected"
+                except Exception as exc:
+                    log.warning("HeAR /v1/cough error: %s", exc)
+
+                # --- SSE: hear_result ---
+                q.put(json.dumps({"type": "hear_result", **hear_result}))
+            else:
+                q.put(json.dumps({"type": "hear_unavailable"}))
+
+            # ===== Step 2: MedASR (transcription) =====
+            medical_transcript = None
+            if audio_b64:
+                try:
+                    t0 = _time.time()
+                    resp = _requests.post(
+                        f"{CARE_AI_URL}/v1/transcribe",
+                        json={"audio_b64": audio_b64},
+                        timeout=60,
+                    )
+                    resp.raise_for_status()
+                    asr_data = resp.json()
+                    medical_transcript = asr_data.get("medical_transcript")
+                    medasr_ms = asr_data.get("latency_ms", 0)
+                except Exception as exc:
+                    log.warning("MedASR /v1/transcribe error: %s", exc)
+
+                # --- SSE: medasr_result ---
+                medasr_info = {}
+                if medical_transcript:
+                    words = len(medical_transcript.split())
+                    medasr_info = {"transcript": medical_transcript, "word_count": words, "latency_ms": medasr_ms}
+                q.put(json.dumps({"type": "medasr_result", **medasr_info}))
+            else:
+                q.put(json.dumps({"type": "medasr_unavailable"}))
+
+            # ===== Step 3: SigLIP (visual classification) =====
+            visual_assessment = {}
+            siglip_findings = []
+            siglip_ms = 0
+            raw_pred = {}
+            if image_b64:
+                try:
+                    t0 = _time.time()
+                    resp = _requests.post(
+                        f"{CARE_AI_URL}/v1/classify",
+                        json={"image_b64": image_b64},
+                        timeout=60,
+                    )
+                    resp.raise_for_status()
+                    classify_data = resp.json()
+                    visual_assessment = classify_data.get("visual_assessment", {})
+                    siglip_ms = classify_data.get("latency_ms", 0)
+                    va_findings = visual_assessment.get("findings", [])
+                    raw_pred = visual_assessment.get("raw_prediction", {})
+                    for f in va_findings:
+                        siglip_findings.append({
+                            "ae_term": f.get("ae_term") or "normal",
+                            "grade": f.get("estimated_grade") or 0,
+                            "confidence": f.get("confidence", 0),
+                            "description": f.get("description", ""),
+                        })
+                except Exception as exc:
+                    log.warning("SigLIP /v1/classify error: %s", exc)
+
+            # --- SSE: siglip_result ---
+            q.put(json.dumps({
+                "type": "siglip_result",
+                "findings": siglip_findings,
+                "raw_prediction": raw_pred,
+                "general_observations": visual_assessment.get("general_observations", []),
+                "latency_ms": siglip_ms,
+                "baseline_image": baseline_image,
+                "current_image": image_file,
+            }))
+
+            # --- Build visual_obs for nurse_context ---
+            visual_obs = []
+            if siglip_findings:
+                for vf in siglip_findings:
+                    if vf["ae_term"] != "normal":
+                        visual_obs.append(f"{vf['ae_term'].replace('_',' ')} G{vf['grade']}")
+            if not visual_obs:
+                visual_obs.append("No visual AE changes detected")
+
+            visual_assessment_ctx = {"findings": siglip_findings, "general_observations": visual_obs}
+
+            # --- SSE: nurse_context ---
+            q.put(json.dumps({
+                "type": "nurse_context",
+                "visual_assessment": visual_assessment_ctx,
+                "audio_assessment": audio_text,
                 "patient_info": demographics,
                 "current_labs": current_labs,
                 "baseline_labs": baseline_labs,
@@ -1769,149 +1791,110 @@ def api_care_agent_run(request):
                 "medical_history": [h.get("condition", "") + (" (" + h.get("medication", "") + ")" if h.get("medication") and h["medication"] != "none" else "") for h in med_history],
                 "ecog": ecog,
                 "mood": mood_data,
+                "medical_transcript": medical_transcript,
             }))
 
-            quality = {
-                "engagement": max(0.3, 1.0 - mood_data.get("defensiveness", 0.3)),
-                "under_report_prob": mood_data.get("defensiveness", 0.3),
-                "over_report_prob": mood_data.get("anxiety", 0.3) * 0.3,
-                "video_cooperation": 1.0 - mood_data.get("defensiveness", 0.3) * 0.5,
-            }
-
-            labs_text = ""
-            if current_labs:
-                lab_lines = []
-                for lname, ldata in current_labs.items():
-                    bl_val = baseline_labs.get(lname, {}).get("value", "?")
-                    trend = ldata.get("trend", "")
-                    lab_lines.append(f"  {lname}: {ldata['value']} {ldata.get('unit','')} (baseline: {bl_val}, {trend})")
-                labs_text = "\n".join(lab_lines)
-
-            vitals_text = ""
-            if current_vitals:
-                vitals_text = ", ".join(f"{k}={v}" for k, v in current_vitals.items())
-
-            meds_text = "\n".join(f"  - {m}" for m in current_meds) if current_meds else "  None"
-            hx_text = "\n".join(f"  - {h.get('condition', '')} ({h.get('medication', 'none')})" for h in med_history) if med_history else "  None"
-
-            scenario = {
-                "drug_name": drug_name, "indication": indication,
-                "visual_assessment": visual_assessment,
-                "audio_assessment": audio_assessment,
-                "drug_ae_profile": padcev_ae_profile,
-                "patient_demographics": demographics,
-                "treatment_day": day,
-                "current_labs_text": labs_text,
-                "current_vitals_text": vitals_text,
-                "current_medications_text": meds_text,
-                "medical_history_text": hx_text,
-                "ecog": ecog,
-                "patient_persona_type": persona_type,
-                "patient_mood": mood_data,
-            }
-
-            # --- Step 2: Patient greeting ---
-            patient_sys = f"""You are a cancer patient in a video call. Persona: {persona_type}.
-Profile: {demographics.get('age','?')}yo {demographics.get('sex','?')}, {demographics.get('race','?')}.
-Drug: {drug_name} for {indication}. Day {day}.
-{"You have " + ae_term.replace('_',' ') + " Grade " + str(ae_grade) + " but may not fully realize it." if ae_term else "No active AEs today."}
-{"You have a " + audio_label + " cough." if audio_label != "none" else ""}
-Speak naturally in English. Be realistic — match your persona.
-Output JSON: {{"greeting":"...", "reported_symptoms":[...], "mood_expression":"..."}}"""
-
-            set_caller(f"care_agent.patient.{patient_id}")
+            # ===== Step 4: NurseEngine (MedGemma + TTS) =====
+            nurse_structured = {}
+            nurse_text = ""
+            nurse_audio_b64 = None
+            session_id = ""
+            consult_elapsed = 0
             try:
-                greet_resp = generate_json(patient_sys,
-                    f"Day {day}. Greet the nurse briefly. Be yourself.",
-                    model="gemini-2.0-flash", max_tokens=512)
-            except Exception:
-                greet_resp = {"greeting": "Hey.", "reported_symptoms": [], "mood_expression": "neutral"}
+                t0 = _time.time()
+                nurse_payload = {
+                        "patient_text": patient_text,
+                        "visual_assessment": visual_assessment,
+                        "audio_assessment": audio_assessment,
+                        "medical_transcript": medical_transcript,
+                        "drug_name": drug_name,
+                        "indication": indication,
+                        "skip_tts": False,
+                    }
+                if user_api_key:
+                    nurse_payload["api_key"] = user_api_key
+                resp = _requests.post(
+                    f"{CARE_AI_URL}/v1/nurse",
+                    json=nurse_payload,
+                    timeout=120,
+                )
+                resp.raise_for_status()
+                nurse_data = resp.json()
+                session_id = nurse_data.get("session_id", "")
+                nurse_text = nurse_data.get("nurse_text", "")
+                nurse_structured = nurse_data.get("nurse_structured", {})
+                nurse_audio_b64 = nurse_data.get("audio_base64")
+                consult_elapsed = (nurse_data.get("latency_ms") or {}).get("total_ms", 0)
+            except Exception as exc:
+                log.error("Nurse /v1/nurse error: %s", exc)
+                q.put(json.dumps({"type": "error", "message": f"Nurse API error: {exc}"}))
+                q.put(json.dumps({"type": "finished"}))
+                return
 
-            greet_text = greet_resp.get("greeting", "Hi.")
+            nurse_questions = nurse_structured.get("questions", [])
+            nurse_concerns = nurse_structured.get("preliminary_concerns", [])
+
+            # Build nurse audio URL if TTS was returned
+            nurse_audio_url = None
+            if nurse_audio_b64:
+                import base64 as _b64
+                nurse_wav_name = f"nurse_{face_idx}.wav"
+                nurse_audio_dir = data_dir / "audio" / "nurse_1"
+                nurse_audio_dir.mkdir(parents=True, exist_ok=True)
+                nurse_wav_path = nurse_audio_dir / nurse_wav_name
+                nurse_wav_path.write_bytes(_b64.b64decode(nurse_audio_b64))
+                nurse_audio_url = f"/api/care-agent/media/audio/{nurse_wav_name}"
+
+            # --- SSE: nurse_turn ---
             q.put(json.dumps({
-                "type": "patient_greet", "day": day,
-                "text": greet_text,
-                "symptoms": greet_resp.get("reported_symptoms", []),
-                "mood": greet_resp.get("mood_expression", "neutral"),
+                "type": "nurse_turn", "turn": 1,
+                "text": nurse_text,
+                "questions": nurse_questions,
+                "concerns": nurse_concerns,
+                "audio_url": nurse_audio_url,
+                "approach_style": nurse_structured.get("approach_style", "empathetic"),
+                "session_id": session_id,
             }))
 
-            history = [{"_role": "patient", "_turn": 1,
-                        "greeting": greet_text,
-                        "reported_symptoms": greet_resp.get("reported_symptoms", []),
-                        "general_wellbeing": greet_resp.get("mood_expression", ""),
-                        "mood_expression": greet_resp.get("mood_expression", "neutral")}]
+            # --- SSE: assessment ---
+            detected_aes = []
+            for f in siglip_findings:
+                if f["ae_term"] != "normal" and f["confidence"] > 0.1:
+                    detected_aes.append({
+                        "ae_term": f["ae_term"],
+                        "grade": f["grade"],
+                        "confidence": f["confidence"],
+                        "source": "visual",
+                    })
+            for concern in nurse_concerns:
+                concern_lower = concern.lower().replace(" ", "_")
+                already = any(a["ae_term"] == concern_lower for a in detected_aes)
+                if not already:
+                    detected_aes.append({
+                        "ae_term": concern_lower,
+                        "grade": 0,
+                        "confidence": 0,
+                        "source": "nurse_concern",
+                    })
 
-            # --- Step 3: Multi-turn conversation ---
-            for turn in range(2, 5):
-                sys_prompt, usr_prompt = template_f_realistic(scenario, quality, turn, history)
-                set_caller(f"care_agent.nurse.{patient_id}")
-                try:
-                    nurse_resp = generate_json(sys_prompt, usr_prompt,
-                                               model="gemini-2.0-flash", max_tokens=1024)
-                except Exception:
-                    nurse_resp = {"acknowledgment": "Let me check a couple things.",
-                                  "questions": []}
+            concern_level = "low"
+            if any(a.get("grade", 0) >= 3 for a in detected_aes):
+                concern_level = "high"
+            elif any(a.get("grade", 0) >= 2 for a in detected_aes):
+                concern_level = "moderate"
 
-                nurse_msg = nurse_resp.get("acknowledgment", "")
-                questions = nurse_resp.get("questions", [])
-                nurse_full = nurse_msg
-                for nq in questions:
-                    nurse_full += f"\n{nq.get('question', '')}"
-
-                q.put(json.dumps({
-                    "type": "nurse_turn", "day": day, "turn": turn,
-                    "text": nurse_full,
-                    "questions": questions,
-                    "concerns": nurse_resp.get("concerns", []),
-                }))
-
-                history.append({"_role": "nurse", "_turn": turn,
-                                "acknowledgment": nurse_msg, "questions": questions})
-
-                pt_chat_sys = f"""You are a cancer patient responding to a nurse. Persona: {persona_type}.
-Day {day}. {"Active AE: " + ae_term.replace('_',' ') + " G" + str(ae_grade) if ae_term else "No AEs."}
-{"You have a " + audio_label + " cough." if audio_label != "none" else ""}
-Respond naturally in English. 1-2 sentences max.
-Output JSON: {{"response":"...", "revealed_new_info":true/false, "emotional_state":"..."}}"""
-
-                set_caller(f"care_agent.patient.{patient_id}")
-                try:
-                    pt_resp = generate_json(pt_chat_sys,
-                        f'Nurse said: "{nurse_full}"\nHistory: {json.dumps(history[-4:], default=str)[:600]}',
-                        model="gemini-2.0-flash", max_tokens=512)
-                except Exception:
-                    pt_resp = {"response": "I guess so.", "revealed_new_info": False,
-                               "emotional_state": "neutral"}
-
-                pt_text = pt_resp.get("response", "")
-                q.put(json.dumps({
-                    "type": "patient_turn", "day": day, "turn": turn,
-                    "text": pt_text,
-                    "revealed": pt_resp.get("revealed_new_info", False),
-                    "emotion": pt_resp.get("emotional_state", "neutral"),
-                }))
-                history.append({"_role": "patient", "_turn": turn,
-                                "responses": [{"answer": pt_text}],
-                                "emotional_reaction": pt_resp.get("emotional_state", "neutral")})
-
-            # --- Step 4: Final assessment ---
-            try:
-                assessment = generate_final_assessment(scenario, history,
-                    lambda s, u: generate_json(s, u, model="gemini-2.0-flash", max_tokens=2048))
-            except Exception:
-                assessment = {"detected_aes": [], "overall_concern_level": "unknown"}
-
-            detected_aes = assessment.get("detected_aes", [])
             q.put(json.dumps({
-                "type": "assessment", "day": day,
+                "type": "assessment",
                 "detected_aes": detected_aes,
-                "concern": assessment.get("overall_concern_level", "unknown"),
-                "action": assessment.get("recommended_action", "continue"),
+                "concern": concern_level,
+                "action": "recommend_early_visit" if concern_level in ("high", "moderate") else "continue_monitoring",
+                "latency_ms": consult_elapsed,
             }))
 
+            # --- SSE: day_end ---
             gt_list = [{"ae": ae_term, "grade": ae_grade}] if ae_term else []
             q.put(json.dumps({
-                "type": "day_end", "day": day,
+                "type": "day_end",
                 "gt_aes": gt_list,
                 "detected_aes": detected_aes,
             }))
@@ -1969,15 +1952,86 @@ def api_care_agent_media(request, media_type: str, filename: str):
         fpath = base / "v3_images" / filename
         content_type = "image/png"
     elif media_type == "audio":
-        fpath = base / "generated_voices_v4" / filename
+        # Try patient audio first, then nurse audio, then legacy
+        fpath = base / "audio" / "patient1" / filename
+        if not fpath.exists():
+            fpath = base / "audio" / "nurse_1" / filename
+        if not fpath.exists():
+            fpath = base / "generated_voices_v4" / filename
         content_type = "audio/wav"
     else:
         return HttpResponse("Invalid media type", status=400)
 
-    if not fpath.exists() or ".." in filename:
+    if not fpath.exists():
         return HttpResponse("Not found", status=404)
 
+    try:
+        fpath.resolve().relative_to(base.resolve())
+    except ValueError:
+        return HttpResponse("Access denied", status=403)
+
     return FileResponse(open(fpath, "rb"), content_type=content_type)
+
+
+@csrf_exempt
+@require_POST
+def api_care_agent_chat(request):
+    """Proxy follow-up chat to Care AI /v1/chat endpoint."""
+    import requests as _requests
+
+    body = json.loads(request.body)
+    session_id = body.get("session_id", "")
+    message = body.get("message", "")
+    user_api_key = body.get("api_key", "").strip()
+
+    if not session_id or not message:
+        return JsonResponse({"error": "session_id and message are required"}, status=400)
+
+    CARE_AI_URL = os.environ.get("CARE_AI_API_URL", "http://clara-data-collection-agent:8300")
+
+    try:
+        chat_payload = {
+                "session_id": session_id,
+                "message": message,
+                "skip_tts": body.get("skip_tts", False),
+            }
+        if user_api_key:
+            chat_payload["api_key"] = user_api_key
+        resp = _requests.post(
+            f"{CARE_AI_URL}/v1/chat",
+            json=chat_payload,
+            timeout=60,
+        )
+        resp.raise_for_status()
+        data = resp.json()
+
+        # If TTS audio returned, save to file and provide URL
+        audio_url = None
+        if data.get("audio_base64"):
+            import base64
+            data_dir = Path(settings.BASE_DIR).parent / "data" / "multimodal" / "audio" / "nurse_1"
+            data_dir.mkdir(parents=True, exist_ok=True)
+            audio_filename = f"chat_{session_id[:8]}_{int(time.time())}.wav"
+            audio_path = data_dir / audio_filename
+            audio_path.write_bytes(base64.b64decode(data["audio_base64"]))
+            audio_url = f"/api/care-agent/media/audio/{audio_filename}"
+
+        return JsonResponse({
+            "nurse_text": data.get("nurse_text", ""),
+            "nurse_structured": data.get("nurse_structured", {}),
+            "audio_url": audio_url,
+            "latency_ms": data.get("latency_ms", {}),
+        })
+    except _requests.exceptions.HTTPError as exc:
+        status = exc.response.status_code if exc.response is not None else 502
+        detail = ""
+        try:
+            detail = exc.response.json().get("detail", str(exc))
+        except Exception:
+            detail = str(exc)
+        return JsonResponse({"error": detail}, status=status)
+    except Exception as exc:
+        return JsonResponse({"error": f"Care AI chat error: {exc}"}, status=502)
 
 
 # ═══════════════════════════════════════════════════════════════
@@ -2493,6 +2547,7 @@ def api_sim_start(request):
     seed = body.get("seed")
     rule_set_preset = body.get("rule_set_preset")
     skip_rules = rule_set_preset is not None or body.get("skip_rules", True)
+    user_api_key = body.get("api_key", "").strip()
 
     # Create run directory
     from datetime import datetime as _dt
@@ -2507,14 +2562,19 @@ def api_sim_start(request):
         import sys as _sys
         _sys.path.insert(0, str(Path(settings.BASE_DIR).parent))
 
-        # Load .env
-        env_path = Path(settings.BASE_DIR).parent / ".env"
-        if env_path.exists():
-            for line in env_path.read_text().splitlines():
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    key, val = line.split("=", 1)
-                    os.environ.setdefault(key.strip(), val.strip())
+        # 사용자 API 키가 있으면 현재 스레드에만 설정 (다른 요청에 영향 없음)
+        if user_api_key:
+            from src.agents.llm_client import set_api_key
+            set_api_key(user_api_key)
+        else:
+            # Load .env
+            env_path = Path(settings.BASE_DIR).parent / ".env"
+            if env_path.exists():
+                for line in env_path.read_text().splitlines():
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        key, val = line.split("=", 1)
+                        os.environ.setdefault(key.strip(), val.strip())
 
         from src.orchestrator_v2 import SimulationRunnerV2
 
@@ -3017,7 +3077,8 @@ def api_doc_download(request, run_id, patient_id, filename):
     disposition = "inline" if filename.endswith(".pdf") else "attachment"
     with open(file_path, "rb") as f:
         response = HttpResponse(f.read(), content_type=content_type)
-        response["Content-Disposition"] = f'{disposition}; filename="{filename}"'
+        safe_filename = filename.replace('"', '_').replace('\n', '_').replace('\r', '_')
+        response["Content-Disposition"] = f'{disposition}; filename="{safe_filename}"'
         return response
 
 
@@ -3149,26 +3210,31 @@ def api_doc_save(request):
     pdf_url = f"/api/doc/download/{run_id}/{patient_id}/{pdf_path.name}"
     xml_url = f"/api/doc/download/{run_id}/{patient_id}/{xml_path.name}"
 
-    # Auto-create status file if missing
+    # Update status file with refreshed MedDRA confidence
     from src.doc_agent.service import DOCS_OUTPUT_DIR as _DOCS_DIR
+    from datetime import datetime
     status_path = _DOCS_DIR / run_id / patient_id / f"report_status_{ae_slug}.json"
-    if not status_path.exists():
-        from datetime import datetime
-        status_path.parent.mkdir(parents=True, exist_ok=True)
+    status_path.parent.mkdir(parents=True, exist_ok=True)
+    if status_path.exists():
+        try:
+            status_data = json.loads(status_path.read_text(encoding="utf-8"))
+        except Exception:
+            status_data = {}
+    else:
         status_data = {
             "status": "draft",
             "ai_fields": {},
-            "meddra_confidence": None,
-            "meddra_source": None,
             "reviewed_by": None,
             "reviewed_at": None,
             "created_at": datetime.utcnow().isoformat(),
-            "updated_at": datetime.utcnow().isoformat(),
         }
-        status_path.write_text(
-            json.dumps(status_data, indent=2, ensure_ascii=False),
-            encoding="utf-8",
-        )
+    status_data["meddra_confidence"] = meddra.confidence
+    status_data["meddra_source"] = meddra.source
+    status_data["updated_at"] = datetime.utcnow().isoformat()
+    status_path.write_text(
+        json.dumps(status_data, indent=2, ensure_ascii=False),
+        encoding="utf-8",
+    )
 
     return JsonResponse({
         "success": True,
@@ -3393,8 +3459,16 @@ def doc_hub(request, run_id: str):
     if not run_path.exists():
         return HttpResponse("Run not found", status=404)
 
-    mode = request.GET.get("mode", "natural")
+    mode = request.GET.get("mode", "care_ai")
     patient_ids = _list_patients(run_path)
+
+    sim_dir = run_path / "simulations"
+    available_modes = []
+    if sim_dir.exists():
+        if list(sim_dir.glob("*_care_ai.jsonl")):
+            available_modes.append("care_ai")
+        if list(sim_dir.glob("*_natural.jsonl")):
+            available_modes.append("natural")
 
     from src.doc_agent.sim_to_crf_adapter import find_serious_aes
 
@@ -3443,6 +3517,7 @@ def doc_hub(request, run_id: str):
     context = {
         "run_id": run_id,
         "mode": mode,
+        "available_modes": available_modes,
         "saes": all_saes,
         "sae_count": len(all_saes),
         "patient_count": len(set(s["patient_id"] for s in all_saes)),
@@ -3472,10 +3547,10 @@ def crf_tables(request, run_id: str):
     sim_dir = run_path / "simulations"
     available_modes = []
     if sim_dir.exists():
-        if list(sim_dir.glob("*_natural.jsonl")):
-            available_modes.append("natural")
         if list(sim_dir.glob("*_care_ai.jsonl")):
             available_modes.append("care_ai")
+        if list(sim_dir.glob("*_natural.jsonl")):
+            available_modes.append("natural")
 
     # Load run meta
     drug_name = ""
@@ -3578,7 +3653,7 @@ def api_crf_domain_data(request, run_id: str, domain: str):
         return JsonResponse({"error": "Run not found"}, status=404)
 
     source = request.GET.get("source", "hr")
-    mode = request.GET.get("mode", "natural")
+    mode = request.GET.get("mode", "care_ai")
     patient_filter = request.GET.get("patient", "")
     page = int(request.GET.get("page", 1))
     per_page = int(request.GET.get("per_page", 100))
@@ -3618,7 +3693,7 @@ def api_crf_excel_download(request, run_id: str):
         return JsonResponse({"error": "Run not found"}, status=404)
 
     source = request.GET.get("source", "hr")
-    mode = request.GET.get("mode", "natural")
+    mode = request.GET.get("mode", "care_ai")
     domains_param = request.GET.get("domains", "")
 
     if domains_param:
@@ -3827,10 +3902,10 @@ def statistical_analysis(request, run_id: str):
     sim_dir = run_path / "simulations"
     available_modes = []
     if sim_dir.exists():
-        if list(sim_dir.glob("*_natural.jsonl")):
-            available_modes.append("natural")
         if list(sim_dir.glob("*_care_ai.jsonl")):
             available_modes.append("care_ai")
+        if list(sim_dir.glob("*_natural.jsonl")):
+            available_modes.append("natural")
 
     n_patients = len(_list_patients(run_path))
 
@@ -3851,7 +3926,7 @@ def api_stats_data(request, run_id: str):
     if not run_path.exists():
         return JsonResponse({"error": "Run not found"}, status=404)
 
-    mode = request.GET.get("mode", "natural")
+    mode = request.GET.get("mode", "care_ai")
 
     cache_path = run_path / "validation" / f"csr_stats_{mode}.json"
     sim_dir = run_path / "simulations"
@@ -3883,6 +3958,1023 @@ def api_stats_data(request, run_id: str):
             stats = json.load(f)
 
     return JsonResponse(stats, json_dumps_params={"ensure_ascii": False})
+
+
+# ─── Stats Chatbot ──────────────────────────────────────────
+
+_STATS_CHAT_URL = os.environ.get("CTE_VLLM_BASE_URL", "").rstrip("/")
+_STATS_CHAT_MODEL = os.environ.get("CTE_VLLM_MODEL_ID", "medgemma-4b-antihallu")
+
+
+def _sanitize_messages(messages):
+    """Ensure roles alternate user/assistant after system. Drop consecutive same-role messages."""
+    if not messages:
+        return messages
+    out = []
+    for msg in messages:
+        role = msg.get("role", "user")
+        if role == "system":
+            out.append(msg)
+            continue
+        if out and out[-1].get("role") == role:
+            # merge into previous to avoid consecutive same-role
+            out[-1] = {**out[-1], "content": out[-1]["content"] + "\n" + msg.get("content", "")}
+        else:
+            out.append(msg)
+    # vLLM requires last message to be user
+    if out and out[-1].get("role") != "user" and out[-1].get("role") != "system":
+        out.append({"role": "user", "content": "(continue)"})
+    return out
+
+
+def _call_chat_llm(messages, query_meta):
+    """Call vLLM for chat completions. Returns JsonResponse."""
+    import re as _re
+
+    if not _STATS_CHAT_URL:
+        return JsonResponse({"error": "vLLM not configured (CTE_VLLM_BASE_URL)"}, status=500)
+
+    messages = _sanitize_messages(messages)
+
+    payload = {
+        "model": _STATS_CHAT_MODEL,
+        "messages": messages,
+        "max_tokens": 512,
+        "temperature": 0.2,
+        "repetition_penalty": 1.15,
+    }
+    body_bytes = json.dumps(payload).encode("utf-8")
+    req = Request(
+        f"{_STATS_CHAT_URL}/chat/completions",
+        data=body_bytes,
+        headers={"Content-Type": "application/json", "Authorization": "Bearer EMPTY"},
+        method="POST",
+    )
+    try:
+        t0 = time.time()
+        with urlopen(req, timeout=120) as resp:
+            data = json.loads(resp.read().decode("utf-8"))
+        latency_ms = round((time.time() - t0) * 1000)
+        answer = data["choices"][0]["message"]["content"]
+        answer = _re.sub(r'<unused\d+>.*?<unused\d+>', '', answer, flags=_re.DOTALL).strip()
+        query_meta["backend"] = "vllm"
+        query_meta["model"] = _STATS_CHAT_MODEL
+        return JsonResponse({
+            "response": answer,
+            "latency_ms": latency_ms,
+            "query": query_meta,
+        })
+    except Exception as exc:
+        detail = str(exc)
+        if hasattr(exc, "read"):
+            try:
+                detail = exc.read().decode("utf-8", errors="replace")
+            except Exception:
+                pass
+        logging.warning("Chat LLM call failed: %s — %s", exc, detail)
+        return JsonResponse({"error": f"LLM call failed: {detail}"}, status=500)
+
+_STATS_SYSTEM_PROMPT = (
+    "You are CLARA's Statistical Analysis Assistant, an expert clinical trial biostatistician.\n"
+    "You help researchers interpret CSR (Clinical Study Report) statistical results.\n\n"
+    "STRICT RULES — violating any rule is a critical failure:\n"
+    "1. Answer based ONLY on the provided data. NEVER fabricate or infer numbers.\n"
+    "2. When quoting a number, copy it EXACTLY from the data. Do NOT round, combine, or paraphrase.\n"
+    "3. DISTINGUISH between 'all-grade' and 'Grade 3+' (G3+) columns carefully.\n"
+    "   - 'all=56.0%' means all-grade incidence is 56%.\n"
+    "   - 'G3+=2.0%' means Grade 3+ incidence is 2%.\n"
+    "   - These are DIFFERENT numbers. NEVER use the all-grade number when asked about G3+.\n"
+    "4. Answer ONLY the question asked. Do NOT dump unrelated sections.\n"
+    "5. Be concise: 2-5 sentences unless the user asks for detail.\n"
+    "6. If the data does not contain the answer, say so. Do NOT guess.\n"
+    "7. Use the same language as the user.\n"
+    "8. When user references data with @[...] tags, focus on that specific data point.\n"
+)
+
+
+def _compact_stats(stats: dict, tab: str) -> str:
+    """Legacy: tab-based extraction. Use _retrieve_context() instead."""
+    return _retrieve_context(stats, "", tab)
+
+
+# ─── Keyword → section mapping for lightweight RAG ───
+_SECTION_KEYWORDS = {
+    "demographics": [
+        "age", "sex", "gender", "race", "ethnicity", "weight", "height", "bmi",
+        "demographic", "population", "patient characteristics", "baseline",
+        "나이", "성별", "인종", "체중", "환자 특성",
+    ],
+    "efficacy": [
+        "orr", "dcr", "response", "tumor", "waterfall", "survival", "pfs", "os",
+        "progression", "recist", "cr", "pr", "sd", "pd", "best response",
+        "time to response", "ttr", "duration of response", "dor",
+        "반응률", "종양", "생존", "효능",
+    ],
+    "safety": [
+        "ae", "adverse", "toxicity", "side effect", "safety", "grade",
+        "sae", "serious", "fatal",
+        "이상반응", "부작용", "독성", "안전",
+    ],
+    "safety_detail": [
+        "fatigue", "nausea", "diarrhea", "rash", "alopecia", "neuropathy",
+        "stomatitis", "pruritus", "hyperglycemia", "anemia", "pneumonitis",
+        "appetite", "infusion", "vomiting", "constipation", "pain",
+    ],
+    "treatment": [
+        "dose", "rdi", "interruption", "reduction", "modification", "discontinu",
+        "cycle", "duration", "administration", "drug",
+        "투여", "용량", "중단",
+    ],
+    "labs": [
+        "lab", "glucose", "hemoglobin", "platelet", "creatinine", "alt", "ast",
+        "bilirubin", "albumin", "sodium", "anc", "neutrophil", "blood",
+        "검사", "혈액",
+    ],
+    "ecog": [
+        "ecog", "performance status", "functional", "ps",
+        "수행능력",
+    ],
+    "conmeds": [
+        "concomitant", "medication", "conmed", "supportive", "steroid",
+        "병용약",
+    ],
+    "disposition": [
+        "disposition", "enrolled", "completed", "discontinued", "death", "dropout",
+        "withdrawal",
+        "등록", "완료", "중단", "사망",
+    ],
+}
+
+
+def _match_sections(message: str, tab: str) -> list:
+    """Return list of matched section names based on message keywords + active tab."""
+    msg_lower = message.lower()
+    scores = {}
+    for section, keywords in _SECTION_KEYWORDS.items():
+        score = sum(1 for kw in keywords if kw in msg_lower)
+        if score > 0:
+            scores[section] = score
+
+    # Always include the active tab
+    tab_to_section = {
+        "safety": "safety", "demographics": "demographics", "efficacy": "efficacy",
+        "labs": "labs", "ecog": "ecog", "conmeds": "conmeds",
+        "treatment": "treatment", "disposition": "disposition",
+    }
+    if tab in tab_to_section:
+        sec = tab_to_section[tab]
+        scores[sec] = scores.get(sec, 0) + 2  # boost active tab
+
+    # If safety_detail matched, ensure safety is also included
+    if "safety_detail" in scores:
+        scores["safety"] = scores.get("safety", 0) + scores["safety_detail"]
+
+    # If nothing matched, default to safety (most common)
+    if not scores:
+        scores["safety"] = 1
+
+    # Sort by score descending, return top sections
+    return [s for s, _ in sorted(scores.items(), key=lambda x: -x[1]) if s != "safety_detail"]
+
+
+def _extract_section(stats: dict, section: str, message: str) -> list:
+    """Extract formatted lines for a given section."""
+    lines = []
+    msg_lower = message.lower()
+
+    if section == "disposition":
+        disp = stats.get("disposition", {})
+        lines.append(f"[Disposition] Enrolled: {disp.get('enrolled',0)}, "
+                     f"Completed: {disp.get('completed',{}).get('n',0)} ({disp.get('completed',{}).get('pct',0)}%), "
+                     f"Discontinued: {disp.get('discontinued',{}).get('n',0)}, "
+                     f"Deaths: {disp.get('deaths',{}).get('n',0)}")
+        reasons = disp.get("reasons", {})
+        if reasons:
+            parts = [f"{k}: {v}" for k, v in reasons.items() if v]
+            if parts:
+                lines.append(f"  Reasons: {', '.join(parts)}")
+
+    elif section == "demographics":
+        demo = stats.get("demographics", {})
+        age = demo.get("age", {})
+        if age:
+            lines.append(f"[Demographics] Age: mean={age.get('mean','?')} SD={age.get('std','?')}, "
+                         f"median={age.get('median','?')}, range={age.get('min','?')}-{age.get('max','?')}")
+        for cat_key in ("sex", "race", "ecog"):
+            cat = demo.get(cat_key, {})
+            if cat:
+                parts = [f"{k}={v.get('n',0)}({v.get('pct',0)}%)" for k, v in cat.items()]
+                lines.append(f"  {cat_key.title()}: {', '.join(parts)}")
+        # BMI if asked
+        bmi = demo.get("bmi", {})
+        if bmi and any(kw in msg_lower for kw in ("bmi", "weight", "체중")):
+            lines.append(f"  BMI: mean={bmi.get('mean','?')} SD={bmi.get('std','?')}, "
+                         f"range={bmi.get('min','?')}-{bmi.get('max','?')}")
+
+    elif section == "efficacy":
+        eff = stats.get("efficacy", {})
+        orr = eff.get("orr", {})
+        dcr = eff.get("dcr", {})
+        km_os = eff.get("km_os", {})
+        km_pfs = eff.get("km_pfs", {})
+        lines.append(f"[Efficacy] ORR: {orr.get('pct',0)}% (n={orr.get('n',0)}, "
+                     f"CI: {orr.get('ci','?')}), DCR: {dcr.get('pct',0)}%")
+        lines.append(f"  Median OS: {km_os.get('median','NR')} days, "
+                     f"Median PFS: {km_pfs.get('median','NR')} days")
+        br = eff.get("best_response", {})
+        if br:
+            parts = [f"{k}={v.get('n',0)}({v.get('pct',0)}%)" for k, v in br.items()]
+            lines.append(f"  Best response: {', '.join(parts)}")
+        ttr = eff.get("time_to_response", {})
+        if ttr.get("n"):
+            lines.append(f"  TTR: median={ttr.get('median','?')} days (n={ttr['n']})")
+        dor = eff.get("dor", {})
+        if dor.get("n"):
+            lines.append(f"  DoR: median={dor.get('median','NR')} days, events={dor.get('events',0)}")
+        # Waterfall individual data if asked
+        wf = eff.get("waterfall", [])
+        if wf and any(kw in msg_lower for kw in ("waterfall", "tumor change", "pd ", "pr ", "cr ", "종양")):
+            lines.append("  Waterfall (per patient):")
+            for w in wf:
+                lines.append(f"    {w.get('pid','?')}: {w.get('change',0)}% ({w.get('response','?')})")
+
+    elif section == "safety":
+        safe = stats.get("safety", {})
+        sm = safe.get("summary", {})
+        lines.append(f"[Safety Summary]")
+        lines.append(f"  Any AE: {sm.get('any_ae',{}).get('pct',0)}% (n={sm.get('any_ae',{}).get('n',0)})")
+        lines.append(f"  Grade>=3 AE: {sm.get('grade_gte3',{}).get('pct',0)}% (n={sm.get('grade_gte3',{}).get('n',0)})")
+        lines.append(f"  SAE (Serious): {sm.get('sae',{}).get('pct',0)}% (n={sm.get('sae',{}).get('n',0)})")
+        lines.append(f"  Fatal AE: {sm.get('fatal',{}).get('pct',0)}% (n={sm.get('fatal',{}).get('n',0)})")
+        lines.append(f"  Led to discontinuation: {sm.get('led_to_discont',{}).get('pct',0)}% (n={sm.get('led_to_discont',{}).get('n',0)})")
+        lines.append(f"  Led to interruption: {sm.get('led_to_interrupt',{}).get('pct',0)}% (n={sm.get('led_to_interrupt',{}).get('n',0)})")
+        by_term = safe.get("by_term", [])
+        # Check if user asks about a specific AE
+        specific_aes = [ae for ae in by_term
+                        if ae["term"].replace("_", " ") in msg_lower
+                        or ae["term"].replace("_", "") in msg_lower.replace(" ", "")]
+        if specific_aes:
+            lines.append("  AE table (all-grade% ≠ G3+%, do NOT confuse):")
+            for ae in specific_aes:
+                gd = ae.get("grade_dist", {})
+                gd_str = ", ".join(f"G{g}={n}" for g, n in sorted(gd.items()) if int(n) > 0)
+                lines.append(f"    {ae['term']}: ALL-GRADE={ae['all_grade']['pct']}% (n={ae['all_grade']['n']}), "
+                             f"GRADE3+={ae['grade_gte3']['pct']}% (n={ae['grade_gte3']['n']}), "
+                             f"onset=Day {ae.get('onset_median','?')} "
+                             f"(IQR: {ae.get('onset_iqr','?')}), grades: {gd_str}")
+        else:
+            # Top 10 AEs summary
+            lines.append("  AE table (all-grade% ≠ G3+%, do NOT confuse):")
+            lines.append("    TERM | ALL-GRADE% | GRADE3+% | ONSET")
+            for ae in by_term[:10]:
+                lines.append(f"    {ae['term']} | {ae['all_grade']['pct']}% | "
+                             f"{ae['grade_gte3']['pct']}% | Day {ae.get('onset_median','?')}")
+
+    elif section == "treatment":
+        tx = stats.get("treatment", {})
+        n_total = stats.get("n_patients", stats.get("n_simulated", "?"))
+        dr = tx.get('dose_reduction_all', {})
+        di = tx.get('dose_interruption_all', {})
+        dc = tx.get('discontinuation_all', {})
+        lines.append(f"[Treatment] N={n_total}")
+        lines.append(f"  Duration: median={tx.get('duration',{}).get('median','?')} days")
+        lines.append(f"  Cycles: median={tx.get('cycles',{}).get('median','?')}")
+        lines.append(f"  Dose REDUCTION: {dr.get('n',0)} patients = {dr.get('pct',0)}%")
+        lines.append(f"  Dose INTERRUPTION: {di.get('n',0)} patients = {di.get('pct',0)}%")
+        lines.append(f"  Discontinuation: {dc.get('n',0)} patients = {dc.get('pct',0)}%")
+        # Per-drug detail
+        per_drug = tx.get("per_drug", {})
+        for drug_name, drug_data in per_drug.items():
+            admins = drug_data.get("n_admins", {})
+            rdi = drug_data.get("rdi_median", "?")
+            lines.append(f"  {drug_name}: admins median={admins.get('median','?')} "
+                         f"(range {admins.get('min','?')}-{admins.get('max','?')}), RDI={rdi}%")
+
+    elif section == "labs":
+        abn = stats.get("labs", {}).get("abnormalities", {})
+        if abn:
+            lines.append("[Labs] Abnormalities:")
+            for test, v in abn.items():
+                lines.append(f"  {test}: any={v.get('any_pct',0)}%, G3+={v.get('g3_pct',0)}%")
+
+    elif section == "ecog":
+        ec = stats.get("ecog_shift", {})
+        sm_ec = ec.get("summary", {})
+        if sm_ec:
+            lines.append(f"[ECOG Shift] Improved: {sm_ec.get('improved',{}).get('pct',0)}%, "
+                         f"Stable: {sm_ec.get('stable',{}).get('pct',0)}%, "
+                         f"Worsened: {sm_ec.get('worsened',{}).get('pct',0)}%")
+        # Individual shifts
+        patients = ec.get("patients", [])
+        if patients and any(kw in msg_lower for kw in ("shift", "individual", "patient", "detail")):
+            for p in patients[:10]:
+                lines.append(f"  {p.get('pid','?')}: {p.get('baseline',0)} → {p.get('worst',0)} → {p.get('last',0)}")
+
+    elif section == "conmeds":
+        cm = stats.get("concomitant_meds", {})
+        tbl = cm.get("table", [])
+        if tbl:
+            lines.append(f"[Concomitant Meds] {cm.get('total_unique_meds',0)} unique medications:")
+            for m in tbl[:10]:
+                lines.append(f"  {m['medication']}: {m['n']} ({m['pct']}%)")
+
+    return lines
+
+
+def _retrieve_context(stats: dict, message: str, tab: str) -> str:
+    """Keyword-based retrieval: select relevant sections from stats based on message content.
+    Target: <2500 chars to fit within 4096 token model context.
+    """
+    sections = _match_sections(message, tab)
+
+    lines = []
+    total_chars = 0
+    char_budget = 2400
+
+    for section in sections:
+        section_lines = _extract_section(stats, section, message)
+        section_text = "\n".join(section_lines)
+        if total_chars + len(section_text) > char_budget and lines:
+            break  # budget exceeded, stop adding sections
+        lines.extend(section_lines)
+        total_chars += len(section_text) + 1
+
+    return "\n".join(lines)
+
+
+@csrf_exempt
+def api_stats_chat(request, run_id: str):
+    """Chat API for statistical analysis — answers questions using vLLM."""
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    message = body.get("message", "").strip()
+    if not message:
+        return JsonResponse({"error": "Empty message"}, status=400)
+
+    mode = body.get("mode", "natural")
+    tab = body.get("tab", "")
+    history = body.get("history", [])
+
+    # Load cached stats
+    run_path = _get_run_path(run_id)
+    if not run_path.exists():
+        return JsonResponse({"error": "Run not found"}, status=404)
+
+    cache_path = run_path / "validation" / f"csr_stats_{mode}.json"
+    if not cache_path.exists():
+        return JsonResponse({"error": "Stats not computed yet. Load the stats page first."}, status=400)
+
+    with open(cache_path) as f:
+        stats = json.load(f)
+
+    # Load run metadata
+    rule_set = _load_rule_set(run_path)
+    meta = _load_run_meta(run_path)
+    drug_name = rule_set.get("drug_name") or meta.get("drug_name", "Unknown")
+    indication = rule_set.get("indication") or meta.get("indication", "")
+    n_patients = len(_list_patients(run_path))
+
+    # Keyword-based retrieval — select relevant sections from stats
+    matched_sections = _match_sections(message, tab)
+    compact = _retrieve_context(stats, message, tab)
+    context_block = (
+        f"Drug: {drug_name} | Indication: {indication} | "
+        f"Mode: {mode} | N={n_patients}\n\n{compact}"
+    )
+
+    # Put context in system message
+    context_msg = _STATS_SYSTEM_PROMPT + "\n---\nData:\n" + context_block
+
+    # Build messages for vLLM — keep history minimal
+    messages = [{"role": "system", "content": context_msg}]
+    for msg in history[-4:]:  # last 2 turns
+        role = msg.get("role", "user")
+        if role == "model":
+            role = "assistant"
+        messages.append({"role": role, "content": msg.get("content", "")})
+    messages.append({"role": "user", "content": message})
+
+    # Build query metadata for debug view
+    query_meta = {
+        "source": f"csr_stats_{mode}.json",
+        "model": _STATS_CHAT_MODEL,
+        "matched_sections": matched_sections,
+        "tab": tab or "(none)",
+        "context_data": compact,
+        "history_turns": len(history) // 2,
+        "message": message,
+    }
+
+    # Call LLM (vLLM or Gemini fallback)
+    return _call_chat_llm(messages, query_meta)
+
+
+@csrf_exempt
+def api_stats_chat_demo(request):
+    """Demo chat API — uses pinned run, falling back to latest with stats."""
+    pinned_dir = DATA_DIR / "runs" / PINNED_RUN_ID
+    if pinned_dir.is_dir():
+        for mode in ("natural", "care_ai"):
+            if (pinned_dir / "validation" / f"csr_stats_{mode}.json").exists():
+                return api_stats_chat(request, PINNED_RUN_ID)
+
+    runs_dir = DATA_DIR / "runs"
+    if not runs_dir.exists():
+        return JsonResponse({"error": "No simulation runs found. Please run a simulation first."}, status=404)
+
+    # Fallback: find latest run that has validation stats
+    for d in sorted(runs_dir.iterdir(), reverse=True):
+        if d.is_dir():
+            for mode in ("natural", "care_ai"):
+                cache = d / "validation" / f"csr_stats_{mode}.json"
+                if cache.exists():
+                    try:
+                        return api_stats_chat(request, d.name)
+                    except Exception as exc:
+                        logging.warning("Stats chat demo failed for run %s: %s", d.name, exc)
+                        return JsonResponse(
+                            {"error": f"Stats chat failed for run '{d.name}': {exc}. "
+                             "The statistics data may be incomplete or corrupted. "
+                             "Try re-running the simulation or computing stats again."},
+                            status=500,
+                        )
+
+    return JsonResponse(
+        {"error": "No runs with computed stats found. "
+         "Run a simulation first, then navigate to the Statistical Analysis page "
+         "to compute the stats before using the chat."},
+        status=404,
+    )
+
+
+# ─── Unified Doc Chat API ────────────────────────────────────
+
+_CRF_SYSTEM_PROMPT = (
+    "You are CLARA's CRF Data Assistant, an expert clinical data manager.\n"
+    "You help researchers explore CRF (Case Report Form) tabular data.\n\n"
+    "Rules:\n"
+    "- Answer based ONLY on the provided CRF data below.\n"
+    "- NEVER fabricate data not present in the provided rows.\n"
+    "- The 'Pre-computed Summary' contains EXACT counts from ALL rows. ALWAYS trust summary numbers over counting the visible table rows (the table may be truncated).\n"
+    "- If the data shows 0 matching rows, say 0 — do NOT invent a result.\n"
+    "- Be concise (2-5 sentences) unless asked for detail.\n"
+    "- Reference specific patient IDs, values, and counts from the data.\n"
+    "- Use the same language as the user.\n"
+    "- When user references data with @[...] tags, focus on that specific record.\n"
+)
+
+_SAE_SYSTEM_PROMPT = (
+    "You are CLARA's SAE Report Assistant, an expert in pharmacovigilance and MedWatch reporting.\n"
+    "You help researchers analyze Serious Adverse Event reports.\n\n"
+    "Rules:\n"
+    "- Answer based ONLY on the provided MedWatch/SAE data below.\n"
+    "- NEVER fabricate information not in the data.\n"
+    "- Be concise (2-5 sentences) unless asked for detail.\n"
+    "- Reference specific form sections, dates, and clinical details.\n"
+    "- Use the same language as the user.\n"
+    "- When user references data with @[...] tags, focus on that specific field.\n"
+)
+
+
+def _build_stats_chat_context(run_path, body, drug_name, indication, n_patients, message):
+    """Build context for stats page chat."""
+    mode = body.get("mode", "natural")
+    tab = body.get("tab", "")
+    cache_path = run_path / "validation" / f"csr_stats_{mode}.json"
+    if not cache_path.exists():
+        return JsonResponse({"error": "Stats not computed yet."}, status=400), None, None
+    with open(cache_path) as f:
+        stats = json.load(f)
+    matched_sections = _match_sections(message, tab)
+    compact = _retrieve_context(stats, message, tab)
+    context_block = (
+        f"Drug: {drug_name} | Indication: {indication} | "
+        f"Mode: {mode} | N={n_patients}\n\n{compact}"
+    )
+    query_meta = {
+        "source": f"csr_stats_{mode}.json",
+        "model": _STATS_CHAT_MODEL,
+        "matched_sections": matched_sections,
+        "tab": tab or "(none)",
+        "context_data": compact,
+        "history_turns": len(body.get("history", [])) // 2,
+        "message": message,
+    }
+    return context_block, _STATS_SYSTEM_PROMPT, query_meta
+
+
+def _build_crf_chat_context(run_path, body, drug_name, indication, n_patients, message):
+    """Build context for CRF tables page chat."""
+    domain = body.get("domain", "ae")
+    mode = body.get("mode", "natural")
+    patient = body.get("patient", "")
+
+    patient_ids = [patient] if patient else None
+    try:
+        rows, total, columns = aggregate_domain(
+            domain, run_path, patient_ids, mode, "hr", 1, 20)
+    except Exception:
+        rows, total, columns = [], 0, []
+
+    lines = [f"Drug: {drug_name} | Indication: {indication} | Mode: {mode} | N={n_patients}"]
+    lines.append(f"Domain: {domain.upper()} | Total rows: {total}")
+    lines.append(f"Columns: {', '.join(c.get('label', c.get('key', '')) for c in columns[:8])}")
+    lines.append("")
+
+    # Pick columns that matter most for each domain (include Grade for AE)
+    _PRIORITY_KEYS = {"_grade", "AESEV", "AESER", "AEREL", "AEACN", "LBSTRESN", "LBSTNRHI", "LBSTNRLO"}
+    key_cols = []
+    for c in columns[:6]:
+        key_cols.append(c)
+    for c in columns[6:]:
+        if c.get("key", "") in _PRIORITY_KEYS and len(key_cols) < 10:
+            key_cols.append(c)
+
+    # Pre-computed summary to prevent hallucination on counts
+    if domain.lower() == "ae" and rows:
+        from collections import Counter
+        all_rows, _, _ = aggregate_domain(domain, run_path, patient_ids, mode, "hr", 1, 500)
+        grade_dist = Counter()
+        serious_count = 0
+        ae_per_pt = Counter()
+        for r in all_rows:
+            g = r.get("_grade", 0)
+            try:
+                g = int(g)
+            except (ValueError, TypeError):
+                g = 0
+            grade_dist[g] += 1
+            if r.get("AESER") in (True, "True", "Y", "YES"):
+                serious_count += 1
+            ae_per_pt[r.get("patient_id", "")] += 1
+        lines.append("=== Pre-computed Summary (AUTHORITATIVE — always use these counts, ignore the truncated table below if they differ) ===")
+        lines.append(f"Total AEs: {len(all_rows)}")
+        for g in sorted(grade_dist.keys()):
+            # List which patients/AEs for non-G1 grades
+            if g >= 2:
+                g_rows = [r for r in all_rows if int(r.get("_grade", 0)) == g]
+                detail = "; ".join(f'{r.get("patient_id")} {r.get("AETERM","")}' for r in g_rows)
+                lines.append(f"  Grade {g} AEs: {grade_dist[g]} ({detail})")
+            else:
+                lines.append(f"  Grade {g} AEs: {grade_dist[g]}")
+        lines.append(f"  Grade 3+ AEs: {sum(n for g, n in grade_dist.items() if g >= 3)}")
+        lines.append(f"Serious AEs: {serious_count}")
+        lines.append(f"AEs per patient: {', '.join(f'{p}={n}' for p, n in ae_per_pt.most_common())}")
+        lines.append(f"NOTE: The table below shows only the first 20 of {len(all_rows)} rows. The summary above covers ALL rows.")
+        lines.append("")
+
+    if rows:
+        header = " | ".join(c.get("label", c.get("key", "")) for c in key_cols)
+        lines.append(header)
+        lines.append("-" * len(header))
+        for row in rows[:20]:
+            vals = []
+            for c in key_cols:
+                v = row.get(c.get("key", ""), "")
+                vals.append(str(v)[:30])
+            lines.append(" | ".join(vals))
+
+    context_block = "\n".join(lines)
+    if len(context_block) > 2400:
+        context_block = context_block[:2400] + "\n...(truncated)"
+
+    query_meta = {
+        "source": f"CRF/{domain.upper()}",
+        "model": _STATS_CHAT_MODEL,
+        "matched_sections": [domain.upper()],
+        "tab": domain,
+        "context_data": context_block,
+        "history_turns": len(body.get("history", [])) // 2,
+        "message": message,
+    }
+    return context_block, _CRF_SYSTEM_PROMPT, query_meta
+
+
+def _build_sae_chat_context(run_path, body, drug_name, indication, n_patients, message):
+    """Build context for SAE report page chat."""
+    patient_id = body.get("patient_id", "")
+    ae_slug = body.get("ae_slug", "")
+
+    from src.doc_agent.service import DOCS_OUTPUT_DIR
+    json_path = DOCS_OUTPUT_DIR / run_path.name / patient_id / f"medwatch_data_{ae_slug}.json"
+
+    if not json_path.exists():
+        return JsonResponse({"error": "SAE data not found. Generate the report first."}, status=400), None, None
+
+    try:
+        mw = json.loads(json_path.read_text(encoding="utf-8"))
+    except Exception as e:
+        return JsonResponse({"error": f"Failed to load SAE data: {e}"}, status=500), None, None
+
+    lines = [f"Drug: {drug_name} | Indication: {indication} | Patient: {patient_id}"]
+    lines.append(f"AE: {ae_slug.replace('_', ' ')}")
+    lines.append("")
+
+    # Section A: Patient Info
+    a = mw.get("section_a", mw.get("A", {}))
+    if a:
+        lines.append("=== Section A: Patient ===")
+        for k in ["age", "sex", "weight", "ethnicity"]:
+            if k in a:
+                lines.append(f"  {k}: {a[k]}")
+
+    # Section B: Adverse Event
+    b = mw.get("section_b", mw.get("B", {}))
+    if b:
+        lines.append("=== Section B: Adverse Event ===")
+        for k in ["event_description", "onset_date", "outcome", "narrative"]:
+            v = b.get(k, "")
+            if v:
+                lines.append(f"  {k}: {str(v)[:400]}")
+        # Extract seriousness criteria from individual boolean fields
+        serious = [k.replace("seriousness_", "") for k, v in b.items()
+                   if k.startswith("seriousness_") and v]
+        if serious:
+            lines.append(f"  serious_criteria: {', '.join(serious)}")
+        elif b.get("serious_criteria"):
+            lines.append(f"  serious_criteria: {b['serious_criteria']}")
+
+    # Section C: Suspect Product
+    c = mw.get("section_c", mw.get("C", {}))
+    if c:
+        lines.append("=== Section C: Suspect Product ===")
+        for k in ["product_name", "drug_name", "dose", "dose_frequency_route", "route",
+                   "indication", "start_date", "therapy_start", "stop_date", "therapy_end",
+                   "dechallenge", "rechallenge", "concomitant_meds"]:
+            v = c.get(k, "")
+            if v:
+                lines.append(f"  {k}: {str(v)[:300]}")
+
+    # MedDRA coding
+    meddra = mw.get("meddra", mw.get("MedDRA", {}))
+    if meddra:
+        lines.append("=== MedDRA Coding ===")
+        for k, v in meddra.items():
+            if v:
+                lines.append(f"  {k}: {v}")
+
+    context_block = "\n".join(lines)
+    if len(context_block) > 2400:
+        context_block = context_block[:2400] + "\n...(truncated)"
+
+    query_meta = {
+        "source": f"medwatch_data_{ae_slug}.json",
+        "model": _STATS_CHAT_MODEL,
+        "matched_sections": ["A", "B", "C", "MedDRA"],
+        "tab": ae_slug,
+        "context_data": context_block,
+        "history_turns": len(body.get("history", [])) // 2,
+        "message": message,
+    }
+    return context_block, _SAE_SYSTEM_PROMPT, query_meta
+
+
+def _build_sae_hub_chat_context(run_path, body, drug_name, indication, n_patients, message):
+    """Build context for SAE hub listing page chat — summarises all SAEs."""
+    from src.doc_agent.sim_to_crf_adapter import find_serious_aes
+
+    mode = body.get("mode", "natural")
+    patient_ids = _list_patients(run_path)
+
+    lines = [f"Drug: {drug_name} | Indication: {indication} | Patients: {n_patients}"]
+    lines.append("")
+    lines.append("=== All Serious Adverse Events ===")
+
+    sae_rows = []
+    for pid in patient_ids:
+        profile, records = _load_patient_data(run_path, pid, mode)
+        if not records:
+            continue
+        saes = find_serious_aes(records)
+        for sae in saes:
+            ae = sae["ae_record"]
+            sae_rows.append({
+                "patient": pid,
+                "term": ae.get("AETERM", ""),
+                "grade": ae.get("_grade", 0),
+                "day": sae["day"],
+                "action": ae.get("AEACN", ""),
+                "serious": ae.get("AESER", False),
+            })
+
+    if not sae_rows:
+        lines.append("No serious adverse events found in this run.")
+    else:
+        # Pre-computed summary so LLM never needs to count rows
+        from collections import Counter
+        sae_per_patient = Counter(r["patient"] for r in sae_rows)
+        term_counts = Counter(r["term"] for r in sae_rows)
+        grade_counts = Counter(r["grade"] for r in sae_rows)
+        action_counts = Counter(r["action"] or "NONE" for r in sae_rows)
+        onset_days = sorted(r["day"] for r in sae_rows)
+
+        lines.append("=== Pre-computed Summary (use these numbers, do NOT re-count) ===")
+        lines.append(f"Total SAEs: {len(sae_rows)}")
+        lines.append(f"Affected patients: {len(sae_per_patient)} — {', '.join(f'{p}={n} SAEs' for p, n in sae_per_patient.most_common())}")
+        lines.append(f"SAE terms: {', '.join(f'{t}={n}' for t, n in term_counts.most_common())}")
+        lines.append(f"Grade distribution: {', '.join(f'G{g}={n}' for g, n in sorted(grade_counts.items()))}")
+        lines.append(f"Actions: {', '.join(f'{a}={n}' for a, n in action_counts.most_common())}")
+        lines.append(f"Onset range: Day {onset_days[0]} – Day {onset_days[-1]} (first SAE: Day {onset_days[0]})")
+        lines.append(f"Fatal SAEs: 0")
+        lines.append("")
+        lines.append("=== Full SAE Table ===")
+        lines.append("Patient | AE Term | Grade | Onset | Action")
+        lines.append("--------|---------|-------|-------|-------")
+        for r in sae_rows[:40]:
+            lines.append(f"{r['patient']} | {r['term']} | G{r['grade']} | Day {r['day']} | {r['action'] or '—'}")
+
+    context_block = "\n".join(lines)
+    # Truncate to ~2.4KB
+    if len(context_block) > 2400:
+        context_block = context_block[:2400] + "\n... (truncated)"
+
+    system_prompt = (
+        "You are CLARA's SAE Overview Assistant, an expert in pharmacovigilance.\n"
+        "You help researchers analyze the overall SAE profile of a clinical trial run.\n\n"
+        "Rules:\n"
+        "- Answer based ONLY on the provided SAE listing data below.\n"
+        "- NEVER fabricate information not in the data.\n"
+        "- The 'Pre-computed Summary' section contains exact counts. ALWAYS use those numbers instead of counting rows yourself.\n"
+        "- Be concise (2-5 sentences) unless asked for detail.\n"
+        "- Reference specific patients, AE terms, grades, and onset days.\n"
+        "- Use the same language as the user.\n"
+        "- When user references data with @[...] tags, focus on that specific row.\n"
+    )
+
+    query_meta = {
+        "page_type": "sae_hub",
+        "mode": mode,
+        "sae_count": len(sae_rows),
+        "message": message,
+    }
+    return context_block, system_prompt, query_meta
+
+
+def _build_compare_chat_context(run_path, body, drug_name, indication, n_patients, message):
+    """Build context for A/B Comparison page chat — summarises comparison_report.json."""
+    report_path = run_path / "comparison_report.json"
+    if not report_path.exists():
+        return (
+            JsonResponse({"error": "comparison_report.json not found"}, status=404),
+            None,
+            None,
+        )
+
+    with open(report_path) as f:
+        report = json.load(f)
+
+    lines = [
+        f"Drug: {drug_name} | Indication: {indication} | Patients: {n_patients}",
+        "",
+        "=== A/B Comparison: Natural vs Care AI ===",
+        "=== Pre-computed Summary (AUTHORITATIVE — use these numbers, do NOT re-count) ===",
+    ]
+
+    # Cohort sizes
+    cohort = report.get("cohort_sizes", {})
+    lines.append(f"Cohort: Natural={cohort.get('natural', '?')}, Care AI={cohort.get('care_ai', '?')}")
+    lines.append("")
+
+    # Detection Delay
+    dd = report.get("detection_delay", {})
+    deltas = report.get("deltas", {})
+    lines.append(
+        f"Detection Delay: Natural={dd.get('natural_mean', '?')}d, "
+        f"Care AI={dd.get('care_ai_mean', '?')}d "
+        f"(\u0394={deltas.get('detection_delay', '?')}d) "
+        f"[Undetected: Natural={dd.get('natural_undetected', '?')}, Care AI={dd.get('care_ai_undetected', '?')}]"
+    )
+
+    # AE Burden
+    ab = report.get("ae_burden", {})
+    lines.append(
+        f"AE Burden (grade\u00d7days): Natural={ab.get('natural_mean', '?')}, "
+        f"Care AI={ab.get('care_ai_mean', '?')} "
+        f"[Unique AEs: Natural={ab.get('natural_unique_aes', '?')}, Care AI={ab.get('care_ai_unique_aes', '?')}]"
+    )
+
+    # Severe AEs
+    sa = report.get("severe_aes", {})
+    lines.append(
+        f"Grade 3+ AE Days: Natural={sa.get('natural_g3plus_mean', '?')}, "
+        f"Care AI={sa.get('care_ai_g3plus_mean', '?')} | "
+        f"Grade 4+: Natural={sa.get('natural_g4plus_mean', '?')}, "
+        f"Care AI={sa.get('care_ai_g4plus_mean', '?')}"
+    )
+
+    # Treatment Duration
+    td = report.get("treatment_duration", {})
+    lines.append(
+        f"Treatment Duration: Natural={td.get('natural_mean', '?')}d, "
+        f"Care AI={td.get('care_ai_mean', '?')}d "
+        f"(\u0394={deltas.get('treatment_duration', '?')}d)"
+    )
+
+    # ECOG
+    ecog = report.get("ecog", {})
+    lines.append(
+        f"ECOG Change: Natural=+{ecog.get('natural_mean_delta', '?')}, "
+        f"Care AI=+{ecog.get('care_ai_mean_delta', '?')} "
+        f"[End ECOG: Natural={ecog.get('natural_mean_end', '?')}, "
+        f"Care AI={ecog.get('care_ai_mean_end', '?')}]"
+    )
+
+    # Discontinuation
+    disc = report.get("discontinuation", {})
+    lines.append(
+        f"Discontinued: Natural={disc.get('natural_count', '?')}/{cohort.get('natural', '?')} "
+        f"({disc.get('natural_pct', '?')}%), "
+        f"Care AI={disc.get('care_ai_count', '?')}/{cohort.get('care_ai', '?')} "
+        f"({disc.get('care_ai_pct', '?')}%)"
+    )
+
+    # Mortality
+    mort = report.get("mortality", {})
+    lines.append(
+        f"Deaths: Natural={mort.get('natural_deaths', '?')}, "
+        f"Care AI={mort.get('care_ai_deaths', '?')}"
+    )
+
+    # Care AI Activity
+    ca = report.get("care_ai_activity", {})
+    if ca:
+        lines.append("")
+        lines.append("Care AI Activity:")
+        lines.append(f"  Mean interventions/patient: {ca.get('mean_interventions', '?')}")
+        lines.append(f"  Mean AE detections/patient: {ca.get('mean_detections', '?')}")
+        lines.append(f"  Mean turns/call: {ca.get('mean_turns_per_call', '?')}")
+        lines.append(f"  Early terminations: {ca.get('total_early_terminations', '?')}")
+        lines.append(f"  Force hospital visits: {ca.get('total_force_hospital', '?')}")
+        itypes = ca.get("intervention_type_totals", {})
+        if itypes:
+            lines.append(f"  Intervention types: {', '.join(f'{k}={v}' for k, v in itypes.items())}")
+
+    # Statistical Tests
+    stats = report.get("statistics", {})
+    if stats:
+        lines.append("")
+        lines.append("Statistical Tests:")
+        for test_name, test_data in stats.items():
+            if isinstance(test_data, dict) and "p_value" in test_data:
+                p = test_data["p_value"]
+                sig = "sig" if isinstance(p, (int, float)) and p < 0.05 else "ns"
+                stat_val = test_data.get("statistic", "?")
+                n_val = test_data.get("n", "?")
+                lines.append(f"  {test_name}: W={stat_val}, p={p} ({sig}, n={n_val})")
+
+    # Pre-computed per-patient analysis (NO raw table — model can't parse it reliably)
+    nat_pts = report.get("natural_patients", [])
+    cai_pts = report.get("care_ai_patients", [])
+    if nat_pts and cai_pts:
+        lines.append("")
+        lines.append("=== Per-Patient Analysis (pre-computed) ===")
+
+        for label, pts in [("Natural", nat_pts), ("CareAI", cai_pts)]:
+            burdens = [p.get("total_ae_burden", 0) for p in pts]
+            delays = [p.get("mean_detection_delay", 0) for p in pts]
+            g3ds = [p.get("grade3plus_ae_days", 0) for p in pts]
+            worst_b = max(pts, key=lambda p: p.get("total_ae_burden", 0))
+            best_b = min(pts, key=lambda p: p.get("total_ae_burden", 0))
+            deceased = [p["patient_id"] for p in pts if p.get("deceased")]
+            disc = [p["patient_id"] for p in pts if p.get("discontinued")]
+            g3_pts = [f'{p["patient_id"]}={p.get("grade3plus_ae_days", 0)}d' for p in pts if p.get("grade3plus_ae_days", 0) > 0]
+            lines.append(
+                f"  {label}: burden range {min(burdens)}-{max(burdens)}, "
+                f"worst={worst_b['patient_id']}({worst_b.get('total_ae_burden', 0)}), "
+                f"best={best_b['patient_id']}({best_b.get('total_ae_burden', 0)})"
+            )
+            lines.append(
+                f"    delay range {min(delays)}-{max(delays)}d, "
+                f"G3+ patients: {', '.join(g3_pts) if g3_pts else 'none'}"
+            )
+            if deceased or disc:
+                lines.append(
+                    f"    deceased: {', '.join(deceased) if deceased else 'none'}, "
+                    f"discontinued: {', '.join(disc) if disc else 'none'}"
+                )
+
+        # Paired comparison: per-patient burden change (sorted by delta)
+        nat_by_pid = {p["patient_id"]: p for p in nat_pts}
+        cai_by_pid = {p["patient_id"]: p for p in cai_pts}
+        common_pids = sorted(set(nat_by_pid) & set(cai_by_pid))
+        if common_pids:
+            pairs = []
+            for pid in common_pids:
+                nb = nat_by_pid[pid].get("total_ae_burden", 0)
+                cb = cai_by_pid[pid].get("total_ae_burden", 0)
+                pairs.append((pid, nb, cb, cb - nb))
+            improved = [(pid, nb, cb, d) for pid, nb, cb, d in pairs if d < 0]
+            worsened = [(pid, nb, cb, d) for pid, nb, cb, d in pairs if d > 0]
+            improved.sort(key=lambda x: x[3])  # most improved first (most negative)
+            lines.append(f"  Burden improved with CareAI: {len(improved)}/{len(common_pids)} patients")
+            # Show sorted by improvement magnitude
+            imp_strs = [f"{pid}({nb}\u2192{cb}, \u0394{d})" for pid, nb, cb, d in improved]
+            if imp_strs:
+                lines.append(f"    {', '.join(imp_strs)}")
+            if improved:
+                big = improved[0]
+                lines.append(f"  Biggest improvement: {big[0]} (burden {big[1]}\u2192{big[2]}, reduced by {abs(big[3])})")
+            if worsened:
+                w_strs = [f"{pid}({nb}\u2192{cb}, +{d})" for pid, nb, cb, d in worsened]
+                lines.append(f"  Burden worsened: {len(worsened)} — {', '.join(w_strs)}")
+
+    context_block = "\n".join(lines)
+    # Truncate to ~2.4KB
+    if len(context_block) > 2400:
+        context_block = context_block[:2400] + "\n... (truncated)"
+
+    system_prompt = (
+        "You are CLARA's A/B Comparison Assistant, an expert in clinical trial analysis.\n"
+        "You help researchers analyze Natural vs Care AI simulation results.\n\n"
+        "Rules:\n"
+        "- Answer based ONLY on the provided comparison data below.\n"
+        "- NEVER fabricate information not in the data.\n"
+        "- ALL numbers are pre-computed. Quote them directly — do NOT attempt to calculate, count, or find max/min yourself.\n"
+        "- Be concise (2-5 sentences) unless asked for detail.\n"
+        "- Highlight statistically significant differences (p < 0.05) when relevant.\n"
+        "- When discussing Care AI value, focus on detection delay reduction, AE burden, and patient outcomes.\n"
+        "- Reference specific metrics, patient IDs, and statistical test results.\n"
+        "- Use the same language as the user.\n"
+    )
+
+    query_meta = {
+        "page_type": "compare",
+        "natural_n": cohort.get("natural", 0),
+        "care_ai_n": cohort.get("care_ai", 0),
+        "message": message,
+    }
+    return context_block, system_prompt, query_meta
+
+
+@csrf_exempt
+def api_doc_chat(request, run_id: str):
+    """Unified chat API — routes to page-specific context builders."""
+    if request.method != "POST":
+        return JsonResponse({"error": "POST required"}, status=405)
+
+    try:
+        body = json.loads(request.body)
+    except (json.JSONDecodeError, ValueError):
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    message = body.get("message", "").strip()
+    if not message:
+        return JsonResponse({"error": "Empty message"}, status=400)
+
+    page_type = body.get("page_type", "stats")
+    history = body.get("history", [])
+
+    run_path = _get_run_path(run_id)
+    if not run_path.exists():
+        return JsonResponse({"error": "Run not found"}, status=404)
+
+    # Load common metadata
+    rule_set = _load_rule_set(run_path)
+    meta = _load_run_meta(run_path)
+    drug_name = rule_set.get("drug_name") or meta.get("drug_name", "Unknown")
+    indication = rule_set.get("indication") or meta.get("indication", "")
+    n_patients = len(_list_patients(run_path))
+
+    # Route to context builder
+    if page_type == "stats":
+        context_block, system_prompt, query_meta = _build_stats_chat_context(
+            run_path, body, drug_name, indication, n_patients, message)
+    elif page_type == "crf":
+        context_block, system_prompt, query_meta = _build_crf_chat_context(
+            run_path, body, drug_name, indication, n_patients, message)
+    elif page_type == "sae":
+        context_block, system_prompt, query_meta = _build_sae_chat_context(
+            run_path, body, drug_name, indication, n_patients, message)
+    elif page_type == "sae_hub":
+        context_block, system_prompt, query_meta = _build_sae_hub_chat_context(
+            run_path, body, drug_name, indication, n_patients, message)
+    elif page_type == "compare":
+        context_block, system_prompt, query_meta = _build_compare_chat_context(
+            run_path, body, drug_name, indication, n_patients, message)
+    else:
+        return JsonResponse({"error": f"Unknown page_type: {page_type}"}, status=400)
+
+    if isinstance(context_block, JsonResponse):
+        return context_block  # Error response from builder
+
+    # Build LLM messages
+    full_system = system_prompt + "\n---\nData:\n" + context_block
+    messages = [{"role": "system", "content": full_system}]
+    for msg in history[-4:]:
+        role = msg.get("role", "user")
+        if role == "model":
+            role = "assistant"
+        messages.append({"role": role, "content": msg.get("content", "")})
+    messages.append({"role": "user", "content": message})
+
+    # Call LLM (vLLM or Gemini fallback)
+    return _call_chat_llm(messages, query_meta)
 
 
 # ─── Rule Set Generation: GT vs Predicted Comparison ────────
@@ -4191,6 +5283,7 @@ def api_ruleset_generate(request):
 
     drug_name = body.get("drug_name", "").strip()
     indication = body.get("indication", "").strip()
+    user_api_key = body.get("api_key", "").strip()
     if not drug_name:
         return JsonResponse({"error": "drug_name is required"}, status=400)
 
@@ -4210,13 +5303,20 @@ def api_ruleset_generate(request):
         _sys.path.insert(0, str(Path(settings.BASE_DIR).parent / "src" / "ruleset_generation"))
         _sys.path.insert(0, str(Path(settings.BASE_DIR).parent))
 
-        env_path = Path(settings.BASE_DIR).parent / ".env"
-        if env_path.exists():
-            for line in env_path.read_text().splitlines():
-                line = line.strip()
-                if line and not line.startswith("#") and "=" in line:
-                    key, val = line.split("=", 1)
-                    os.environ.setdefault(key.strip(), val.strip())
+        # 사용자 API 키가 있으면 현재 스레드에만 설정 (다른 요청에 영향 없음)
+        _prev_rule_key = os.environ.get("RULE_ENGINE_LLM_API_KEY")
+        if user_api_key:
+            from src.agents.llm_client import set_api_key
+            set_api_key(user_api_key)
+            os.environ["RULE_ENGINE_LLM_API_KEY"] = user_api_key
+        else:
+            env_path = Path(settings.BASE_DIR).parent / ".env"
+            if env_path.exists():
+                for line in env_path.read_text().splitlines():
+                    line = line.strip()
+                    if line and not line.startswith("#") and "=" in line:
+                        key, val = line.split("=", 1)
+                        os.environ.setdefault(key.strip(), val.strip())
 
         try:
             _ruleset_gen_jobs[job_id]["progress"] = "Collecting evidence from 10 databases..."
@@ -4261,6 +5361,12 @@ def api_ruleset_generate(request):
                 "progress": f"Failed: {e}",
                 "error": str(e),
             }
+        finally:
+            # 사용자 키 복원 (다른 요청에 유출 방지)
+            if _prev_rule_key is not None:
+                os.environ["RULE_ENGINE_LLM_API_KEY"] = _prev_rule_key
+            elif "RULE_ENGINE_LLM_API_KEY" in os.environ and user_api_key:
+                del os.environ["RULE_ENGINE_LLM_API_KEY"]
 
     import threading
     t = threading.Thread(target=_run, daemon=True)
@@ -4280,3 +5386,257 @@ def api_ruleset_generate_status(request, job_id):
     if job["status"] == "error":
         resp["error"] = job.get("error", "")
     return JsonResponse(resp, json_dumps_params={"ensure_ascii": False})
+
+
+# ─── Demo API (auto-select latest run) ───────────────────────────────────
+
+
+def _get_latest_run_id() -> str | None:
+    """Return the run_id of the pinned demo run, falling back to latest."""
+    pinned = DATA_DIR / "runs" / PINNED_RUN_ID
+    if pinned.is_dir() and (pinned / "simulations").exists():
+        return PINNED_RUN_ID
+    runs_dir = DATA_DIR / "runs"
+    if not runs_dir.exists():
+        return None
+    for d in sorted(runs_dir.iterdir(), reverse=True):
+        if d.is_dir() and (d / "simulations").exists():
+            return d.name
+    return None
+
+
+@csrf_exempt
+@require_GET
+def api_demo_saes(request):
+    """Demo SAE list — auto-selects the latest run, returns all SAEs across
+    all patients.
+
+    GET /api/demo/saes/?mode=natural
+    """
+    mode = request.GET.get("mode", "natural")
+    run_id = _get_latest_run_id()
+    if not run_id:
+        return JsonResponse(
+            {"error": "No simulation runs found. Run a simulation first."},
+            status=404,
+        )
+
+    run_path = _get_run_path(run_id)
+    patient_ids = _list_patients(run_path)
+    if not patient_ids:
+        return JsonResponse(
+            {"error": f"No patients found in run '{run_id}'."},
+            status=404,
+        )
+
+    from src.doc_agent.sim_to_crf_adapter import find_serious_aes
+
+    all_saes = []
+    for pid in patient_ids:
+        profile, records = _load_patient_data(run_path, pid, mode)
+        if not records:
+            continue
+        try:
+            saes = find_serious_aes(records)
+        except Exception:
+            continue
+        for sae in saes:
+            ae = sae["ae_record"]
+            all_saes.append({
+                "patient_id": pid,
+                "ae_term": ae.get("AETERM", ""),
+                "grade": ae.get("_grade", 0),
+                "onset_day": sae.get("day") or ae.get("AESTDAT"),
+                "severity": ae.get("AESEV", ""),
+                "action": ae.get("AEACN", ""),
+                "outcome": ae.get("AEOUT", ""),
+                "mode": mode,
+            })
+
+    return JsonResponse({
+        "run_id": run_id,
+        "saes": all_saes,
+        "all_patient_ids": patient_ids,
+    })
+
+
+@csrf_exempt
+@require_POST
+def api_demo_generate(request):
+    """Demo report generation — auto-selects the latest run.
+
+    POST body: {
+        "patient_id": str,
+        "ae_term": str,
+        "ae_day": int (optional),
+        "mode": "natural" | "care_ai" (default: "natural"),
+        "use_ai": bool (default: false),
+    }
+    """
+    try:
+        body = json.loads(request.body)
+    except json.JSONDecodeError:
+        return JsonResponse({"error": "Invalid JSON"}, status=400)
+
+    patient_id = body.get("patient_id", "")
+    ae_term = body.get("ae_term", "")
+    ae_day = body.get("ae_day")
+    mode = body.get("mode", "natural")
+    use_ai = body.get("use_ai", False)
+
+    if not all([patient_id, ae_term]):
+        return JsonResponse(
+            {"error": "patient_id and ae_term are required"},
+            status=400,
+        )
+
+    run_id = _get_latest_run_id()
+    if not run_id:
+        return JsonResponse(
+            {"error": "No simulation runs found. Run a simulation first."},
+            status=404,
+        )
+
+    run_path = _get_run_path(run_id)
+    profile, records = _load_patient_data(run_path, patient_id, mode)
+    if profile is None:
+        return JsonResponse(
+            {"error": f"Patient '{patient_id}' not found in run '{run_id}'."},
+            status=404,
+        )
+
+    meta_path = run_path / "run_meta.json"
+    drug_name = "Enfortumab vedotin (Padcev)"
+    indication = "Metastatic urothelial carcinoma"
+    if meta_path.exists():
+        try:
+            meta = json.loads(meta_path.read_text(encoding="utf-8"))
+            drug_name = meta.get("drug_name", drug_name)
+            indication = meta.get("indication", indication)
+        except Exception:
+            pass
+
+    try:
+        from datetime import date as dt_date
+        from src.doc_agent.service import generate_documents
+
+        result = generate_documents(
+            patient_profile=profile,
+            day_records=records,
+            target_ae_term=ae_term,
+            run_id=run_id,
+            sim_start_date=dt_date(2026, 1, 6),
+            drug_name=drug_name,
+            indication=indication,
+            target_ae_day=ae_day,
+            use_ai=use_ai,
+        )
+    except Exception as exc:
+        logging.exception("Demo generate failed")
+        return JsonResponse(
+            {"error": f"Document generation failed: {exc}"},
+            status=500,
+        )
+
+    # Record ai_fields in status file when AI is used
+    if use_ai and result.get("success"):
+        from datetime import datetime
+        ae_slug = ae_term.replace(" ", "_").replace("/", "_")
+        ai_fields = {
+            "section_b.narrative": True,
+            "section_c.dechallenge": True,
+            "section_c.rechallenge": True,
+        }
+        status_data = _read_status(run_id, patient_id, ae_slug)
+        status_data["ai_fields"] = ai_fields
+        meddra = result.get("meddra", {})
+        if meddra:
+            status_data["meddra_confidence"] = meddra.get("confidence")
+            status_data["meddra_source"] = meddra.get("source")
+        status_data["updated_at"] = datetime.utcnow().isoformat()
+        if "created_at" not in status_data:
+            status_data["created_at"] = datetime.utcnow().isoformat()
+        if "status" not in status_data:
+            status_data["status"] = "draft"
+        _write_status(run_id, patient_id, ae_slug, status_data)
+
+    # Include run_id in the response so the caller knows which run was used
+    if isinstance(result, dict):
+        result["run_id"] = run_id
+
+    return JsonResponse(result)
+
+
+@csrf_exempt
+@require_GET
+def api_demo_reports(request):
+    """List all generated reports for the latest run.
+
+    GET /api/demo/reports/
+    """
+    run_id = _get_latest_run_id()
+    if not run_id:
+        return JsonResponse(
+            {"error": "No simulation runs found. Run a simulation first."},
+            status=404,
+        )
+
+    from src.doc_agent.service import DOCS_OUTPUT_DIR
+
+    docs_dir = DOCS_OUTPUT_DIR / run_id
+    if not docs_dir.exists():
+        return JsonResponse({"run_id": run_id, "reports": []})
+
+    reports = []
+    for patient_dir in sorted(docs_dir.iterdir()):
+        if not patient_dir.is_dir():
+            continue
+        patient_id = patient_dir.name
+
+        # Group files by ae_slug to pair PDF/XML together
+        file_map = {}  # ae_slug -> {pdf_path, xml_path, ...}
+        for doc_file in sorted(patient_dir.iterdir()):
+            if not doc_file.is_file():
+                continue
+            fname = doc_file.name
+            # Skip status files
+            if fname.startswith("report_status_"):
+                continue
+            # Skip medwatch data JSON files
+            if fname.startswith("medwatch_data_"):
+                continue
+
+            # Extract ae_slug from filename patterns:
+            #   medwatch_3500a_{ae_slug}.pdf
+            #   e2b_r3_{ae_slug}.xml
+            ae_slug = None
+            if fname.startswith("medwatch_3500a_") and fname.endswith(".pdf"):
+                ae_slug = fname[len("medwatch_3500a_"):-len(".pdf")]
+            elif fname.startswith("e2b_r3_") and fname.endswith(".xml"):
+                ae_slug = fname[len("e2b_r3_"):-len(".xml")]
+
+            if ae_slug:
+                if ae_slug not in file_map:
+                    file_map[ae_slug] = {
+                        "patient_id": patient_id,
+                        "ae_term": ae_slug.replace("_", " ").title(),
+                        "ae_slug": ae_slug,
+                    }
+                if fname.endswith(".pdf"):
+                    file_map[ae_slug]["pdf_path"] = (
+                        f"/api/doc/download/{run_id}/{patient_id}/{fname}"
+                    )
+                    file_map[ae_slug]["created_at"] = (
+                        time.strftime(
+                            "%Y-%m-%dT%H:%M:%S",
+                            time.gmtime(doc_file.stat().st_mtime),
+                        )
+                    )
+                elif fname.endswith(".xml"):
+                    file_map[ae_slug]["xml_path"] = (
+                        f"/api/doc/download/{run_id}/{patient_id}/{fname}"
+                    )
+
+        reports.extend(file_map.values())
+
+    return JsonResponse({"run_id": run_id, "reports": reports})
