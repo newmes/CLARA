@@ -112,7 +112,21 @@ All models and data **download automatically** from HuggingFace on first run:
 
 ## Results
 
-### A/B Comparison: Standard Visit vs. CLARA Call
+### Anti-Hallucination (RLFR Fine-Tuning)
+
+| Metric | Base MedGemma 4B | + RLFR | Change |
+|--------|-----------------|--------|--------|
+| Hallucination Rate (MedHallu Hard) | 37.3% | **6.7%** | -82% |
+| MMLU Medical Score | 60.7% | **64.3%** | +5.9% |
+
+### Visual AE Classification (MedSigLIP)
+
+| Metric | Score |
+|--------|-------|
+| Weighted F1 (skin AE grading) | **90%** |
+| Training data | 210 Gemini-generated images (147/21/42 split) |
+
+### A/B Comparison: Standard Visit vs. CLARA Call (https://github.com/newmes/CLARA_Call)
 
 CLARA runs A/B comparisons on identical cohorts (N=100, same seed): Group A (no agent, bi-weekly visits only) vs. Group B (same trial + CLARA Call daily monitoring).
 
@@ -131,20 +145,6 @@ Hospital ──── 13 days ──── Hospital        Hospital ── 3 day
 | Discontinued (out of 100) | 21 | **17** | **↓19%** |
 | Deaths (out of 100) | 21 | **16** | **↓24%** |
 | Grade 3+ AE Duration (mean) | 1.4 days | **1.3 days** | **↓7%** |
-
-### Anti-Hallucination (RLFR Fine-Tuning)
-
-| Metric | Base MedGemma 4B | + RLFR | Change |
-|--------|-----------------|--------|--------|
-| Hallucination Rate (MedHallu Hard) | 37.3% | **6.7%** | -82% |
-| MMLU Medical Score | 60.7% | **64.3%** | +5.9% |
-
-### Visual AE Classification (MedSigLIP)
-
-| Metric | Score |
-|--------|-------|
-| Weighted F1 (skin AE grading) | **90%** |
-| Training data | 210 Gemini-generated images (147/21/42 split) |
 
 ---
 
