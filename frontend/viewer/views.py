@@ -983,10 +983,10 @@ def trial_viewer(request, run_id: str, day: int = 1):
                    if "_hospital" not in f.stem]
     care_files = [f for f in sim_dir.glob("*_care_ai.jsonl")
                 if "_hospital" not in f.stem]
-    if natural_files:
-        available_modes.append("natural")
     if care_files:
         available_modes.append("care_ai")
+    if natural_files:
+        available_modes.append("natural")
 
     # Default to first available mode if requested mode doesn't exist
     mode = request.GET.get("mode", "")
@@ -3525,10 +3525,10 @@ def crf_tables(request, run_id: str):
     sim_dir = run_path / "simulations"
     available_modes = []
     if sim_dir.exists():
-        if list(sim_dir.glob("*_natural.jsonl")):
-            available_modes.append("natural")
         if list(sim_dir.glob("*_care_ai.jsonl")):
             available_modes.append("care_ai")
+        if list(sim_dir.glob("*_natural.jsonl")):
+            available_modes.append("natural")
 
     # Load run meta
     drug_name = ""
@@ -3880,10 +3880,10 @@ def statistical_analysis(request, run_id: str):
     sim_dir = run_path / "simulations"
     available_modes = []
     if sim_dir.exists():
-        if list(sim_dir.glob("*_natural.jsonl")):
-            available_modes.append("natural")
         if list(sim_dir.glob("*_care_ai.jsonl")):
             available_modes.append("care_ai")
+        if list(sim_dir.glob("*_natural.jsonl")):
+            available_modes.append("natural")
 
     n_patients = len(_list_patients(run_path))
 

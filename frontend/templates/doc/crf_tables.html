@@ -44,7 +44,15 @@
     background: rgba(57,210,192,0.12); border-color: var(--accent-cyan);
     color: var(--accent-cyan);
   }
-  /* ── DCA Switch Toggle (iOS-style) ── */
+  /* ── DCA Switch Toggle (iOS-style + pulse) ── */
+  @keyframes dca-pulse {
+    0%, 100% { box-shadow: 0 0 8px rgba(57,210,192,0.8); }
+    50% { box-shadow: 0 0 16px rgba(57,210,192,1), 0 0 24px rgba(57,210,192,0.4); }
+  }
+  @keyframes dca-track-pulse {
+    0%, 100% { box-shadow: 0 0 12px rgba(57,210,192,0.3), inset 0 0 8px rgba(57,210,192,0.15); }
+    50% { box-shadow: 0 0 20px rgba(57,210,192,0.5), inset 0 0 10px rgba(57,210,192,0.25); }
+  }
   .dca-switch {
     display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
     user-select: none; -webkit-user-select: none;
@@ -53,30 +61,30 @@
   .dca-label {
     font: 700 0.92em 'JetBrains Mono', monospace;
     color: var(--text-muted); letter-spacing: 0.5px;
-    transition: color 0.3s, text-shadow 0.3s;
+    opacity: 0.5; transition: color 0.3s, text-shadow 0.3s, opacity 0.3s;
   }
   .dca-slider {
     position: relative; width: 44px; height: 24px;
-    background: rgba(110,118,129,0.3); border-radius: 12px;
+    background: rgba(110,118,129,0.2); border-radius: 12px;
     transition: background 0.3s, box-shadow 0.3s;
     flex-shrink: 0;
   }
   .dca-slider::before {
     content: ''; position: absolute; left: 2px; top: 2px;
     width: 20px; height: 20px; border-radius: 50%;
-    background: #8b949e; transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
+    background: #6e7681; transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
   }
   .dca-switch input:checked + .dca-slider {
     background: rgba(57,210,192,0.35);
-    box-shadow: 0 0 12px rgba(57,210,192,0.3), inset 0 0 8px rgba(57,210,192,0.15);
+    animation: dca-track-pulse 2s ease-in-out infinite;
   }
   .dca-switch input:checked + .dca-slider::before {
     transform: translateX(20px); background: #39d2c0;
-    box-shadow: 0 0 8px rgba(57,210,192,0.8);
+    animation: dca-pulse 2s ease-in-out infinite;
   }
   .dca-switch input:checked ~ .dca-label,
   .dca-switch:has(input:checked) .dca-label {
-    color: #39d2c0; text-shadow: 0 0 8px rgba(57,210,192,0.5);
+    color: #39d2c0; text-shadow: 0 0 8px rgba(57,210,192,0.5); opacity: 1;
   }
   .ctrl-select {
     padding: 5px 12px; border-radius: var(--radius-sm); font-size: 0.9em;
