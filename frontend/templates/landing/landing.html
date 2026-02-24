@@ -1411,7 +1411,7 @@
      ================================================================ -->
 {% if demo_run_id %}
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
-<script src="{% static 'js/trial_map.js' %}?v=3"></script>
+<script src="{% static 'js/trial_map.js' %}?v=4"></script>
 {% endif %}
 <script>
 (function() {
@@ -1594,26 +1594,35 @@
       .then(function(data) {
         var patients = data.patients || [];
         setSpriteOffset(RUN_ID);
-        trialMap = new TrialMap('simMapContainer', patients, null, RUN_ID, { centerOnHospital: true });
+        trialMap = new TrialMap('simMapContainer', patients, null, RUN_ID, {
+          centerOnHospital: true,
+          onReady: function(map) {
+            /* Scene is now guaranteed to exist — zoom in from hospital center */
+            var cam = map._scene.cameras.main;
+            var hospX = map.hospitalPos.x * 16 + 8;
+            var hospY = map.hospitalPos.y * 16 + 8;
 
-        /* Start zoomed out + centered on hospital, then smoothly zoom in */
-        setTimeout(function() {
-          if (trialMap && trialMap._scene) {
-            var cam = trialMap._scene.cameras.main;
-            var targetZoom = cam.zoom;
-            /* Center on hospital position */
-            var hospX = trialMap.hospitalPos.x * 16 + 8;
-            var hospY = trialMap.hospitalPos.y * 16 + 8;
+            /* Recalculate fitZoom using actual game canvas size (RESIZE mode) */
+            var cb = map.mapMeta && map.mapMeta.content_bounds;
+            var targetZoom;
+            if (cb) {
+              var bw = (cb.max_x - cb.min_x + 1) * 16;
+              var bh = (cb.max_y - cb.min_y + 1) * 16;
+              targetZoom = Math.max(Math.min(cam.width / bw, cam.height / bh) * 0.9, 1.0);
+            } else {
+              targetZoom = cam.zoom || 1.5;
+            }
+
+            /* Remove camera bounds during zoom-out so hospital center isn't clamped */
+            cam.removeBounds();
             cam.centerOn(hospX, hospY);
-            cam.setZoom(targetZoom * 0.4);
-            cam.zoomTo(targetZoom, 2500, 'Cubic.easeOut');
+            var finalZoom = targetZoom * 1.8;
+            cam.setZoom(finalZoom * 0.3);
+            cam.zoomTo(finalZoom, 2500, 'Cubic.easeOut');
+            /* Start auto-play after zoom-in completes */
+            setTimeout(advanceDay, 2800);
           }
-        }, 500);
-
-        /* Wait for zoom-in to finish, then start auto-play */
-        setTimeout(function() {
-          advanceDay();
-        }, 3500);
+        });
       })
       .catch(function(e) {
         console.warn('Sim map preview: failed to load', e);

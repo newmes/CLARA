@@ -623,6 +623,13 @@ class TrialMap {
     }
 
     this.dayText = null;
+
+    // Notify caller that scene is ready (used by landing page zoom-in)
+    // Delay by 1 frame so Phaser RESIZE scale mode has settled
+    if (this.options.onReady) {
+      const self = this;
+      scene.time.delayedCall(50, () => { self.options.onReady(self); });
+    }
   }
 
   _createAnimations(scene) {
