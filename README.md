@@ -8,7 +8,7 @@
 **then deploys it as a real-world multimodal application.**
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](#)
-[![License](https://img.shields.io/badge/License-Apache_2.0-green.svg)](#license)
+[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](#license)
 [![HAI-DEF](https://img.shields.io/badge/HAI--DEF-MedGemma-FF6F00?logo=google&logoColor=white)](https://developers.google.com/health-ai-developer-foundations)
 [![Kaggle](https://img.shields.io/badge/MedGemma_Impact-Challenge_2026-20BEFF?logo=kaggle&logoColor=white)](https://www.kaggle.com/competitions/med-gemma-impact-challenge)
 
@@ -243,8 +243,9 @@ Each HAI-DEF model serves a distinct clinical role within CLARA:
 | <img src="docs/assets/gemma.png" width="16" /> [**MedGemma 1.5 4B**](https://huggingface.co/google/medgemma-1.5-4b-it) | Data Collection Agent &mdash; conversational AI nurse for daily video calls | Clinically appropriate questions and assessments |
 | <img src="docs/assets/gemma.png" width="16" /> [**MedSigLIP**](https://huggingface.co/google/medsiglip-448) | Visual AE detection &mdash; classifies skin AEs from video call images | Fine-tuned on 210 Gemini-generated images; W-F1 = 90% |
 | <img src="docs/assets/gemma.png" width="16" /> [**HeAR**](https://huggingface.co/google/hear-pytorch) | Audio AE detection &mdash; cough detection and dry/wet classification | Fine-tuned on 956 COUGHVID samples |
+| <img src="docs/assets/gemma.png" width="16" /> [**MedASR**](https://huggingface.co/google/medasr) | Medical speech recognition &mdash; patient speech transcription during video calls | Medical terminology-aware ASR |
 | <img src="docs/assets/gemini.png" width="16" /> [**Gemini 2.0 Flash**](https://ai.google.dev/) | Simulation orchestrator &mdash; rule discovery, patient generation, narration | API-based; no local GPU needed |
-| <img src="docs/assets/gemma.png" width="16" /> **MedGemma 4B + RLFR** | Data Analysis Agent &mdash; CRF records, SAE narratives, MedWatch reports | Hallucination rate 37.3% &rarr; 6.7% |
+| <img src="docs/assets/gemma.png" width="16" /> [**MedGemma 4B + RLFR**](https://huggingface.co/AlphaRaven/medgemma-4b-antihallu) | Data Analysis Agent &mdash; CRF records, SAE narratives, MedWatch reports | Hallucination rate 37.3% &rarr; 6.7% |
 
 ### Multimodal Detection Channels
 
@@ -283,7 +284,7 @@ All models and data **download automatically** from HuggingFace on first run:
 ### Prerequisites
 
 - Python 3.10+
-- NVIDIA GPU with 10&ndash;20 GB VRAM (for notebooks; simulation CLI uses Gemini API only)
+- NVIDIA GPU with ~10 GB VRAM (NB2 only ~20 GB; simulation CLI uses Gemini API only)
 - [Google Gemini API key](https://ai.google.dev/)
 
 ### Installation
@@ -517,6 +518,15 @@ This reduced the hallucination rate from **37.3% to 6.7%** on MedHallu Hard whil
   Submitted to the <a href="https://www.kaggle.com/competitions/med-gemma-impact-challenge">MedGemma Impact Challenge</a> on Kaggle.
 </p>
 
+## Asset Credits
+
+| Asset | Source | License |
+|-------|--------|---------|
+| Character sprites (nurse, patients, buildings, decorations) | [Sunnyside](https://danieldiggle.itch.io/sunnyside) by Daniel Diggle | Commercial license |
+| 1-Bit & Tiny Town tilesets | [Kenney](https://kenney.nl/) | CC0 1.0 |
+| CuteRPG tilesets | [CuteRPG](https://store.steampowered.com/app/2116380/) | Commercial license |
+| Synthetic medical images | Generated with Google Gemini | &mdash; |
+
 ## License
 
-[Apache 2.0](LICENSE)
+[GNU General Public License v3.0](LICENSE)
