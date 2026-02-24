@@ -1004,7 +1004,7 @@
           <div class="ci-vital-card"><div class="ci-vital-icon icon-bp">&uarr;</div><div class="ci-vital-info"><div class="ci-vital-name">SBP</div><div class="ci-vital-value">-- <span class="ci-vital-unit">mmHg</span></div></div></div>
           <div class="ci-vital-card"><div class="ci-vital-icon icon-bp">&darr;</div><div class="ci-vital-info"><div class="ci-vital-name">DBP</div><div class="ci-vital-value">-- <span class="ci-vital-unit">mmHg</span></div></div></div>
           <div class="ci-vital-card"><div class="ci-vital-icon icon-hr">&hearts;</div><div class="ci-vital-info"><div class="ci-vital-name">HR</div><div class="ci-vital-value">-- <span class="ci-vital-unit">bpm</span></div></div></div>
-          <div class="ci-vital-card"><div class="ci-vital-icon icon-bt">&#8451;</div><div class="ci-vital-info"><div class="ci-vital-name">BT</div><div class="ci-vital-value">-- <span class="ci-vital-unit">&deg;C</span></div></div></div>
+          <div class="ci-vital-card"><div class="ci-vital-icon icon-bt">&#8457;</div><div class="ci-vital-info"><div class="ci-vital-name">BT</div><div class="ci-vital-value">-- <span class="ci-vital-unit">&deg;F</span></div></div></div>
           <div class="ci-vital-card"><div class="ci-vital-icon icon-rr">&#8767;</div><div class="ci-vital-info"><div class="ci-vital-name">RR</div><div class="ci-vital-value">-- <span class="ci-vital-unit">/min</span></div></div></div>
           <div class="ci-vital-card"><div class="ci-vital-icon icon-spo2">&#9679;</div><div class="ci-vital-info"><div class="ci-vital-name">SpO2</div><div class="ci-vital-value">-- <span class="ci-vital-unit">%</span></div></div></div>
         </div>
@@ -1234,32 +1234,8 @@ function ciThinkSet(itemId, state, resultText) {
   if (resultText) descEl.textContent = resultText;
 }
 
-/* ── Staggered think animation queue ── */
-var ciThinkQueue = [];
-var ciThinkBusy = false;
-var CI_STEP_DELAY = 400;
-
-function ciThinkStep(batch) {
-  ciThinkQueue.push(batch);
-  if (!ciThinkBusy) ciThinkDrainQueue();
-}
-
-function ciThinkDrainQueue() {
-  if (ciThinkQueue.length === 0) { ciThinkBusy = false; return; }
-  ciThinkBusy = true;
-  var batch = ciThinkQueue.shift();
-  if (typeof batch === 'function') {
-    batch();
-  } else {
-    batch.forEach(function(a) { ciThinkSet(a.id, a.state, a.text); });
-  }
-  setTimeout(ciThinkDrainQueue, CI_STEP_DELAY);
-}
-
-function ciThinkFlush() {
-  ciThinkQueue = [];
-  ciThinkBusy = false;
-}
+/* ── ciThinkFlush (reset helper) ── */
+function ciThinkFlush() {}
 
 function ciCreateThinkingBubble() {
   var feed = document.getElementById('ciFeed');
@@ -1367,20 +1343,49 @@ function ciHandleEvent(ev) {
       ciAddMiniTl('dot-ok', 'Connected to ' + ev.patient_id);
       break;
 
-    case 'medgemma_start': {
-      // Create thinking bubble — patient_greet already rendered above
+    case 'inference_start': {
       ciCreateThinkingBubble();
-      ciThinkSet('ciThinkSiglip', 'processing');
-      ciThinkSet('ciThinkMedasr', 'processing');
+      if (ev.has_audio) {
+        ciThinkSet('ciThinkHear', 'processing');
+      } else {
+        ciThinkSet('ciThinkHear', 'unavailable', 'No audio');
+        ciThinkSet('ciThinkMedasr', 'unavailable', 'No audio');
+      }
       break;
     }
 
-    case 'medgemma_result': {
+    case 'hear_unavailable': {
+      ciThinkResults.hear = { summary: 'N/A' };
+      ciThinkSet('ciThinkMedasr', 'unavailable', 'No audio');
+      break;
+    }
+
+    case 'medasr_unavailable': {
+      ciThinkResults.medasr = { summary: 'N/A' };
+      ciMedasrDone = true;
+      ciThinkSet('ciThinkSiglip', 'processing');
+      break;
+    }
+
+    case 'medasr_result': {
+      var medasrWords = ev.word_count || 0;
+      var medasrMs = ev.latency_ms || 0;
+      if (medasrWords > 0) {
+        ciThinkSet('ciThinkMedasr', 'done', medasrWords + ' words (' + medasrMs + 'ms)');
+        ciThinkResults.medasr = { summary: medasrWords + ' words', text: ev.transcript };
+      } else {
+        ciThinkSet('ciThinkMedasr', 'unavailable', 'No transcript');
+        ciThinkResults.medasr = { summary: 'N/A' };
+      }
+      ciMedasrDone = true;
+      ciThinkSet('ciThinkSiglip', 'processing');
+      break;
+    }
+
+    case 'siglip_result': {
       var findings = ev.findings || [];
       var ms = ev.latency_ms || 0;
-
-      // Store data immediately
-      var siglipText, medasrText, medasrState;
+      var siglipText;
       if (findings.length > 0 && findings[0].ae_term !== 'normal') {
         var f = findings[0];
         var grade = f.estimated_grade || f.grade || 0;
@@ -1400,26 +1405,8 @@ function ciHandleEvent(ev) {
         siglipText = 'Normal (' + ms + 'ms)';
         ciThinkResults.siglip = { summary: 'Normal appearance' };
       }
-
-      if (ev.medical_transcript) {
-        var words = ev.medical_transcript.split(/\s+/).filter(Boolean).length;
-        medasrState = 'done';
-        medasrText = words + ' words (' + (ev.medasr_latency_ms||0) + 'ms)';
-        ciThinkResults.medasr = { summary: words + ' words', text: ev.medical_transcript };
-        ciMedasrDone = true;
-      } else {
-        medasrState = 'unavailable';
-        medasrText = 'No transcript';
-        ciThinkResults.medasr = { summary: 'N/A' };
-        ciMedasrDone = true;
-      }
-
-      // Queue staggered visual transitions
-      ciThinkStep([
-        {id: 'ciThinkSiglip', state: 'done', text: siglipText},
-        {id: 'ciThinkMedasr', state: medasrState, text: medasrText}
-      ]);
-      ciThinkStep([{id: 'ciThinkHear', state: 'processing'}]);
+      ciThinkSet('ciThinkSiglip', 'done', siglipText);
+      ciThinkSet('ciThinkGemma', 'processing');
       break;
     }
 
@@ -1434,8 +1421,8 @@ function ciHandleEvent(ev) {
         hearText = 'No cough (' + (ev.latency_ms||0) + 'ms)';
         ciThinkResults.hear = { summary: 'No cough detected' };
       }
-      ciThinkStep([{id: 'ciThinkHear', state: 'done', text: hearText}]);
-      ciThinkStep([{id: 'ciThinkGemma', state: 'processing'}]);
+      ciThinkSet('ciThinkHear', 'done', hearText);
+      ciThinkSet('ciThinkMedasr', 'processing');
       break;
     }
 
@@ -1458,14 +1445,7 @@ function ciHandleEvent(ev) {
     case 'nurse_context': {
       lastCtx = ev;
 
-      // Update MedASR in thinking bubble if transcript arrived via context and not yet done
-      if (ev.medical_transcript && !ciMedasrDone) {
-        var ctxWords = ev.medical_transcript.split(/\s+/).filter(Boolean).length;
-        var ctxMedasrText = ctxWords + ' words (' + (ev.medasr_latency_ms||0) + 'ms)';
-        ciThinkResults.medasr = { summary: ctxWords + ' words', text: ev.medical_transcript };
-        ciMedasrDone = true;
-        ciThinkStep([{id: 'ciThinkMedasr', state: 'done', text: ctxMedasrText}]);
-      }
+      // MedASR is handled via its own SSE event (medasr_result)
 
       // Update mood display (bar chart)
       var mood = ev.mood || {};
@@ -1493,7 +1473,7 @@ function ciHandleEvent(ev) {
           'SBP':  {icon: '\u2191', cls: 'icon-bp', unit: 'mmHg', warnLo: 90, warnHi: 130, dangerHi: 140},
           'DBP':  {icon: '\u2193', cls: 'icon-bp', unit: 'mmHg', warnLo: 60, warnHi: 85, dangerHi: 90},
           'HR':   {icon: '\u2665', cls: 'icon-hr', unit: 'bpm', warnLo: 55, warnHi: 95, dangerHi: 110},
-          'BT':   {icon: '\u2103', cls: 'icon-bt', unit: '\u00b0C', warnLo: 36.0, warnHi: 37.5, dangerHi: 38.0},
+          'BT':   {icon: '\u2109', cls: 'icon-bt', unit: '\u00b0F', warnLo: 96.8, warnHi: 99.5, dangerHi: 100.4, convertF: true},
           'RR':   {icon: '\u223f', cls: 'icon-rr', unit: '/min', warnLo: 12, warnHi: 20, dangerHi: 24},
           'SpO2': {icon: '\u25cf', cls: 'icon-spo2', unit: '%', warnLo: 94, warnHi: 999, dangerHi: 999}
         };
@@ -1501,6 +1481,7 @@ function ciHandleEvent(ev) {
           var val = vitals[k];
           var meta = vitalMeta[k] || {icon: '\u2022', cls: 'icon-default', unit: '', warnLo: -9999, warnHi: 9999, dangerHi: 9999};
           var numVal = parseFloat(val);
+          if (meta.convertF && !isNaN(numVal)) { numVal = numVal * 9 / 5 + 32; val = numVal.toFixed(1); }
           var cardCls = 'ci-vital-card';
           if (!isNaN(numVal)) {
             if (k === 'SpO2') {
@@ -1547,12 +1528,11 @@ function ciHandleEvent(ev) {
       var questions = ev.questions || [];
       var concerns = ev.concerns || [];
       if (ev.turn === 1) {
-        // Mark MedGemma done, start CTCAE — queued for staggered animation
         var targets = questions.map(function(q){ return q.target_ae ? q.target_ae.replace(/_/g,' ') : ''; }).filter(Boolean);
         var gemmaText = targets.length > 0 ? 'Targeting: ' + targets.join(', ') : questions.length + ' questions';
         ciThinkResults.gemma = { summary: targets.join(', ') || questions.length + ' questions', concerns: concerns };
-        ciThinkStep([{id: 'ciThinkGemma', state: 'done', text: gemmaText}]);
-        ciThinkStep([{id: 'ciThinkCtcae', state: 'processing'}]);
+        ciThinkSet('ciThinkGemma', 'done', gemmaText);
+        ciThinkSet('ciThinkCtcae', 'processing');
         // Store nurse text — will be injected into thinking bubble after assessment
         ciPendingNurseText = nurseText;
         ciPendingNurseExtra = 'Turn ' + ev.turn;
@@ -1561,50 +1541,6 @@ function ciHandleEvent(ev) {
         ciAppendMsg(feed, 'nurse', nurseText, 'Turn ' + ev.turn);
       }
       ciSpeak(nurseText, 'nurse', ev.audio_url);
-
-      if (questions.length > 0 || concerns.length > 0 || lastCtx) {
-        var ctx = document.createElement('div');
-        ctx.className = 'ci-context';
-        var gridHtml = '';
-
-        // Visual findings
-        if (lastCtx && lastCtx.visual_assessment) {
-          var vf = (lastCtx.visual_assessment.findings || []);
-          var vTags = '';
-          if (vf.length > 0) {
-            vf.forEach(function(f) {
-              vTags += '<span class="ci-ctx-tag ctx-ae">' + f.ae_term.replace(/_/g,' ') + ' G' + f.grade + '</span>';
-            });
-          } else { vTags = '<span class="ci-ctx-tag ctx-ok" style="color:var(--ci-green)">Normal</span>'; }
-          gridHtml += '<div class="ci-ctx-item"><div class="ci-ctx-item-label">Visual</div><div class="ci-ctx-item-val">' + vTags + '</div></div>';
-        }
-
-        // Audio
-        if (lastCtx && lastCtx.audio_assessment) {
-          gridHtml += '<div class="ci-ctx-item"><div class="ci-ctx-item-label">Audio</div><div class="ci-ctx-item-val"><span class="ci-ctx-tag">' + lastCtx.audio_assessment + '</span></div></div>';
-        }
-
-        // Question targets
-        if (questions.length > 0) {
-          var tTags = '';
-          questions.forEach(function(q) {
-            if (q.target_ae) tTags += '<span class="ci-ctx-tag ctx-target">' + q.target_ae.replace(/_/g,' ') + '</span>';
-          });
-          if (tTags) gridHtml += '<div class="ci-ctx-item"><div class="ci-ctx-item-label">Probing</div><div class="ci-ctx-item-val">' + tTags + '</div></div>';
-        }
-
-        // Concerns
-        if (concerns.length > 0) {
-          var cTags = '';
-          concerns.forEach(function(c) { cTags += '<span class="ci-ctx-tag ctx-concern">' + c + '</span>'; });
-          gridHtml += '<div class="ci-ctx-item ctx-full"><div class="ci-ctx-item-label">Concerns</div><div class="ci-ctx-item-val">' + cTags + '</div></div>';
-        }
-
-        ctx.innerHTML =
-          '<div class="ci-context-title">Nurse Reasoning</div>' +
-          '<div class="ci-context-grid">' + gridHtml + '</div>';
-        feed.appendChild(ctx);
-      }
       break;
     }
 
@@ -1638,10 +1574,9 @@ function ciHandleEvent(ev) {
       });
       ciThinkResults.ctcae = { concern: lvl, action: ev.action, aes: detected };
       if (maxG > pipelineMaxGrade) pipelineMaxGrade = maxG;
-      // Queue: CTCAE done → collapse thinking (staggered)
-      var ctcaeText = (primaryAe || 'No AE') + (maxG > 0 ? ' G' + maxG : '') + ' -- ' + lvl;
-      ciThinkStep([{id: 'ciThinkCtcae', state: 'done', text: ctcaeText}]);
-      ciThinkStep(function() { ciCollapseThinking(); });
+      var ctcaeText = (primaryAe || 'No AE') + (maxG > 0 ? ' G' + maxG : '');
+      ciThinkSet('ciThinkCtcae', 'done', ctcaeText);
+      ciCollapseThinking();
 
       if (ev.action) {
         actionsList.push({action: ev.action.replace(/_/g, ' '), concern: lvl, day: 'Day ' + dayCount});

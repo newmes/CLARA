@@ -168,6 +168,44 @@ class ChatResponse(BaseModel):
     latency_ms: dict = Field(..., description="Latency breakdown in milliseconds")
 
 
+class ClassifyRequest(BaseModel):
+    image_b64: str = Field(..., description="Base64-encoded image (PNG/JPEG)")
+
+class ClassifyResponse(BaseModel):
+    visual_assessment: dict = Field(..., description="SigLIP visual analysis results")
+    latency_ms: int = Field(..., description="Latency in milliseconds")
+
+class CoughRequest(BaseModel):
+    audio_b64: str = Field(..., description="Base64-encoded WAV audio")
+
+class CoughResponse(BaseModel):
+    audio_assessment: dict = Field(..., description="Cough detection results")
+    latency_ms: int = Field(..., description="Latency in milliseconds")
+
+class TranscribeRequest(BaseModel):
+    audio_b64: str = Field(..., description="Base64-encoded WAV audio")
+
+class TranscribeResponse(BaseModel):
+    medical_transcript: str = Field(..., description="Medical ASR transcript")
+    latency_ms: int = Field(..., description="Latency in milliseconds")
+
+class NurseRequest(BaseModel):
+    patient_text: str = Field(..., description="STT-transcribed patient speech")
+    visual_assessment: dict = Field(..., description="SigLIP visual analysis results")
+    audio_assessment: dict | None = Field(None, description="Cough detection results")
+    medical_transcript: str | None = Field(None, description="Medical ASR transcript")
+    drug_name: str | None = Field(None, description="Drug name")
+    indication: str | None = Field(None, description="Indication")
+    skip_tts: bool = Field(False, description="If true, skip TTS")
+
+class NurseResponse(BaseModel):
+    session_id: str = Field(..., description="Session ID for follow-up chat")
+    nurse_text: str = Field(..., description="Natural language nurse response")
+    nurse_structured: dict = Field(..., description="Structured JSON nurse response")
+    audio_base64: str | None = Field(None, description="Base64-encoded TTS audio")
+    latency_ms: dict = Field(..., description="Latency breakdown in milliseconds")
+
+
 # ===================================================================
 # App
 # ===================================================================
@@ -412,6 +450,134 @@ async def consult(req: ConsultRequest):
         visual_assessment=visual_assessment,
         audio_assessment=audio_assessment,
         medical_transcript=medical_transcript,
+        audio_base64=tts_audio_b64,
+        latency_ms=timings,
+    )
+
+
+@app.post("/v1/classify", response_model=ClassifyResponse)
+async def classify(req: ClassifyRequest):
+    if not classifier:
+        raise HTTPException(status_code=503, detail="SigLIP classifier not loaded")
+    if not classifier.encoder_loaded:
+        raise HTTPException(status_code=503, detail="SigLIP encoder not loaded")
+
+    log.info("=== /v1/classify ===")
+    t0 = time.time()
+    visual_assessment = classifier.build_visual_assessment_from_image(req.image_b64)
+    latency = round((time.time() - t0) * 1000)
+    log.info("classify done: %d ms", latency)
+
+    return ClassifyResponse(visual_assessment=visual_assessment, latency_ms=latency)
+
+
+@app.post("/v1/cough", response_model=CoughResponse)
+async def cough(req: CoughRequest):
+    if not cough_clf:
+        raise HTTPException(status_code=503, detail="CoughClassifier not loaded")
+
+    log.info("=== /v1/cough ===")
+    t0 = time.time()
+    audio_assessment = cough_clf.build_audio_assessment(req.audio_b64)
+    latency = round((time.time() - t0) * 1000)
+    log.info("cough done: %d ms", latency)
+
+    return CoughResponse(audio_assessment=audio_assessment, latency_ms=latency)
+
+
+@app.post("/v1/transcribe", response_model=TranscribeResponse)
+async def transcribe(req: TranscribeRequest):
+    if not medasr:
+        raise HTTPException(status_code=503, detail="MedASR not loaded")
+
+    log.info("=== /v1/transcribe ===")
+    t0 = time.time()
+    medical_transcript = medasr.transcribe(req.audio_b64)
+    latency = round((time.time() - t0) * 1000)
+    log.info("transcribe done: %d ms, %d chars", latency, len(medical_transcript or ""))
+
+    return TranscribeResponse(medical_transcript=medical_transcript, latency_ms=latency)
+
+
+@app.post("/v1/nurse", response_model=NurseResponse)
+async def nurse_endpoint(req: NurseRequest):
+    if not nurse:
+        raise HTTPException(status_code=503, detail="NurseEngine not loaded")
+
+    log.info("=== /v1/nurse ===")
+    timings = {}
+
+    t0 = time.time()
+    nurse_response = nurse.generate_response(
+        patient_text=req.patient_text,
+        visual_assessment=req.visual_assessment,
+        drug_name=req.drug_name,
+        indication=req.indication,
+        audio_assessment=req.audio_assessment,
+        medical_transcript=req.medical_transcript,
+    )
+    timings["nurse_ms"] = round((time.time() - t0) * 1000)
+
+    speech_text = nurse.response_to_speech_text(nurse_response)
+
+    tts_audio_b64 = None
+    if not req.skip_tts and tts and tts.available:
+        t0 = time.time()
+        tts_audio_b64 = tts.synthesize_base64(speech_text)
+        timings["tts_ms"] = round((time.time() - t0) * 1000)
+
+    # Create session for follow-up chat
+    session_id = uuid.uuid4().hex
+    drug_name = req.drug_name
+    indication = req.indication
+    drug_ae_profile = None
+    if drug_name and drug_name in nurse._drug_profiles:
+        ctx = nurse._drug_profiles[drug_name]
+        drug_name = ctx["drug_name"]
+        indication = indication or ctx["indication"]
+        drug_ae_profile = ctx["ae_profile"]
+    elif not drug_name and nurse._drug_profiles:
+        ctx = next(iter(nurse._drug_profiles.values()))
+        drug_name = ctx["drug_name"]
+        indication = indication or ctx["indication"]
+        drug_ae_profile = ctx["ae_profile"]
+    else:
+        drug_name = drug_name or "Unknown"
+        indication = indication or ""
+        drug_ae_profile = []
+
+    system_prompt = nurse.build_system_prompt(
+        drug_name, indication, req.visual_assessment, drug_ae_profile,
+        audio_assessment=req.audio_assessment,
+        medical_transcript=req.medical_transcript,
+    )
+    user_prompt = nurse.build_user_prompt(
+        req.patient_text,
+        has_audio=req.audio_assessment is not None,
+        medical_transcript=req.medical_transcript,
+    )
+
+    now = time.time()
+    sessions[session_id] = {
+        "system_prompt": system_prompt,
+        "messages": [
+            {"role": "user", "content": user_prompt},
+            {"role": "assistant", "content": json.dumps(nurse_response, ensure_ascii=False)},
+        ],
+        "created_at": now,
+        "last_active": now,
+        "drug_name": drug_name,
+    }
+
+    timings["total_ms"] = sum(timings.values())
+
+    log.info("nurse_text (%d chars): %s", len(speech_text), speech_text[:200])
+    log.info("latency: %s", timings)
+
+    return NurseResponse(
+        session_id=session_id,
+        nurse_text=speech_text,
+        nurse_structured=nurse_response,
         audio_base64=tts_audio_b64,
         latency_ms=timings,
     )

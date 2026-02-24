@@ -1659,58 +1659,104 @@ def api_care_agent_run(request):
                 "mood": "neutral",
             }))
 
-            # --- SSE: medgemma_start (models starting) ---
-            q.put(json.dumps({"type": "medgemma_start"}))
+            # --- SSE: inference_start (thinking bubble appears) ---
+            q.put(json.dumps({"type": "inference_start", "has_audio": bool(audio_b64)}))
 
-            # --- Call Care AI /v1/consult ---
-            t0 = _time.time()
-            consult_payload = {
-                "patient_text": patient_text,
-                "drug_name": drug_name,
-                "indication": indication,
-                "skip_tts": False,
-            }
-            if image_b64:
-                consult_payload["image_b64"] = image_b64
+            # ===== Step 1: HeAR (cough detection) =====
+            audio_assessment = None
+            audio_text = "No cough detected"
+            hear_result = {}
             if audio_b64:
-                consult_payload["audio_b64"] = audio_b64
+                try:
+                    t0 = _time.time()
+                    resp = _requests.post(
+                        f"{CARE_AI_URL}/v1/cough",
+                        json={"audio_b64": audio_b64},
+                        timeout=60,
+                    )
+                    resp.raise_for_status()
+                    cough_data = resp.json()
+                    audio_assessment = cough_data.get("audio_assessment")
+                    cough_ms = cough_data.get("latency_ms", 0)
+                    if audio_assessment:
+                        hear_result = {
+                            "cough_detected": audio_assessment.get("cough_detected", False),
+                            "majority_type": audio_assessment.get("majority_type"),
+                            "num_cough_segments": audio_assessment.get("num_cough_segments", 0),
+                            "num_energy_segments": audio_assessment.get("num_energy_segments", 0),
+                            "duration_sec": audio_assessment.get("duration_sec", 0),
+                            "vote_counts": audio_assessment.get("vote_counts", {}),
+                            "latency_ms": cough_ms,
+                        }
+                        if audio_assessment.get("cough_detected"):
+                            mtype = audio_assessment.get("majority_type", "dry")
+                            audio_text = f"{mtype.capitalize()} cough detected"
+                except Exception as exc:
+                    log.warning("HeAR /v1/cough error: %s", exc)
 
-            try:
-                consult_resp = _requests.post(
-                    f"{CARE_AI_URL}/v1/consult",
-                    json=consult_payload,
-                    timeout=120,
-                )
-                consult_resp.raise_for_status()
-                consult = consult_resp.json()
-            except Exception as exc:
-                log.error("Care AI /v1/consult error: %s", exc)
-                q.put(json.dumps({"type": "error", "message": f"Care AI API error: {exc}"}))
-                q.put(json.dumps({"type": "finished"}))
-                return
+                # --- SSE: hear_result ---
+                q.put(json.dumps({"type": "hear_result", **hear_result}))
+            else:
+                q.put(json.dumps({"type": "hear_unavailable"}))
 
-            consult_elapsed = round((_time.time() - t0) * 1000)
-            session_id = consult.get("session_id", "")
+            # ===== Step 2: MedASR (transcription) =====
+            medical_transcript = None
+            if audio_b64:
+                try:
+                    t0 = _time.time()
+                    resp = _requests.post(
+                        f"{CARE_AI_URL}/v1/transcribe",
+                        json={"audio_b64": audio_b64},
+                        timeout=60,
+                    )
+                    resp.raise_for_status()
+                    asr_data = resp.json()
+                    medical_transcript = asr_data.get("medical_transcript")
+                    medasr_ms = asr_data.get("latency_ms", 0)
+                except Exception as exc:
+                    log.warning("MedASR /v1/transcribe error: %s", exc)
 
-            # --- Extract visual_assessment ---
-            visual_assessment = consult.get("visual_assessment", {})
-            va_findings = visual_assessment.get("findings", [])
-            raw_pred = visual_assessment.get("raw_prediction", {})
-            siglip_ms = (consult.get("latency_ms") or {}).get("siglip_ms", 0)
+                # --- SSE: medasr_result ---
+                medasr_info = {}
+                if medical_transcript:
+                    words = len(medical_transcript.split())
+                    medasr_info = {"transcript": medical_transcript, "word_count": words, "latency_ms": medasr_ms}
+                q.put(json.dumps({"type": "medasr_result", **medasr_info}))
+            else:
+                q.put(json.dumps({"type": "medasr_unavailable"}))
 
-            # Build SigLIP-style findings
+            # ===== Step 3: SigLIP (visual classification) =====
+            visual_assessment = {}
             siglip_findings = []
-            for f in va_findings:
-                siglip_findings.append({
-                    "ae_term": f.get("ae_term") or "normal",
-                    "grade": f.get("estimated_grade") or 0,
-                    "confidence": f.get("confidence", 0),
-                    "description": f.get("description", ""),
-                })
+            siglip_ms = 0
+            raw_pred = {}
+            if image_b64:
+                try:
+                    t0 = _time.time()
+                    resp = _requests.post(
+                        f"{CARE_AI_URL}/v1/classify",
+                        json={"image_b64": image_b64},
+                        timeout=60,
+                    )
+                    resp.raise_for_status()
+                    classify_data = resp.json()
+                    visual_assessment = classify_data.get("visual_assessment", {})
+                    siglip_ms = classify_data.get("latency_ms", 0)
+                    va_findings = visual_assessment.get("findings", [])
+                    raw_pred = visual_assessment.get("raw_prediction", {})
+                    for f in va_findings:
+                        siglip_findings.append({
+                            "ae_term": f.get("ae_term") or "normal",
+                            "grade": f.get("estimated_grade") or 0,
+                            "confidence": f.get("confidence", 0),
+                            "description": f.get("description", ""),
+                        })
+                except Exception as exc:
+                    log.warning("SigLIP /v1/classify error: %s", exc)
 
-            # --- SSE: medgemma_result (SigLIP visual) ---
+            # --- SSE: siglip_result ---
             q.put(json.dumps({
-                "type": "medgemma_result",
+                "type": "siglip_result",
                 "findings": siglip_findings,
                 "raw_prediction": raw_pred,
                 "general_observations": visual_assessment.get("general_observations", []),
@@ -1718,33 +1764,6 @@ def api_care_agent_run(request):
                 "baseline_image": baseline_image,
                 "current_image": image_file,
             }))
-
-            # --- Extract audio_assessment ---
-            audio_assessment = consult.get("audio_assessment")
-            audio_text = "No cough detected"
-            hear_result = {}
-            if audio_assessment:
-                hear_result = {
-                    "cough_detected": audio_assessment.get("cough_detected", False),
-                    "majority_type": audio_assessment.get("majority_type"),
-                    "num_cough_segments": audio_assessment.get("num_cough_segments", 0),
-                    "num_energy_segments": audio_assessment.get("num_energy_segments", 0),
-                    "duration_sec": audio_assessment.get("duration_sec", 0),
-                    "vote_counts": audio_assessment.get("vote_counts", {}),
-                    "latency_ms": audio_assessment.get("latency_ms", 0),
-                }
-                if audio_assessment.get("cough_detected"):
-                    mtype = audio_assessment.get("majority_type", "dry")
-                    audio_text = f"{mtype.capitalize()} cough detected"
-
-            # --- SSE: hear_result ---
-            q.put(json.dumps({
-                "type": "hear_result",
-                **hear_result,
-            }))
-
-            # --- Extract MedASR ---
-            medical_transcript = consult.get("medical_transcript")
 
             # --- Build visual_obs for nurse_context ---
             visual_obs = []
@@ -1773,12 +1792,42 @@ def api_care_agent_run(request):
                 "medical_transcript": medical_transcript,
             }))
 
-            # --- SSE: nurse_turn (first response from consult) ---
-            nurse_structured = consult.get("nurse_structured", {})
-            nurse_text = consult.get("nurse_text", "")
+            # ===== Step 4: NurseEngine (MedGemma + TTS) =====
+            nurse_structured = {}
+            nurse_text = ""
+            nurse_audio_b64 = None
+            session_id = ""
+            consult_elapsed = 0
+            try:
+                t0 = _time.time()
+                resp = _requests.post(
+                    f"{CARE_AI_URL}/v1/nurse",
+                    json={
+                        "patient_text": patient_text,
+                        "visual_assessment": visual_assessment,
+                        "audio_assessment": audio_assessment,
+                        "medical_transcript": medical_transcript,
+                        "drug_name": drug_name,
+                        "indication": indication,
+                        "skip_tts": False,
+                    },
+                    timeout=120,
+                )
+                resp.raise_for_status()
+                nurse_data = resp.json()
+                session_id = nurse_data.get("session_id", "")
+                nurse_text = nurse_data.get("nurse_text", "")
+                nurse_structured = nurse_data.get("nurse_structured", {})
+                nurse_audio_b64 = nurse_data.get("audio_base64")
+                consult_elapsed = (nurse_data.get("latency_ms") or {}).get("total_ms", 0)
+            except Exception as exc:
+                log.error("Nurse /v1/nurse error: %s", exc)
+                q.put(json.dumps({"type": "error", "message": f"Nurse API error: {exc}"}))
+                q.put(json.dumps({"type": "finished"}))
+                return
+
             nurse_questions = nurse_structured.get("questions", [])
             nurse_concerns = nurse_structured.get("preliminary_concerns", [])
-            nurse_audio_b64 = consult.get("audio_base64")
 
             # Build nurse audio URL if TTS was returned
             nurse_audio_url = None
@@ -1791,6 +1840,7 @@ def api_care_agent_run(request):
                 nurse_wav_path.write_bytes(_b64.b64decode(nurse_audio_b64))
                 nurse_audio_url = f"/api/care-agent/media/audio/{nurse_wav_name}"
 
+            # --- SSE: nurse_turn ---
             q.put(json.dumps({
                 "type": "nurse_turn", "turn": 1,
                 "text": nurse_text,
@@ -1800,9 +1850,6 @@ def api_care_agent_run(request):
                 "approach_style": nurse_structured.get("approach_style", "empathetic"),
                 "session_id": session_id,
             }))
-
-            # Note: /v1/chat follow-up is available via session_id if needed
-            # Currently skipped — consult already includes the full nurse response
 
             # --- SSE: assessment ---
             detected_aes = []
@@ -1814,7 +1861,6 @@ def api_care_agent_run(request):
                         "confidence": f["confidence"],
                         "source": "visual",
                     })
-            # Add concerns from nurse as potential AEs
             for concern in nurse_concerns:
                 concern_lower = concern.lower().replace(" ", "_")
                 already = any(a["ae_term"] == concern_lower for a in detected_aes)

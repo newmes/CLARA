@@ -316,7 +316,10 @@ class NurseEngine:
         Returns:
             Parsed dict response from MedGemma.
         """
-        chat_messages = [{"role": "user", "content": system_prompt}] + messages
+        chat_messages = [
+            {"role": "user", "content": system_prompt},
+            {"role": "assistant", "content": "Understood. I will follow these instructions as the oncology nurse."},
+        ] + messages
 
         raw = self._call_vllm(chat_messages)
 
