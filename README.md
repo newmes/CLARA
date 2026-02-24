@@ -4,15 +4,15 @@
 
 # CLARA: Clinical Longitudinal AI Research Assistant
 
-**A simulation-powered framework that proves AI nursing care saves lives &mdash;**
+**A simulation-powered framework that proves AI nursing care saves lives —**
 **then deploys it as a real-world multimodal application.**
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](#)
-[![License](https://img.shields.io/badge/License-GPLv3-blue.svg)](#license)
+[![License](https://img.shields.io/badge/License-Apache_2.0-green.svg)](#license)
 [![HAI-DEF](https://img.shields.io/badge/HAI--DEF-MedGemma-FF6F00?logo=google&logoColor=white)](https://developers.google.com/health-ai-developer-foundations)
 [![Kaggle](https://img.shields.io/badge/MedGemma_Impact-Challenge_2026-20BEFF?logo=kaggle&logoColor=white)](https://www.kaggle.com/competitions/med-gemma-impact-challenge)
 
-[Quick Start](#quick-start) &middot; [Notebooks](#notebooks) &middot; [Architecture](#architecture) &middot; [Results](#results) &middot; [Deployment](#docker-deployment)
+[Quick Start](#quick-start) · [Notebooks](#notebooks) · [Architecture](#architecture) · [Results](#results) · [Deployment](#docker-deployment)
 
 </div>
 
@@ -26,20 +26,20 @@
 
 ## The Problem
 
-In oncology clinical trials, patient safety monitoring relies on clinic visits scheduled every **12&ndash;21 days**. Between visits, no one is watching.
+In oncology trials, clinical monitoring relies heavily on clinic visits scheduled every **12–21 days** for patient safety. During this gap, nobody assures the safety of the patient on the trial.
 
-- **400,000+** oncology trial participants are affected globally each year ([Izarn et al., *ESMO Open*, 2025](https://doi.org/10.1016/j.esmoop.2024.104086))
-- Physician&ndash;patient AE grade agreement is only **~50%** ([Basch et al., *Lancet Oncol.*, 2006](https://doi.org/10.1016/S1470-2045(06)70910-X))
+- **400,000+** oncology trial participants are affected by these blind spots globally each year ([Izarn et al., *ESMO Open*, 2025](https://doi.org/10.1016/j.esmoop.2024.104086))
+- Physician–patient AE grade agreement is only **~50%** ([Basch et al., *Lancet Oncol.*, 2006](https://doi.org/10.1016/S1470-2045(06)70910-X))
 - Physicians routinely fail to capture **57% of AEs** ([Di Maio et al., *J Clin Oncol.*, 2015](https://doi.org/10.1200/JCO.2014.57.9334))
-- Patient self-reporting rates for Grade 1&ndash;2 AEs are as low as **~2%**
+- Self-reporting rates for Grade 1–2 Adverse Events (AEs) are exceptionally low, hovering around **~2%**
 
-Most patients underreport discomfort. These missed signals lead to grade escalation, emergency hospitalization, forced dose interruptions, and loss of life.
+Most patients tend to underreport their discomfort. Missing these implicit signals can lead to severe repercussions—including grade escalation, emergency hospitalization, and loss of life. The delayed attention will also affect the effectiveness of clinical trials if forced dose interruptions occur.
 
 ## Our Solution
 
-**CLARA** simulates complete clinical trials with and without an AI nurse agent, then quantifies the measurable impact of proactive daily monitoring on patient outcomes.
+**CLARA** simulates the complex dynamics of clinical trials, emulating hundreds of patients' daily health statuses and their psychological tendency to underreport symptoms, then quantifies the measurable impact of proactive daily monitoring on patient outcomes.
 
-> **Drug name in &rarr; Simulated trial out &rarr; Evidence that AI nursing care works &rarr; Deploy as real-world app**
+> **Drug name in → Simulated trial out → Evidence that AI nursing care works → Deploy as real-world app**
 
 We then transitioned the AI nurse from simulation to a **production mobile application** powered by MedGemma and HAI-DEF models.
 
@@ -51,7 +51,7 @@ We then transitioned the AI nurse from simulation to a **production mobile appli
 </td>
 <td>
 
-**Data Collection Agent** &mdash; Conducts daily structured video calls with patients. Detects visual AEs (rash, swelling) via MedSigLIP, audio AEs (cough) via HeAR, and assesses symptoms through empathetic MedGemma-powered conversation. Operates strictly within nursing scope: detect, report, refer.
+**Data Collection Agent** — Conducts daily structured video calls with patients. Detects visual AEs (rash, swelling) via MedSigLIP, audio AEs (cough) via HeAR, and assesses symptoms through empathetic MedGemma-powered conversation. Operates strictly within nursing scope: detect, report, refer.
 
 </td>
 </tr>
@@ -62,40 +62,22 @@ We then transitioned the AI nurse from simulation to a **production mobile appli
 </td>
 <td>
 
-**Data Analysis Agent** &mdash; Generates CDISC-compliant CRF records, SAE narratives, and FDA MedWatch 3500A reports. Powered by MedGemma 4B fine-tuned with RLFR (Reinforcement Learning Feature Reward), reducing hallucination rate from 37.3% to 6.7%.
+**Data Analysis Agent** — Generates CDISC-compliant CRF records, SAE narratives, and FDA MedWatch 3500A reports. Powered by MedGemma 4B fine-tuned with RLFR (Reinforcement Learning Feature Reward), where a frozen hallucination detection probe serves as the reward signal, reducing hallucination rate from 37.3% to 6.7%.
 
 </td>
 </tr>
 </table>
 
-<details>
-<summary><b>Table of Contents</b></summary>
-
-- [The Problem](#the-problem)
-- [Our Solution](#our-solution)
-- [Key Results](#results)
-- [How It Works](#how-it-works)
-- [Architecture](#architecture)
-- [HAI-DEF Models](#hai-def-models)
-- [Notebooks](#notebooks)
-- [Quick Start](#quick-start)
-- [Docker Deployment](#docker-deployment)
-- [Project Structure](#project-structure)
-- [Citation](#citation)
-- [License](#license)
-
-</details>
-
 ---
 
 ## Results
 
-### A/B Comparison: Natural vs. DCA
+### A/B Comparison: Natural vs. Care AI
 
-The same virtual patient cohort is simulated under two conditions &mdash; identical seed, identical biology, diverging only in whether a daily AI nurse is present.
+CLARA runs A/B comparisons on identical cohorts (N≥50, same seed): Run A (no agent, bi-weekly visits only) vs. Run B (daily agent). Run B achieved a significantly smaller GT–HR gap, fewer grade escalations, and better patient outcomes.
 
 ```
-Run A (Natural)                        Run B (DCA)
+Run A (Natural)                        Run B (Care AI)
 No AI nurse                            Daily 4-turn video calls
 
 Hospital ──── 13 days ──── Hospital    Hospital ── 3 days ── Early Visit ── Hospital
@@ -125,7 +107,7 @@ CLARA operates through **three mechanisms**:
 
 ### 1. Data-Driven Ruleset Generation
 
-CLARA synthesizes clinical trial data from **10+ biomedical databases** &mdash; DailyMed, ClinicalTrials.gov, Project Data Sphere, PubMed, DrugBank, OnSIDES, and more &mdash; to automatically build simulation rulesets covering AE incidence distributions, demographics, efficacy endpoints, and dose modification protocols.
+CLARA synthesizes historical clinical trial data from **10+ biomedical databases** — DailyMed, ClinicalTrials.gov, Project Data Sphere, PubMed, DrugBank, OnSIDES, and more — to automatically build a comprehensive simulation ruleset covering AE incidence distributions, demographics, efficacy endpoints, and dose modification protocols.
 
 ### 2. Realistic Daily Simulation with Information Asymmetry
 
@@ -133,10 +115,10 @@ The simulation maintains two strict data layers:
 
 | Layer | What It Knows | Updated When |
 |-------|--------------|--------------|
-| **Ground Truth (GT)** | Patient's actual daily state &mdash; every AE, every lab value | Every day (hazard function) |
-| **Hospital Record (HR)** | Only what the hospital has observed | Clinic visits only (every 12&ndash;21 days) |
+| **Ground Truth (GT)** | Patient's actual daily state — every AE, every lab value | Every day (hazard function) |
+| **Hospital Record (HR)** | Only what the hospital has observed | Clinic visits only (typically every 2 weeks) |
 
-All treatment decisions (dose hold, reduce, withdraw) are made from HR only &mdash; never from GT. This gap mirrors the real-world blind spot.
+All treatment decisions (dose hold, reduce, withdraw) are made from HR only — never from GT. This gap mirrors real-world blind spots.
 
 ### 3. Data Collection Agent (AI Nurse)
 
@@ -149,7 +131,7 @@ Turn 3: Patient shows affected area on camera   (image → MedSigLIP classificat
 Turn 4: Nurse summarizes and refers if needed   (MedGemma → early visit recommendation)
 ```
 
-A **7-dimension mood model** (anxiety, depression, fatigue, irritability, hopefulness, defensiveness, trust) governs each patient's reporting behavior. The agent adapts its strategy accordingly.
+A **7-dimension mood model** governs each patient's reporting behavior. The agent adapts its strategy accordingly — probing, requesting visual inspection, or escalating tone as needed.
 
 ### 10-Step Daily Pipeline
 
@@ -160,7 +142,7 @@ Each patient goes through this pipeline every simulated day:
 | 1 | Stochastic AE Onset | Hazard function determines new adverse events |
 | 2 | AE Grade Transition | Active AEs worsen or improve based on cumulative toxicity |
 | 3 | Tumor & RECIST Evaluation | Tumor response on scheduled scan days |
-| 4 | Dose Modification | Hold/reduce/withdraw &mdash; hospital visit days only, HR-based |
+| 4 | Dose Modification | Hold/reduce/withdraw — hospital visit days only, HR-based |
 | 5 | Lab Data Simulation | CBC, metabolic panel, liver/kidney function |
 | 6 | Vitals Simulation | BP, heart rate, temperature, SpO2 |
 | 7 | CDASH/CRF Mapping | Daily records mapped to CDISC clinical trial format |
@@ -201,7 +183,7 @@ Drug Name + Indication
 │                        ┌──────────────────────┼──────────────┐      │
 │                        ▼                      ▼              │      │
 │              ┌──────────────────┐   ┌──────────────────┐     │      │
-│              │ Hospital Record  │   │     DCA      │     │      │
+│              │ Hospital Record  │   │  Care AI Nurse   │     │      │
 │              │ (clinic visits)  │   │  (daily calls)   │     │      │
 │              │ → dose decisions │   │  → early referral│     │      │
 │              └──────────────────┘   └──────────────────┘     │      │
@@ -220,29 +202,31 @@ Drug Name + Indication
 | Principle | Why |
 |-----------|-----|
 | **LLM sets probabilities, code rolls dice** | Prevents mode collapse; guarantees statistical distributions |
-| **Ground Truth vs. Hospital Record** | Dose decisions use observed data only &mdash; never omniscient GT |
-| **Drug-agnostic** | Change the drug name &rarr; system auto-discovers rules from 10+ databases |
+| **Ground Truth vs. Hospital Record** | Dose decisions use observed data only — never omniscient GT |
+| **Drug-agnostic** | Change the drug name → system auto-discovers rules from 10+ databases |
 | **No fate table** | Daily hazard functions replace pre-determined event timelines |
-| **DCA detects, doctors decide** | AI nurse flags and refers; only physicians modify treatment |
-| **Seed-reproducible** | Same seed &rarr; identical simulation for scientific rigor |
+| **Care AI detects, doctors decide** | AI nurse flags and refers; only physicians modify treatment |
+| **Seed-reproducible** | Same seed → identical simulation for scientific rigor |
 
 ---
 
 ## HAI-DEF Models
 
 <p align="center">
-  <img src="docs/assets/gemma.png" width="64" alt="Gemma" />
+  <img src="docs/assets/gemma.png" width="44" alt="Gemma" />
+  &nbsp;&nbsp;&nbsp;
+  <img src="docs/assets/gemini.png" width="44" alt="Gemini" />
 </p>
 
 Each HAI-DEF model serves a distinct clinical role within CLARA:
 
 | Model | Role in CLARA | Details |
 |-------|--------------|---------|
-| [**MedGemma 1.5 4B**](https://huggingface.co/google/medgemma-1.5-4b-it) | Data Collection Agent &mdash; conversational AI nurse for daily video calls | Clinically appropriate questions and assessments |
-| [**MedSigLIP**](https://huggingface.co/google/medsiglip-448) | Visual AE detection &mdash; classifies skin AEs from video call images | Fine-tuned on 210 Gemini-generated images; W-F1 = 90% |
-| [**HeAR**](https://huggingface.co/google/hear-pytorch) | Audio AE detection &mdash; cough detection and dry/wet classification | Fine-tuned on 956 COUGHVID samples |
-| [**MedASR**](https://huggingface.co/google/medasr) | Medical speech recognition &mdash; patient speech transcription during video calls | Medical terminology-aware ASR |
-| [**MedGemma 4B + RLFR**](https://huggingface.co/AlphaRaven/medgemma-4b-antihallu) | Data Analysis Agent &mdash; CRF records, SAE narratives, MedWatch reports | Hallucination rate 37.3% &rarr; 6.7% |
+| <img src="docs/assets/gemma.png" width="16" /> [**MedGemma 1.5 4B**](https://huggingface.co/google/medgemma-1.5-4b-it) | Data Collection Agent — conversational AI medical staff that conducts the daily video call protocol | Generates clinically appropriate questions and assessments |
+| <img src="docs/assets/gemma.png" width="16" /> [**MedSigLIP**](https://huggingface.co/google/medsiglip-448) | Visual AE detection — processes patients' facial images captured during video calls to detect visible AE symptoms (e.g., rash, swelling) and classify their CTCAE grade | Trained on 210 Gemini-generated synthetic patient images (147/21/42 split); W-F1 = 90% |
+| <img src="docs/assets/gemma.png" width="16" /> [**HeAR**](https://huggingface.co/google/hear-pytorch) | Audio AE detection — analyzes patient audio through a cough detection and classification pipeline, distinguishing dry from wet cough | Fine-tuned on 956 randomly sampled recordings (478 dry / 478 wet) from the [COUGHVID dataset](https://www.kaggle.com/datasets/nasrulhakim86/coughvid-wav), tested on Gemini-generated synthetic audio |
+| <img src="docs/assets/gemini.png" width="16" /> [**Gemini 2.0 Flash**](https://ai.google.dev/) | Simulation orchestrator — rule discovery, patient generation, narration | API-based; no local GPU needed |
+| <img src="docs/assets/gemma.png" width="16" /> **MedGemma 4B + RLFR** | Data Analysis Agent — whenever a SAE occurs, autonomously generates reports in FDA MedWatch and E2B XML format | Hallucination rate 37.3% → 6.7% |
 
 ### Multimodal Detection Channels
 
@@ -264,10 +248,10 @@ CLARA ships with **5 Jupyter notebooks** demonstrating each component:
 
 | # | Notebook | What It Covers | GPU |
 |---|----------|---------------|-----|
-| 1 | `medgemma_anti-hallucination` | RLFR fine-tuning &mdash; hallucination probe training and RL optimization | ~10 GB |
-| 2 | `medgemma+medsiglip+HeAR_SAE-detection` | Multimodal AE detection &mdash; vision (MedSigLIP) + audio (HeAR) pipelines | ~20 GB |
-| 3 | `simulate-clinical-trial` | End-to-end trial simulation &mdash; rule discovery, patient generation, daily loop | None (API) |
-| 4 | `application_voice_call` | DCA voice call demo &mdash; MedASR + TTS + nurse conversation | ~10 GB |
+| 1 | `medgemma_anti-hallucination` | RLFR fine-tuning — hallucination probe training and RL optimization | ~10 GB |
+| 2 | `medgemma+medsiglip+HeAR_SAE-detection` | Multimodal AE detection — vision (MedSigLIP) + audio (HeAR) pipelines | ~20 GB |
+| 3 | `simulate-clinical-trial` | End-to-end trial simulation — rule discovery, patient generation, daily loop | None (API) |
+| 4 | `application_voice_call` | Care AI voice call demo — MedASR + TTS + nurse conversation | ~10 GB |
 | 5 | `application_SAE_report_generation` | FDA MedWatch 3500A + E2B XML report generation from CRF data | ~10 GB |
 
 All models and data **download automatically** from HuggingFace on first run:
@@ -281,7 +265,7 @@ All models and data **download automatically** from HuggingFace on first run:
 ### Prerequisites
 
 - Python 3.10+
-- NVIDIA GPU with ~10 GB VRAM (NB2 only ~20 GB; simulation CLI uses Gemini API only)
+- NVIDIA GPU with 10–20 GB VRAM (for notebooks; simulation CLI uses Gemini API only)
 - [Google Gemini API key](https://ai.google.dev/)
 
 ### Installation
@@ -344,8 +328,8 @@ docker compose up -d
 
 | Service | Port | GPU | Purpose |
 |---------|------|-----|---------|
-| `django` | 19001 | &mdash; | Web interface (trial viewer, CRF tables, SAE reports) |
-| `medgemma4b-base` | 38004 | GPU 2 | DCA backend (vLLM) |
+| `django` | 19001 | — | Web interface (trial viewer, CRF tables, SAE reports) |
+| `medgemma4b-base` | 38004 | GPU 2 | Care AI nurse backend (vLLM) |
 | `medgemma4b-antihallu-ft` | 38002 | GPU 3 | Doc Agent + anti-hallucination (vLLM + LoRA) |
 | `antihallu-server` | 38003 | GPU 2 | Hallucination fact-checking API |
 | `data-collection-agent` | 38005 | GPU 3 | Multimodal detection (SigLIP + HeAR + MedASR + TTS) |
@@ -370,14 +354,14 @@ CLARA/
 │   │   ├── rule_agent.py          Phase 0: drug rule discovery
 │   │   ├── patient_agent.py       Phase 1: virtual cohort generation
 │   │   ├── daily_agent.py         Phase 2: daily simulation
-│   │   └── care_agent.py          DCA: 4-turn video calls
+│   │   └── care_agent.py          Care AI: 4-turn video calls
 │   │
 │   ├── multimodal_v2/             Multimodal AE detection pipeline
 │   ├── cough_detection/           HeAR-based cough classification
 │   ├── orchestrator_v2.py         3-Phase simulation orchestrator
 │   └── run_simulation_v2.py       CLI entry point
 │
-├── dca_server/                       Data Collection Agent API (FastAPI)
+├── dca_server/                       Care AI Nurse API (FastAPI)
 │   ├── server.py                  Endpoints: classify, cough, transcribe, nurse
 │   ├── nurse_engine.py            Medical conversation engine
 │   ├── siglip_classifier.py       SigLIP vision classifier head
@@ -421,7 +405,7 @@ Where:
 AE grade transitions use daily Markov probabilities:
 - Base worsen rate: 1.5%/day (increases with cumulative toxicity)
 - Base improve rate: 0.5%/day
-- DCA intervention: worsen &times;0.3, improve &times;3.0
+- Care AI intervention: worsen ×0.3, improve ×3.0
 
 </details>
 
@@ -430,14 +414,14 @@ AE grade transitions use daily Markov probabilities:
 
 <br/>
 
-The observation model implements a **whitelist-based filter** &mdash; HR only receives GT information through defined observation channels:
+The observation model implements a **whitelist-based filter** — HR only receives GT information through defined observation channels:
 
 | Observation Point | What Gets Updated | Trigger |
 |-------------------|------------------|---------|
 | Scheduled visit | Full exam: labs, vitals, physical exam, AE assessment | Treatment cycle day |
 | Scheduled scan | Tumor/RECIST data | Protocol-defined intervals |
 | Self-report | Patient-reported AEs only | Mood-dependent probability |
-| Video call (DCA) | video_detectable + patient_reported AEs | Daily (DCA mode) |
+| Video call (Care AI) | video_detectable + patient_reported AEs | Daily (Care AI mode) |
 | ER visit | Full exam | Grade 4+ AE or dangerous vitals |
 
 HR never falls back to GT. If a lab value wasn't measured, it stays stale.
@@ -453,15 +437,15 @@ Each virtual patient has a persistent psychological profile that evolves over ti
 
 | Dimension | Effect on Simulation |
 |-----------|---------------------|
-| **Anxiety** | High &rarr; over-reports symptoms, seeks ER visits early |
-| **Depression** | High &rarr; reduced reporting motivation, missed calls |
-| **Fatigue** | High &rarr; shorter video calls, less engagement |
-| **Irritability** | High &rarr; terminates calls early, refuses visual inspection |
-| **Hopefulness** | High &rarr; better treatment adherence, attends visits |
-| **Defensiveness** | High &rarr; minimizes symptoms (reports Grade 2 as Grade 1) |
-| **Trust** | High &rarr; accurate reporting, engages fully with AI nurse |
+| **Anxiety** | High → over-reports symptoms, seeks ER visits early |
+| **Depression** | High → reduced reporting motivation, missed calls |
+| **Fatigue** | High → shorter video calls, less engagement |
+| **Irritability** | High → terminates calls early, refuses visual inspection |
+| **Hopefulness** | High → better treatment adherence, attends visits |
+| **Defensiveness** | High → minimizes symptoms (reports Grade 2 as Grade 1) |
+| **Trust** | High → accurate reporting, engages fully with AI nurse |
 
-Persona-specific baselines are set at patient generation. Events (new AE, good scan result, nurse empathy) cause daily micro-adjustments.
+Persona-specific baselines are set at patient generation. Events (new AE, good scan result, Care AI empathy) cause daily micro-adjustments.
 
 </details>
 
@@ -470,7 +454,7 @@ Persona-specific baselines are set at patient generation. Events (new AE, good s
 
 <br/>
 
-Standard MedGemma 4B is vulnerable to hallucinations due to multi-modal attribution. CLARA uses **Reinforcement Learning Feature Reward (RLFR)**:
+We discovered that MedGemma 1.5 4B is vulnerable to hallucinations due to its multi-modal attribution. CLARA uses **Reinforcement Learning Feature Reward (RLFR)**:
 
 1. Train a binary hallucination detection probe on MedGemma's hidden states
 2. Freeze the probe
@@ -482,11 +466,28 @@ This reduced the hallucination rate from **37.3% to 6.7%** on MedHallu Hard whil
 
 ---
 
+## Team
+
+**dmyoun** · **lisavictorialee** · **hyenawon** · **sabapivot** · **jjin6573**
+
+## Citation
+
+```bibtex
+@software{clara2026,
+  title   = {CLARA: Clinical Longitudinal AI Research Assistant},
+  author  = {dmyoun and lisavictorialee and hyenawon and sabapivot and jjin6573},
+  year    = {2026},
+  url     = {https://github.com/newmes/CLARA}
+}
+```
+
 ## References
 
-- Basch, E. et al. (2006). *Lancet Oncol.*, 7(11), 903&ndash;909. [doi:10.1016/S1470-2045(06)70910-X](https://doi.org/10.1016/S1470-2045(06)70910-X)
-- Di Maio, M. et al. (2015). *J Clin Oncol.*, 33(8), 910&ndash;915. [doi:10.1200/JCO.2014.57.9334](https://doi.org/10.1200/JCO.2014.57.9334)
+- Basch, E. et al. (2006). *Lancet Oncol.*, 7(11), 903–909. [doi:10.1016/S1470-2045(06)70910-X](https://doi.org/10.1016/S1470-2045(06)70910-X)
+- Di Maio, M. et al. (2015). *J Clin Oncol.*, 33(8), 910–915. [doi:10.1200/JCO.2014.57.9334](https://doi.org/10.1200/JCO.2014.57.9334)
 - Izarn, F. et al. (2025). *ESMO Open*, 10(1), 104086. [doi:10.1016/j.esmoop.2024.104086](https://doi.org/10.1016/j.esmoop.2024.104086)
+- Orlandic, L. et al. (2021). *Sci Data*, 8, 156. [doi:10.1038/s41597-021-00937-4](https://doi.org/10.1038/s41597-021-00937-4)
+- Atmaja, B. T. et al. (2023). *Int. J. Inf. Technol.* [doi:10.1007/s41870-023-01626-8](https://doi.org/10.1007/s41870-023-01626-8)
 
 ## Acknowledgments
 
@@ -500,15 +501,6 @@ This reduced the hallucination rate from **37.3% to 6.7%** on MedHallu Hard whil
   Submitted to the <a href="https://www.kaggle.com/competitions/med-gemma-impact-challenge">MedGemma Impact Challenge</a> on Kaggle.
 </p>
 
-## Asset Credits
-
-| Asset | Source | License |
-|-------|--------|---------|
-| Character sprites (nurse, patients, buildings, decorations) | [Sunnyside](https://danieldiggle.itch.io/sunnyside) by Daniel Diggle | Commercial license |
-| 1-Bit & Tiny Town tilesets | [Kenney](https://kenney.nl/) | CC0 1.0 |
-| CuteRPG tilesets | [CuteRPG](https://store.steampowered.com/app/2116380/) | Commercial license |
-| Synthetic medical images | Generated with Google Gemini | &mdash; |
-
 ## License
 
-[GNU General Public License v3.0](LICENSE)
+[Apache 2.0](LICENSE)
