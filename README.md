@@ -482,21 +482,6 @@ This reduced the hallucination rate from **37.3% to 6.7%** on MedHallu Hard whil
 
 ---
 
-## Team
-
-**dmyoun** &middot; **lisavictorialee** &middot; **hyenawon** &middot; **sabapivot** &middot; **jjin6573**
-
-## Citation
-
-```bibtex
-@software{clara2026,
-  title   = {CLARA: Clinical Longitudinal AI Research Assistant},
-  author  = {dmyoun and lisavictorialee and hyenawon and sabapivot and jjin6573},
-  year    = {2026},
-  url     = {https://github.com/newmes/CLARA}
-}
-```
-
 ## References
 
 - Basch, E. et al. (2006). *Lancet Oncol.*, 7(11), 903&ndash;909. [doi:10.1016/S1470-2045(06)70910-X](https://doi.org/10.1016/S1470-2045(06)70910-X)
