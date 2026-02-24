@@ -36,14 +36,14 @@
      ══════════════════════════════════════ */
   .vs-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    grid-template-columns: repeat(5, 1fr);
     gap: 16px; margin-bottom: 2.5em;
   }
   .vs-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 8px;
-    padding: 20px 24px;
+    padding: 18px 16px;
     position: relative; overflow: hidden;
     transition: all 0.25s ease;
   }
@@ -77,7 +77,7 @@
     color: var(--text-muted); font-weight: 600; margin-bottom: 6px;
   }
   .vs-side-value {
-    font-size: 1.8em; font-weight: 800;
+    font-size: 1.5em; font-weight: 800;
     font-family: 'JetBrains Mono', monospace;
     line-height: 1.1;
   }
@@ -121,7 +121,7 @@
      3. IMPROVED CHART CARDS
      ══════════════════════════════════════ */
   .chart-grid-2x2 {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;
     margin-bottom: 2.5em;
   }
   .chart-card {
@@ -224,7 +224,7 @@
      5. STATISTICAL EVIDENCE CARDS
      ══════════════════════════════════════ */
   .evidence-grid {
-    display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    display: grid; grid-template-columns: repeat(4, 1fr);
     gap: 16px; margin-bottom: 2.5em;
   }
   .evidence-card {
@@ -373,7 +373,15 @@
   /* ══════════════════════════════════════
      RESPONSIVE
      ══════════════════════════════════════ */
+  @media (max-width: 1400px) {
+    .vs-grid { grid-template-columns: repeat(3, 1fr); }
+  }
   @media (max-width: 1100px) {
+    .chart-grid-2x2 { grid-template-columns: 1fr 1fr; }
+    .vs-grid { grid-template-columns: repeat(2, 1fr); }
+    .evidence-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+  @media (max-width: 768px) {
     .chart-grid-2x2 { grid-template-columns: 1fr; }
     .vs-grid { grid-template-columns: 1fr; }
     .evidence-grid { grid-template-columns: 1fr; }
@@ -453,13 +461,6 @@
     </div>
     <div class="chart-card">
       <div class="chart-card-header">
-        <div class="chart-card-title">AE Burden (grade x days)</div>
-        <div class="chart-card-stat" id="chartBurdenStat"></div>
-      </div>
-      <canvas id="chartBurden"></canvas>
-    </div>
-    <div class="chart-card">
-      <div class="chart-card-header">
         <div class="chart-card-title">Grade 3+ AE Days</div>
         <div class="chart-card-stat" id="chartG3Stat"></div>
       </div>
@@ -510,7 +511,7 @@
             <th>Patient</th>
             <th>Mode</th>
             <th>AEs</th>
-            <th>AE Burden</th>
+
             <th>G3+ Days</th>
             <th>Detect Delay</th>
             <th>Tx Days</th>
@@ -586,16 +587,6 @@ function renderCards() {
         ? deltaHTML(R.detection_delay.care_ai_mean, R.detection_delay.natural_mean, true)
         : '<span class="vs-delta neutral">&mdash;</span>',
       sub: 'Undetected: Nat=' + R.detection_delay.natural_undetected + ', AI=' + R.detection_delay.care_ai_undetected,
-      lowerIsBetter: true
-    },
-    {
-      label: 'AE Burden (grade x days)',
-      natVal: fmt(R.ae_burden.natural_mean),
-      aiVal: fmt(R.ae_burden.care_ai_mean),
-      natRaw: R.ae_burden.natural_mean,
-      aiRaw: R.ae_burden.care_ai_mean,
-      delta: deltaHTML(R.ae_burden.care_ai_mean, R.ae_burden.natural_mean, true),
-      sub: 'Unique AEs: Nat=' + R.ae_burden.natural_unique_aes + ', AI=' + R.ae_burden.care_ai_unique_aes,
       lowerIsBetter: true
     },
     {
@@ -735,52 +726,6 @@ function renderDelayChart() {
       },
       scales: {
         y: { title: { display: true, text: 'days' }, beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' } },
-        x: { grid: { display: false } }
-      }
-    }
-  });
-}
-
-function renderBurdenChart() {
-  var pids = pidList();
-  var natData = pids.map(function(pid) { return R.natural_patients.find(function(p) { return p.patient_id === pid; }).total_ae_burden; });
-  var aiData = pids.map(function(pid) { return R.care_ai_patients.find(function(p) { return p.patient_id === pid; }).total_ae_burden; });
-
-  var natAvg = natData.reduce(function(a, b) { return a + b; }, 0) / (natData.length || 1);
-  var aiAvg = aiData.reduce(function(a, b) { return a + b; }, 0) / (aiData.length || 1);
-  document.getElementById('chartBurdenStat').innerHTML = '<div class="chart-card-stat-value">' + fmt(aiAvg) + '</div><div class="chart-card-stat-label" title="Data Collection Agent">DCA Mean</div>';
-
-  var canvas = document.getElementById('chartBurden');
-  var ctx = canvas.getContext('2d');
-  new Chart(canvas, {
-    type: 'bar',
-    data: {
-      labels: pids,
-      datasets: [
-        {
-          label: 'Natural',
-          data: natData,
-          backgroundColor: 'rgba(139,148,158,0.35)',
-          hoverBackgroundColor: 'rgba(139,148,158,0.55)',
-          borderRadius: 4, borderSkipped: false
-        },
-        {
-          label: 'DCA',
-          data: aiData,
-          backgroundColor: createGradient(ctx, 'rgba(57,210,192,0.7)', 'rgba(88,166,255,0.4)'),
-          hoverBackgroundColor: 'rgba(57,210,192,0.8)',
-          borderRadius: 4, borderSkipped: false
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      onClick: chartClickHandler('AE Burden'),
-      plugins: {
-        legend: { position: 'top', labels: { usePointStyle: true, pointStyle: 'rectRounded', padding: 16 } }
-      },
-      scales: {
-        y: { title: { display: true, text: 'grade \u00d7 days' }, beginAtZero: true, grid: { color: 'rgba(255,255,255,0.03)' } },
         x: { grid: { display: false } }
       }
     }
@@ -1044,18 +989,13 @@ function renderPatientTable() {
   var pids = pidList();
 
   // Compute thresholds for heat mapping
-  var allBurden = [];
   var allG3 = [];
   pids.forEach(function(pid) {
     var nat = R.natural_patients.find(function(p) { return p.patient_id === pid; });
     var ai = R.care_ai_patients.find(function(p) { return p.patient_id === pid; });
-    allBurden.push(nat.total_ae_burden, ai.total_ae_burden);
     allG3.push(nat.grade3plus_ae_days, ai.grade3plus_ae_days);
   });
-  allBurden.sort(function(a, b) { return a - b; });
   allG3.sort(function(a, b) { return a - b; });
-  var burdenP33 = allBurden[Math.floor(allBurden.length * 0.33)] || 1;
-  var burdenP66 = allBurden[Math.floor(allBurden.length * 0.66)] || 2;
   var g3P33 = allG3[Math.floor(allG3.length * 0.33)] || 1;
   var g3P66 = allG3[Math.floor(allG3.length * 0.66)] || 2;
 
@@ -1091,7 +1031,6 @@ function renderPatientTable() {
           (cls === 'ai' ? '<svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' : '') +
           mode + '</span></td>' +
         '<td class="mono">' + m.unique_ae_count + '</td>' +
-        '<td class="mono ' + heatClass(m.total_ae_burden, [burdenP33, burdenP66]) + '">' + m.total_ae_burden + '</td>' +
         '<td class="mono ' + heatClass(m.grade3plus_ae_days, [g3P33, g3P66]) + '">' + m.grade3plus_ae_days + '</td>' +
         '<td class="mono">' + delay + '</td>' +
         '<td class="mono">' + m.treatment_days + '</td>' +
@@ -1106,7 +1045,6 @@ function renderPatientTable() {
 // ═══ INIT ═══
 renderCards();
 renderDelayChart();
-renderBurdenChart();
 renderG3Chart();
 renderEcogChart();
 renderActionsChart();
