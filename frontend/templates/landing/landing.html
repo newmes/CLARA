@@ -75,21 +75,21 @@
     padding: 0 64px 10em;
     position: relative;
     z-index: 1;
-    height: calc(100vh - 44px);
-    overflow: hidden;
+    min-height: calc(100vh - 44px);
+    overflow: visible;
   }
 
   /* =================================================================
      HERO STAGE — Text on top, Map+Cards grid below
      ================================================================= */
   .hero-stage {
-    height: calc(100vh - 44px);
+    min-height: calc(100vh - 44px);
     display: flex;
     flex-direction: column;
     justify-content: center;
     padding: 10em 0 0;
     position: relative;
-    overflow: hidden;
+    overflow: visible;
   }
 
   /* Hero text — always centered above the grid */
