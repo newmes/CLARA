@@ -55,7 +55,7 @@
     width: 34px; height: 34px; border: 1px solid var(--border); border-radius: 5px;
     background: var(--bg-elevated); color: var(--text-secondary);
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.15s; font-size: 0.8em; padding: 0;
+    cursor: pointer; transition: all 0.15s; font-size: 0.88em; padding: 0;
   }
   .hud-nav-btn:hover { border-color: var(--accent-cyan); color: var(--accent-cyan); background: rgba(57,210,192,0.08); }
   .hud-nav-btn:active { transform: scale(0.92); }
@@ -75,7 +75,7 @@
     min-width: auto; text-align: center;
   }
   .hud-cycle {
-    font: 600 0.8em 'JetBrains Mono', monospace; color: var(--accent-purple);
+    font: 600 0.88em 'JetBrains Mono', monospace; color: var(--accent-purple);
     background: rgba(188,140,255,0.1); border: 1px solid rgba(188,140,255,0.25);
     padding: 3px 9px; border-radius: 4px; white-space: nowrap;
   }
@@ -85,13 +85,13 @@
     width: 36px; height: 34px; border: 1px solid rgba(57,210,192,0.3); border-radius: 5px;
     background: rgba(57,210,192,0.08); color: var(--accent-cyan);
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.15s; font-size: 0.85em; padding: 0;
+    cursor: pointer; transition: all 0.15s; font-size: 0.92em; padding: 0;
   }
   .hud-play-btn:hover { background: rgba(57,210,192,0.15); box-shadow: 0 0 10px rgba(57,210,192,0.2); }
   .hud-play-btn:active { transform: scale(0.92); }
   .hud-play-btn svg { width: 18px; height: 18px; pointer-events: none; }
   .hud-speed {
-    padding: 4px 6px; font: 600 0.82em 'JetBrains Mono', monospace;
+    padding: 4px 6px; font: 600 0.88em 'JetBrains Mono', monospace;
     background: var(--bg-elevated); color: var(--accent-cyan);
     border: 1px solid var(--border); border-radius: 4px;
     cursor: pointer; outline: none;
@@ -123,7 +123,7 @@
     opacity: 0; cursor: pointer; z-index: 2; margin: 0;
   }
   .hud-xp-label {
-    font: 700 0.88em 'JetBrains Mono', monospace; color: var(--text-secondary);
+    font: 700 0.95em 'JetBrains Mono', monospace; color: var(--text-secondary);
     white-space: nowrap; min-width: 52px; text-align: right;
   }
 
@@ -133,7 +133,7 @@
     display: flex; align-items: center; gap: 6px;
     padding: 6px 14px; border-radius: 20px;
     background: rgba(248,81,73,0.15); border: 1px solid rgba(248,81,73,0.4);
-    font: 700 0.82em 'JetBrains Mono', monospace; color: #f85149;
+    font: 700 0.88em 'JetBrains Mono', monospace; color: #f85149;
     backdrop-filter: blur(8px);
   }
   .live-badge .dot {
@@ -145,7 +145,7 @@
     50% { opacity: 0.4; transform: scale(0.8); }
   }
   .live-badge .phase-text {
-    color: var(--text-secondary); font-weight: 500; font-size: 0.92em;
+    color: var(--text-secondary); font-weight: 500; font-size: 0.95em;
   }
 
   body.is-live .hud-xp-fill {
@@ -189,7 +189,7 @@
     display: inline-flex; gap: 2px;
   }
   .hud-slot-group .hud-label {
-    font: 500 0.7em 'JetBrains Mono', monospace; color: var(--text-secondary);
+    font: 500 0.82em 'JetBrains Mono', monospace; color: var(--text-secondary);
     text-transform: uppercase; letter-spacing: 1px; margin-right: 4px;
     align-self: center;
   }
@@ -199,7 +199,7 @@
   }
   .pill-group button {
     padding: 7px 13px; border: none; cursor: pointer; position: relative;
-    font: 600 0.85em 'JetBrains Mono', monospace;
+    font: 600 0.92em 'JetBrains Mono', monospace;
     background: transparent; color: var(--text-secondary);
     transition: all 0.2s; line-height: 1.2; white-space: nowrap;
     display: flex; align-items: center; gap: 5px;
@@ -242,7 +242,7 @@
   }
   .mp-btn {
     padding: 7px 16px; border: none; cursor: pointer;
-    font: 700 0.88em 'JetBrains Mono', monospace;
+    font: 700 0.95em 'JetBrains Mono', monospace;
     background: transparent; color: var(--text-muted);
     transition: all 0.25s ease; line-height: 1.2; white-space: nowrap;
     display: flex; align-items: center; gap: 6px;
@@ -276,7 +276,7 @@
     width: 30px; height: 28px; border: 1px solid var(--border); border-radius: 4px;
     background: var(--bg-elevated); color: var(--text-muted);
     display: flex; align-items: center; justify-content: center;
-    cursor: pointer; transition: all 0.15s; padding: 0; font-size: 0.85em;
+    cursor: pointer; transition: all 0.15s; padding: 0; font-size: 0.92em;
   }
   .hud-alert-btn:hover { border-color: var(--accent-cyan); color: var(--text-secondary); }
   .hud-alert-btn.muted { color: var(--accent-orange); border-color: rgba(210,153,34,0.4); background: rgba(210,153,34,0.08); }
@@ -286,7 +286,7 @@
   .tb-spacer { flex: 1; }
   .alert-mute-toggle { display: none; }
   .tb-label {
-    font: 600 0.6em 'JetBrains Mono', monospace; color: var(--text-muted);
+    font: 600 0.78em 'JetBrains Mono', monospace; color: var(--text-muted);
     text-transform: uppercase; letter-spacing: 1px; white-space: nowrap;
   }
 
@@ -307,11 +307,11 @@
     display: flex; justify-content: space-between; align-items: center;
     padding: 10px 12px 8px; flex-shrink: 0;
     border-bottom: 1px solid var(--border);
-    font: 600 0.8em 'JetBrains Mono', monospace;
+    font: 600 0.88em 'JetBrains Mono', monospace;
     color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;
   }
   .sidebar-header .count {
-    font-size: 0.88em; color: var(--text-muted); font-weight: 400;
+    font-size: 0.95em; color: var(--text-muted); font-weight: 400;
   }
   .sidebar-cards-scroll {
     flex: 1; overflow-y: auto; min-height: 0;
@@ -339,7 +339,7 @@
   }
   .events-overlay-header {
     padding: 8px 12px; flex-shrink: 0;
-    font: 600 0.75em 'JetBrains Mono', monospace;
+    font: 600 0.85em 'JetBrains Mono', monospace;
     color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px;
     display: flex; align-items: center; gap: 8px;
     cursor: pointer; user-select: none;
@@ -363,7 +363,7 @@
     display: flex; align-items: flex-start; gap: 8px;
     padding: 6px 0;
     border-bottom: 1px solid rgba(48,54,61,0.4);
-    font-size: 0.78em; line-height: 1.45;
+    font-size: 0.88em; line-height: 1.45;
   }
   .event-item:last-child { border-bottom: none; }
   .event-item .ev-icon {
@@ -394,7 +394,7 @@
     border: 1px solid rgba(63,185,80,0.2);
   }
   .event-low .ev-text { color: var(--accent-green); }
-  .no-events { color: var(--text-muted); font-style: italic; padding: 8px 0; font-size: 0.88em; }
+  .no-events { color: var(--text-muted); font-style: italic; padding: 8px 0; font-size: 0.95em; }
 
   /* ── Patient Cards (sidebar, 1-column) ── */
   .patient-cards {
@@ -428,7 +428,7 @@
     background: rgba(57,210,192,0.06);
   }
   .patient-card .pid {
-    font-weight: 700; font-size: 0.78em;
+    font-weight: 700; font-size: 0.88em;
     font-family: 'JetBrains Mono', monospace;
     color: var(--accent-cyan); flex-shrink: 0;
   }
@@ -441,19 +441,19 @@
     background-repeat: no-repeat;
   }
   .patient-card .meta {
-    font-size: 0.68em; color: var(--text-muted);
+    font-size: 0.82em; color: var(--text-muted);
     font-family: 'JetBrains Mono', monospace;
     white-space: nowrap;
   }
   .patient-card .ae-badge {
     display: inline-block; border-radius: 3px;
-    padding: 1px 5px; font-size: 0.62em;
+    padding: 1px 5px; font-size: 0.78em;
     font-family: 'JetBrains Mono', monospace; font-weight: 600;
   }
   .patient-card .ae-badge.danger {
     background: rgba(248,81,73,0.15); color: var(--accent-red);
     border: 1px solid rgba(248,81,73,0.3);
-    font-size: 0.72em; font-weight: 700;
+    font-size: 0.82em; font-weight: 700;
   }
   .patient-card .ae-badge.safe {
     background: rgba(63,185,80,0.1); color: var(--accent-green);
@@ -533,7 +533,7 @@
     margin-top: 5px;
     padding: 3px 12px;
     border-radius: 10px;
-    font: 600 0.78em 'JetBrains Mono', monospace;
+    font: 600 0.88em 'JetBrains Mono', monospace;
     text-transform: uppercase;
     letter-spacing: 0.5px;
     border: 1px solid;
@@ -593,7 +593,7 @@
   }
   .char-stat-row {
     display: flex; align-items: center; gap: 6px;
-    font: 500 0.85em 'JetBrains Mono', monospace;
+    font: 500 0.92em 'JetBrains Mono', monospace;
   }
   .char-stat-label {
     width: 32px; text-align: right; color: var(--text-muted);
@@ -620,7 +620,7 @@
     flex-shrink: 0;
   }
   .char-stats-title {
-    font: 700 0.72em 'JetBrains Mono', monospace;
+    font: 700 0.82em 'JetBrains Mono', monospace;
     text-transform: uppercase; letter-spacing: 1.5px;
     color: var(--text-muted); margin-bottom: 3px;
     opacity: 0.7;
@@ -684,7 +684,7 @@
     font: 500 0.95em 'JetBrains Mono', monospace;
   }
   .status-chip .chip-label {
-    font-size: 0.8em; color: var(--text-muted); text-transform: uppercase;
+    font-size: 0.88em; color: var(--text-muted); text-transform: uppercase;
     letter-spacing: 0.5px;
   }
   .status-chip .chip-val { color: var(--text-primary); font-weight: 600; }
@@ -706,14 +706,14 @@
   .ae-list .grade {
     display: inline-flex; align-items: center; justify-content: center;
     min-width: 34px; padding: 3px 8px; border-radius: 4px;
-    font: 700 0.85em 'JetBrains Mono', monospace; color: #fff;
+    font: 700 0.92em 'JetBrains Mono', monospace; color: #fff;
     flex-shrink: 0;
   }
   .ae-list .grade-1 { background: var(--grade-1); }
   .ae-list .grade-2 { background: var(--grade-2); }
   .ae-list .grade-3 { background: var(--grade-3); }
   .ae-list .grade-4 { background: var(--grade-4); }
-  .ae-list .ae-dur { color: var(--text-muted); font-size: 0.88em; margin-left: auto; }
+  .ae-list .ae-dur { color: var(--text-muted); font-size: 0.95em; margin-left: auto; }
 
   /* Lab/vitals grid */
   .lab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(135px, 1fr)); gap: 5px; }
@@ -725,14 +725,14 @@
   .lab-item.lab-ok { border-left-color: #2ea04366; }
   .lab-item.lab-high { border-left-color: #f85149; background: rgba(248,81,73,0.04); }
   .lab-item.lab-low { border-left-color: #58a6ff; background: rgba(88,166,255,0.04); }
-  .lab-item .lab-name { color: var(--text-muted); font-size: 0.72em; line-height: 1.2; text-transform: uppercase; letter-spacing: 0.3px; }
+  .lab-item .lab-name { color: var(--text-muted); font-size: 0.82em; line-height: 1.2; text-transform: uppercase; letter-spacing: 0.3px; }
   .lab-item .lab-val-row { display: flex; align-items: baseline; gap: 4px; }
   .lab-item .lab-val {
     font: 600 1.05em 'JetBrains Mono', monospace; color: var(--text-primary);
   }
   .lab-item.lab-high .lab-val { color: #f85149; }
   .lab-item.lab-low .lab-val { color: #58a6ff; }
-  .lab-item .lab-unit { font-size: 0.68em; color: var(--text-muted); }
+  .lab-item .lab-unit { font-size: 0.82em; color: var(--text-muted); }
   .lab-item .lab-range-bar {
     height: 3px; border-radius: 2px; background: rgba(255,255,255,0.06); position: relative; margin-top: 1px;
   }
@@ -742,7 +742,7 @@
   }
   .lab-item.lab-high .lab-range-fill { background: #f85149; }
   .lab-item.lab-low .lab-range-fill { background: #58a6ff; }
-  .lab-item .lab-flag { position: absolute; top: 5px; right: 7px; font-size: 0.6em; font-weight: 700; letter-spacing: 0.5px; }
+  .lab-item .lab-flag { position: absolute; top: 5px; right: 7px; font-size: 0.78em; font-weight: 700; letter-spacing: 0.5px; }
   .lab-flag-h { color: #f85149; }
   .lab-flag-l { color: #58a6ff; }
 
@@ -751,7 +751,7 @@
     display: inline-flex; align-items: center; gap: 5px;
     padding: 7px 16px; background: rgba(57,210,192,0.08);
     border: 1px solid rgba(57,210,192,0.3); border-radius: 6px;
-    color: var(--accent-cyan); font: 600 0.92em 'JetBrains Mono', monospace;
+    color: var(--accent-cyan); font: 600 0.95em 'JetBrains Mono', monospace;
     transition: all 0.15s; text-decoration: none; flex-shrink: 0;
   }
   .full-record-link:hover {
@@ -762,7 +762,7 @@
   /* Subjective block */
   .subj-awareness {
     display: inline-flex; align-items: center; gap: 5px;
-    padding: 4px 12px; border-radius: 5px; font: 700 0.92em 'JetBrains Mono', monospace;
+    padding: 4px 12px; border-radius: 5px; font: 700 0.95em 'JetBrains Mono', monospace;
     margin-bottom: 8px;
   }
   .subj-awareness.aw-concerned { background: rgba(210,153,34,0.12); color: #d29922; }
@@ -770,7 +770,7 @@
   .subj-awareness.aw-unaware { background: rgba(63,185,80,0.08); color: var(--accent-green); }
   .subj-awareness.aw-noticed { background: rgba(88,166,255,0.1); color: var(--accent-blue); }
   .subj-symptom { font-size: 1em; padding: 3px 0; color: var(--text-secondary); }
-  .subj-quote { color: var(--text-muted); font-style: italic; font-size: 0.92em; padding-left: 14px; }
+  .subj-quote { color: var(--text-muted); font-style: italic; font-size: 0.95em; padding-left: 14px; }
 
   /* Care AI chat — KakaoTalk style */
   .care-chat-container { }
@@ -805,7 +805,7 @@
   .chat-row.is-patient .chat-content { align-items: flex-start; }
   .chat-row.is-nurse .chat-content { align-items: flex-end; }
   .chat-name {
-    font-size: 0.72em; color: var(--text-muted); margin-bottom: 2px;
+    font-size: 0.82em; color: var(--text-muted); margin-bottom: 2px;
     font-family: 'JetBrains Mono', monospace;
   }
   .chat-bubble {
@@ -820,7 +820,7 @@
   }
   .chat-row.is-nurse .chat-bubble + .chat-bubble { margin-top: 4px; }
   .chat-meta {
-    font-size: 0.75em; color: var(--text-muted); margin-top: 4px;
+    font-size: 0.85em; color: var(--text-muted); margin-top: 4px;
     line-height: 1.4;
   }
   .chat-meta .meta-tag {
@@ -841,12 +841,12 @@
     display: flex; align-items: center; gap: 8px; margin-bottom: 6px;
   }
   .chat-assessment-card .assess-summary {
-    font-size: 0.88em; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px;
+    font-size: 0.95em; color: var(--text-secondary); line-height: 1.5; margin-bottom: 8px;
   }
   .chat-assessment-card .assess-actions { display: flex; flex-wrap: wrap; gap: 4px; }
   .severity-badge {
     display: inline-block; padding: 2px 10px; border-radius: 3px;
-    font: 700 0.78em 'JetBrains Mono', monospace;
+    font: 700 0.88em 'JetBrains Mono', monospace;
   }
   .sev-green { background: rgba(63,185,80,0.15); color: var(--accent-green); border: 1px solid rgba(63,185,80,0.3); }
   .sev-yellow { background: rgba(227,179,65,0.15); color: #e3b341; border: 1px solid rgba(227,179,65,0.3); }
@@ -854,18 +854,18 @@
   .sev-red { background: rgba(248,81,73,0.15); color: var(--accent-red); border: 1px solid rgba(248,81,73,0.3); }
   .action-tag {
     display: inline-block; padding: 2px 8px; border-radius: 3px;
-    font: 500 0.78em 'JetBrains Mono', monospace; margin: 2px 2px 2px 0;
+    font: 500 0.88em 'JetBrains Mono', monospace; margin: 2px 2px 2px 0;
     background: var(--bg-elevated); border: 1px solid var(--border);
     color: var(--text-secondary);
   }
 
   /* Mood bars */
   .mood-bars { display: flex; flex-direction: column; gap: 4px; }
-  .mood-row { display: flex; align-items: center; gap: 6px; font-size: 0.8em; }
-  .mood-label { width: 58px; color: var(--text-muted); text-align: right; font: 500 0.85em 'JetBrains Mono', monospace; flex-shrink: 0; }
+  .mood-row { display: flex; align-items: center; gap: 6px; font-size: 0.88em; }
+  .mood-label { width: 58px; color: var(--text-muted); text-align: right; font: 500 0.92em 'JetBrains Mono', monospace; flex-shrink: 0; }
   .mood-track { flex: 1; height: 8px; background: var(--bg-elevated); border-radius: 4px; overflow: hidden; }
   .mood-fill { height: 100%; border-radius: 4px; transition: width 0.3s; }
-  .mood-val { width: 36px; font: 600 0.85em 'JetBrains Mono', monospace; text-align: right; flex-shrink: 0; }
+  .mood-val { width: 36px; font: 600 0.92em 'JetBrains Mono', monospace; text-align: right; flex-shrink: 0; }
 
   /* HR/GT toggle glow */
   #record-view-toggle button.active-amber { box-shadow: inset 0 -2px 0 #d29922, 0 0 6px rgba(210,153,34,0.15); }
@@ -898,7 +898,7 @@
   }
   .map-toolbar button {
     background: transparent; border: 1px solid var(--border);
-    color: var(--text-secondary); font: 600 0.85em 'JetBrains Mono', monospace;
+    color: var(--text-secondary); font: 600 0.92em 'JetBrains Mono', monospace;
     padding: 6px 13px; border-radius: 5px; cursor: pointer;
     transition: all 0.15s; display: inline-flex; align-items: center; gap: 5px;
   }
@@ -918,7 +918,7 @@
   .map-loc-chip {
     display: inline-flex; align-items: center; gap: 6px;
     padding: 5px 12px; border-radius: 5px;
-    font: 700 0.88em 'JetBrains Mono', monospace;
+    font: 700 0.95em 'JetBrains Mono', monospace;
   }
   .map-loc-chip svg { width: 18px; height: 18px; flex-shrink: 0; }
   .map-loc-chip.loc-hospital {
@@ -974,16 +974,16 @@
     to { transform: rotate(12deg); }
   }
   .phone-header .phone-title {
-    flex: 1; font-size: 0.85em; font-weight: 700; color: var(--text-primary);
+    flex: 1; font-size: 0.92em; font-weight: 700; color: var(--text-primary);
   }
   .phone-header .phone-sev {
-    font-size: 0.7em; padding: 2px 8px; border-radius: 10px; font-weight: 700;
+    font-size: 0.82em; padding: 2px 8px; border-radius: 10px; font-weight: 700;
     font-family: 'JetBrains Mono', monospace;
   }
   .phone-sev.sev-red { background: rgba(248,81,73,0.15); color: var(--accent-red); }
   .phone-sev.sev-orange { background: rgba(227,135,62,0.15); color: #e3871e; }
   .phone-body {
-    padding: 12px 16px; font-size: 0.82em; color: var(--text-secondary);
+    padding: 12px 16px; font-size: 0.88em; color: var(--text-secondary);
     line-height: 1.6; max-height: 200px; overflow-y: auto;
   }
   .phone-body .phone-patient {
@@ -995,7 +995,7 @@
   }
   .phone-body .phone-actions .action-tag {
     display: inline-block; padding: 2px 8px; border-radius: 4px;
-    font-size: 0.78em; font-family: 'JetBrains Mono', monospace;
+    font-size: 0.88em; font-family: 'JetBrains Mono', monospace;
     background: var(--bg-elevated); border: 1px solid var(--border);
     color: var(--text-secondary);
   }
@@ -1005,7 +1005,7 @@
   }
   .phone-footer button {
     flex: 1; padding: 8px; border-radius: 8px; border: 1px solid;
-    font-size: 0.8em; font-weight: 600; cursor: pointer;
+    font-size: 0.88em; font-weight: 600; cursor: pointer;
     font-family: 'JetBrains Mono', monospace;
     transition: all 0.15s; text-align: center;
   }
@@ -1021,7 +1021,7 @@
   .phone-btn-dismiss:hover { background: rgba(110,118,129,0.2); }
   .phone-badge {
     position: absolute; top: -6px; left: -6px;
-    background: var(--accent-red); color: #fff; font-size: 0.65em;
+    background: var(--accent-red); color: #fff; font-size: 0.8em;
     font-weight: 700; width: 20px; height: 20px; border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     font-family: 'JetBrains Mono', monospace;
@@ -1246,7 +1246,7 @@
             </div>
           <button class="patient-modal-close" id="patient-modal-close" title="Close">&#10005;</button>
             </div>
-        <span id="modal-view-hint" style="font-size:0.82em; color:var(--text-muted); white-space:nowrap;"></span>
+        <span id="modal-view-hint" style="font-size:0.88em; color:var(--text-muted); white-space:nowrap;"></span>
         <div class="char-actions-bottom">
           <a href="#" id="detail-link" class="full-record-link">Full Record &#8594;</a>
             </div>
@@ -1370,13 +1370,13 @@
         <button id="live-stop-btn" title="Stop Simulation"
                 style="margin-left:8px; padding:3px 10px; border:1px solid var(--accent-red);
                        background:rgba(248,81,73,0.1); color:var(--accent-red); border-radius:4px;
-                       font:600 0.78em 'JetBrains Mono',monospace; cursor:pointer;">
+                       font:600 0.88em 'JetBrains Mono',monospace; cursor:pointer;">
           Stop
         </button>
         <button id="live-toggle-btn" title="Toggle Log"
                 style="margin-left:4px; padding:3px 8px; border:1px solid var(--border);
                        background:var(--bg-elevated); color:var(--text-muted); border-radius:4px;
-                       font:600 0.78em 'JetBrains Mono',monospace; cursor:pointer;">
+                       font:600 0.88em 'JetBrains Mono',monospace; cursor:pointer;">
           ▼
         </button>
       </div>
@@ -1387,7 +1387,7 @@
       #live-panel {
         position:fixed; bottom:0; left:0; right:0; z-index:900;
         background:var(--bg-secondary); border-top:2px solid var(--accent-cyan);
-        font: 400 0.8em 'JetBrains Mono', monospace;
+        font: 400 0.88em 'JetBrains Mono', monospace;
         box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
       }
       #live-header {
@@ -1400,7 +1400,7 @@
       }
       #live-log .log-line {
         padding:1px 0; color:var(--text-secondary); white-space:pre-wrap;
-        word-break:break-all; font-size:0.92em; line-height:1.5;
+        word-break:break-all; font-size:0.95em; line-height:1.5;
       }
       #live-log .log-line.event { color:var(--text-primary); }
       #live-log .log-line.error { color:var(--accent-red); }
@@ -1759,11 +1759,11 @@
         : '<span class="ae-badge safe">No AEs</span>';
 
       const staleNote = (currentView === 'hr' && p.labs_stale_days > 0)
-        ? `<div style="font-size:0.65em;color:#d29922;margin-top:2px">Labs ${p.labs_stale_days}d old</div>`
+        ? `<div style="font-size:0.8em;color:#d29922;margin-top:2px">Labs ${p.labs_stale_days}d old</div>`
         : '';
 
       const visitBadge = (currentView === 'hr' && p.is_visit_day)
-        ? '<span class="ae-badge" style="background:rgba(88,166,255,0.2);color:var(--accent-blue);border:1px solid rgba(88,166,255,0.3);font-size:0.6em">Visit</span> '
+        ? '<span class="ae-badge" style="background:rgba(88,166,255,0.2);color:var(--accent-blue);border:1px solid rgba(88,166,255,0.3);font-size:0.78em">Visit</span> '
         : '';
 
       const spriteUrl = getCharSpriteUrl(p.patient_id, p.sex, p.race);
@@ -1807,7 +1807,7 @@
         if (m) {
           const pid = m[1];
           const slug = m[2].replace(/\s+/g, '_');
-          reportLink = ` <a href="/doc/${RUN_ID}/${pid}/${slug}/" style="font-size:0.85em;color:var(--accent-blue);text-decoration:none;" title="SAE Report">&#8599;</a>`;
+          reportLink = ` <a href="/doc/${RUN_ID}/${pid}/${slug}/" style="font-size:0.92em;color:var(--accent-blue);text-decoration:none;" title="SAE Report">&#8599;</a>`;
         }
       }
       const svg = EVENT_ICONS[e.type] || EVENT_ICON_DEFAULT;
@@ -1873,7 +1873,7 @@
   function renderCharStatBars(mood) {
     const el = document.getElementById('char-stat-bars');
     if (!mood || Object.keys(mood).length === 0) {
-      el.innerHTML = '<div class="char-stats-title">Mood Stats</div><span style="color:var(--text-muted);font-size:0.72em;">No mood data</span>';
+      el.innerHTML = '<div class="char-stats-title">Mood Stats</div><span style="color:var(--text-muted);font-size:0.82em;">No mood data</span>';
       return;
     }
     const dims = [
@@ -1959,7 +1959,7 @@
         ecogHtml += `<span></span>`;
       }
     }
-    if (ecog !== null) ecogHtml += `<span style="font-size:0.85em;color:var(--text-muted);margin-left:3px;">${ecog}</span>`;
+    if (ecog !== null) ecogHtml += `<span style="font-size:0.92em;color:var(--text-muted);margin-left:3px;">${ecog}</span>`;
     ecogEl.innerHTML = ecogHtml;
 
     // AE count
@@ -2018,7 +2018,7 @@
   function renderCareChat(cr, patientId, sex, race) {
     const el = document.getElementById('detail-care');
     if (!cr) {
-      el.innerHTML = '<em style="color:var(--text-muted); font-size:0.85em">No video call today</em>';
+      el.innerHTML = '<em style="color:var(--text-muted); font-size:0.92em">No video call today</em>';
       return;
     }
     const sevLevel = cr.severity_level || 'green';
@@ -2027,7 +2027,7 @@
     let html = '<div class="care-chat-container">';
     html += `<div class="care-chat-header">
       <span class="severity-badge ${sevClass}">${sevLevel.toUpperCase()}</span>
-      ${cr.terminated_early ? '<span style="color:var(--accent-orange); font-size:0.78em">Early end</span>' : ''}
+      ${cr.terminated_early ? '<span style="color:var(--accent-orange); font-size:0.88em">Early end</span>' : ''}
     </div>`;
     html += '<div class="care-chat">';
 
@@ -2045,7 +2045,7 @@
         const assess = c.assessment || {};
         const actions = c.actions || [];
         assessmentHtml += '<div class="chat-assessment"><div class="chat-assessment-card">';
-        assessmentHtml += `<div class="assess-header"><span class="severity-badge ${sevClass}">${sevLevel.toUpperCase()}</span><span style="font-size:0.78em; color:var(--text-muted)">Nurse Assessment</span></div>`;
+        assessmentHtml += `<div class="assess-header"><span class="severity-badge ${sevClass}">${sevLevel.toUpperCase()}</span><span style="font-size:0.88em; color:var(--text-muted)">Nurse Assessment</span></div>`;
         assessmentHtml += `<div class="assess-summary">${assess.summary || ''}</div>`;
         if (actions.length) {
           assessmentHtml += '<div class="assess-actions">';
@@ -2088,7 +2088,7 @@
         // T2: acknowledgment bubble, then each question as separate bubble
         if (c.acknowledgment) html += `<div class="chat-bubble">${c.acknowledgment}</div>`;
         (c.questions || []).forEach(q => {
-          html += `<div class="chat-bubble">${q.question}${q.target_ae ? ` <span style="color:var(--text-muted); font-size:0.82em">(${q.target_ae})</span>` : ''}</div>`;
+          html += `<div class="chat-bubble">${q.question}${q.target_ae ? ` <span style="color:var(--text-muted); font-size:0.88em">(${q.target_ae})</span>` : ''}</div>`;
         });
 
       } else if (isP && t.turn === 3) {
@@ -2208,7 +2208,7 @@
       const gtCount = (p.active_aes || []).length;
       const hrCount = hrAes.length;
       if (gtCount > hrCount) {
-        aeList.innerHTML += `<li style="color:var(--accent-orange);font-size:0.82em;border-top:1px dashed var(--border);padding-top:6px;">🏥 Hospital: ${hrCount}/${gtCount} AEs detected</li>`;
+        aeList.innerHTML += `<li style="color:var(--accent-orange);font-size:0.88em;border-top:1px dashed var(--border);padding-top:6px;">🏥 Hospital: ${hrCount}/${gtCount} AEs detected</li>`;
       }
     }
 
@@ -2231,7 +2231,7 @@
     const staleDays = viewMode === 'hr' ? (hrObj.labs_stale_days || 0) : 0;
     let labHtml = '';
     if (staleDays > 0) {
-      labHtml += `<div style="grid-column:1/-1;font-size:0.72em;color:#d29922;margin-bottom:4px;">Labs ${staleDays}d old</div>`;
+      labHtml += `<div style="grid-column:1/-1;font-size:0.82em;color:#d29922;margin-bottom:4px;">Labs ${staleDays}d old</div>`;
     }
     labHtml += Object.entries(labs).map(([n, o]) => {
       const ref = LAB_RANGES[n];
@@ -2253,7 +2253,7 @@
       const barHtml = (isNum && lo != null) ? `<div class="lab-range-bar"><div class="lab-range-fill" style="width:${barPct}%"></div></div>` : '';
       return `<div class="lab-item ${cls}">${flag}<span class="lab-name">${n}</span><div class="lab-val-row"><span class="lab-val">${displayVal}${tIcon}</span>${unitHtml}</div>${barHtml}</div>`;
     }).join('');
-    labGrid.innerHTML = labHtml || '<div style="color:var(--text-muted);font-size:0.82em;">No labs</div>';
+    labGrid.innerHTML = labHtml || '<div style="color:var(--text-muted);font-size:0.88em;">No labs</div>';
 
     // ── Vitals (color-coded) ──
     const vitalGrid = document.getElementById('detail-vitals');
@@ -2281,7 +2281,7 @@
     const vSD = viewMode === 'hr' ? (hrObj.vitals_stale_days || 0) : 0;
     let vHtml = '';
     if (vSD > 0) {
-      vHtml += `<div style="grid-column:1/-1;font-size:0.72em;color:#d29922;margin-bottom:4px;">Vitals ${vSD}d old</div>`;
+      vHtml += `<div style="grid-column:1/-1;font-size:0.82em;color:#d29922;margin-bottom:4px;">Vitals ${vSD}d old</div>`;
     }
     const bpVal = (rawVitals.sbp != null && rawVitals.dbp != null) ? `${rawVitals.sbp}/${rawVitals.dbp}` : '—';
     const bpCls = (rawVitals.sbp > 140 || rawVitals.dbp > 90) ? 'lab-high' : (rawVitals.sbp != null && rawVitals.sbp < 90) ? 'lab-low' : 'lab-ok';
@@ -2316,7 +2316,7 @@
       });
       subjEl.innerHTML = html;
     } else {
-      subjEl.innerHTML = `<div class="subj-awareness ${awCls}">${awareness}</div><em style="color:var(--text-muted); font-size:0.85em">No symptoms perceived</em>`;
+      subjEl.innerHTML = `<div class="subj-awareness ${awCls}">${awareness}</div><em style="color:var(--text-muted); font-size:0.92em">No symptoms perceived</em>`;
     }
 
     // ── Status chips ──

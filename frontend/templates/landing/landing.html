@@ -91,7 +91,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font: 600 0.68em 'JetBrains Mono', monospace;
+    font: 600 0.82em 'JetBrains Mono', monospace;
     color: var(--accent-cyan);
     padding: 5px 16px;
     border: 1px solid rgba(57,210,192,0.2);
@@ -140,7 +140,7 @@
   }
   .hero-title .word-expansion {
     display: block;
-    font-size: 0.33em;
+    font-size: 0.7em;
     font-weight: 600;
     letter-spacing: 2px;
     text-transform: uppercase;
@@ -194,7 +194,7 @@
 
   /* Description */
   .hero-desc {
-    font-size: 0.92em;
+    font-size: 0.95em;
     color: rgba(156,163,175,0.75);
     line-height: 1.8;
     max-width: 700px;
@@ -229,7 +229,7 @@
     padding: 13px 32px;
     border-radius: 12px;
     font-weight: 700;
-    font-size: 0.88em;
+    font-size: 0.95em;
     font-family: 'JetBrains Mono', monospace;
     cursor: pointer;
     transition: all 0.25s ease;
@@ -266,7 +266,7 @@
     padding: 13px 28px;
     border-radius: 12px;
     font-weight: 600;
-    font-size: 0.88em;
+    font-size: 0.95em;
     cursor: pointer;
     transition: all 0.25s ease;
     text-decoration: none;
@@ -298,7 +298,7 @@
     gap: 10px;
     padding: 12px 30px;
     border-radius: 50px;
-    font: 700 0.8em 'JetBrains Mono', monospace;
+    font: 700 0.88em 'JetBrains Mono', monospace;
     color: #fff;
     background: linear-gradient(135deg, rgba(57,210,192,0.85) 0%, rgba(88,166,255,0.7) 100%);
     border: 1px solid rgba(255,255,255,0.15);
@@ -347,7 +347,7 @@
     text-decoration: none;
   }
   .scroll-hint__text {
-    font: 500 0.7em 'JetBrains Mono', monospace;
+    font: 500 0.82em 'JetBrains Mono', monospace;
     color: var(--text-muted);
     letter-spacing: 1px;
     text-transform: uppercase;
@@ -411,7 +411,7 @@
     display: flex;
     align-items: center;
     gap: 10px;
-    font: 600 0.72em 'JetBrains Mono', monospace;
+    font: 600 0.82em 'JetBrains Mono', monospace;
     color: var(--text-muted);
     white-space: nowrap;
     flex-shrink: 0;
@@ -451,7 +451,7 @@
     flex-shrink: 0;
   }
   .section-label-row .sl-text {
-    font-size: 0.78em;
+    font-size: 0.88em;
     font-weight: 700;
     color: var(--text-secondary);
     letter-spacing: 1.5px;
@@ -568,7 +568,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    font: 700 0.6em 'JetBrains Mono', monospace;
+    font: 700 0.78em 'JetBrains Mono', monospace;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     margin-bottom: 14px;
@@ -596,7 +596,7 @@
     margin-bottom: 10px;
   }
   .phase-desc {
-    font-size: 0.82em;
+    font-size: 0.88em;
     color: var(--text-muted);
     line-height: 1.75;
   }
@@ -633,7 +633,7 @@
     background: rgba(0,0,0,0.25);
     border: 1px solid rgba(48,54,61,0.5);
     border-radius: 12px;
-    font-size: 0.78em;
+    font-size: 0.88em;
     font-family: 'JetBrains Mono', monospace;
   }
   .io-tag {
@@ -691,7 +691,7 @@
     margin-bottom: 4px;
   }
   .stat-unit {
-    font-size: 0.72em;
+    font-size: 0.82em;
     color: var(--text-muted);
     font-weight: 500;
     letter-spacing: 0.3px;
@@ -749,6 +749,44 @@
   .tech-card:hover::after { opacity: 1; }
   .tech-card:last-child { margin-bottom: 0; }
 
+  /* 3-column grid wrapper for compact cards */
+  .tech-card-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 20px;
+  }
+  .tech-card-grid .tech-card {
+    margin-bottom: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .tech-card-grid .tc-compact {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  .tech-card-grid .tc-header {
+    margin-bottom: 14px;
+  }
+  .tech-card-grid .tc-desc {
+    font-size: 0.88em;
+    line-height: 1.75;
+    margin-bottom: 18px;
+  }
+  .tech-card-grid .tc-stat {
+    flex-wrap: wrap;
+    gap: 6px 10px;
+    margin-bottom: 20px;
+  }
+  .tech-card-grid .tc-btn {
+    margin-top: auto;
+  }
+  @media (max-width: 768px) {
+    .tech-card-grid {
+      grid-template-columns: 1fr;
+    }
+  }
+
   /* Accent line colors */
   .tech-card.accent-blue { --card-color: #7aa2f7; }
   .tech-card.accent-blue::before {
@@ -773,6 +811,30 @@
     );
   }
   .tech-card.accent-purple:hover { border-color: rgba(188,140,255,0.12); }
+
+  .tech-card.accent-green { --card-color: var(--accent-green); }
+  .tech-card.accent-green::before {
+    background: linear-gradient(90deg, var(--accent-green) 0%, rgba(63,185,80,0.15) 100%);
+  }
+  .tech-card.accent-green::after {
+    background: radial-gradient(
+      400px circle at var(--card-mouse-x, 50%) var(--card-mouse-y, 0%),
+      rgba(63,185,80,0.06), transparent 40%
+    );
+  }
+  .tech-card.accent-green:hover { border-color: rgba(63,185,80,0.12); }
+
+  .tech-card.accent-amber { --card-color: #e8b339; }
+  .tech-card.accent-amber::before {
+    background: linear-gradient(90deg, #e8b339 0%, rgba(232,179,57,0.15) 100%);
+  }
+  .tech-card.accent-amber::after {
+    background: radial-gradient(
+      400px circle at var(--card-mouse-x, 50%) var(--card-mouse-y, 0%),
+      rgba(232,179,57,0.06), transparent 40%
+    );
+  }
+  .tech-card.accent-amber:hover { border-color: rgba(232,179,57,0.12); }
 
   .tech-card.accent-cyan::before {
     background: linear-gradient(90deg, var(--accent-cyan) 0%, rgba(57,210,192,0.15) 100%);
@@ -814,6 +876,16 @@
     border-color: rgba(188,140,255,0.15);
     color: var(--accent-purple);
   }
+  .tc-icon.icon-green {
+    background: rgba(63,185,80,0.08);
+    border-color: rgba(63,185,80,0.15);
+    color: var(--accent-green);
+  }
+  .tc-icon.icon-amber {
+    background: rgba(232,179,57,0.08);
+    border-color: rgba(232,179,57,0.15);
+    color: #e8b339;
+  }
   .tc-icon.icon-cyan {
     background: rgba(57,210,192,0.08);
     border-color: rgba(57,210,192,0.15);
@@ -826,7 +898,7 @@
     letter-spacing: 0.2px;
   }
   .tc-badge {
-    font: 600 0.58em 'JetBrains Mono', monospace;
+    font: 600 0.78em 'JetBrains Mono', monospace;
     padding: 3px 10px;
     border-radius: 6px;
     margin-left: auto;
@@ -865,7 +937,7 @@
     gap: 8px;
     padding: 10px 22px;
     border-radius: 10px;
-    font-size: 0.78em;
+    font-size: 0.88em;
     font-weight: 700;
     letter-spacing: 0.4px;
     text-decoration: none;
@@ -973,7 +1045,7 @@
     display: flex;
     align-items: center;
     gap: 8px;
-    font: 600 0.68em 'JetBrains Mono', monospace;
+    font: 600 0.82em 'JetBrains Mono', monospace;
     color: var(--text-secondary);
     padding: 6px 10px;
     margin-bottom: 10px;
@@ -1009,7 +1081,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font: 700 0.55em 'JetBrains Mono', monospace;
+    font: 700 0.75em 'JetBrains Mono', monospace;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     margin-bottom: 5px;
@@ -1030,7 +1102,7 @@
     box-shadow: 0 0 6px rgba(63,185,80,0.5);
   }
   .ah-preview-text {
-    font: 400 0.66em/1.65 'JetBrains Mono', monospace;
+    font: 400 0.8em/1.65 'JetBrains Mono', monospace;
     color: var(--text-muted);
     overflow: hidden;
     display: -webkit-box;
@@ -1060,7 +1132,7 @@
     align-items: center;
     justify-content: center;
     gap: 8px;
-    font: 500 0.56em 'JetBrains Mono', monospace;
+    font: 500 0.75em 'JetBrains Mono', monospace;
     color: var(--text-muted);
     opacity: 0.7;
     padding-top: 2px;
@@ -1077,7 +1149,7 @@
     border: 1px solid rgba(48,54,61,0.6);
   }
   .mm-pipeline-label {
-    font: 700 0.55em 'JetBrains Mono', monospace;
+    font: 700 0.75em 'JetBrains Mono', monospace;
     text-transform: uppercase;
     letter-spacing: 1.5px;
     color: var(--text-muted);
@@ -1094,7 +1166,7 @@
     display: flex; align-items: center; gap: 5px;
     padding: 5px 10px; border-radius: 8px;
     background: var(--bg-elevated); border: 1px solid var(--border);
-    font-size: 0.72em; font-weight: 600; color: var(--text-secondary);
+    font-size: 0.82em; font-weight: 600; color: var(--text-secondary);
     white-space: nowrap;
   }
   .mm-node svg { width: 13px; height: 13px; flex-shrink: 0; }
@@ -1107,7 +1179,7 @@
   }
   .mm-node.node-output { color: var(--accent-green); border-color: rgba(63,185,80,0.2); }
   .mm-arrow {
-    color: var(--text-muted); font-size: 0.72em; opacity: 0.4; flex-shrink: 0;
+    color: var(--text-muted); font-size: 0.82em; opacity: 0.4; flex-shrink: 0;
   }
   .mm-arrow svg { width: 10px; height: 10px; }
 
@@ -1131,7 +1203,7 @@
     background: rgba(0,0,0,0.3);
   }
   .mm-metric-name {
-    font-size: 0.66em;
+    font-size: 0.8em;
     font-weight: 600;
     color: var(--text-muted);
   }
@@ -1147,7 +1219,7 @@
     color: var(--accent-green);
   }
   .mm-metric-gain {
-    font-size: 0.6em;
+    font-size: 0.78em;
     font-weight: 600;
     color: var(--accent-purple);
     opacity: 0.8;
@@ -1159,7 +1231,7 @@
     padding: 3px 8px;
     border-radius: 6px;
     margin-top: 6px;
-    font: 600 0.58em 'JetBrains Mono', monospace;
+    font: 600 0.78em 'JetBrains Mono', monospace;
     background: rgba(188,140,255,0.06);
     border: 1px solid rgba(188,140,255,0.15);
     color: var(--accent-purple);
@@ -1191,7 +1263,7 @@
   }
   .mg-photo-box svg { width: 20px; height: 20px; opacity: 0.45; color: var(--text-muted); }
   .mg-photo-box span {
-    font: 600 0.52em 'JetBrains Mono', monospace;
+    font: 600 0.72em 'JetBrains Mono', monospace;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.8px;
@@ -1210,7 +1282,7 @@
     border: 1px solid rgba(88,166,255,0.12);
   }
   .mg-prompt-box span {
-    font: 500 0.52em 'JetBrains Mono', monospace;
+    font: 500 0.72em 'JetBrains Mono', monospace;
     color: var(--text-muted);
     letter-spacing: 0.3px;
   }
@@ -1219,7 +1291,7 @@
     margin: 20px 0 -4px;
     color: var(--accent-purple);
     opacity: 0.3;
-    font-size: 0.65em;
+    font-size: 0.8em;
     line-height: 1;
   }
   .mg-model-box {
@@ -1231,7 +1303,7 @@
     border-radius: 6px;
     background: rgba(188,140,255,0.06);
     border: 1px solid rgba(188,140,255,0.2);
-    font: 700 0.65em 'JetBrains Mono', monospace;
+    font: 700 0.8em 'JetBrains Mono', monospace;
     color: var(--accent-purple);
   }
   .mg-model-box svg { width: 12px; height: 12px; flex-shrink: 0; }
@@ -1244,16 +1316,10 @@
     border-radius: 6px;
     background: rgba(63,185,80,0.06);
     border: 1px solid rgba(63,185,80,0.2);
-    font: 600 0.65em 'JetBrains Mono', monospace;
+    font: 600 0.8em 'JetBrains Mono', monospace;
     color: var(--accent-green);
   }
   .mg-output-box svg { width: 12px; height: 12px; flex-shrink: 0; }
-
-  /* Card 2 (MedGemma) compact overrides */
-  .tech-card.accent-purple { padding: 24px 28px 20px; }
-  .tech-card.accent-purple .tc-layout { gap: 20px; }
-  .tech-card.accent-purple .tc-desc { margin-bottom: 14px; line-height: 1.65; }
-  .tech-card.accent-purple .tc-header { margin-bottom: 10px; }
 
   /* =================================================================
      Hazard Engine — Mini Canvas
@@ -1271,12 +1337,12 @@
   .hz-label-row {
     display: flex;
     justify-content: space-between;
-    font: 500 0.58em 'JetBrains Mono', monospace;
+    font: 500 0.78em 'JetBrains Mono', monospace;
     color: var(--text-muted);
     margin-top: 6px;
   }
   .hz-formula {
-    font: 500 0.72em 'JetBrains Mono', monospace;
+    font: 500 0.82em 'JetBrains Mono', monospace;
     color: rgba(57,210,192,0.5);
     margin-top: 10px;
     text-align: center;
@@ -1292,7 +1358,7 @@
     display: flex;
     align-items: center;
     gap: 6px;
-    font: 500 0.6em 'JetBrains Mono', monospace;
+    font: 500 0.78em 'JetBrains Mono', monospace;
     color: var(--text-muted);
   }
   .hz-legend-dot {
@@ -1311,7 +1377,7 @@
     padding: 7px 16px; border-radius: 8px;
     border: 1px solid rgba(48,54,61,0.5);
     background: transparent; color: var(--text-muted);
-    font: 600 0.7em 'JetBrains Mono', monospace;
+    font: 600 0.82em 'JetBrains Mono', monospace;
     cursor: pointer; transition: all 0.25s; white-space: nowrap;
   }
   .cts-inner-tab:hover {
@@ -1343,7 +1409,7 @@
   /* ── Chatbot mini preview (Card 1, tab B) ── */
   .cb-mini-preview {
     background: rgba(0,0,0,0.35); border: 1px solid rgba(48,54,61,0.5);
-    border-radius: 12px; padding: 16px; font-size: 0.78em;
+    border-radius: 12px; padding: 16px; font-size: 0.88em;
   }
   .cb-mini-header {
     display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
@@ -1357,7 +1423,7 @@
   .cb-mini-avatar {
     width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
     display: flex; align-items: center; justify-content: center;
-    font-size: 0.7em; font-weight: 700;
+    font-size: 0.82em; font-weight: 700;
   }
   .cb-mini-avatar.user { background: rgba(88,166,255,0.15); color: var(--accent-blue); }
   .cb-mini-avatar.ai { background: rgba(57,210,192,0.15); color: var(--accent-cyan); }
@@ -1372,7 +1438,7 @@
     padding-top: 10px; border-top: 1px solid rgba(48,54,61,0.4);
   }
   .cb-mini-action {
-    padding: 4px 10px; border-radius: 6px; font-size: 0.85em; font-weight: 600;
+    padding: 4px 10px; border-radius: 6px; font-size: 0.92em; font-weight: 600;
     border: 1px solid rgba(48,54,61,0.5); color: var(--text-muted);
     background: transparent; letter-spacing: 0.2px;
   }
@@ -1380,7 +1446,7 @@
   /* ── Voice Call mini preview (Card 2, tab B) ── */
   .vc-mini-preview {
     background: rgba(0,0,0,0.35); border: 1px solid rgba(48,54,61,0.5);
-    border-radius: 12px; padding: 16px; font-size: 0.78em;
+    border-radius: 12px; padding: 16px; font-size: 0.88em;
   }
   .vc-mini-header {
     display: flex; align-items: center; justify-content: space-between;
@@ -1390,7 +1456,7 @@
   .vc-mini-header-left svg { width: 16px; height: 16px; opacity: 0.5; }
   .vc-mini-header-left span { color: var(--text-secondary); font-weight: 600; }
   .vc-mini-live {
-    padding: 3px 10px; border-radius: 20px; font-size: 0.8em; font-weight: 700;
+    padding: 3px 10px; border-radius: 20px; font-size: 0.88em; font-weight: 700;
     background: rgba(63,185,80,0.12); color: var(--accent-green);
     border: 1px solid rgba(63,185,80,0.3); letter-spacing: 0.5px;
     animation: vcPulse 2s ease-in-out infinite;
@@ -1405,7 +1471,7 @@
     background: rgba(48,54,61,0.2);
   }
   .vc-mini-turn-label {
-    font-size: 0.75em; font-weight: 700; letter-spacing: 0.5px;
+    font-size: 0.85em; font-weight: 700; letter-spacing: 0.5px;
     text-transform: uppercase; width: 52px; flex-shrink: 0;
   }
   .vc-mini-turn-label.patient { color: var(--accent-purple); }
@@ -1427,7 +1493,7 @@
     padding-top: 10px; border-top: 1px solid rgba(48,54,61,0.4);
   }
   .vc-mini-mood {
-    padding: 3px 8px; border-radius: 6px; font-size: 0.8em; font-weight: 600;
+    padding: 3px 8px; border-radius: 6px; font-size: 0.88em; font-weight: 600;
     border: 1px solid rgba(188,140,255,0.2); color: rgba(188,140,255,0.7);
     background: rgba(188,140,255,0.04);
   }
@@ -1447,7 +1513,7 @@
     color: var(--accent-cyan);
   }
   .rs-mini-stat .rs-mini-label {
-    font-size: 0.55em; font-weight: 600; text-transform: uppercase;
+    font-size: 0.75em; font-weight: 600; text-transform: uppercase;
     letter-spacing: 0.8px; color: var(--text-muted); margin-top: 2px;
   }
   .rs-mini-sources {
@@ -1456,7 +1522,7 @@
   .rs-mini-source {
     padding: 2px 8px; border-radius: 10px;
     border: 1px solid rgba(48,54,61,0.4);
-    font: 500 0.55em 'JetBrains Mono', monospace;
+    font: 500 0.75em 'JetBrains Mono', monospace;
     color: var(--text-muted);
   }
 
@@ -1466,7 +1532,7 @@
   .landing-footer {
     padding: 3em 0 0;
     text-align: center;
-    font-size: 0.7em;
+    font-size: 0.82em;
     color: var(--text-muted);
     opacity: 0.5;
     border-top: 1px solid rgba(48,54,61,0.3);
@@ -1491,7 +1557,7 @@
   }
   .sim-map-day-overlay {
     position: absolute; top: 12px; left: 14px; z-index: 3;
-    font: 800 0.82em 'JetBrains Mono', monospace;
+    font: 800 0.88em 'JetBrains Mono', monospace;
     color: var(--accent-cyan);
     background: rgba(13,17,23,0.7);
     backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
@@ -1539,7 +1605,7 @@
     .hero-actions { flex-direction: column; align-items: stretch; }
     .btn-hero-primary, .btn-hero-secondary { justify-content: center; }
     .sim-map-container { aspect-ratio: 4 / 3; }
-    .sim-map-cta-overlay { padding: 10px 22px; font-size: 0.78em; bottom: 12px; }
+    .sim-map-cta-overlay { padding: 10px 22px; font-size: 0.88em; bottom: 12px; }
     .scroll-hint { margin-top: 1.5em; }
   }
   @media (max-width: 480px) {
@@ -1552,9 +1618,9 @@
     .io-bar { flex-direction: column; gap: 8px; align-items: flex-start; }
     .sim-map-section { margin-top: 1.5em; }
     .sim-map-container { aspect-ratio: 1 / 1; border-radius: 10px; }
-    .sim-map-cta-overlay { padding: 9px 18px; font-size: 0.72em; gap: 8px; bottom: 10px; border-radius: 10px; }
+    .sim-map-cta-overlay { padding: 9px 18px; font-size: 0.82em; gap: 8px; bottom: 10px; border-radius: 10px; }
     .scroll-hint { margin-top: 1.2em; }
-    .scroll-hint__text { font-size: 0.62em; }
+    .scroll-hint__text { font-size: 0.78em; }
   }
 </style>
 {% endblock %}
@@ -1769,222 +1835,66 @@
       <span class="sl-line"></span>
     </div>
 
-    <!-- Card 1: Data Analysis Agent (tabbed: Anti-hallucination + Chatbot & Report) -->
-    <div class="tech-card accent-blue reveal reveal-d1">
-      <div class="tc-layout">
-        <div class="tc-left">
+    <div class="tech-card-grid">
+
+      <!-- Card 1: Anti-hallucination -->
+      <div class="tech-card accent-green reveal reveal-d1">
+        <div class="tc-compact">
           <div class="tc-header">
-            <div class="tc-icon icon-blue">
-              <img src="{% static 'assets/ui/gemma.png' %}" alt="MedGemma" style="width:20px;height:20px;object-fit:contain;">
+            <div class="tc-icon icon-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+              </svg>
             </div>
-            <div class="tc-title">Data Analysis Agent</div>
+            <div class="tc-title">Anti-hallucination</div>
           </div>
-
-          <div class="cts-inner-tabs">
-            <button class="cts-inner-tab active" onclick="switchDaTab('antihallu', this)">Anti-hallucination MedGemma</button>
-            <button class="cts-inner-tab" onclick="switchDaTab('chatbot', this)">Chatbot &amp; Report</button>
+          <div class="tc-desc">
+            RLFR-defended Anti-hallucination MedGemma ensures factual accuracy &mdash;
+            refusing to fabricate drug names, dosages, or mechanisms. Tested across 5 trap categories.
           </div>
-
-          <!-- Tab: Anti-hallucination MedGemma -->
-          <div class="cts-tab-pane active" id="daAntihallu">
-            <div class="tc-desc">
-              RLFR-defended <strong>Anti-hallucination MedGemma</strong> ensures factual accuracy &mdash;
-              refusing to fabricate drug names, dosages, or mechanisms.
-              Tested across 5 trap categories with 15 adversarial prompts.
-            </div>
-            <div class="tc-stat">
-              <span class="tc-stat-val del">Baseline hallucinates</span>
-              <span class="tc-stat-arrow">&#8594;</span>
-              <span class="tc-stat-val good">RLFR refuses</span>
-              <span class="tc-stat-label">5 trap categories &middot; 15 test prompts</span>
-            </div>
-            <a href="{% url 'demo_anti_hallucination' %}" class="tc-btn">
-              <span class="btn-label">Try Demo</span><span class="btn-hover-label">Test It</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </a>
+          <div class="tc-stat">
+            <span class="tc-stat-val del">Baseline hallucinates</span>
+            <span class="tc-stat-arrow">&#8594;</span>
+            <span class="tc-stat-val good">RLFR refuses</span>
+            <span class="tc-stat-label">5 trap categories &middot; 15 test prompts</span>
           </div>
-
-          <!-- Tab: Chatbot & Report -->
-          <div class="cts-tab-pane" id="daChatbot">
-            <div class="tc-desc">
-              Interactive <strong>AI chatbot</strong> for clinical trial data exploration &mdash;
-              analyze AE incidence, CRF tables, and statistical results.
-              Generate <strong>MedWatch 3500A</strong> SAE reports and export CRF data as Excel.
-            </div>
-            <div class="tc-stat">
-              <span class="tc-stat-val good" style="opacity:1;">Conversational analysis</span>
-              <span class="tc-stat-label">CRF &middot; SAE reports &middot; A/B comparison</span>
-            </div>
-            <a href="{% url 'demo_anti_hallucination' %}" class="tc-btn">
-              <span class="btn-label">Try Demo</span><span class="btn-hover-label">Chat Now</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </a>
-          </div>
-        </div>
-        <div class="tc-right">
-          <!-- Anti-hallucination visual (shown when antihallu tab active) -->
-          <div id="daAntihalluRight">
-            <div class="ah-comparison-preview">
-              <div class="ah-preview-prompt">
-                <span class="ah-preview-prompt-icon">&#10070;</span>
-                "What is the plasma half-life of Dravimotide?"
-              </div>
-              <div class="ah-preview-cards">
-                <div class="ah-preview-card ah-preview-baseline">
-                  <div class="ah-preview-label"><span class="ah-preview-dot baseline"></span>Baseline</div>
-                  <div class="ah-preview-text">Dravimotide has a plasma half-life of approximately 14.2 hours following oral administration...</div>
-                  <div class="ah-preview-badge ah-preview-badge-red">HALLUCINATED</div>
-                </div>
-                <div class="ah-preview-card ah-preview-defended">
-                  <div class="ah-preview-label"><span class="ah-preview-dot defended"></span>AntiHallu</div>
-                  <div class="ah-preview-text">I cannot find verified information about "Dravimotide" in medical databases. This may not be a real drug...</div>
-                  <div class="ah-preview-badge ah-preview-badge-green">SAFE</div>
-                </div>
-              </div>
-              <div class="ah-preview-meta">
-                <span>15 trap prompts</span>
-                <span class="ah-preview-sep">&middot;</span>
-                <span>5 categories</span>
-                <span class="ah-preview-sep">&middot;</span>
-                <span>RLFR</span>
-              </div>
-            </div>
-          </div>
-          <!-- Chatbot visual (shown when chatbot tab active) -->
-          <div id="daChatbotRight" style="display:none;">
-            <div class="cb-mini-preview">
-              <div class="cb-mini-header">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                <span>Data Analysis Chat</span>
-              </div>
-              <div class="cb-mini-msg">
-                <div class="cb-mini-avatar user">U</div>
-                <div class="cb-mini-bubble user-bubble">Summarize AE incidence rates for this trial</div>
-              </div>
-              <div class="cb-mini-msg">
-                <div class="cb-mini-avatar ai">AI</div>
-                <div class="cb-mini-bubble ai-bubble">Across 50 patients over 84 days, the most frequent AEs were <strong>nausea</strong> (68%), <strong>fatigue</strong> (54%), and <strong>rash</strong> (42%). Grade 3+ events occurred in 12% of patients...</div>
-              </div>
-              <div class="cb-mini-actions">
-                <span class="cb-mini-action">SAE Report</span>
-                <span class="cb-mini-action">CRF Excel</span>
-                <span class="cb-mini-action">Compare A/B</span>
-              </div>
-            </div>
-          </div>
+          <a href="{% url 'demo_anti_hallucination' %}" class="tc-btn">
+            <span class="btn-label">Try Demo</span><span class="btn-hover-label">Test It</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
         </div>
       </div>
-    </div>
 
-    <!-- Card 2: Data Collection Agent (SAE Detection) -->
-    <div class="tech-card accent-purple reveal reveal-d2">
-      <div class="tc-layout">
-        <div class="tc-left">
+      <!-- Card 2: CLARA Call -->
+      <div class="tech-card accent-amber reveal reveal-d2">
+        <div class="tc-compact">
           <div class="tc-header">
-            <div class="tc-icon icon-purple">
-              <img src="{% static 'assets/ui/gemma.png' %}" alt="Data Collection Agent" style="width:34px;height:34px;object-fit:contain;">
+            <div class="tc-icon icon-amber">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
             </div>
-            <div class="tc-title">Data Collection Agent</div>
+            <div class="tc-title">CLARA Call</div>
           </div>
-
-          <!-- SAE Detection -->
-          <div class="cts-tab-pane active" id="dcSae">
-            <div class="tc-desc">
-              Multi-model SAE detection: <strong>MedGemma 4B-IT</strong> (visual AE grading via LoRA),
-              <strong>MedSigLIP</strong> (medical image similarity), and <strong>HeAR</strong> (audio biomarker analysis)
-              aligned with <strong>CTCAE grading standards</strong> across 21 classes.
-            </div>
-            <div class="tc-stat">
-              <span class="tc-stat-val del">4.8%</span>
-              <span class="tc-stat-arrow">&#8594;</span>
-              <span class="tc-stat-val good">90.5%</span>
-              <span class="tc-stat-label">21 CTCAE classes &middot; LoRA finetuned</span>
-            </div>
-            <a href="http://49.254.130.90:19001/demo/care-agent/live/" class="tc-btn">
-              <span class="btn-label">Try Demo</span><span class="btn-hover-label">Detect AE</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </a>
+          <div class="tc-desc">
+            Multi-model SAE detection: MedGemma 4B-IT (visual AE grading via LoRA),
+            MedSigLIP (medical image similarity), and HeAR (audio biomarker analysis)
+            aligned with CTCAE grading standards across 21 classes.
           </div>
-
-        </div>
-        <div class="tc-right">
-          <!-- SAE Detection visual (shown when sae tab active) -->
-          <div id="dcSaeRight">
-            <div class="mm-pipeline">
-              <div class="mm-pipeline-label">Input</div>
-              <div class="mg-input-group">
-                <div class="mg-input-row">
-                  <div class="mg-photo-box">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/></svg>
-                    <span>Day 0 Photo</span>
-                  </div>
-                  <div class="mg-photo-box has-ae">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="8" r="5"/><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="17" cy="5" r="3" fill="rgba(188,140,255,0.3)" stroke="currentColor"/></svg>
-                    <span>Day 21 Photo</span>
-                  </div>
-                </div>
-                <div class="mg-prompt-box">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="width:12px;height:12px;flex-shrink:0;opacity:0.5;"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
-                  <span>Identify new AEs and classify their grades.</span>
-                </div>
-              </div>
-              <div class="mg-flow-down">&#x25BC;</div>
-              <div class="mm-pipeline-label">Model</div>
-              <div class="mg-model-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
-                MedGemma + MedSigLIP + HeAR
-              </div>
-              <div class="mg-flow-down">&#x25BC;</div>
-              <div class="mm-pipeline-label">Output</div>
-              <div class="mg-output-box">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
-                AE Type + Grade + Reasoning
-              </div>
-              <div class="mm-pipeline-label" style="margin-top:6px;">Finetuned vs Zero-shot</div>
-              <div class="mm-metrics-list">
-                <div class="mm-metric-row">
-                  <span class="mm-metric-name">Accuracy</span>
-                  <div class="mm-metric-vals">
-                    <span class="mm-metric-val">90.5%</span>
-                    <span class="mm-metric-gain">+85.7%p</span>
-                  </div>
-                </div>
-                <div class="mm-metric-row">
-                  <span class="mm-metric-name">Weighted F1</span>
-                  <div class="mm-metric-vals">
-                    <span class="mm-metric-val">90.0%</span>
-                    <span class="mm-metric-gain">+89.2%p</span>
-                  </div>
-                </div>
-                <div class="mm-metric-row">
-                  <span class="mm-metric-name">Macro Precision</span>
-                  <div class="mm-metric-vals">
-                    <span class="mm-metric-val">92.9%</span>
-                    <span class="mm-metric-gain">+92.5%p</span>
-                  </div>
-                </div>
-                <div class="mm-metric-row">
-                  <span class="mm-metric-name">Macro Recall</span>
-                  <div class="mm-metric-vals">
-                    <span class="mm-metric-val">90.5%</span>
-                    <span class="mm-metric-gain">+85.7%p</span>
-                  </div>
-                </div>
-              </div>
-              <div class="mm-fine-tune-tag">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                LoRA r=8, &alpha;=16 &middot; 7 AE types + Normal &middot; bf16
-              </div>
-            </div>
+          <div class="tc-stat">
+            <span class="tc-stat-val del">4.8%</span>
+            <span class="tc-stat-arrow">&#8594;</span>
+            <span class="tc-stat-val good">90.5%</span>
+            <span class="tc-stat-label">21 CTCAE classes &middot; LoRA finetuned</span>
           </div>
+          <a href="http://49.254.130.90:19001/demo/care-agent/live/" class="tc-btn">
+            <span class="btn-label">Try Demo</span><span class="btn-hover-label">Detect AE</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
         </div>
       </div>
-    </div>
 
-    <!-- Card 3: Simulation Engine (tabbed: Hazard Engine + Rule Set Generation) -->
-    <div class="tech-card accent-cyan reveal reveal-d3">
-      <div class="tc-layout">
-        <div class="tc-left">
+      <!-- Card 3: Simulation Engine -->
+      <div class="tech-card accent-cyan reveal reveal-d3">
+        <div class="tc-compact">
           <div class="tc-header">
             <div class="tc-icon icon-cyan">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -1993,118 +1903,22 @@
             </div>
             <div class="tc-title">Simulation Engine</div>
           </div>
-
-          <div class="cts-inner-tabs">
-            <button class="cts-inner-tab active" onclick="switchCtsTab('hazard', this)">Hazard Engine</button>
-            <button class="cts-inner-tab" onclick="switchCtsTab('ruleset', this)">Rule Set Generation</button>
+          <div class="tc-desc">
+            Mixture-model hazard functions compute daily AE onset probabilities from
+            onset distribution parameters. No fate tables &mdash; pure mathematical
+            hazard drives every simulation day.
           </div>
-
-          <!-- Tab: Hazard Engine -->
-          <div class="cts-tab-pane active" id="ctsHazard">
-            <div class="tc-desc">
-              Mixture-model hazard functions compute daily AE onset probabilities from
-              onset distribution parameters. No fate tables &mdash; pure mathematical
-              hazard drives every simulation day. Each AE type has its own onset CDF
-              (Normal, LogNormal, or Uniform), and the engine calculates conditional
-              daily probability given no prior onset.
-            </div>
-            <div class="tc-stat">
-              <span class="tc-stat-val good" style="opacity:1;">Daily onset probability</span>
-              <span class="tc-stat-label">computed per AE type, per patient</span>
-            </div>
-            <a href="{% url 'demo_hazard' %}" class="tc-btn">
-              <span class="btn-label">Try Demo</span><span class="btn-hover-label">Run It</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </a>
+          <div class="tc-stat">
+            <span class="tc-stat-val good" style="opacity:1;">Daily onset probability</span>
+            <span class="tc-stat-label">computed per AE type, per patient</span>
           </div>
-
-          <!-- Tab: Rule Set Generation -->
-          <div class="cts-tab-pane" id="ctsRuleset">
-            <div class="tc-desc">
-              Generate validated probabilistic rule sets from drug labels and
-              10 biomedical evidence sources. Multi-stage LLM synthesis with
-              programmatic override produces dose schedules, AE profiles, and efficacy
-              parameters &mdash; scored across 9 dimensions against FDA-sourced ground truth.
-            </div>
-            <div class="tc-stat">
-              <span class="tc-stat-val del">Manual curation</span>
-              <span class="tc-stat-arrow">&#8594;</span>
-              <span class="tc-stat-val good">77.7% auto-match</span>
-              <span class="tc-stat-label">LLM + evidence databases vs ground truth</span>
-            </div>
-            <a href="{% url 'demo_ruleset_generation' %}" class="tc-btn">
-              <span class="btn-label">Try Demo</span><span class="btn-hover-label">Generate</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </a>
-          </div>
-        </div>
-        <div class="tc-right">
-          <!-- Hazard Engine visual (shown when hazard tab active) -->
-          <div id="ctsHazardRight">
-            <div class="hz-canvas-wrap">
-              <canvas id="hazardMiniCanvas" width="440" height="140"></canvas>
-              <div class="hz-label-row">
-                <span>Day 1</span>
-                <span>Day 84</span>
-              </div>
-              <div class="hz-formula">h(t) = I &middot; f(t) / (1 &minus; I &middot; F(t&minus;1))</div>
-              <div class="hz-legend">
-                <div class="hz-legend-item">
-                  <div class="hz-legend-dot" style="background:rgba(57,210,192,0.7);"></div>
-                  Early onset
-                </div>
-                <div class="hz-legend-item">
-                  <div class="hz-legend-dot" style="background:rgba(188,140,255,0.6);"></div>
-                  Mid-cycle
-                </div>
-                <div class="hz-legend-item">
-                  <div class="hz-legend-dot" style="background:rgba(210,153,34,0.5);"></div>
-                  Late onset
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- Rule Set visual (shown when ruleset tab active) -->
-          <div id="ctsRulesetRight" style="display:none;">
-            <div class="rs-mini-grid">
-              <div class="rs-mini-stat">
-                <div class="rs-mini-val">7</div>
-                <div class="rs-mini-label">Drugs Validated</div>
-              </div>
-              <div class="rs-mini-stat">
-                <div class="rs-mini-val">9</div>
-                <div class="rs-mini-label">Score Dimensions</div>
-              </div>
-              <div class="rs-mini-stat">
-                <div class="rs-mini-val">77.7%</div>
-                <div class="rs-mini-label">Avg Accuracy</div>
-              </div>
-              <div class="rs-mini-stat">
-                <div class="rs-mini-val">10</div>
-                <div class="rs-mini-label">Evidence DBs</div>
-              </div>
-            </div>
-            <div class="hz-canvas-wrap" style="padding:14px 16px;">
-              <div style="font:600 0.6em 'JetBrains Mono',monospace;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Pipeline</div>
-              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
-                <span style="font:600 0.72em 'JetBrains Mono',monospace;color:var(--accent-cyan);padding:4px 10px;border:1px solid rgba(57,210,192,0.25);border-radius:8px;background:rgba(57,210,192,0.06);">Evidence</span>
-                <span style="color:var(--text-muted);font-size:0.8em;">&#8594;</span>
-                <span style="font:600 0.72em 'JetBrains Mono',monospace;color:var(--accent-blue);padding:4px 10px;border:1px solid rgba(88,166,255,0.25);border-radius:8px;background:rgba(88,166,255,0.06);">LLM Synthesis</span>
-                <span style="color:var(--text-muted);font-size:0.8em;">&#8594;</span>
-                <span style="font:600 0.72em 'JetBrains Mono',monospace;color:var(--accent-green);padding:4px 10px;border:1px solid rgba(63,185,80,0.25);border-radius:8px;background:rgba(63,185,80,0.06);">Validation</span>
-              </div>
-              <div class="rs-mini-sources" style="margin-top:12px;">
-                <span class="rs-mini-source">DailyMed</span>
-                <span class="rs-mini-source">ClinicalTrials.gov</span>
-                <span class="rs-mini-source">PubMed</span>
-                <span class="rs-mini-source">OpenFDA</span>
-                <span class="rs-mini-source">PubChem</span>
-                <span class="rs-mini-source">ChEMBL</span>
-              </div>
-            </div>
-          </div>
+          <a href="{% url 'demo_hazard' %}" class="tc-btn">
+            <span class="btn-label">Try Demo</span><span class="btn-hover-label">Run It</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
         </div>
       </div>
+
     </div>
   </section>
 
@@ -2188,89 +2002,6 @@
       var target = parseFloat(el.dataset.target);
       el.textContent = (decimals > 0 ? target.toFixed(decimals) : target) + suffix;
     });
-  }
-
-  /* ─── 5a. Generic card inner-tab switcher ─── */
-  function switchCardTab(btn, paneIds, rightIds) {
-    var card = btn.closest('.tech-card');
-    card.querySelectorAll('.cts-inner-tab').forEach(function(t) { t.classList.remove('active'); });
-    card.querySelectorAll('.cts-tab-pane').forEach(function(p) { p.classList.remove('active'); });
-    btn.classList.add('active');
-    var idx = Array.from(btn.parentNode.children).indexOf(btn);
-    paneIds.forEach(function(id, i) {
-      document.getElementById(id).classList[i === idx ? 'add' : 'remove']('active');
-    });
-    rightIds.forEach(function(id, i) {
-      document.getElementById(id).style.display = i === idx ? 'block' : 'none';
-    });
-  }
-
-  /* Card 1: Data Analysis Agent */
-  window.switchDaTab = function(tab, btn) {
-    var idx = tab === 'antihallu' ? 0 : 1;
-    switchCardTab(btn,
-      ['daAntihallu', 'daChatbot'],
-      ['daAntihalluRight', 'daChatbotRight']
-    );
-  };
-
-  /* Card 3: Simulation Engine */
-  window.switchCtsTab = function(tab, btn) {
-    switchCardTab(btn,
-      ['ctsHazard', 'ctsRuleset'],
-      ['ctsHazardRight', 'ctsRulesetRight']
-    );
-  };
-
-  /* ─── 5. Hazard Mini Canvas — 3 decorative curves ─── */
-  var canvas = document.getElementById('hazardMiniCanvas');
-  if (canvas) {
-    var ctx = canvas.getContext('2d');
-    var W = canvas.width, H = canvas.height;
-
-    function drawCurve(mu, sigma, scale, color, fillColor, lineWidth) {
-      var points = [];
-      for (var i = 0; i <= 84; i++) {
-        var t = i / 84;
-        var pdf = (1 / (t * sigma * Math.sqrt(2 * Math.PI) + 0.001)) *
-                  Math.exp(-Math.pow(Math.log(t + 0.01) - Math.log(mu), 2) / (2 * sigma * sigma));
-        points.push(Math.min(pdf * scale, 1));
-      }
-      var maxVal = Math.max.apply(null, points);
-      var norm = points.map(function(p) { return p / maxVal; });
-
-      /* Fill */
-      ctx.beginPath();
-      ctx.moveTo(0, H);
-      norm.forEach(function(v, i) {
-        var x = (i / 84) * W;
-        var y = H - v * (H - 8);
-        ctx.lineTo(x, y);
-      });
-      ctx.lineTo(W, H);
-      ctx.closePath();
-      var grad = ctx.createLinearGradient(0, 0, 0, H);
-      grad.addColorStop(0, fillColor);
-      grad.addColorStop(1, 'rgba(0,0,0,0)');
-      ctx.fillStyle = grad;
-      ctx.fill();
-
-      /* Line */
-      ctx.beginPath();
-      norm.forEach(function(v, i) {
-        var x = (i / 84) * W;
-        var y = H - v * (H - 8);
-        if (i === 0) ctx.moveTo(x, y);
-        else ctx.lineTo(x, y);
-      });
-      ctx.strokeStyle = color;
-      ctx.lineWidth = lineWidth;
-      ctx.stroke();
-    }
-
-    drawCurve(0.18, 0.12, 0.015, 'rgba(57,210,192,0.7)', 'rgba(57,210,192,0.1)', 1.8);
-    drawCurve(0.4, 0.18, 0.012, 'rgba(188,140,255,0.5)', 'rgba(188,140,255,0.06)', 1.2);
-    drawCurve(0.65, 0.25, 0.01, 'rgba(210,153,34,0.45)', 'rgba(210,153,34,0.04)', 1.2);
   }
 
   /* ─── 8. Simulation Map Auto-Play ─── */

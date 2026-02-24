@@ -64,7 +64,7 @@
   content: '+';
   position: absolute;
   top: 8px; right: 8px;
-  font-size: .65em;
+  font-size: .8em;
   padding: 2px 8px;
   border-radius: 8px;
   background: rgba(88,166,255,.12);
@@ -90,7 +90,7 @@
   content: '+';
   position: absolute;
   top: 8px; right: 8px;
-  font-size: .65em;
+  font-size: .8em;
   padding: 2px 8px;
   border-radius: 8px;
   background: rgba(88,166,255,.12);
@@ -160,11 +160,11 @@
   display: flex; flex-direction: column; justify-content: center; gap: 1px;
 }
 .chat-panel-title {
-  font-size: .88em; font-weight: 600; color: var(--text-primary);
+  font-size: .95em; font-weight: 600; color: var(--text-primary);
   line-height: 1.2;
 }
 .chat-panel-subtitle {
-  font-size: .7em; color: var(--text-muted); font-weight: 400;
+  font-size: .82em; color: var(--text-muted); font-weight: 400;
   font-family: 'IBM Plex Mono','JetBrains Mono',monospace;
 }
 .chat-panel-close {
@@ -183,7 +183,7 @@
   width: 72px; height: 72px; opacity: .55;
 }
 .chat-welcome-text {
-  font-size: .8em; color: var(--text-muted); text-align: center; letter-spacing: .3px;
+  font-size: .88em; color: var(--text-muted); text-align: center; letter-spacing: .3px;
 }
 
 /* ── Suggestion Chips ── */
@@ -192,7 +192,7 @@
   flex-shrink: 0;
 }
 .chat-suggestion {
-  padding: 5px 12px; border-radius: 12px; font-size: .78em; font-weight: 400;
+  padding: 5px 12px; border-radius: 12px; font-size: .88em; font-weight: 400;
   border: 1px solid var(--border); background: var(--bg-card);
   color: var(--text-secondary); cursor: pointer; transition: border-color .15s, color .15s;
 }
@@ -215,7 +215,7 @@
 /* ── Message Bubbles ── */
 .chat-msg {
   max-width: 88%; padding: 10px 14px; border-radius: 14px;
-  font-size: .86em; line-height: 1.7; word-wrap: break-word;
+  font-size: .92em; line-height: 1.7; word-wrap: break-word;
 }
 .chat-msg.user {
   align-self: flex-end; max-width: 85%;
@@ -241,7 +241,7 @@
 }
 .chat-msg.assistant .chat-msg-content code {
   background: rgba(255,255,255,.06); padding: 1px 5px; border-radius: 3px;
-  font-size: .88em; font-family: 'IBM Plex Mono','JetBrains Mono',monospace;
+  font-size: .95em; font-family: 'IBM Plex Mono','JetBrains Mono',monospace;
   border: 1px solid rgba(255,255,255,.04);
 }
 .chat-msg.assistant .chat-msg-content strong { color: var(--accent-blue); }
@@ -251,13 +251,13 @@
 }
 .chat-msg.assistant .chat-msg-content li { margin: 3px 0; }
 .chat-msg.system-msg {
-  align-self: center; color: var(--text-muted); font-size: .78em;
+  align-self: center; color: var(--text-muted); font-size: .88em;
   text-align: center; padding: 6px 14px; border-radius: 8px;
   background: rgba(255,255,255,.02); max-width: 100%;
 }
 .chat-msg.error { color: var(--accent-red); }
 .chat-msg-meta {
-  display: block; margin-top: 4px; font-size: .68em; color: var(--text-muted);
+  display: block; margin-top: 4px; font-size: .82em; color: var(--text-muted);
   font-family: 'IBM Plex Mono','JetBrains Mono',monospace;
 }
 .chat-msg.user .chat-msg-meta { text-align: right; }
@@ -265,7 +265,7 @@
 /* ── Context Debug Block ── */
 .chat-query-toggle {
   display: inline-flex; align-items: center; margin-top: 6px;
-  font-size: .72em; color: var(--text-muted); cursor: pointer;
+  font-size: .82em; color: var(--text-muted); cursor: pointer;
   font-family: 'IBM Plex Mono','JetBrains Mono',monospace;
   opacity: .7; transition: opacity .15s;
 }
@@ -273,7 +273,7 @@
 .chat-query-block {
   display: none; margin: 6px 0 2px; padding: 10px 12px;
   background: var(--bg-base); border: 1px solid var(--border); border-radius: 6px;
-  font-size: .78em; line-height: 1.6; color: var(--text-secondary);
+  font-size: .88em; line-height: 1.6; color: var(--text-secondary);
   font-family: 'IBM Plex Mono','JetBrains Mono',monospace;
   white-space: pre-wrap; word-break: break-all; max-height: 280px; overflow-y: auto;
 }
@@ -310,12 +310,12 @@
   background: rgba(88,166,255,.1);
   border: 1px solid rgba(88,166,255,.2);
   color: var(--accent-blue);
-  font-size: 0.74em;
+  font-size: 0.85em;
   font-family: 'IBM Plex Mono', monospace;
 }
 .chat-ref-remove {
   background: none; border: none; color: var(--text-muted);
-  cursor: pointer; font-size: 0.9em; padding: 0 2px;
+  cursor: pointer; font-size: 0.95em; padding: 0 2px;
   line-height: 1;
 }
 .chat-ref-remove:hover { color: var(--text-primary); }
@@ -328,7 +328,7 @@
 .chat-input {
   flex: 1; background: var(--bg-card); border: 1px solid var(--border);
   border-radius: 10px; padding: 10px 14px; color: var(--text-primary);
-  font-size: .86em; font-family: inherit; resize: none;
+  font-size: .92em; font-family: inherit; resize: none;
   min-height: 40px; max-height: 100px; line-height: 1.5;
   transition: border-color .15s;
 }

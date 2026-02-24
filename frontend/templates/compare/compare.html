@@ -15,7 +15,7 @@
     -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     background-clip: text;
   }
-  .cmp-sub { color: var(--text-secondary); font-size: 0.92em; margin-bottom: 1.5em; }
+  .cmp-sub { color: var(--text-secondary); font-size: 0.95em; margin-bottom: 1.5em; }
   .cmp-sub strong { color: var(--accent-orange); }
 
   /* ── Summary Cards ── */
@@ -33,7 +33,7 @@
     transform: translateY(-2px);
     box-shadow: var(--shadow-glow-cyan);
   }
-  .metric-card .label { font-size: 0.72em; text-transform: uppercase; letter-spacing: 1.2px;
+  .metric-card .label { font-size: 0.82em; text-transform: uppercase; letter-spacing: 1.2px;
     color: var(--text-muted); font-weight: 700; margin-bottom: 8px; }
   .metric-card .values { display: flex; justify-content: space-between; align-items: baseline; }
   .metric-card .val { font-size: 1.4em; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
@@ -41,13 +41,13 @@
   .metric-card .val.ai { color: var(--accent-cyan); font-size: 1.5em; }
   .metric-card .delta {
     position: absolute; top: 8px; right: 10px;
-    font-size: 0.82em; font-weight: 700; padding: 3px 10px; border-radius: 10px;
+    font-size: 0.88em; font-weight: 700; padding: 3px 10px; border-radius: 10px;
     font-family: 'JetBrains Mono', monospace;
   }
   .delta.good { background: rgba(57,210,192,0.15); color: var(--accent-green); }
   .delta.bad { background: rgba(255,100,100,0.15); color: #ff6b6b; }
   .delta.neutral { background: rgba(150,150,150,0.1); color: var(--text-muted); }
-  .metric-card .sub { font-size: 0.72em; color: var(--text-muted); margin-top: 6px; }
+  .metric-card .sub { font-size: 0.82em; color: var(--text-muted); margin-top: 6px; }
 
   /* ── Charts ── */
   .chart-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 1.5em; }
@@ -60,7 +60,7 @@
     background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
   }
   .chart-box h6 {
-    margin: 0 0 12px; font-size: 0.82em; color: var(--text-muted);
+    margin: 0 0 12px; font-size: 0.88em; color: var(--text-muted);
     text-transform: uppercase; letter-spacing: 1px; font-weight: 700;
     display: flex; align-items: center; gap: 8px;
   }
@@ -71,10 +71,10 @@
   .chart-box canvas { width: 100% !important; max-height: 320px; }
 
   /* ── Patient Table ── */
-  .ptable { width: 100%; border-collapse: collapse; font-size: 0.82em; margin-top: 1em;
+  .ptable { width: 100%; border-collapse: collapse; font-size: 0.88em; margin-top: 1em;
     border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; }
   .ptable th {
-    text-align: left; padding: 12px 14px; font-weight: 700; font-size: 0.72em;
+    text-align: left; padding: 12px 14px; font-weight: 700; font-size: 0.82em;
     text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted);
     border-bottom: 2px solid var(--border); background: var(--bg-secondary);
     position: sticky; top: 0;
@@ -91,10 +91,10 @@
   /* ── Stats Box ── */
   .stats-box {
     background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px;
-    padding: 16px; margin-bottom: 1.5em; font-size: 0.85em;
+    padding: 16px; margin-bottom: 1.5em; font-size: 0.92em;
     border-left: 3px solid; border-image: var(--gradient-title) 1;
   }
-  .stats-box h6 { margin: 0 0 10px; font-size: 0.82em; color: var(--text-muted);
+  .stats-box h6 { margin: 0 0 10px; font-size: 0.88em; color: var(--text-muted);
     text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
   .stats-box .stat-row { display: flex; justify-content: space-between; padding: 4px 0;
     border-bottom: 1px solid rgba(255,255,255,0.04); }
@@ -106,7 +106,7 @@
 
   /* ── Section ── */
   .sec-title {
-    font-size: 0.72em; text-transform: uppercase; letter-spacing: 2px;
+    font-size: 0.82em; text-transform: uppercase; letter-spacing: 2px;
     color: var(--text-muted); font-weight: 700; margin: 1.5em 0 0.8em; padding-bottom: 0;
     border-bottom: none;
     display: flex; align-items: center; gap: 12px;
@@ -121,7 +121,7 @@
   }
 
   /* ── AE Timeline ── */
-  .timeline-row { display: flex; align-items: center; margin-bottom: 3px; font-size: 0.78em; }
+  .timeline-row { display: flex; align-items: center; margin-bottom: 3px; font-size: 0.88em; }
   .timeline-label { width: 100px; flex-shrink: 0; font-family: 'JetBrains Mono', monospace;
     color: var(--text-secondary); text-align: right; padding-right: 8px; }
   .timeline-bar-wrap { flex: 1; height: 14px; position: relative; background: var(--bg-elevated);
@@ -340,8 +340,8 @@ function renderCards() {
       ${c.delta}
       <div class="label">${c.label}</div>
       <div class="values">
-        <div><span class="val nat">${c.nat}</span><br><span style="font-size:0.65em;color:var(--text-muted)">Natural</span></div>
-        <div><span class="val ai">${c.ai}</span><br><span style="font-size:0.65em;color:var(--text-muted)">Care AI</span></div>
+        <div><span class="val nat">${c.nat}</span><br><span style="font-size:0.8em;color:var(--text-muted)">Natural</span></div>
+        <div><span class="val ai">${c.ai}</span><br><span style="font-size:0.8em;color:var(--text-muted)">Care AI</span></div>
       </div>
       <div class="sub">${c.sub}</div>
     </div>`;

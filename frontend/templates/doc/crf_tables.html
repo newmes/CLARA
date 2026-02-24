@@ -20,7 +20,7 @@
     background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
     -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
-  .doc-subtitle { color: var(--text-secondary); font-size: 0.92em; margin-top: 4px; }
+  .doc-subtitle { color: var(--text-secondary); font-size: 0.95em; margin-top: 4px; }
   /* ── Control bar ── */
   .crf-controls {
     display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
@@ -31,7 +31,7 @@
     display: flex; align-items: center; gap: 4px;
   }
   .ctrl-label {
-    font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.5px;
+    font-size: 0.92em; text-transform: uppercase; letter-spacing: 0.5px;
     color: var(--text-muted); margin-right: 4px; white-space: nowrap;
   }
   .ctrl-btn {
@@ -52,7 +52,7 @@
   }
   .mp-btn {
     padding: 7px 16px; border: none; cursor: pointer;
-    font: 700 0.88em 'JetBrains Mono', monospace;
+    font: 700 0.95em 'JetBrains Mono', monospace;
     background: transparent; color: var(--text-muted);
     transition: all 0.25s ease; line-height: 1.2; white-space: nowrap;
     display: flex; align-items: center; gap: 6px;
@@ -98,7 +98,7 @@
     display: flex; gap: 2px; margin-bottom: 1em; flex-wrap: wrap;
   }
   .domain-tab {
-    padding: 8px 14px; border-radius: var(--radius-md) var(--radius-md) 0 0; font-size: 0.85em;
+    padding: 8px 14px; border-radius: var(--radius-md) var(--radius-md) 0 0; font-size: 0.92em;
     font-weight: 700; font-family: 'JetBrains Mono', monospace;
     border: 1px solid var(--border); border-bottom: none;
     background: var(--bg-secondary); color: var(--text-muted);
@@ -117,11 +117,11 @@
     overflow-x: auto; overflow-y: auto; max-height: 55vh; background: var(--bg-card);
   }
   .crf-table {
-    width: 100%; border-collapse: collapse; font-size: 0.92em;
+    width: 100%; border-collapse: collapse; font-size: 0.95em;
     font-family: 'JetBrains Mono', monospace;
   }
   .crf-table th {
-    text-align: left; padding: 10px 12px; font-size: 0.85em; text-transform: uppercase;
+    text-align: left; padding: 10px 12px; font-size: 0.92em; text-transform: uppercase;
     letter-spacing: 0.5px; color: var(--text-muted); border-bottom: 2px solid var(--border);
     background: var(--bg-secondary); position: sticky; top: 0; white-space: nowrap;
     cursor: pointer; user-select: none; transition: color 0.12s;
@@ -159,7 +159,7 @@
   .page-btn:hover { border-color: var(--accent-cyan); color: var(--text-primary); }
   .page-btn.active { background: rgba(57,210,192,0.12); border-color: var(--accent-cyan); color: var(--accent-cyan); }
   .page-btn:disabled { opacity: 0.4; cursor: default; }
-  .page-info { font-size: 0.88em; color: var(--text-muted); margin: 0 8px; }
+  .page-info { font-size: 0.95em; color: var(--text-muted); margin: 0 8px; }
   /* ── Loading / empty ── */
   .crf-loading {
     text-align: center; padding: 3em; color: var(--text-muted);
@@ -177,7 +177,7 @@
   }
   .lb-chart-controls .select-group { display: flex; flex-direction: column; gap: 2px; }
   .lb-chart-controls .select-group label {
-    font-size: 0.78em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+    font-size: 0.88em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
   }
   .lb-chart-controls select {
     background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-primary);
@@ -191,11 +191,11 @@
     display: flex; flex-direction: column; overflow: hidden;
   }
   .lb-chart-title { font-size: 1em; color: var(--text-primary); margin-bottom: 2px; }
-  .lb-chart-subtitle { font-size: 0.85em; color: var(--text-muted); margin-bottom: 12px; }
+  .lb-chart-subtitle { font-size: 0.92em; color: var(--text-muted); margin-bottom: 12px; }
   .lb-chart-area { position: relative; width: 100%; flex: 1; min-height: 0; }
   .lb-chart-area canvas { display: block; width: 100%; height: 100%; }
   .lb-ref-info {
-    display: flex; gap: 16px; margin-top: 8px; font-size: 0.82em; color: var(--text-muted);
+    display: flex; gap: 16px; margin-top: 8px; font-size: 0.95em; color: var(--text-muted);
     padding-top: 8px; border-top: 1px solid var(--border);
   }
   .lb-ref-info span { display: flex; align-items: center; gap: 6px; }
@@ -206,12 +206,12 @@
   }
   .lb-side-header {
     padding: 10px 14px; border-bottom: 1px solid var(--border);
-    font-size: 0.82em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+    font-size: 0.95em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
     background: var(--bg-secondary); flex-shrink: 0;
   }
   .lb-side-row-head {
     display: grid; grid-template-columns: 42px 1fr 42px; padding: 5px 14px;
-    font-size: 0.78em; color: var(--text-muted); text-transform: uppercase;
+    font-size: 0.88em; color: var(--text-muted); text-transform: uppercase;
     border-bottom: 1px solid var(--border); background: var(--bg-secondary);
   }
   .lb-side-row-head span:nth-child(2) { text-align: right; padding-right: 8px; }
@@ -222,7 +222,7 @@
   .lb-side-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   .lb-data-row {
     display: grid; grid-template-columns: 42px 1fr 42px;
-    padding: 5px 14px; font-size: 0.88em; align-items: center;
+    padding: 5px 14px; font-size: 0.95em; align-items: center;
     border-bottom: 1px solid rgba(255,255,255,0.03); transition: background 0.1s;
   }
   .lb-data-row:hover { background: var(--bg-secondary); }
@@ -232,20 +232,20 @@
   .lb-data-row .val.above { color: #f85149; }
   .lb-data-row .val.below { color: #58a6ff; }
   .lb-data-row .cs { text-align: center; }
-  .lb-cs-tag { padding: 2px 6px; border-radius: 3px; font-size: 0.82em; font-weight: 600; }
+  .lb-cs-tag { padding: 2px 6px; border-radius: 3px; font-size: 0.88em; font-weight: 600; }
   .lb-cs-yes { background: #f8514933; color: #f85149; }
   .lb-cs-no { background: #7ee78722; color: #7ee787; }
 
   /* ── VS side panel (3-column: dot + day + value) ── */
   .vs-side-row-head {
     display: grid; grid-template-columns: 14px 42px 1fr; padding: 5px 14px;
-    font-size: 0.78em; color: var(--text-muted); text-transform: uppercase;
+    font-size: 0.88em; color: var(--text-muted); text-transform: uppercase;
     border-bottom: 1px solid var(--border); background: var(--bg-secondary);
   }
   .vs-side-row-head span:last-child { text-align: right; }
   .vs-data-row {
     display: grid; grid-template-columns: 14px 42px 1fr;
-    padding: 5px 14px; font-size: 0.88em; align-items: center;
+    padding: 5px 14px; font-size: 0.95em; align-items: center;
     border-bottom: 1px solid rgba(255,255,255,0.03); transition: background 0.1s;
   }
   .vs-data-row:hover { background: var(--bg-secondary); }
@@ -263,7 +263,7 @@
   }
   .turs-controls .select-group { display: flex; flex-direction: column; gap: 2px; }
   .turs-controls .select-group label {
-    font-size: 0.78em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+    font-size: 0.95em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
   }
   .turs-controls select {
     background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-primary);
@@ -276,7 +276,7 @@
     border-radius: var(--radius-lg); padding: 16px; display: flex; flex-direction: column;
   }
   .turs-chart-label {
-    font-size: 0.78em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+    font-size: 0.95em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
     margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
   }
   .turs-chart-label::after { content: ''; flex: 1; height: 1px; background: var(--border); }
@@ -285,7 +285,7 @@
   .turs-resp-area { height: 90px; margin-top: 8px; }
   .turs-chart-area canvas { display: block; width: 100%; height: 100%; }
   .turs-legend {
-    display: flex; gap: 14px; margin-top: 10px; font-size: 0.78em; color: var(--text-muted);
+    display: flex; gap: 14px; margin-top: 10px; font-size: 0.88em; color: var(--text-muted);
     flex-wrap: wrap; padding-top: 8px; border-top: 1px solid var(--border);
   }
   .turs-legend span { display: flex; align-items: center; gap: 4px; }
@@ -297,14 +297,14 @@
   }
   .turs-side-header {
     padding: 10px 14px; border-bottom: 1px solid var(--border);
-    font-size: 0.82em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+    font-size: 0.95em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
     background: var(--bg-secondary); flex-shrink: 0;
   }
   .turs-side-tabs {
     display: flex; border-bottom: 1px solid var(--border); flex-shrink: 0;
   }
   .turs-side-tab {
-    flex: 1; padding: 7px; text-align: center; font-size: 0.78em; color: var(--text-muted);
+    flex: 1; padding: 7px; text-align: center; font-size: 0.88em; color: var(--text-muted);
     cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.15s;
     text-transform: uppercase; letter-spacing: 0.5px;
   }
@@ -322,13 +322,13 @@
   .turs-lesion-card:hover { background: var(--bg-secondary); }
   .turs-lc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
   .turs-lc-id { font-size: 0.9em; font-weight: 600; }
-  .turs-type-tag { font-size: 0.75em; padding: 2px 7px; border-radius: 3px; font-weight: 600; }
+  .turs-type-tag { font-size: 0.85em; padding: 2px 7px; border-radius: 3px; font-weight: 600; }
   .turs-tag-target { background: rgba(57,210,192,0.12); color: var(--accent-cyan); }
   .turs-tag-nt { background: rgba(210,168,255,0.12); color: #d2a8ff; }
-  .turs-lc-detail { font-size: 0.8em; color: var(--text-muted); margin-bottom: 2px; }
+  .turs-lc-detail { font-size: 0.88em; color: var(--text-muted); margin-bottom: 2px; }
   .turs-meas { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
   .turs-mchip {
-    font-size: 0.75em; padding: 2px 7px; border-radius: 3px;
+    font-size: 0.85em; padding: 2px 7px; border-radius: 3px;
     background: var(--bg-secondary); color: var(--text-secondary);
   }
   .turs-mchip.bl { border-left: 2px solid var(--text-muted); }
@@ -340,11 +340,11 @@
   }
   .turs-resp-card:hover { background: var(--bg-secondary); }
   .turs-rc-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
-  .turs-rc-visit { font-size: 0.85em; color: var(--text-muted); }
-  .turs-rc-date { font-size: 0.8em; color: var(--text-muted); }
-  .turs-rc-row { display: flex; justify-content: space-between; align-items: center; margin-top: 3px; font-size: 0.85em; }
+  .turs-rc-visit { font-size: 0.92em; color: var(--text-muted); }
+  .turs-rc-date { font-size: 0.88em; color: var(--text-muted); }
+  .turs-rc-row { display: flex; justify-content: space-between; align-items: center; margin-top: 3px; font-size: 0.92em; }
   .turs-rc-label { color: var(--text-muted); }
-  .turs-resp-badge { padding: 2px 8px; border-radius: 4px; font-size: 0.8em; font-weight: 700; }
+  .turs-resp-badge { padding: 2px 8px; border-radius: 4px; font-size: 0.88em; font-weight: 700; }
   .turs-b-CR { background: #7ee78733; color: #7ee787; }
   .turs-b-PR { background: #58a6ff33; color: #58a6ff; }
   .turs-b-SD { background: #e3b34133; color: #e3b341; }
@@ -360,11 +360,11 @@
     display: flex; align-items: center; gap: 8px;
   }
   .turs-detail-title {
-    font-size: 0.82em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
+    font-size: 0.95em; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px;
   }
   .turs-detail-tabs { display: flex; gap: 0; margin-left: auto; }
   .turs-dtab {
-    padding: 5px 14px; font-size: 0.8em; color: var(--text-muted); cursor: pointer;
+    padding: 5px 14px; font-size: 0.88em; color: var(--text-muted); cursor: pointer;
     border: 1px solid var(--border); background: transparent; transition: all 0.15s;
   }
   .turs-dtab:first-child { border-radius: var(--radius-sm) 0 0 var(--radius-sm); }
@@ -376,12 +376,12 @@
   .turs-detail-wrap::-webkit-scrollbar-track { background: transparent; }
   .turs-detail-wrap::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
   .turs-dtable {
-    width: 100%; border-collapse: collapse; font-size: 0.88em;
+    width: 100%; border-collapse: collapse; font-size: 0.95em;
     font-family: 'JetBrains Mono', monospace;
   }
   .turs-dtable thead { position: sticky; top: 0; z-index: 2; }
   .turs-dtable th {
-    background: var(--bg-secondary); color: var(--text-muted); font-weight: 600; font-size: 0.78em;
+    background: var(--bg-secondary); color: var(--text-muted); font-weight: 600; font-size: 0.88em;
     text-transform: uppercase; letter-spacing: 0.3px;
     padding: 7px 10px; text-align: left; border-bottom: 1px solid var(--border); white-space: nowrap;
   }
@@ -392,8 +392,8 @@
   .turs-dtable tr:hover td { background: rgba(57,210,192,0.03); }
   .turs-col-hl { color: var(--text-primary); font-weight: 600; }
   .turs-col-dim { color: var(--text-muted); }
-  .turs-nd-tag { color: #f0883e; font-size: 0.78em; font-weight: 600; padding: 2px 6px; background: rgba(240,136,62,0.12); border-radius: 3px; }
-  .turs-resp-inline { padding: 2px 7px; border-radius: 3px; font-size: 0.8em; font-weight: 600; }
+  .turs-nd-tag { color: #f0883e; font-size: 0.88em; font-weight: 600; padding: 2px 6px; background: rgba(240,136,62,0.12); border-radius: 3px; }
+  .turs-resp-inline { padding: 2px 7px; border-radius: 3px; font-size: 0.88em; font-weight: 600; }
   .turs-tooltip {
     display: none; position: fixed; background: var(--bg-card); border: 1px solid var(--border);
     border-radius: var(--radius-md); padding: 10px 14px; font-size: 0.9em; z-index: 999;
@@ -409,7 +409,7 @@
   .lb-tooltip .tt-date { color: var(--text-muted); font-size: 0.9em; }
   .lb-tooltip .tt-val { font-size: 1.2em; font-weight: 600; margin: 3px 0; }
   .lb-tooltip .tt-unit { font-size: 0.9em; color: var(--text-muted); }
-  .lb-tooltip .tt-cs { font-size: 0.88em; margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--border); }
+  .lb-tooltip .tt-cs { font-size: 0.95em; margin-top: 4px; padding-top: 4px; border-top: 1px solid var(--border); }
   /* ── Chat-open: CRF table row hover ── */
   .doc-container.chat-open .crf-table tbody tr { cursor: pointer; transition: outline .15s, box-shadow .15s; }
   .doc-container.chat-open .crf-table tbody tr:hover {
@@ -1307,8 +1307,8 @@
           cs = dev > 0.12 ? 'CS' : 'NCS';
         }
         const csH = cs === 'CS'
-          ? '<span style="padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;background:#f8514933;color:#f85149;">CS</span> Clinically Significant'
-          : '<span style="padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;background:#7ee78722;color:#7ee787;">NCS</span>';
+          ? '<span style="padding:2px 6px;border-radius:3px;font-size:13px;font-weight:600;background:#f8514933;color:#f85149;">CS</span> Clinically Significant'
+          : '<span style="padding:2px 6px;border-radius:3px;font-size:13px;font-weight:600;background:#7ee78722;color:#7ee787;">NCS</span>';
         document.getElementById('lbTtCs').innerHTML = csH;
         canvas.style.cursor = 'crosshair';
       } else {
@@ -1575,8 +1575,8 @@
         document.getElementById('vsTtUnit').textContent = cfg ? cfg.unit : '';
         const outOfRange = hasRange && (p.value > cfg.hi || p.value < cfg.lo);
         const csH = outOfRange
-          ? '<span style="padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;background:#f8514933;color:#f85149;">Abnormal</span>'
-          : '<span style="padding:2px 6px;border-radius:3px;font-size:10px;font-weight:600;background:#7ee78722;color:#7ee787;">Normal</span>';
+          ? '<span style="padding:2px 6px;border-radius:3px;font-size:13px;font-weight:600;background:#f8514933;color:#f85149;">Abnormal</span>'
+          : '<span style="padding:2px 6px;border-radius:3px;font-size:13px;font-weight:600;background:#7ee78722;color:#7ee787;">Normal</span>';
         document.getElementById('vsTtCs').innerHTML = csH;
         canvas.style.cursor = 'crosshair';
       } else {
@@ -1944,7 +1944,7 @@
             <span class="turs-rc-visit">${r.cycle} · Day ${r.day}</span>
             <span class="turs-rc-date">${r.date}</span>
           </div>
-          ${isBaseline ? '<div style="font-size:0.68em;color:var(--text-muted);margin-top:3px;">Baseline</div>' : `
+          ${isBaseline ? '<div style="font-size:0.82em;color:var(--text-muted);margin-top:3px;">Baseline</div>' : `
           <div class="turs-rc-row"><span class="turs-rc-label">Target</span>${tursRespBadge(r.targetResp)}</div>
           <div class="turs-rc-row"><span class="turs-rc-label">Non-target</span>${tursRespBadge(r.nonTargetResp)}</div>
           <div class="turs-rc-row"><span class="turs-rc-label" style="font-weight:600;color:var(--text-primary)">Overall</span>${tursRespBadge(r.overallResp)}</div>
@@ -2023,18 +2023,18 @@
         tip.style.display = 'block'; tip.style.left = (e.clientX + 16) + 'px'; tip.style.top = (e.clientY - 10) + 'px';
         if (hit.type === 'sum') {
           const s = hit.sum;
-          tip.innerHTML = `<div style="color:var(--text-muted);font-size:0.78em;">Day ${s.day} · Sum of Targets</div>
+          tip.innerHTML = `<div style="color:var(--text-muted);font-size:0.88em;">Day ${s.day} · Sum of Targets</div>
             <div style="font-size:1.1em;font-weight:600;margin:3px 0;">${s.sum} mm</div>
-            <div style="font-size:0.85em;color:${s.pctChange <= -30 ? '#58a6ff' : s.pctChange >= 20 ? '#f85149' : '#e3b341'};">${s.pctChange > 0 ? '+' : ''}${s.pctChange}%</div>`;
+            <div style="font-size:0.92em;color:${s.pctChange <= -30 ? '#58a6ff' : s.pctChange >= 20 ? '#f85149' : '#e3b341'};">${s.pctChange > 0 ? '+' : ''}${s.pctChange}%</div>`;
         } else {
           const m = hit.meas, l = hit.lesion;
           if (m.notDone) {
-            tip.innerHTML = `<div style="color:${l.color};font-weight:600;">${l.id}: ${l.location}</div><div style="color:#f0883e;font-weight:600;margin-top:3px;">NOT DONE</div><div style="font-size:0.78em;color:var(--text-muted);">${m.reason}</div>`;
+            tip.innerHTML = `<div style="color:${l.color};font-weight:600;">${l.id}: ${l.location}</div><div style="color:#f0883e;font-weight:600;margin-top:3px;">NOT DONE</div><div style="font-size:0.88em;color:var(--text-muted);">${m.reason}</div>`;
           } else {
             tip.innerHTML = `<div style="color:${l.color};font-weight:600;">${l.id}: ${l.location}</div>
-              <div style="font-size:0.78em;color:var(--text-muted);">Day ${m.day}</div>
+              <div style="font-size:0.88em;color:var(--text-muted);">Day ${m.day}</div>
               <div style="font-size:1.1em;font-weight:600;margin:3px 0;">${m.size} mm</div>
-              ${m.pctChange ? `<div style="font-size:0.85em;color:${m.pctChange <= -30 ? '#58a6ff' : m.pctChange >= 20 ? '#f85149' : '#e3b341'};">${m.pctChange > 0 ? '+' : ''}${m.pctChange}%</div>` : ''}`;
+              ${m.pctChange ? `<div style="font-size:0.92em;color:${m.pctChange <= -30 ? '#58a6ff' : m.pctChange >= 20 ? '#f85149' : '#e3b341'};">${m.pctChange > 0 ? '+' : ''}${m.pctChange}%</div>` : ''}`;
           }
         }
         spiderC.style.cursor = 'crosshair';
@@ -2052,11 +2052,11 @@
       if (hit) {
         const r = hit.resp;
         tip.style.display = 'block'; tip.style.left = (e.clientX + 16) + 'px'; tip.style.top = (e.clientY - 10) + 'px';
-        tip.innerHTML = `<div style="color:var(--text-muted);font-size:0.78em;">${r.cycle} · Day ${r.day}</div>
+        tip.innerHTML = `<div style="color:var(--text-muted);font-size:0.88em;">${r.cycle} · Day ${r.day}</div>
           <div style="margin:4px 0;">
-            <div style="display:flex;justify-content:space-between;gap:10px;font-size:0.82em;margin:2px 0;"><span style="color:var(--text-muted)">Target</span>${tursRespBadge(r.targetResp)}</div>
-            <div style="display:flex;justify-content:space-between;gap:10px;font-size:0.82em;margin:2px 0;"><span style="color:var(--text-muted)">Non-target</span>${tursRespBadge(r.nonTargetResp)}</div>
-            <div style="display:flex;justify-content:space-between;gap:10px;font-size:0.82em;margin:2px 0;border-top:1px solid var(--border);padding-top:2px;"><span style="font-weight:600;">Overall</span>${tursRespBadge(r.overallResp)}</div>
+            <div style="display:flex;justify-content:space-between;gap:10px;font-size:0.88em;margin:2px 0;"><span style="color:var(--text-muted)">Target</span>${tursRespBadge(r.targetResp)}</div>
+            <div style="display:flex;justify-content:space-between;gap:10px;font-size:0.88em;margin:2px 0;"><span style="color:var(--text-muted)">Non-target</span>${tursRespBadge(r.nonTargetResp)}</div>
+            <div style="display:flex;justify-content:space-between;gap:10px;font-size:0.88em;margin:2px 0;border-top:1px solid var(--border);padding-top:2px;"><span style="font-weight:600;">Overall</span>${tursRespBadge(r.overallResp)}</div>
           </div>`;
         respC.style.cursor = 'pointer';
       } else { tip.style.display = 'none'; respC.style.cursor = 'default'; }
