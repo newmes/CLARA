@@ -231,21 +231,18 @@ Drug Name + Indication
 ## HAI-DEF Models
 
 <p align="center">
-  <img src="docs/assets/gemma.png" width="44" alt="Gemma" />
-  &nbsp;&nbsp;&nbsp;
-  <img src="docs/assets/gemini.png" width="44" alt="Gemini" />
+  <img src="docs/assets/gemma.png" width="64" alt="Gemma" />
 </p>
 
 Each HAI-DEF model serves a distinct clinical role within CLARA:
 
 | Model | Role in CLARA | Details |
 |-------|--------------|---------|
-| <img src="docs/assets/gemma.png" width="16" /> [**MedGemma 1.5 4B**](https://huggingface.co/google/medgemma-1.5-4b-it) | Data Collection Agent &mdash; conversational AI nurse for daily video calls | Clinically appropriate questions and assessments |
-| <img src="docs/assets/gemma.png" width="16" /> [**MedSigLIP**](https://huggingface.co/google/medsiglip-448) | Visual AE detection &mdash; classifies skin AEs from video call images | Fine-tuned on 210 Gemini-generated images; W-F1 = 90% |
-| <img src="docs/assets/gemma.png" width="16" /> [**HeAR**](https://huggingface.co/google/hear-pytorch) | Audio AE detection &mdash; cough detection and dry/wet classification | Fine-tuned on 956 COUGHVID samples |
-| <img src="docs/assets/gemma.png" width="16" /> [**MedASR**](https://huggingface.co/google/medasr) | Medical speech recognition &mdash; patient speech transcription during video calls | Medical terminology-aware ASR |
-| <img src="docs/assets/gemini.png" width="16" /> [**Gemini 2.0 Flash**](https://ai.google.dev/) | Simulation orchestrator &mdash; rule discovery, patient generation, narration | API-based; no local GPU needed |
-| <img src="docs/assets/gemma.png" width="16" /> [**MedGemma 4B + RLFR**](https://huggingface.co/AlphaRaven/medgemma-4b-antihallu) | Data Analysis Agent &mdash; CRF records, SAE narratives, MedWatch reports | Hallucination rate 37.3% &rarr; 6.7% |
+| [**MedGemma 1.5 4B**](https://huggingface.co/google/medgemma-1.5-4b-it) | Data Collection Agent &mdash; conversational AI nurse for daily video calls | Clinically appropriate questions and assessments |
+| [**MedSigLIP**](https://huggingface.co/google/medsiglip-448) | Visual AE detection &mdash; classifies skin AEs from video call images | Fine-tuned on 210 Gemini-generated images; W-F1 = 90% |
+| [**HeAR**](https://huggingface.co/google/hear-pytorch) | Audio AE detection &mdash; cough detection and dry/wet classification | Fine-tuned on 956 COUGHVID samples |
+| [**MedASR**](https://huggingface.co/google/medasr) | Medical speech recognition &mdash; patient speech transcription during video calls | Medical terminology-aware ASR |
+| [**MedGemma 4B + RLFR**](https://huggingface.co/AlphaRaven/medgemma-4b-antihallu) | Data Analysis Agent &mdash; CRF records, SAE narratives, MedWatch reports | Hallucination rate 37.3% &rarr; 6.7% |
 
 ### Multimodal Detection Channels
 
