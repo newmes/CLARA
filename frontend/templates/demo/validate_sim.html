@@ -7,7 +7,9 @@
 <span class="nav-sep">/</span>
 <a href="/" class="nav-crumb">Home</a>
 <span class="nav-sep">/</span>
-<span class="nav-crumb nav-active">Validate Simulation</span>
+<a href="{% url 'demo_ruleset_generation' %}" class="nav-crumb">Simulation Engine</a>
+<span class="nav-sep">/</span>
+<span class="nav-crumb nav-active">Validate Sim</span>
 {% endblock %}
 
 {% block extra_head %}
@@ -129,6 +131,8 @@
 
 {% block content %}
 <div class="page-wrap">
+  {% include "demo/_sim_stepper.html" with current_step=4 stepper_part="top" %}
+
   <div class="page-title">Simulation Validation</div>
   <div class="page-subtitle">
     Rule-set ground truth vs simulated data — statistical comparison across 12 dimensions ({{ drug_name|default:"Etoposide + Cisplatin" }}, 100 patients &times; 126 days)
@@ -186,6 +190,9 @@
       <tbody id="detailBody"></tbody>
     </table>
   </div>
+
+  {% include "demo/_sim_stepper.html" with current_step=4 stepper_part="bottom" %}
+
 </div>
 {% endblock %}
 
@@ -298,7 +305,12 @@
     if (selectedSection) {
       filtered = details.filter(function(d) { return d.section === selectedSection; });
     }
-    filtered.sort(function(a, b) { return (b.abs_smd || 0) - (a.abs_smd || 0); });
+    var gradeOrder = {D:0, C:1, B:2, A:3};
+    filtered.sort(function(a, b) {
+      var ga = gradeOrder[a.grade] != null ? gradeOrder[a.grade] : 4;
+      var gb = gradeOrder[b.grade] != null ? gradeOrder[b.grade] : 4;
+      return ga !== gb ? ga - gb : (b.abs_smd || 0) - (a.abs_smd || 0);
+    });
     var html = '';
     filtered.forEach(function(d) {
       var smd = d.abs_smd || 0;

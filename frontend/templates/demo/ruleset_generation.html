@@ -907,14 +907,11 @@
 
 {% block nav_items %}
   <span class="nav-sep">/</span>
-  <a href="{% url 'demo_anti_hallucination' %}">Data Analysis Agent</a>
-  <span class="nav-sep">|</span>
-  <a href="{% url 'demo_care_agent' %}">Data Collection Agent</a>
-  <span class="nav-sep">|</span>
-  <a href="{% url 'demo_hazard' %}">Simulation Engine</a>
-  <span class="nav-sep">|</span>
-  <a href="{% url 'demo_ruleset_generation' %}" class="nav-active">Rule Set</a>
-  <a href="{% url 'simulation_list' %}" class="nav-cta"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>Simulation Runs</a>
+  <a href="/" class="nav-crumb">Home</a>
+  <span class="nav-sep">/</span>
+  <a href="{% url 'demo_ruleset_generation' %}" class="nav-crumb">Simulation Engine</a>
+  <span class="nav-sep">/</span>
+  <span class="nav-crumb nav-active">Rule Set</span>
 {% endblock %}
 
 {% block content %}
@@ -923,6 +920,10 @@
 
 <!-- Dot Grid -->
 <div class="rs-dot-grid"></div>
+
+<div style="max-width:1200px;margin:0 auto;padding:40px 32px 0;">
+{% include "demo/_sim_stepper.html" with current_step=1 stepper_part="top" %}
+</div>
 
 <div class="rs-main">
 
@@ -977,17 +978,6 @@
   </div>
 </section>
 
-<!-- Clinical Trial Simulation Tab Bar -->
-<div class="cts-tab-bar rs-reveal">
-  <a href="{% url 'demo_hazard' %}" class="cts-tab-link">
-    <span class="cts-tab-dot"></span>
-    Hazard Engine
-  </a>
-  <a href="{% url 'demo_ruleset_generation' %}" class="cts-tab-link active">
-    <span class="cts-tab-dot"></span>
-    Rule Set Generation
-  </a>
-</div>
 
 <!-- ============================================================
      GENERATE NEW RULE SET
@@ -1208,6 +1198,8 @@
   Rule sets are <strong>AI-generated</strong> from evidence databases and validated against FDA labels.
   Scores reflect automated comparison accuracy, not clinical suitability. For research demonstration only.
 </div>
+
+{% include "demo/_sim_stepper.html" with current_step=1 stepper_part="bottom" %}
 
 </div>
 
