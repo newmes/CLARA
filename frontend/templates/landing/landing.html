@@ -72,21 +72,24 @@
   .landing-wrap {
     max-width: 1920px;
     margin: 0 auto;
-    padding: 0 64px 4em;
+    padding: 0 64px 10em;
     position: relative;
     z-index: 1;
+    height: calc(100vh - 44px);
+    overflow: hidden;
   }
 
   /* =================================================================
      HERO STAGE — Text on top, Map+Cards grid below
      ================================================================= */
   .hero-stage {
-    min-height: calc(100vh - 44px);
+    height: calc(100vh - 44px);
     display: flex;
     flex-direction: column;
     justify-content: center;
-    padding: 2em 0;
+    padding: 10em 0 0;
     position: relative;
+    overflow: hidden;
   }
 
   /* Hero text — always centered above the grid */
@@ -100,10 +103,12 @@
   .hero-content {
     display: grid;
     grid-template-columns: 55fr 45fr;
-    gap: 120px;
+    gap: 80px;
     align-items: center;
     position: relative;
-    margin-top: 2.5em;
+    margin-top: 1.2em;
+    flex: 1;
+    min-height: 0;
   }
 
   /* Hero LEFT column (map) — initially centered */
@@ -117,7 +122,7 @@
   .hero-right {
     display: flex;
     flex-direction: column;
-    gap: 16px;
+    gap: clamp(8px, 1.2vh, 16px);
     will-change: transform, opacity;
     opacity: 0;
     transform: translateX(80px);
@@ -237,7 +242,7 @@
     border: 1px solid rgba(57,210,192,0.2);
     border-radius: 24px;
     background: rgba(57,210,192,0.05);
-    margin-bottom: 1.6em;
+    margin-bottom: 1em;
     letter-spacing: 0.8px;
     text-transform: uppercase;
   }
@@ -254,11 +259,11 @@
 
   /* Title */
   .hero-title {
-    font-size: 3.8em;
+    font-size: clamp(2.4em, 4vw, 3.8em);
     font-weight: 800;
     letter-spacing: -1px;
     line-height: 1.08;
-    margin-bottom: 0.15em;
+    margin-bottom: 0.1em;
     position: relative;
   }
   .hero-title .word {
@@ -312,7 +317,7 @@
     font-weight: 400;
     max-width: 680px;
     margin: 0 auto;
-    line-height: 1.7;
+    line-height: 1.5;
   }
   .hero-subtitle strong {
     color: var(--text-secondary);
@@ -325,62 +330,7 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* =================================================================
-     SCROLL HINT — below hero-stage
-     ================================================================= */
-  .scroll-hint {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    margin-top: 0;
-    padding: 1.5em 0;
-    opacity: 0;
-    text-decoration: none;
-    transition: opacity 0.6s ease;
-  }
-  .scroll-hint--visible {
-    opacity: 1;
-  }
-  .scroll-hint__text {
-    font: 500 0.82em 'JetBrains Mono', monospace;
-    color: var(--text-muted);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    transition: color 0.25s ease;
-  }
-  .scroll-hint:hover .scroll-hint__text {
-    color: var(--accent-cyan);
-  }
-  .scroll-hint__arrow {
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    border: 1px solid rgba(57,210,192,0.18);
-    background: rgba(57,210,192,0.04);
-    animation: scrollBounce 2.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-    transition: border-color 0.25s ease, background 0.25s ease;
-  }
-  .scroll-hint:hover .scroll-hint__arrow {
-    border-color: rgba(57,210,192,0.4);
-    background: rgba(57,210,192,0.08);
-  }
-  .scroll-hint__arrow svg {
-    width: 14px;
-    height: 14px;
-    color: var(--accent-cyan);
-    opacity: 0.7;
-  }
-
-  @keyframes scrollBounce {
-    0%, 100% { transform: translateY(0); }
-    40% { transform: translateY(6px); }
-    60% { transform: translateY(2px); }
-    80% { transform: translateY(5px); }
-  }
+  /* scroll-hint removed — single-viewport layout */
 
   /* =================================================================
      MAP OVERLAY CTA — "Enter Simulation" inside the map
@@ -619,7 +569,7 @@
     margin-bottom: 0;
     padding: 0;
     overflow: hidden;
-    height: 200px;
+    height: clamp(140px, calc((100vh - 280px) / 3 - 16px), 200px);
   }
   .hero-right .tech-card .tc-compact {
     display: flex;
@@ -1056,15 +1006,15 @@
   }
 
   /* =================================================================
-     FOOTER
+     FOOTER — inline at bottom of hero
      ================================================================= */
   .landing-footer {
-    padding: 3em 0 0;
+    padding: 2em 0 8em;
     text-align: center;
-    font-size: 0.82em;
+    font-size: 0.78em;
     color: var(--text-muted);
-    opacity: 0.5;
-    border-top: 1px solid rgba(48,54,61,0.3);
+    opacity: 0.4;
+    flex-shrink: 0;
   }
   .landing-footer a {
     color: var(--text-muted);
@@ -1079,7 +1029,8 @@
      RESPONSIVE
      ================================================================= */
   @media (max-width: 900px) {
-    .hero-stage { min-height: auto; padding: 3em 0 1em; }
+    .landing-wrap { height: auto; overflow: auto; }
+    .hero-stage { height: auto; min-height: 100vh; padding: 2em 0 1em; overflow: visible; }
     .hero-content {
       grid-template-columns: 1fr;
       margin-top: 1.5em;
@@ -1393,16 +1344,13 @@
 
     </div>
     </div><!-- /hero-content -->
+
+    <!-- FOOTER — inside hero-stage for single-viewport layout -->
+    <div class="landing-footer">
+      CLARA Research Preview &middot; MedGemma Impact Challenge 2026 &middot;
+      <a href="{% url 'simulation_list' %}">View Simulations</a>
+    </div>
   </section>
-
-
-  <!-- ============================================================
-       FOOTER
-       ============================================================ -->
-  <div class="landing-footer reveal" id="core-technology">
-    CLARA Research Preview &middot; MedGemma Impact Challenge 2026 &middot;
-    <a href="{% url 'simulation_list' %}">View Simulations</a>
-  </div>
 
 </div>
 
