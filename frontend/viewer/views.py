@@ -5423,7 +5423,11 @@ def api_demo_saes(request):
                 "mode": mode,
             })
 
-    return JsonResponse({"run_id": run_id, "saes": all_saes})
+    return JsonResponse({
+        "run_id": run_id,
+        "saes": all_saes,
+        "all_patient_ids": patient_ids,
+    })
 
 
 @csrf_exempt

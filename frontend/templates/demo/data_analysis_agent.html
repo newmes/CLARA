@@ -1403,12 +1403,9 @@
   padding: 24px 12px;
 }
 .da-chat-welcome-icon {
-  width: 44px; height: 44px; border-radius: 12px;
   display: flex; align-items: center; justify-content: center;
-  background: rgba(188,140,255,0.06);
-  border: 1px solid rgba(188,140,255,0.12);
 }
-.da-chat-welcome-icon img { width: 28px; height: 28px; opacity: 0.7; }
+.da-chat-welcome-icon img { width: 64px; height: 64px; }
 .da-chat-welcome-title {
   font: 700 1em 'Inter', sans-serif;
   color: var(--text-primary);
@@ -1421,7 +1418,8 @@
 /* -- Suggestion pills in chat -- */
 .da-suggestions {
   display: flex; flex-wrap: wrap; gap: 6px;
-  justify-content: center; max-width: 400px;
+  justify-content: flex-start;
+  padding: 0 12px 8px;
 }
 .da-suggestion-pill {
   padding: 6px 12px; border-radius: 18px;
@@ -1818,7 +1816,7 @@
 
   <div class="ah-hero-icon">
     <div class="ah-hero-icon-inner">
-      <img src="{% static 'assets/ui/gemma.png' %}" alt="MedGemma" style="width:56px;height:56px;">
+      <img src="{% static 'assets/ui/gemma.png' %}" alt="MedGemma" style="width:80px;height:80px;">
     </div>
   </div>
 
@@ -2094,12 +2092,8 @@
 
       <!-- Chat Header -->
       <div class="da-chat-header">
-        <div class="da-chat-header-icon">
-          <img src="{% static 'assets/ui/gemma.png' %}" alt="MedGemma">
-        </div>
         <div class="da-chat-header-text">
           <div class="da-chat-header-title">Chat</div>
-          <div class="da-chat-header-sub">MedGemma &middot; Anti-hallucination</div>
         </div>
       </div>
 
@@ -2114,18 +2108,19 @@
             Ask about patient data, request reports, or analyze CRF tables.
             AI responses can update the left panel.
           </div>
-          <div class="da-suggestions" id="daSuggestions">
-            <button class="da-suggestion-pill" onclick="daChatAsk('Summarize the overall safety profile')">Safety overview</button>
-            <button class="da-suggestion-pill" onclick="daChatAsk('What is the ORR and how does it compare to historical data?')">Efficacy (ORR)</button>
-            <button class="da-suggestion-pill" onclick="daChatAsk('What are the most common Grade 3+ adverse events?')">Grade 3+ AEs</button>
-            <button class="da-suggestion-pill" onclick="daChatAsk('Summarize patient demographics including age and sex distribution')">Demographics</button>
-            <button class="da-suggestion-pill" onclick="daChatAsk('What percentage of patients had dose interruptions or reductions?')">Dose modifications</button>
-          </div>
         </div>
       </div>
 
       <!-- Chat Input -->
       <div class="da-chat-input-area">
+        <!-- Suggestion pills — directly above input -->
+        <div class="da-suggestions" id="daSuggestions">
+          <button class="da-suggestion-pill" onclick="daChatAsk('Summarize the overall safety profile')">Safety overview</button>
+          <button class="da-suggestion-pill" onclick="daChatAsk('What is the ORR and how does it compare to historical data?')">Efficacy (ORR)</button>
+          <button class="da-suggestion-pill" onclick="daChatAsk('What are the most common Grade 3+ adverse events?')">Grade 3+ AEs</button>
+          <button class="da-suggestion-pill" onclick="daChatAsk('Summarize patient demographics including age and sex distribution')">Demographics</button>
+          <button class="da-suggestion-pill" onclick="daChatAsk('What percentage of patients had dose interruptions or reductions?')">Dose modifications</button>
+        </div>
         <div class="da-chat-input-context" id="daChatContext">
           <span class="da-chat-input-context-dot"></span>
           <span id="daChatContextText">Loading data sources...</span>
@@ -2605,16 +2600,18 @@ function daLoadPatientData() {
         daPatientMap[s.patient_id].push(s);
       });
 
-      /* Populate patient dropdown */
+      /* Use all_patient_ids from backend (includes patients without SAEs) */
+      var allPids = (data.all_patient_ids || Object.keys(daPatientMap)).sort();
+
+      /* Populate patient dropdown — all patients */
       var sel = document.getElementById('daPatientSelect');
-      var pids = Object.keys(daPatientMap).sort();
-      if (pids.length === 0) {
+      if (allPids.length === 0) {
         sel.innerHTML = '<option value="">No patients</option>';
         daShowNoData('No simulation data found');
         return;
       }
       sel.innerHTML = '';
-      pids.forEach(function(pid) {
+      allPids.forEach(function(pid) {
         var opt = document.createElement('option');
         opt.value = pid;
         opt.textContent = pid;
@@ -2622,13 +2619,27 @@ function daLoadPatientData() {
       });
 
       /* Select first patient */
-      daCurrentPatient = pids[0];
+      daCurrentPatient = allPids[0];
       sel.value = daCurrentPatient;
       daOnPatientChange();
 
+      /* Show global stats in badges */
+      var allSaes = data.saes || [];
+      var totalSae = allSaes.filter(function(s) { return s.serious || s.grade >= 3; }).length;
+      var totalAe = allSaes.length;
+      var totalLab = allSaes.filter(function(s) {
+        var t = (s.ae_term || '').toLowerCase();
+        return t.indexOf('neutrop') >= 0 || t.indexOf('thrombocyt') >= 0 || t.indexOf('anemia') >= 0 ||
+               t.indexOf('leukop') >= 0 || t.indexOf('lymphop') >= 0 || t.indexOf('creatinine') >= 0;
+      }).length;
+      document.getElementById('daBadgeAe').textContent = 'AEs: ' + totalAe;
+      document.getElementById('daBadgeLab').textContent = 'Labs: ' + totalLab + (totalLab > 0 ? '\u2193' : '');
+      document.getElementById('daBadgeSae').textContent = 'SAE: ' + totalSae;
+      document.getElementById('daSaeCount').textContent = totalSae;
+
       /* Update context label */
       var ctxText = document.getElementById('daChatContextText');
-      if (ctxText) ctxText.textContent = pids.length + ' patients loaded' + (daRunId ? ' | ' + daRunId : '');
+      if (ctxText) ctxText.textContent = allPids.length + ' patients loaded' + (daRunId ? ' | ' + daRunId : '');
     })
     .catch(function(err) {
       daShowNoData('Failed to load data');
@@ -2656,22 +2667,6 @@ function daOnPatientChange() {
   var sel = document.getElementById('daPatientSelect');
   daCurrentPatient = sel.value;
   if (!daCurrentPatient) return;
-
-  /* Update stat badges */
-  var saes = daPatientMap[daCurrentPatient] || [];
-  var saeCount = saes.filter(function(s) { return s.serious || s.grade >= 3; }).length;
-  var aeCount = saes.length;
-  /* count abnormal labs (approx: grade >= 2 might affect labs) */
-  var labCount = saes.filter(function(s) {
-    var t = (s.ae_term || '').toLowerCase();
-    return t.indexOf('neutrop') >= 0 || t.indexOf('thrombocyt') >= 0 || t.indexOf('anemia') >= 0 ||
-           t.indexOf('leukop') >= 0 || t.indexOf('lymphop') >= 0 || t.indexOf('creatinine') >= 0;
-  }).length;
-
-  document.getElementById('daBadgeAe').textContent = 'AEs: ' + aeCount;
-  document.getElementById('daBadgeLab').textContent = 'Labs: ' + labCount + (labCount > 0 ? '\u2193' : '');
-  document.getElementById('daBadgeSae').textContent = 'SAE: ' + saeCount;
-  document.getElementById('daSaeCount').textContent = saeCount;
 
   /* Reload current sub-tab content */
   daRefreshSubtab();
