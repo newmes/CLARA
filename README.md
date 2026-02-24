@@ -53,7 +53,7 @@ CLARA consists of two MedGemma-based agents. We transitioned them from simulatio
 </td>
 <td>
 
-**Data Collection Agent (DCA)** — Runs on the patient's device. Conducts daily ~60-second CLARA Call check-ins via video + voice interaction. Extracts structured clinical signals through multimodal processing: voice → context representation (MedGemma), audio → cough classification (HeAR), video → on-device feature map → server-side classification (MedSigLIP). Operates strictly within nursing scope: detect, report, refer.
+**Data Collection Agent (DCA)** — Runs on the patient's device. Conducts daily ~60-second CLARA Call (https://github.com/newmes/CLARA_Call) check-ins via video + voice interaction. Extracts structured clinical signals through multimodal processing: voice → context representation (MedGemma), audio → cough classification (HeAR), video → on-device feature map → server-side classification (MedSigLIP). Operates strictly within nursing scope: detect, report, refer.
 
 </td>
 </tr>
