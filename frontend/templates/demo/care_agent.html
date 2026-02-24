@@ -324,7 +324,31 @@
 }
 .ci-phone-camera img {
   width: 100%; height: 100%; object-fit: cover;
-  transition: opacity 0.4s;
+}
+.ci-phone-ae-layer {
+  position: absolute; top: 0; left: 0;
+  opacity: 0;
+  transition: opacity 1.2s ease-in-out;
+}
+.ci-phone-ae-layer.visible { opacity: 1; }
+.ci-phone-compare-label {
+  position: absolute; top: 8px; left: 8px;
+  font: 600 0.7em 'JetBrains Mono', monospace;
+  color: #fff; background: rgba(0,0,0,0.6);
+  padding: 3px 8px; border-radius: 4px;
+  opacity: 0; transition: opacity 0.4s;
+  pointer-events: none;
+}
+.ci-phone-compare-label.visible { opacity: 1; }
+
+/* Brief flash border on AE reveal */
+@keyframes aeRevealPulse {
+  0% { box-shadow: inset 0 0 0 0 rgba(239,68,68,0); }
+  30% { box-shadow: inset 0 0 20px 2px rgba(239,68,68,0.4); }
+  100% { box-shadow: inset 0 0 0 0 rgba(239,68,68,0); }
+}
+.ci-phone-camera.ae-reveal {
+  animation: aeRevealPulse 1.5s ease-out;
 }
 
 /* Phone bottom controls */
@@ -958,6 +982,8 @@
         <!-- Camera view -->
         <div class="ci-phone-camera">
           <img id="ciPhoneImg" src="" alt="Patient view">
+          <img id="ciPhoneImgAe" src="" alt="Patient AE view" class="ci-phone-ae-layer">
+          <div id="ciPhoneCompareLabel" class="ci-phone-compare-label"></div>
         </div>
 
         <!-- Controls -->
@@ -1091,6 +1117,7 @@ var pipelineAeCount = 0;
 var pipelineMaxGrade = 0;
 var ciMedasrDone = false;
 var ciInferenceStarted = false;
+var pendingAeImage = null;
 
 /* ═══════════════════════════════════════════════
    Patient Selection
@@ -1406,6 +1433,23 @@ function ciHandleEvent(ev) {
       }
       ciThinkSet('ciThinkSiglip', 'done', siglipText);
       ciThinkSet('ciThinkGemma', 'processing');
+
+      /* Reveal AE image with crossfade when visual AE detected */
+      if (pendingAeImage && findings.length > 0 && findings[0].ae_term !== 'normal') {
+        var cam = document.querySelector('.ci-phone-camera');
+        var aeLayer = document.getElementById('ciPhoneImgAe');
+        var label = document.getElementById('ciPhoneCompareLabel');
+        label.textContent = 'Baseline';
+        label.classList.add('visible');
+        setTimeout(function() {
+          label.textContent = 'AE Detected';
+          aeLayer.classList.add('visible');
+          cam.classList.add('ae-reveal');
+        }, 800);
+        setTimeout(function() {
+          label.classList.remove('visible');
+        }, 3500);
+      }
       break;
     }
 
@@ -1429,8 +1473,10 @@ function ciHandleEvent(ev) {
       dayCount++;
       lastCtx = null;
       document.getElementById('ciConvProgress').textContent = 'Video Call';
+      /* Keep baseline image visible; preload AE image for later reveal */
       if (ev.image) {
-        document.getElementById('ciPhoneImg').src = MEDIA + '/image/' + ev.image;
+        pendingAeImage = MEDIA + '/image/' + ev.image;
+        document.getElementById('ciPhoneImgAe').src = pendingAeImage;
       }
 
       ciAddMiniTl('dot-day', 'DCA Call');
@@ -1722,6 +1768,10 @@ function ciReset() {
   document.getElementById('ciSetup').style.display = 'block';
   document.getElementById('ciChatArea').classList.remove('active');
   document.getElementById('ciChatInput').value = '';
+  document.getElementById('ciPhoneImgAe').classList.remove('visible');
+  document.getElementById('ciPhoneCompareLabel').classList.remove('visible');
+  document.querySelector('.ci-phone-camera').classList.remove('ae-reveal');
+  pendingAeImage = null;
   ciSessionId = null; ciChatBusy = false;
 }
 
