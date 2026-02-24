@@ -6,7 +6,7 @@
 {% block extra_head %}
 <style>
   /* =================================================================
-     Landing Page — Redesign: Aurora / Linear / Raycast Style
+     Landing Page — Cinematic Two-Stage Animation
      ================================================================= */
 
   /* Smooth scroll for anchor links */
@@ -70,21 +70,173 @@
 
   /* -- Layout Container -- */
   .landing-wrap {
-    max-width: 1200px;
+    max-width: 1920px;
     margin: 0 auto;
-    padding: 0 32px 4em;
+    padding: 0 64px 4em;
     position: relative;
     z-index: 1;
   }
 
   /* =================================================================
-     HERO SECTION
+     HERO STAGE — Two-column grid (always 55/45)
      ================================================================= */
-  .hero {
-    padding: 3.5em 0 1.5em;
-    text-align: center;
+  .hero-stage {
+    display: grid;
+    grid-template-columns: 55fr 45fr;
+    gap: 64px;
+    min-height: calc(100vh - 44px);
+    align-items: center;
+    padding: 2em 0;
     position: relative;
   }
+
+  /* Hero LEFT column — initially shifted right for center illusion */
+  .hero-left {
+    will-change: transform, opacity;
+    opacity: 0;
+    transform: translateX(22.5%) scale(0.92);
+    text-align: center;
+  }
+
+  /* Hero RIGHT column — initially hidden off-screen */
+  .hero-right {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    will-change: transform, opacity;
+    opacity: 0;
+    transform: translateX(80px);
+  }
+
+  /* =================================================================
+     HERO ANIMATION KEYFRAMES
+     ================================================================= */
+  @keyframes heroCenterIn {
+    0%   { opacity: 0; transform: translateX(22.5%) scale(0.92); }
+    100% { opacity: 1; transform: translateX(22.5%) scale(1); }
+  }
+
+  @keyframes heroSettleLeft {
+    0%   { transform: translateX(22.5%) scale(1); }
+    100% { transform: translateX(0) scale(1); }
+  }
+
+  @keyframes cardSlideIn {
+    0%   { opacity: 0; transform: translateX(60px) translateY(12px); }
+    100% { opacity: 1; transform: translateX(0) translateY(0); }
+  }
+
+  @keyframes mapReveal {
+    0%   { opacity: 0; transform: translateY(20px) scale(0.98); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  /* -- Stage 1: Hero enters center -- */
+  .hero-left--entering {
+    animation: heroCenterIn 800ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Stagger child elements during Stage 1 */
+  .hero-left--entering .hero-overline {
+    opacity: 0;
+    animation: fadeUpSoft 600ms cubic-bezier(0.16, 1, 0.3, 1) 100ms forwards;
+  }
+  .hero-left--entering .hero-title {
+    opacity: 0;
+    animation: fadeUpSoft 700ms cubic-bezier(0.16, 1, 0.3, 1) 250ms forwards;
+  }
+  .hero-left--entering .hero-title .word-expansion {
+    opacity: 0;
+    animation: fadeUpSoft 600ms cubic-bezier(0.16, 1, 0.3, 1) 500ms forwards;
+  }
+  .hero-left--entering .hero-subtitle {
+    opacity: 0;
+    animation: fadeUpSoft 600ms cubic-bezier(0.16, 1, 0.3, 1) 750ms forwards;
+  }
+  .hero-left--entering .sim-map-section {
+    animation: mapReveal 900ms cubic-bezier(0.16, 1, 0.3, 1) 900ms forwards;
+  }
+
+  /* -- Stage 2: Hero settles left -- */
+  .hero-left--settled {
+    opacity: 1;
+    animation: heroSettleLeft 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    text-align: center;
+  }
+  .hero-left--settled .hero-overline,
+  .hero-left--settled .hero-title,
+  .hero-left--settled .hero-title .word-expansion,
+  .hero-left--settled .hero-subtitle,
+  .hero-left--settled .sim-map-section {
+    opacity: 1;
+    animation: none;
+    transform: none;
+  }
+
+  /* Demo card entrance */
+  .demo-card {
+    opacity: 0;
+    transform: translateX(60px) translateY(12px);
+  }
+  .demo-card--visible {
+    animation: cardSlideIn 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* Sim map — visible during Stage 1 (fades in with hero) */
+  .sim-map-section {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  .sim-map-section--visible {
+    animation: mapReveal 900ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  }
+
+  /* -- Skip animation (return visitors) -- */
+  .hero-stage--instant .hero-left {
+    opacity: 1;
+    transform: none;
+    text-align: center;
+    animation: none;
+  }
+  .hero-stage--instant .hero-left .hero-overline,
+  .hero-stage--instant .hero-left .hero-title,
+  .hero-stage--instant .hero-left .hero-title .word,
+  .hero-stage--instant .hero-left .hero-title .word-expansion,
+  .hero-stage--instant .hero-left .hero-subtitle,
+  .hero-stage--instant .hero-left .sim-map-section {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .hero-stage--instant .hero-right {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .hero-stage--instant .demo-card {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+  .hero-stage--instant .flow-line {
+    opacity: 1;
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
+    animation: none;
+  }
+  .hero-stage--instant .flow-dot {
+    opacity: 1;
+    animation: none;
+  }
+  .hero-stage--instant .sim-map-section {
+    opacity: 1;
+    transform: none;
+    animation: none;
+  }
+
+  /* =================================================================
+     HERO TEXT ELEMENTS (preserved from original)
+     ================================================================= */
 
   /* Overline tag */
   .hero-overline {
@@ -112,7 +264,7 @@
     50% { opacity: 0.4; transform: scale(0.8); }
   }
 
-  /* Title — large manifesto style */
+  /* Title */
   .hero-title {
     font-size: 3.8em;
     font-weight: 800;
@@ -123,9 +275,6 @@
   }
   .hero-title .word {
     display: inline-block;
-    opacity: 0;
-    transform: translateY(30px);
-    animation: wordReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
   .hero-title .word-clara {
     background: linear-gradient(135deg, #2ec4b6 0%, var(--accent-cyan) 40%, #58a6ff 100%);
@@ -140,20 +289,21 @@
   }
   .hero-title .word-expansion {
     display: block;
-    font-size: 0.38em;
+    font-size: 0.32em;
     font-weight: 600;
-    letter-spacing: 2px;
+    letter-spacing: 1.5px;
     text-transform: uppercase;
     color: rgba(57,210,192,0.55);
     -webkit-text-fill-color: rgba(57,210,192,0.55);
     margin-top: 0.8em;
+    white-space: nowrap;
   }
   .hero-title .word-expansion .exp-line {
     display: inline-block;
-    width: 60px;
+    width: 40px;
     height: 1px;
     vertical-align: middle;
-    margin: 0 12px;
+    margin: 0 8px;
   }
   .hero-title .word-expansion .exp-line.left {
     background: linear-gradient(90deg, transparent, rgba(57,210,192,0.3));
@@ -167,125 +317,85 @@
     -webkit-text-fill-color: rgba(57,210,192,0.85);
   }
 
-  @keyframes wordReveal {
-    to { opacity: 1; transform: translateY(0); }
-  }
-
   /* Subtitle */
   .hero-subtitle {
     font-size: 1.08em;
     color: var(--text-muted);
     font-weight: 400;
     max-width: 680px;
-    margin: 1.2em auto 1.6em;
+    margin: 0 auto;
     line-height: 1.7;
-    opacity: 0;
-    animation: fadeUpSoft 0.8s ease forwards 0.6s;
   }
   .hero-subtitle strong {
     color: var(--text-secondary);
     font-weight: 600;
   }
 
+  /* Shared soft fade-up used by multiple elements */
   @keyframes fadeUpSoft {
     from { opacity: 0; transform: translateY(16px); }
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* Description */
-  .hero-desc {
-    font-size: 0.95em;
-    color: rgba(156,163,175,0.75);
-    line-height: 1.8;
-    max-width: 700px;
-    margin: 0 auto 2em;
+  /* =================================================================
+     SCROLL HINT — below hero-stage
+     ================================================================= */
+  .scroll-hint {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    margin-top: 0;
+    padding: 1.5em 0;
     opacity: 0;
-    animation: fadeUpSoft 0.8s ease forwards 0.75s;
+    text-decoration: none;
+    transition: opacity 0.6s ease;
   }
-
-  /* CTA buttons — fallback when no map */
-  .hero-actions {
+  .scroll-hint--visible {
+    opacity: 1;
+  }
+  .scroll-hint__text {
+    font: 500 0.82em 'JetBrains Mono', monospace;
+    color: var(--text-muted);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: color 0.25s ease;
+  }
+  .scroll-hint:hover .scroll-hint__text {
+    color: var(--accent-cyan);
+  }
+  .scroll-hint__arrow {
+    width: 28px;
+    height: 28px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 14px;
-    flex-wrap: wrap;
-    margin-bottom: 0.5em;
-    opacity: 0;
-    animation: fadeUpSoft 0.8s ease forwards 0.75s;
-  }
-  /* Hide fallback hero-actions when map is present */
-  .hero-actions.hero-actions--fallback {
-    display: flex;
-  }
-  .hero-actions.hero-actions--hidden {
-    display: none;
-  }
-
-  .btn-hero-primary {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    padding: 13px 32px;
-    border-radius: 12px;
-    font-weight: 700;
-    font-size: 0.95em;
-    font-family: 'JetBrains Mono', monospace;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    text-decoration: none;
-    border: 1px solid rgba(57,210,192,0.4);
-    background: linear-gradient(135deg, rgba(57,210,192,0.15), rgba(88,166,255,0.08));
-    color: var(--accent-cyan);
-    white-space: nowrap;
-    position: relative;
-    overflow: hidden;
-  }
-  .btn-hero-primary::before {
-    content: '';
-    position: absolute; inset: 0;
-    background: linear-gradient(135deg, rgba(57,210,192,0.1), transparent);
-    opacity: 0;
-    transition: opacity 0.25s;
-  }
-  .btn-hero-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 32px rgba(57,210,192,0.2), 0 0 0 1px rgba(57,210,192,0.3);
-    border-color: rgba(57,210,192,0.6);
-    text-decoration: none;
-    color: var(--accent-cyan);
-  }
-  .btn-hero-primary:hover::before { opacity: 1; }
-  .btn-hero-primary svg { width: 16px; height: 16px; transition: transform 0.25s; }
-  .btn-hero-primary:hover svg { transform: translateX(3px); }
-
-  .btn-hero-secondary {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 13px 28px;
-    border-radius: 12px;
-    font-weight: 600;
-    font-size: 0.95em;
-    cursor: pointer;
-    transition: all 0.25s ease;
-    text-decoration: none;
-    border: 1px solid var(--border);
-    background: rgba(255,255,255,0.02);
-    color: var(--text-muted);
-    white-space: nowrap;
-  }
-  .btn-hero-secondary:hover {
-    border-color: rgba(57,210,192,0.25);
-    color: var(--text-secondary);
+    border-radius: 50%;
+    border: 1px solid rgba(57,210,192,0.18);
     background: rgba(57,210,192,0.04);
-    text-decoration: none;
-    transform: translateY(-2px);
+    animation: scrollBounce 2.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+    transition: border-color 0.25s ease, background 0.25s ease;
   }
-  .btn-hero-secondary svg { width: 15px; height: 15px; }
+  .scroll-hint:hover .scroll-hint__arrow {
+    border-color: rgba(57,210,192,0.4);
+    background: rgba(57,210,192,0.08);
+  }
+  .scroll-hint__arrow svg {
+    width: 14px;
+    height: 14px;
+    color: var(--accent-cyan);
+    opacity: 0.7;
+  }
+
+  @keyframes scrollBounce {
+    0%, 100% { transform: translateY(0); }
+    40% { transform: translateY(6px); }
+    60% { transform: translateY(2px); }
+    80% { transform: translateY(5px); }
+  }
 
   /* =================================================================
-     MAP OVERLAY CTA — "Start Simulation" inside the map
+     MAP OVERLAY CTA — "Enter Simulation" inside the map
      ================================================================= */
   .sim-map-cta-overlay {
     position: absolute;
@@ -331,104 +441,6 @@
   @keyframes ctaPulseGlow {
     0%, 100% { box-shadow: 0 4px 24px rgba(57,210,192,0.25), 0 8px 32px rgba(0,0,0,0.3); }
     50% { box-shadow: 0 4px 30px rgba(57,210,192,0.4), 0 8px 40px rgba(0,0,0,0.3); }
-  }
-
-  /* =================================================================
-     SCROLL HINT — "Explore 6 Demos" bounce indicator
-     ================================================================= */
-  .scroll-hint {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-    margin-top: 2em;
-    opacity: 0;
-    animation: fadeUpSoft 0.8s ease forwards 1.1s;
-    text-decoration: none;
-  }
-  .scroll-hint__text {
-    font: 500 0.82em 'JetBrains Mono', monospace;
-    color: var(--text-muted);
-    letter-spacing: 1px;
-    text-transform: uppercase;
-    transition: color 0.25s ease;
-  }
-  .scroll-hint:hover .scroll-hint__text {
-    color: var(--accent-cyan);
-  }
-  .scroll-hint__arrow {
-    width: 28px;
-    height: 28px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    border: 1px solid rgba(57,210,192,0.18);
-    background: rgba(57,210,192,0.04);
-    animation: scrollBounce 2.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
-    transition: border-color 0.25s ease, background 0.25s ease;
-  }
-  .scroll-hint:hover .scroll-hint__arrow {
-    border-color: rgba(57,210,192,0.4);
-    background: rgba(57,210,192,0.08);
-  }
-  .scroll-hint__arrow svg {
-    width: 14px;
-    height: 14px;
-    color: var(--accent-cyan);
-    opacity: 0.7;
-  }
-
-  @keyframes scrollBounce {
-    0%, 100% { transform: translateY(0); }
-    40% { transform: translateY(6px); }
-    60% { transform: translateY(2px); }
-    80% { transform: translateY(5px); }
-  }
-
-  /* =================================================================
-     MARQUEE TICKER
-     ================================================================= */
-  .marquee-section {
-    overflow: hidden;
-    border-top: 1px solid rgba(48,54,61,0.5);
-    border-bottom: 1px solid rgba(48,54,61,0.5);
-    padding: 14px 0;
-    margin-bottom: 0;
-    opacity: 0;
-    animation: fadeUpSoft 0.8s ease forwards 1.1s;
-  }
-  .marquee-track {
-    display: flex;
-    gap: 48px;
-    animation: marqueeScroll 40s linear infinite;
-    width: max-content;
-  }
-  .marquee-track:hover {
-    animation-play-state: paused;
-  }
-  .marquee-item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font: 600 0.82em 'JetBrains Mono', monospace;
-    color: var(--text-muted);
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .marquee-item .m-val {
-    color: var(--accent-cyan);
-    font-weight: 700;
-  }
-  .marquee-item .m-dot {
-    width: 4px; height: 4px; border-radius: 50%;
-    background: rgba(57,210,192,0.3);
-    flex-shrink: 0;
-  }
-
-  @keyframes marqueeScroll {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
   }
 
   /* =================================================================
@@ -480,225 +492,7 @@
   .reveal-d4 { transition-delay: 0.4s; }
 
   /* =================================================================
-     HOW IT WORKS — 3 Phase Pipeline
-     ================================================================= */
-  .pipeline-container {
-    position: relative;
-  }
-
-  /* Connecting line behind cards */
-  .pipeline-line {
-    position: absolute;
-    top: 50%;
-    left: 5%;
-    right: 5%;
-    height: 2px;
-    background: linear-gradient(90deg,
-      rgba(57,210,192,0.3),
-      rgba(88,166,255,0.3),
-      rgba(188,140,255,0.3)
-    );
-    z-index: 0;
-    transform: translateY(-50%);
-  }
-  .pipeline-line::after {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left: 0;
-    right: 0;
-    height: 6px;
-    background: linear-gradient(90deg,
-      rgba(57,210,192,0.08),
-      rgba(88,166,255,0.08),
-      rgba(188,140,255,0.08)
-    );
-    filter: blur(4px);
-  }
-
-  .phase-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 24px;
-    position: relative;
-    z-index: 1;
-    margin-bottom: 2em;
-  }
-
-  .phase-card {
-    background: rgba(22,27,34,0.8);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(48,54,61,0.6);
-    border-radius: 16px;
-    padding: 28px 24px 24px;
-    position: relative;
-    overflow: hidden;
-    transition: all 0.35s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-  /* Gradient border glow on hover */
-  .phase-card::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    border-radius: 16px;
-    padding: 1px;
-    background: linear-gradient(
-      135deg,
-      rgba(57,210,192,0.3),
-      rgba(88,166,255,0.15),
-      transparent,
-      transparent
-    );
-    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-    -webkit-mask-composite: xor;
-    mask-composite: exclude;
-    opacity: 0;
-    transition: opacity 0.35s;
-    pointer-events: none;
-  }
-  .phase-card:hover {
-    transform: translateY(-4px);
-    border-color: rgba(57,210,192,0.15);
-    box-shadow: 0 12px 40px rgba(0,0,0,0.3), 0 0 40px rgba(57,210,192,0.05);
-  }
-  .phase-card:hover::before { opacity: 1; }
-
-  .phase-number-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    font: 700 0.78em 'JetBrains Mono', monospace;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 14px;
-    padding: 4px 12px;
-    border-radius: 20px;
-    background: rgba(57,210,192,0.06);
-    border: 1px solid rgba(57,210,192,0.15);
-    color: var(--accent-cyan);
-  }
-  .phase-card:nth-child(2) .phase-number-badge {
-    background: rgba(88,166,255,0.06);
-    border-color: rgba(88,166,255,0.15);
-    color: var(--accent-blue);
-  }
-  .phase-card:nth-child(3) .phase-number-badge {
-    background: rgba(188,140,255,0.06);
-    border-color: rgba(188,140,255,0.15);
-    color: var(--accent-purple);
-  }
-
-  .phase-name {
-    font-size: 1.1em;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 10px;
-  }
-  .phase-desc {
-    font-size: 0.88em;
-    color: var(--text-muted);
-    line-height: 1.75;
-  }
-
-  /* Phase icon */
-  .phase-icon {
-    width: 44px; height: 44px;
-    border-radius: 12px;
-    display: flex; align-items: center; justify-content: center;
-    margin-bottom: 16px;
-    border: 1px solid rgba(57,210,192,0.15);
-    background: rgba(57,210,192,0.06);
-    color: var(--accent-cyan);
-  }
-  .phase-icon svg { width: 22px; height: 22px; }
-  .phase-card:nth-child(2) .phase-icon {
-    border-color: rgba(88,166,255,0.15);
-    background: rgba(88,166,255,0.06);
-    color: var(--accent-blue);
-  }
-  .phase-card:nth-child(3) .phase-icon {
-    border-color: rgba(188,140,255,0.15);
-    background: rgba(188,140,255,0.06);
-    color: var(--accent-purple);
-  }
-
-  /* Input/Output bar */
-  .io-bar {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-wrap: wrap;
-    padding: 16px 20px;
-    background: rgba(0,0,0,0.25);
-    border: 1px solid rgba(48,54,61,0.5);
-    border-radius: 12px;
-    font-size: 0.88em;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .io-tag {
-    font-weight: 700;
-    color: var(--text-secondary);
-    white-space: nowrap;
-    padding: 2px 10px;
-    border-radius: 6px;
-    background: rgba(57,210,192,0.06);
-    border: 1px solid rgba(57,210,192,0.12);
-  }
-  .io-tag.io-output {
-    background: rgba(63,185,80,0.06);
-    border-color: rgba(63,185,80,0.12);
-    color: var(--accent-green);
-  }
-  .io-val {
-    color: var(--text-muted);
-  }
-  .io-arrow-sep {
-    color: var(--accent-cyan);
-    opacity: 0.4;
-    font-size: 1.2em;
-  }
-
-  /* =================================================================
-     STATS COUNTER ROW
-     ================================================================= */
-  .stats-row {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 20px;
-    margin: 3em 0;
-  }
-  .stat-block {
-    text-align: center;
-    padding: 24px 16px;
-    background: rgba(22,27,34,0.6);
-    border: 1px solid rgba(48,54,61,0.5);
-    border-radius: 14px;
-    transition: all 0.3s ease;
-  }
-  .stat-block:hover {
-    border-color: rgba(57,210,192,0.15);
-    background: rgba(22,27,34,0.8);
-    transform: translateY(-2px);
-  }
-  .stat-number {
-    font: 800 2em 'JetBrains Mono', monospace;
-    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1.2;
-    margin-bottom: 4px;
-  }
-  .stat-unit {
-    font-size: 0.82em;
-    color: var(--text-muted);
-    font-weight: 500;
-    letter-spacing: 0.3px;
-  }
-
-  /* =================================================================
-     CORE TECHNOLOGY — Glowing Border Cards
+     CORE TECHNOLOGY — Glowing Border Cards (tech-card)
      ================================================================= */
   .tech-card {
     position: relative;
@@ -749,42 +543,93 @@
   .tech-card:hover::after { opacity: 1; }
   .tech-card:last-child { margin-bottom: 0; }
 
-  /* 3-column grid wrapper for compact cards */
-  .tech-card-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 20px;
+  /* =================================================================
+     FLOW CONNECTOR — animated lines from map to cards
+     ================================================================= */
+  .flow-connector {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 2;
+    overflow: visible;
   }
-  .tech-card-grid .tech-card {
+  .flow-connector svg {
+    width: 100%; height: 100%;
+    overflow: visible;
+  }
+  .flow-line {
+    fill: none;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  .flow-line--1 { stroke: url(#flowGrad1); }
+  .flow-line--2 { stroke: url(#flowGrad2); }
+  .flow-line--3 { stroke: url(#flowGrad3); }
+
+  .flow-connector--visible .flow-line {
+    opacity: 1;
+    stroke-dasharray: 1000;
+    stroke-dashoffset: 1000;
+    animation: flowDraw 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+  .flow-connector--visible .flow-line--2 { animation-delay: 0.15s; }
+  .flow-connector--visible .flow-line--3 { animation-delay: 0.3s; }
+
+  @keyframes flowDraw {
+    to { stroke-dashoffset: 0; }
+  }
+
+  /* Glow dots at endpoints */
+  .flow-dot {
+    r: 3;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+  }
+  .flow-dot--src { fill: var(--accent-cyan); filter: drop-shadow(0 0 6px rgba(57,210,192,0.6)); }
+  .flow-dot--1 { fill: #58a6ff; filter: drop-shadow(0 0 6px rgba(88,166,255,0.6)); }
+  .flow-dot--2 { fill: #3fb950; filter: drop-shadow(0 0 6px rgba(63,185,80,0.6)); }
+  .flow-dot--3 { fill: #bc8cff; filter: drop-shadow(0 0 6px rgba(188,140,255,0.6)); }
+  .flow-connector--visible .flow-dot { opacity: 1; }
+  .flow-connector--visible .flow-dot--1 { transition-delay: 1.0s; }
+  .flow-connector--visible .flow-dot--2 { transition-delay: 1.15s; }
+  .flow-connector--visible .flow-dot--3 { transition-delay: 1.3s; }
+
+  /* Pulse animation on endpoint dots */
+  .flow-connector--visible .flow-dot {
+    animation: dotPulse 2s ease-in-out infinite 1.5s;
+  }
+  @keyframes dotPulse {
+    0%, 100% { r: 3; opacity: 1; }
+    50% { r: 5; opacity: 0.6; }
+  }
+
+  /* Hide on mobile */
+  @media (max-width: 900px) {
+    .flow-connector { display: none; }
+  }
+
+  /* When used inside hero-right as demo-card, reset some spacing */
+  .hero-right .tech-card {
     margin-bottom: 0;
-    display: flex;
-    flex-direction: column;
+    padding: 24px 24px 22px;
   }
-  .tech-card-grid .tc-compact {
+  .hero-right .tech-card .tc-compact {
     display: flex;
     flex-direction: column;
     flex: 1;
   }
-  .tech-card-grid .tc-header {
+  .hero-right .tech-card .tc-desc {
+    font-size: 0.84em;
+    line-height: 1.7;
     margin-bottom: 14px;
   }
-  .tech-card-grid .tc-desc {
-    font-size: 0.88em;
-    line-height: 1.75;
-    margin-bottom: 18px;
-  }
-  .tech-card-grid .tc-stat {
+  .hero-right .tech-card .tc-stat {
     flex-wrap: wrap;
     gap: 6px 10px;
-    margin-bottom: 20px;
-  }
-  .tech-card-grid .tc-btn {
-    margin-top: auto;
-  }
-  @media (max-width: 768px) {
-    .tech-card-grid {
-      grid-template-columns: 1fr;
-    }
+    margin-bottom: 16px;
   }
 
   /* Accent line colors */
@@ -841,15 +686,7 @@
   }
   .tech-card.accent-cyan:hover { border-color: rgba(57,210,192,0.12); }
 
-  /* 2-column internal layout */
-  .tc-layout {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 28px;
-    align-items: start;
-  }
-
-  /* Left column */
+  /* Left column of 2-col card layout */
   .tc-left { display: flex; flex-direction: column; }
 
   .tc-header {
@@ -929,8 +766,7 @@
   .tc-stat-arrow { color: var(--text-muted); font-size: 1.2em; }
   .tc-stat-label { color: var(--text-muted); font-size: 0.9em; }
 
-  /* Card CTA button — inherits --card-color from .tech-card.accent-* */
-  /* ── Try Demo Button: Liquid Border + Morphing Text ── */
+  /* Card CTA button — liquid border + morphing text */
   .tc-btn {
     display: inline-flex;
     align-items: center;
@@ -956,7 +792,6 @@
   .tc-btn::before {
     content: '';
     position: absolute;
-    /* oversized square to cover corners during rotation */
     top: 50%; left: 50%;
     width: 200%; height: 200%;
     transform: translate(-50%, -50%);
@@ -1033,527 +868,87 @@
   }
 
   /* =================================================================
-     Anti-Hallucination — Comparison Preview
+     CTA Buttons (fallback when no map)
      ================================================================= */
-  .ah-comparison-preview {
-    background: rgba(0,0,0,0.35);
-    border-radius: 10px;
-    padding: 14px 16px;
-    border: 1px solid rgba(48,54,61,0.6);
-  }
-  .ah-preview-prompt {
+  .hero-actions {
     display: flex;
     align-items: center;
-    gap: 8px;
-    font: 600 0.82em 'JetBrains Mono', monospace;
-    color: var(--text-secondary);
-    padding: 6px 10px;
-    margin-bottom: 10px;
-    background: rgba(122,162,247,0.04);
-    border: 1px solid rgba(122,162,247,0.12);
-    border-radius: 6px;
-    letter-spacing: 0.2px;
-  }
-  .ah-preview-prompt-icon {
-    color: #7aa2f7;
-    font-size: 1.1em;
-  }
-  .ah-preview-cards {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-  .ah-preview-card {
-    padding: 10px 12px;
-    border-radius: 8px;
-    position: relative;
-  }
-  .ah-preview-baseline {
-    background: rgba(248,81,73,0.04);
-    border: 1px solid rgba(248,81,73,0.18);
-  }
-  .ah-preview-defended {
-    background: rgba(63,185,80,0.04);
-    border: 1px solid rgba(63,185,80,0.18);
-  }
-  .ah-preview-label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font: 700 0.75em 'JetBrains Mono', monospace;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 5px;
-  }
-  .ah-preview-baseline .ah-preview-label { color: var(--accent-red); }
-  .ah-preview-defended .ah-preview-label { color: var(--accent-green); }
-  .ah-preview-dot {
-    width: 6px; height: 6px;
-    border-radius: 50%;
-    display: inline-block;
-  }
-  .ah-preview-dot.baseline {
-    background: var(--accent-red);
-    box-shadow: 0 0 6px rgba(248,81,73,0.5);
-  }
-  .ah-preview-dot.defended {
-    background: var(--accent-green);
-    box-shadow: 0 0 6px rgba(63,185,80,0.5);
-  }
-  .ah-preview-text {
-    font: 400 0.8em/1.65 'JetBrains Mono', monospace;
-    color: var(--text-muted);
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-  }
-  .ah-preview-badge {
-    display: inline-block;
-    margin-top: 6px;
-    padding: 2px 8px;
-    border-radius: 4px;
-    font: 700 0.5em 'JetBrains Mono', monospace;
-    letter-spacing: 1px;
-  }
-  .ah-preview-badge-red {
-    background: rgba(248,81,73,0.12);
-    border: 1px solid rgba(248,81,73,0.25);
-    color: #f85149;
-  }
-  .ah-preview-badge-green {
-    background: rgba(63,185,80,0.12);
-    border: 1px solid rgba(63,185,80,0.25);
-    color: #3fb950;
-  }
-  .ah-preview-meta {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    font: 500 0.75em 'JetBrains Mono', monospace;
-    color: var(--text-muted);
-    opacity: 0.7;
-    padding-top: 2px;
-  }
-  .ah-preview-sep { opacity: 0.4; }
-
-  /* =================================================================
-     MedGemma — Pipeline & Metrics
-     ================================================================= */
-  .mm-pipeline {
-    background: rgba(0,0,0,0.35);
-    border-radius: 10px;
-    padding: 12px 14px;
-    border: 1px solid rgba(48,54,61,0.6);
-  }
-  .mm-pipeline-label {
-    font: 700 0.75em 'JetBrains Mono', monospace;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    color: var(--text-muted);
-    margin-bottom: 6px;
-  }
-  .mm-flow {
-    display: flex;
-    align-items: center;
-    gap: 5px;
+    gap: 14px;
     flex-wrap: wrap;
-    margin-bottom: 10px;
+    margin-top: 1.6em;
   }
-  .mm-node {
-    display: flex; align-items: center; gap: 5px;
-    padding: 5px 10px; border-radius: 8px;
-    background: var(--bg-elevated); border: 1px solid var(--border);
-    font-size: 0.82em; font-weight: 600; color: var(--text-secondary);
-    white-space: nowrap;
+  .hero-actions.hero-actions--hidden {
+    display: none;
   }
-  .mm-node svg { width: 13px; height: 13px; flex-shrink: 0; }
-  .mm-node.node-text { color: var(--accent-blue); border-color: rgba(88,166,255,0.2); }
-  .mm-node.node-image { color: var(--accent-purple); border-color: rgba(188,140,255,0.2); }
-  .mm-node.node-struct { color: var(--accent-orange); border-color: rgba(210,153,34,0.2); }
-  .mm-node.node-model {
-    color: var(--accent-cyan); border-color: rgba(57,210,192,0.25);
-    background: rgba(57,210,192,0.06);
-  }
-  .mm-node.node-output { color: var(--accent-green); border-color: rgba(63,185,80,0.2); }
-  .mm-arrow {
-    color: var(--text-muted); font-size: 0.82em; opacity: 0.4; flex-shrink: 0;
-  }
-  .mm-arrow svg { width: 10px; height: 10px; }
 
-  .mm-metrics-list {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-  }
-  .mm-metric-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 5px 10px;
-    background: rgba(0,0,0,0.2);
-    border: 1px solid rgba(48,54,61,0.5);
-    border-radius: 6px;
-    transition: all 0.2s;
-  }
-  .mm-metric-row:hover {
-    border-color: rgba(188,140,255,0.15);
-    background: rgba(0,0,0,0.3);
-  }
-  .mm-metric-name {
-    font-size: 0.8em;
-    font-weight: 600;
-    color: var(--text-muted);
-  }
-  .mm-metric-vals {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    font-family: 'JetBrains Mono', monospace;
-  }
-  .mm-metric-val {
-    font-size: 0.76em;
-    font-weight: 700;
-    color: var(--accent-green);
-  }
-  .mm-metric-gain {
-    font-size: 0.78em;
-    font-weight: 600;
-    color: var(--accent-purple);
-    opacity: 0.8;
-  }
-  .mm-fine-tune-tag {
+  .btn-hero-primary {
     display: inline-flex;
     align-items: center;
-    gap: 5px;
-    padding: 3px 8px;
-    border-radius: 6px;
-    margin-top: 6px;
-    font: 600 0.78em 'JetBrains Mono', monospace;
-    background: rgba(188,140,255,0.06);
-    border: 1px solid rgba(188,140,255,0.15);
-    color: var(--accent-purple);
-  }
-  .mm-fine-tune-tag svg { width: 10px; height: 10px; }
-
-  /* MedGemma — Input Group */
-  .mg-input-group {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-bottom: 0;
-  }
-  .mg-input-row {
-    display: flex;
-    gap: 6px;
-  }
-  .mg-photo-box {
-    flex: 1;
-    background: rgba(0,0,0,0.25);
-    border: 1px solid rgba(48,54,61,0.5);
-    border-radius: 6px;
-    padding: 8px 6px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 3px;
-    transition: border-color 0.3s;
-  }
-  .mg-photo-box svg { width: 20px; height: 20px; opacity: 0.45; color: var(--text-muted); }
-  .mg-photo-box span {
-    font: 600 0.72em 'JetBrains Mono', monospace;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-  }
-  .mg-photo-box.has-ae {
-    border-color: rgba(188,140,255,0.25);
-  }
-  .mg-photo-box.has-ae svg { color: var(--accent-purple); opacity: 0.7; }
-  .mg-prompt-box {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    padding: 5px 10px;
-    border-radius: 5px;
-    background: rgba(88,166,255,0.04);
-    border: 1px solid rgba(88,166,255,0.12);
-  }
-  .mg-prompt-box span {
-    font: 500 0.72em 'JetBrains Mono', monospace;
-    color: var(--text-muted);
-    letter-spacing: 0.3px;
-  }
-  .mg-flow-down {
-    text-align: center;
-    margin: 20px 0 -4px;
-    color: var(--accent-purple);
-    opacity: 0.3;
-    font-size: 0.8em;
-    line-height: 1;
-  }
-  .mg-model-box {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 6px 10px;
-    border-radius: 6px;
-    background: rgba(188,140,255,0.06);
-    border: 1px solid rgba(188,140,255,0.2);
-    font: 700 0.8em 'JetBrains Mono', monospace;
-    color: var(--accent-purple);
-  }
-  .mg-model-box svg { width: 12px; height: 12px; flex-shrink: 0; }
-  .mg-output-box {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 6px;
-    padding: 6px 10px;
-    border-radius: 6px;
-    background: rgba(63,185,80,0.06);
-    border: 1px solid rgba(63,185,80,0.2);
-    font: 600 0.8em 'JetBrains Mono', monospace;
-    color: var(--accent-green);
-  }
-  .mg-output-box svg { width: 12px; height: 12px; flex-shrink: 0; }
-
-  /* =================================================================
-     Hazard Engine — Mini Canvas
-     ================================================================= */
-  .hz-canvas-wrap {
-    background: rgba(0,0,0,0.35);
-    border-radius: 10px;
-    padding: 16px 18px;
-    border: 1px solid rgba(48,54,61,0.6);
+    gap: 10px;
+    padding: 13px 32px;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.95em;
+    font-family: 'JetBrains Mono', monospace;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-decoration: none;
+    border: 1px solid rgba(57,210,192,0.4);
+    background: linear-gradient(135deg, rgba(57,210,192,0.15), rgba(88,166,255,0.08));
+    color: var(--accent-cyan);
+    white-space: nowrap;
     position: relative;
+    overflow: hidden;
   }
-  .hz-canvas-wrap canvas {
-    width: 100%; height: 140px; display: block;
+  .btn-hero-primary::before {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(135deg, rgba(57,210,192,0.1), transparent);
+    opacity: 0;
+    transition: opacity 0.25s;
   }
-  .hz-label-row {
-    display: flex;
-    justify-content: space-between;
-    font: 500 0.78em 'JetBrains Mono', monospace;
-    color: var(--text-muted);
-    margin-top: 6px;
+  .btn-hero-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px rgba(57,210,192,0.2), 0 0 0 1px rgba(57,210,192,0.3);
+    border-color: rgba(57,210,192,0.6);
+    text-decoration: none;
+    color: var(--accent-cyan);
   }
-  .hz-formula {
-    font: 500 0.82em 'JetBrains Mono', monospace;
-    color: rgba(57,210,192,0.5);
-    margin-top: 10px;
-    text-align: center;
-    letter-spacing: 0.5px;
-  }
-  .hz-legend {
-    display: flex;
-    gap: 14px;
-    margin-top: 10px;
-    flex-wrap: wrap;
-  }
-  .hz-legend-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font: 500 0.78em 'JetBrains Mono', monospace;
-    color: var(--text-muted);
-  }
-  .hz-legend-dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    flex-shrink: 0;
-  }
+  .btn-hero-primary:hover::before { opacity: 1; }
+  .btn-hero-primary svg { width: 16px; height: 16px; transition: transform 0.25s; }
+  .btn-hero-primary:hover svg { transform: translateX(3px); }
 
-  /* =================================================================
-     Clinical Trial Simulation — Inner Tabs
-     ================================================================= */
-  .cts-inner-tabs {
-    display: flex; gap: 4px; margin-bottom: 18px;
+  .btn-hero-secondary {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 13px 28px;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 0.95em;
+    cursor: pointer;
+    transition: all 0.25s ease;
+    text-decoration: none;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.02);
+    color: var(--text-muted);
+    white-space: nowrap;
   }
-  .cts-inner-tab {
-    padding: 7px 16px; border-radius: 8px;
-    border: 1px solid rgba(48,54,61,0.5);
-    background: transparent; color: var(--text-muted);
-    font: 600 0.82em 'JetBrains Mono', monospace;
-    cursor: pointer; transition: all 0.25s; white-space: nowrap;
-  }
-  .cts-inner-tab:hover {
-    border-color: rgba(57,210,192,0.3);
+  .btn-hero-secondary:hover {
+    border-color: rgba(57,210,192,0.25);
     color: var(--text-secondary);
     background: rgba(57,210,192,0.04);
-  }
-  .cts-inner-tab.active {
-    border-color: rgba(57,210,192,0.5);
-    color: var(--accent-cyan);
-    background: rgba(57,210,192,0.08);
-  }
-  /* Accent overrides per card */
-  .accent-blue .cts-inner-tab:hover {
-    border-color: rgba(88,166,255,0.3); background: rgba(88,166,255,0.04);
-  }
-  .accent-blue .cts-inner-tab.active {
-    border-color: rgba(88,166,255,0.5); color: var(--accent-blue); background: rgba(88,166,255,0.08);
-  }
-  .accent-purple .cts-inner-tab:hover {
-    border-color: rgba(188,140,255,0.3); background: rgba(188,140,255,0.04);
-  }
-  .accent-purple .cts-inner-tab.active {
-    border-color: rgba(188,140,255,0.5); color: var(--accent-purple); background: rgba(188,140,255,0.08);
-  }
-  .cts-tab-pane { display: none; }
-  .cts-tab-pane.active { display: block; }
-
-  /* ── Chatbot mini preview (Card 1, tab B) ── */
-  .cb-mini-preview {
-    background: rgba(0,0,0,0.35); border: 1px solid rgba(48,54,61,0.5);
-    border-radius: 12px; padding: 16px; font-size: 0.88em;
-  }
-  .cb-mini-header {
-    display: flex; align-items: center; gap: 8px; margin-bottom: 14px;
-    padding-bottom: 10px; border-bottom: 1px solid rgba(48,54,61,0.4);
-  }
-  .cb-mini-header svg { width: 16px; height: 16px; opacity: 0.5; }
-  .cb-mini-header span { color: var(--text-secondary); font-weight: 600; letter-spacing: 0.3px; }
-  .cb-mini-msg {
-    display: flex; gap: 8px; margin-bottom: 10px;
-  }
-  .cb-mini-avatar {
-    width: 24px; height: 24px; border-radius: 50%; flex-shrink: 0;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.82em; font-weight: 700;
-  }
-  .cb-mini-avatar.user { background: rgba(88,166,255,0.15); color: var(--accent-blue); }
-  .cb-mini-avatar.ai { background: rgba(57,210,192,0.15); color: var(--accent-cyan); }
-  .cb-mini-bubble {
-    padding: 8px 12px; border-radius: 10px; line-height: 1.5;
-    color: var(--text-secondary);
-  }
-  .cb-mini-bubble.user-bubble { background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.15); }
-  .cb-mini-bubble.ai-bubble { background: rgba(57,210,192,0.06); border: 1px solid rgba(57,210,192,0.12); }
-  .cb-mini-actions {
-    display: flex; gap: 6px; flex-wrap: wrap; margin-top: 12px;
-    padding-top: 10px; border-top: 1px solid rgba(48,54,61,0.4);
-  }
-  .cb-mini-action {
-    padding: 4px 10px; border-radius: 6px; font-size: 0.92em; font-weight: 600;
-    border: 1px solid rgba(48,54,61,0.5); color: var(--text-muted);
-    background: transparent; letter-spacing: 0.2px;
-  }
-
-  /* ── Voice Call mini preview (Card 2, tab B) ── */
-  .vc-mini-preview {
-    background: rgba(0,0,0,0.35); border: 1px solid rgba(48,54,61,0.5);
-    border-radius: 12px; padding: 16px; font-size: 0.88em;
-  }
-  .vc-mini-header {
-    display: flex; align-items: center; justify-content: space-between;
-    margin-bottom: 14px; padding-bottom: 10px; border-bottom: 1px solid rgba(48,54,61,0.4);
-  }
-  .vc-mini-header-left { display: flex; align-items: center; gap: 8px; }
-  .vc-mini-header-left svg { width: 16px; height: 16px; opacity: 0.5; }
-  .vc-mini-header-left span { color: var(--text-secondary); font-weight: 600; }
-  .vc-mini-live {
-    padding: 3px 10px; border-radius: 20px; font-size: 0.88em; font-weight: 700;
-    background: rgba(63,185,80,0.12); color: var(--accent-green);
-    border: 1px solid rgba(63,185,80,0.3); letter-spacing: 0.5px;
-    animation: vcPulse 2s ease-in-out infinite;
-  }
-  @keyframes vcPulse {
-    0%, 100% { opacity: 1; } 50% { opacity: 0.6; }
-  }
-  .vc-mini-turns { display: flex; flex-direction: column; gap: 8px; }
-  .vc-mini-turn {
-    display: flex; align-items: center; gap: 10px;
-    padding: 6px 10px; border-radius: 8px;
-    background: rgba(48,54,61,0.2);
-  }
-  .vc-mini-turn-label {
-    font-size: 0.85em; font-weight: 700; letter-spacing: 0.5px;
-    text-transform: uppercase; width: 52px; flex-shrink: 0;
-  }
-  .vc-mini-turn-label.patient { color: var(--accent-purple); }
-  .vc-mini-turn-label.nurse { color: var(--accent-cyan); }
-  .vc-mini-turn-text { color: var(--text-muted); line-height: 1.4; }
-  .vc-mini-wave {
-    display: flex; align-items: center; gap: 2px; height: 20px; margin: 8px 0;
-    justify-content: center;
-  }
-  .vc-mini-wave-bar {
-    width: 3px; border-radius: 2px; background: rgba(188,140,255,0.4);
-    animation: vcWave 1.2s ease-in-out infinite;
-  }
-  @keyframes vcWave {
-    0%, 100% { height: 4px; } 50% { height: 18px; }
-  }
-  .vc-mini-mood-row {
-    display: flex; gap: 6px; flex-wrap: wrap; margin-top: 10px;
-    padding-top: 10px; border-top: 1px solid rgba(48,54,61,0.4);
-  }
-  .vc-mini-mood {
-    padding: 3px 8px; border-radius: 6px; font-size: 0.88em; font-weight: 600;
-    border: 1px solid rgba(188,140,255,0.2); color: rgba(188,140,255,0.7);
-    background: rgba(188,140,255,0.04);
-  }
-
-  /* Rule Set mini preview */
-  .rs-mini-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
-    margin-bottom: 10px;
-  }
-  .rs-mini-stat {
-    background: rgba(0,0,0,0.2); border-radius: 8px;
-    padding: 8px 10px; text-align: center;
-    border: 1px solid rgba(48,54,61,0.3);
-  }
-  .rs-mini-stat .rs-mini-val {
-    font: 700 1em 'JetBrains Mono', monospace;
-    color: var(--accent-cyan);
-  }
-  .rs-mini-stat .rs-mini-label {
-    font-size: 0.75em; font-weight: 600; text-transform: uppercase;
-    letter-spacing: 0.8px; color: var(--text-muted); margin-top: 2px;
-  }
-  .rs-mini-sources {
-    display: flex; flex-wrap: wrap; gap: 4px; margin-top: 8px;
-  }
-  .rs-mini-source {
-    padding: 2px 8px; border-radius: 10px;
-    border: 1px solid rgba(48,54,61,0.4);
-    font: 500 0.75em 'JetBrains Mono', monospace;
-    color: var(--text-muted);
-  }
-
-  /* =================================================================
-     FOOTER
-     ================================================================= */
-  .landing-footer {
-    padding: 3em 0 0;
-    text-align: center;
-    font-size: 0.82em;
-    color: var(--text-muted);
-    opacity: 0.5;
-    border-top: 1px solid rgba(48,54,61,0.3);
-  }
-  .landing-footer a {
-    color: var(--text-muted);
     text-decoration: none;
-    transition: color 0.2s;
+    transform: translateY(-2px);
   }
-  .landing-footer a:hover {
-    color: var(--accent-cyan);
-  }
+  .btn-hero-secondary svg { width: 15px; height: 15px; }
 
   /* =================================================================
      SIMULATION MAP PREVIEW
      ================================================================= */
   .sim-map-section {
-    margin: 1.8em auto 1em;
-    max-width: 960px;
-    opacity: 0;
-    animation: fadeUpSoft 0.8s ease forwards 0.9s;
+    margin: 2em 0 0;
+    width: 100%;
   }
   .sim-map-day-overlay {
     position: absolute; top: 12px; left: 14px; z-index: 3;
@@ -1594,33 +989,97 @@
   }
 
   /* =================================================================
+     FOOTER
+     ================================================================= */
+  .landing-footer {
+    padding: 3em 0 0;
+    text-align: center;
+    font-size: 0.82em;
+    color: var(--text-muted);
+    opacity: 0.5;
+    border-top: 1px solid rgba(48,54,61,0.3);
+  }
+  .landing-footer a {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color 0.2s;
+  }
+  .landing-footer a:hover {
+    color: var(--accent-cyan);
+  }
+
+  /* =================================================================
      RESPONSIVE
      ================================================================= */
   @media (max-width: 900px) {
+    .hero-stage {
+      grid-template-columns: 1fr;
+      min-height: auto;
+      padding: 3em 0 1em;
+    }
+    .hero-left {
+      text-align: center;
+      transform: none;
+      opacity: 0;
+    }
+    .hero-left--entering {
+      animation: fadeUpSoft 800ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+    .hero-left--settled {
+      animation: none;
+      opacity: 1;
+      text-align: center;
+    }
+    .hero-right {
+      transform: translateY(30px);
+    }
+    .demo-card {
+      transform: translateY(20px);
+    }
+    .demo-card--visible {
+      animation: fadeUpSoft 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
     .hero-title { font-size: 2.6em; }
-    .tc-layout { grid-template-columns: 1fr; }
-    .phase-grid { grid-template-columns: 1fr; gap: 14px; }
-    .pipeline-line { display: none; }
-    .stats-row { grid-template-columns: repeat(2, 1fr); }
-    .hero-actions { flex-direction: column; align-items: stretch; }
-    .btn-hero-primary, .btn-hero-secondary { justify-content: center; }
+    .hero-subtitle { margin: 1em auto; }
+    .hero-actions { justify-content: center; }
     .sim-map-container { aspect-ratio: 4 / 3; }
     .sim-map-cta-overlay { padding: 10px 22px; font-size: 0.88em; bottom: 12px; }
-    .scroll-hint { margin-top: 1.5em; }
   }
   @media (max-width: 480px) {
     .landing-wrap { padding: 0 16px 2em; }
-    .hero { padding: 3em 0 2em; }
+    .hero-stage { padding: 2em 0 1em; }
     .hero-title { font-size: 2em; }
-    .tech-card { padding: 20px 16px 18px; }
-    .stats-row { grid-template-columns: 1fr 1fr; gap: 10px; }
-    .stat-number { font-size: 1.5em; }
-    .io-bar { flex-direction: column; gap: 8px; align-items: flex-start; }
-    .sim-map-section { margin-top: 1.5em; }
+    .hero-right .tech-card { padding: 20px 16px 18px; }
     .sim-map-container { aspect-ratio: 1 / 1; border-radius: 10px; }
     .sim-map-cta-overlay { padding: 9px 18px; font-size: 0.82em; gap: 8px; bottom: 10px; border-radius: 10px; }
-    .scroll-hint { margin-top: 1.2em; }
-    .scroll-hint__text { font-size: 0.78em; }
+  }
+
+  /* =================================================================
+     REDUCED MOTION — accessibility
+     ================================================================= */
+  @media (prefers-reduced-motion: reduce) {
+    .hero-left,
+    .hero-right,
+    .demo-card,
+    .sim-map-section,
+    .hero-left .hero-overline,
+    .hero-left .hero-title,
+    .hero-left .hero-title .word-expansion,
+    .hero-left .hero-subtitle {
+      opacity: 1 !important;
+      transform: none !important;
+      animation: none !important;
+      transition: none !important;
+    }
+    .hero-left { text-align: center; }
+    .hero-right { opacity: 1; transform: none; }
+    .demo-card { opacity: 1; transform: none; }
+    .sim-map-section { opacity: 1; transform: none; }
+    .scroll-hint { opacity: 1; }
+    .scroll-hint__arrow { animation: none; }
+    .aurora-bg::before,
+    .aurora-bg::after { animation: none; }
+    .hero-overline .pulse-pip { animation: none; }
   }
 </style>
 {% endblock %}
@@ -1646,254 +1105,83 @@
 <!-- Noise Overlay -->
 <div class="noise-overlay" style="filter:url(#grain);"></div>
 
-
 <div class="landing-wrap">
 
   <!-- ============================================================
-       HERO SECTION
+       HERO STAGE — 55/45 Grid with Two-Stage Animation
        ============================================================ -->
-  <section class="hero">
-    <div class="hero-overline">
-      <span class="pulse-pip"></span>
-      MedGemma Impact Challenge 2026
-    </div>
+  <section class="hero-stage" id="heroStage">
 
-    <h1 class="hero-title" id="heroTitle">
-      <span class="word word-clara" style="animation-delay:0.1s">CLARA</span>
-      <span class="word word-expansion" style="animation-delay:0.35s"><span class="exp-line left"></span><span class="hl">C</span>linical <span class="hl">L</span>ongitudinal <span class="hl">A</span>I <span class="hl">R</span>esearch <span class="hl">A</span>ssistant<span class="exp-line right"></span></span>
-    </h1>
+    <!-- LEFT COLUMN: Hero text + Map -->
+    <div class="hero-left" id="heroLeft">
+      <div class="hero-overline">
+        <span class="pulse-pip"></span>
+        MedGemma Impact Challenge 2026
+      </div>
 
-    <p class="hero-subtitle">
-      Generate realistic patient journeys from a <strong>single drug name</strong>.
-      Hazard-driven AE simulation with GT/HR separation across <strong>13 CDISC domains</strong>
-      &mdash; Voice Call Live detects adverse events early and proves the value of AI monitoring.
-    </p>
+      <h1 class="hero-title" id="heroTitle">
+        <span class="word word-clara">CLARA</span>
+        <span class="word word-expansion"><span class="exp-line left"></span><span class="hl">C</span>linical <span class="hl">L</span>ongitudinal <span class="hl">A</span>I <span class="hl">R</span>esearch <span class="hl">A</span>ssistant<span class="exp-line right"></span></span>
+      </h1>
 
-    {% if demo_run_id %}
-    <!-- Simulation Map Preview — with integrated CTA overlay -->
-    <div class="sim-map-section">
-      <a href="{% url 'simulation_list' %}" class="sim-map-container" id="simMapContainer" style="display:block;cursor:pointer;">
-        <span class="sim-map-day-overlay" id="simMapDay">DAY 1</span>
-        <span class="sim-map-cta-overlay">
-          <svg class="cta-play" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 3 20 12 6 21"/></svg>
+      <p class="hero-subtitle">
+        Generate realistic patient journeys from a <strong>single drug name</strong>.
+        AI-driven AE detection proves the value of continuous monitoring.
+      </p>
+
+      {% if demo_run_id %}
+      <!-- Simulation Map Preview -->
+      <div class="sim-map-section" id="simMapSection">
+        <a href="{% url 'simulation_list' %}" class="sim-map-container" id="simMapContainer" style="display:block;cursor:pointer;">
+          <span class="sim-map-day-overlay" id="simMapDay">DAY 1</span>
+          <span class="sim-map-cta-overlay">
+            <svg class="cta-play" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 3 20 12 6 21"/></svg>
+            Enter Simulation
+            <svg class="cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </span>
+        </a>
+      </div>
+      {% else %}
+      <!-- Fallback CTA buttons when no map available -->
+      <div class="hero-actions">
+        <a href="{% url 'simulation_list' %}" class="btn-hero-primary">
           Enter Simulation
-          <svg class="cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </span>
-      </a>
-    </div>
-
-    <!-- Scroll hint — leads to demo section -->
-    <a href="#core-technology" class="scroll-hint">
-      <span class="scroll-hint__text">Explore 6 Demos</span>
-      <span class="scroll-hint__arrow">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
-      </span>
-    </a>
-
-    {% else %}
-    <!-- Fallback: standard CTA buttons when no map available -->
-    <div class="hero-actions hero-actions--fallback">
-      <a href="{% url 'simulation_list' %}" class="btn-hero-primary">
-        Enter Simulation
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-      </a>
-      <a href="#core-technology" class="btn-hero-secondary">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-        Explore Demos
-      </a>
-    </div>
-    {% endif %}
-  </section>
-
-  <!-- ============================================================
-       MARQUEE TICKER
-       ============================================================ -->
-  <div class="marquee-section">
-    <div class="marquee-track" id="marqueeTrack">
-      <span class="marquee-item"><span class="m-dot"></span>Drug-Agnostic Pipeline</span>
-      <span class="marquee-item"><span class="m-val">3</span> Phase Architecture</span>
-      <span class="marquee-item"><span class="m-dot"></span>Hazard-Driven Simulation</span>
-      <span class="marquee-item"><span class="m-val">13</span> CDISC Domains</span>
-      <span class="marquee-item"><span class="m-dot"></span>DAPO Anti-Hallucination</span>
-      <span class="marquee-item"><span class="m-val">84</span> Day Trials</span>
-      <span class="marquee-item"><span class="m-dot"></span>Voice Call Live</span>
-      <span class="marquee-item"><span class="m-val">7</span> Dimension Mood Model</span>
-      <span class="marquee-item"><span class="m-dot"></span>GT / HR Observation Separation</span>
-      <span class="marquee-item"><span class="m-val">4</span> Turn Video Calls</span>
-      <span class="marquee-item"><span class="m-dot"></span>SAE Detection Stack</span>
-      <span class="marquee-item"><span class="m-val">94.2%</span> AE Detection</span>
-      <!-- Duplicate for seamless scroll -->
-      <span class="marquee-item"><span class="m-dot"></span>Drug-Agnostic Pipeline</span>
-      <span class="marquee-item"><span class="m-val">3</span> Phase Architecture</span>
-      <span class="marquee-item"><span class="m-dot"></span>Hazard-Driven Simulation</span>
-      <span class="marquee-item"><span class="m-val">13</span> CDISC Domains</span>
-      <span class="marquee-item"><span class="m-dot"></span>DAPO Anti-Hallucination</span>
-      <span class="marquee-item"><span class="m-val">84</span> Day Trials</span>
-      <span class="marquee-item"><span class="m-dot"></span>Voice Call Live</span>
-      <span class="marquee-item"><span class="m-val">7</span> Dimension Mood Model</span>
-      <span class="marquee-item"><span class="m-dot"></span>GT / HR Observation Separation</span>
-      <span class="marquee-item"><span class="m-val">4</span> Turn Video Calls</span>
-      <span class="marquee-item"><span class="m-dot"></span>SAE Detection Stack</span>
-      <span class="marquee-item"><span class="m-val">94.2%</span> AE Detection</span>
-    </div>
-  </div>
-
-  <!-- ============================================================
-       HOW IT WORKS
-       ============================================================ -->
-  <section class="section-block">
-    <div class="section-label-row reveal">
-      <span class="sl-marker"></span>
-      <span class="sl-text">How it works</span>
-      <span class="sl-line"></span>
-    </div>
-
-    <div class="pipeline-container reveal reveal-d1">
-      <div class="pipeline-line"></div>
-      <div class="phase-grid">
-        <!-- Phase 0 -->
-        <div class="phase-card">
-          <div class="phase-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          </div>
-          <div class="phase-number-badge">Phase 0</div>
-          <div class="phase-name">Rule Discovery</div>
-          <div class="phase-desc">
-            LLM analyzes the drug and generates probability tables: demographics, AE incidence
-            rates, onset distributions, dose-limiting toxicities, and efficacy parameters.
-          </div>
-        </div>
-
-        <!-- Phase 1 -->
-        <div class="phase-card">
-          <div class="phase-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          </div>
-          <div class="phase-number-badge">Phase 1</div>
-          <div class="phase-name">Patient Generation</div>
-          <div class="phase-desc">
-            Sample demographics, comorbidities, and baseline labs from the rule set.
-            LLM fills in clinical details and generates patient personas with
-            7-dimension mood profiles.
-          </div>
-        </div>
-
-        <!-- Phase 2 -->
-        <div class="phase-card">
-          <div class="phase-icon">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-          </div>
-          <div class="phase-number-badge">Phase 2</div>
-          <div class="phase-name">Daily Simulation</div>
-          <div class="phase-desc">
-            Hazard functions compute daily AE onset probabilities. An observation model
-            separates ground truth from hospital records. Voice Call Live detects AEs via
-            real-time voice interactions and triggers early visits.
-          </div>
-        </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+        </a>
+        <a href="#core-technology" class="btn-hero-secondary">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+          Explore Demos
+        </a>
       </div>
+      {% endif %}
     </div>
 
-    <div class="io-bar reveal reveal-d2">
-      <span class="io-tag">Input</span>
-      <span class="io-val">Drug name + Indication</span>
-      <span class="io-arrow-sep">&longrightarrow;</span>
-      <span class="io-tag io-output">Output</span>
-      <span class="io-val">Full trial data (JSONL), CRF tables across 13 domains, SAE reports</span>
-    </div>
-  </section>
-
-  <!-- ============================================================
-       STATS COUNTER ROW
-       ============================================================ -->
-  <div class="stats-row reveal">
-    <div class="stat-block">
-      <div class="stat-number" data-target="13" data-suffix="">0</div>
-      <div class="stat-unit">CDISC Domains</div>
-    </div>
-    <div class="stat-block">
-      <div class="stat-number" data-target="84" data-suffix="">0</div>
-      <div class="stat-unit">Simulation Days</div>
-    </div>
-    <div class="stat-block">
-      <div class="stat-number" data-target="94.2" data-suffix="%" data-decimals="1">0</div>
-      <div class="stat-unit">AE Detection Rate</div>
-    </div>
-    <div class="stat-block">
-      <div class="stat-number" data-target="15" data-suffix="">0</div>
-      <div class="stat-unit">AntiHallu Trap Prompts</div>
-    </div>
-  </div>
-
-  <!-- ============================================================
-       CORE TECHNOLOGY — Demo Cards
-       ============================================================ -->
-  <section id="core-technology" class="section-block">
-    <div class="section-label-row reveal">
-      <span class="sl-marker"></span>
-      <span class="sl-text">Core Engine</span>
-      <span class="sl-line"></span>
+    <!-- FLOW CONNECTOR SVG — animated lines from map to cards -->
+    <div class="flow-connector" id="flowConnector">
+      <svg viewBox="0 0 100 100" preserveAspectRatio="none" id="flowSvg">
+        <defs>
+          <linearGradient id="flowGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="rgba(57,210,192,0.6)"/>
+            <stop offset="100%" stop-color="rgba(88,166,255,0.5)"/>
+          </linearGradient>
+          <linearGradient id="flowGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="rgba(57,210,192,0.6)"/>
+            <stop offset="100%" stop-color="rgba(63,185,80,0.5)"/>
+          </linearGradient>
+          <linearGradient id="flowGrad3" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stop-color="rgba(57,210,192,0.6)"/>
+            <stop offset="100%" stop-color="rgba(188,140,255,0.5)"/>
+          </linearGradient>
+        </defs>
+        <!-- Paths and dots computed by JS -->
+      </svg>
     </div>
 
-    <div class="tech-card-grid">
+    <!-- RIGHT COLUMN: 3 Demo Cards -->
+    <div class="hero-right" id="heroRight">
 
-      <!-- Card 1: Data Analysis Agent -->
-      <div class="tech-card accent-purple reveal reveal-d1">
-        <div class="tc-compact">
-          <div class="tc-header">
-            <div class="tc-icon icon-purple">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
-              </svg>
-            </div>
-            <div class="tc-title">Data Analysis Agent</div>
-          </div>
-          <div class="tc-desc">
-            RLFR-defended Anti-hallucination MedGemma ensures factual accuracy &mdash;
-            refusing to fabricate drug names, dosages, or mechanisms. Tested across 5 trap categories.
-          </div>
-          <div class="tc-stat">
-            <span class="tc-stat-val del">Baseline hallucinates</span>
-            <span class="tc-stat-arrow">&#8594;</span>
-            <span class="tc-stat-val good">RLFR refuses</span>
-            <span class="tc-stat-label">5 trap categories &middot; 15 test prompts</span>
-          </div>
-          <a href="{% url 'demo_anti_hallucination' %}" class="tc-btn">
-            <span class="btn-label">Try Demo</span><span class="btn-hover-label">Test It</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </a>
-        </div>
-      </div>
-
-      <!-- Card 2: Data Collection Agent -->
-      <div class="tech-card accent-green reveal reveal-d2">
-        <div class="tc-compact">
-          <div class="tc-header">
-            <div class="tc-icon icon-green">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
-            </div>
-            <div class="tc-title">Data Collection Agent</div>
-          </div>
-          <div class="tc-desc">
-            Multi-model SAE detection: MedGemma 4B-IT (visual AE grading via LoRA),
-            MedSigLIP (medical image similarity), and HeAR (audio biomarker analysis)
-            aligned with CTCAE grading standards across 21 classes.
-          </div>
-          <div class="tc-stat">
-            <span class="tc-stat-val del">4.8%</span>
-            <span class="tc-stat-arrow">&#8594;</span>
-            <span class="tc-stat-val good">90.5%</span>
-            <span class="tc-stat-label">21 CTCAE classes &middot; LoRA finetuned</span>
-          </div>
-          <a href="http://49.254.130.90:19001/demo/care-agent/live/" class="tc-btn">
-            <span class="btn-label">Try Demo</span><span class="btn-hover-label">Detect AE</span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </a>
-        </div>
-      </div>
-
-      <!-- Card 3: Simulation Engine -->
-      <div class="tech-card accent-blue reveal reveal-d3">
+      <!-- Card 1: Simulation Engine -->
+      <div class="tech-card accent-blue demo-card">
         <div class="tc-compact">
           <div class="tc-header">
             <div class="tc-icon icon-blue">
@@ -1919,13 +1207,67 @@
         </div>
       </div>
 
+      <!-- Card 2: Data Collection Agent -->
+      <div class="tech-card accent-green demo-card">
+        <div class="tc-compact">
+          <div class="tc-header">
+            <div class="tc-icon icon-green">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+            </div>
+            <div class="tc-title">Data Collection Agent</div>
+          </div>
+          <div class="tc-desc">
+            Multi-model SAE detection: MedGemma 4B-IT (visual AE grading via LoRA),
+            MedSigLIP (medical image similarity), and HeAR (audio biomarker analysis)
+            aligned with CTCAE grading standards across 21 classes.
+          </div>
+          <div class="tc-stat">
+            <span class="tc-stat-val del">4.8%</span>
+            <span class="tc-stat-arrow">&#8594;</span>
+            <span class="tc-stat-val good">90.5%</span>
+            <span class="tc-stat-label">21 CTCAE classes &middot; LoRA finetuned</span>
+          </div>
+          <a href="http://49.254.130.90:19001/demo/care-agent/live/" class="tc-btn">
+            <span class="btn-label">Try Demo</span><span class="btn-hover-label">Detect AE</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+        </div>
+      </div>
+
+      <!-- Card 3: Data Analysis Agent -->
+      <div class="tech-card accent-purple demo-card">
+        <div class="tc-compact">
+          <div class="tc-header">
+            <div class="tc-icon icon-purple">
+              {% load static %}<img src="{% static 'assets/ui/gemma.png' %}" alt="Gemma" style="width:32px;height:32px;border-radius:4px;">
+            </div>
+            <div class="tc-title">Data Analysis Agent</div>
+          </div>
+          <div class="tc-desc">
+            RLFR-defended Anti-hallucination MedGemma ensures factual accuracy &mdash;
+            refusing to fabricate drug names, dosages, or mechanisms. Tested across 5 trap categories.
+          </div>
+          <div class="tc-stat">
+            <span class="tc-stat-val del">Baseline hallucinates</span>
+            <span class="tc-stat-arrow">&#8594;</span>
+            <span class="tc-stat-val good">RLFR refuses</span>
+            <span class="tc-stat-label">5 trap categories &middot; 15 test prompts</span>
+          </div>
+          <a href="{% url 'demo_anti_hallucination' %}" class="tc-btn">
+            <span class="btn-label">Try Demo</span><span class="btn-hover-label">Test It</span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+        </div>
+      </div>
+
     </div>
   </section>
+
 
   <!-- ============================================================
        FOOTER
        ============================================================ -->
-  <div class="landing-footer reveal">
+  <div class="landing-footer reveal" id="core-technology">
     CLARA Research Preview &middot; MedGemma Impact Challenge 2026 &middot;
     <a href="{% url 'simulation_list' %}">View Simulations</a>
   </div>
@@ -1943,9 +1285,136 @@
 (function() {
   'use strict';
 
-  /* ─── 1. (removed spotlight) ─── */
+  /* ─── Hero Two-Stage Animation ─── */
 
-  /* ─── 3. Scroll-triggered reveal (Intersection Observer) ─── */
+  function initHeroAnimation() {
+    var heroLeft = document.getElementById('heroLeft');
+    var heroRight = document.getElementById('heroRight');
+    var cards = document.querySelectorAll('.demo-card');
+    var mapEl = document.getElementById('simMapSection');
+    var scrollHint = document.getElementById('scrollHint');
+
+    if (!heroLeft) return;
+
+    /* Stage 1: Hero + Map enter at center (0 ~ 2s) */
+    requestAnimationFrame(function() {
+      heroLeft.classList.add('hero-left--entering');
+      /* Map fades in as part of Stage 1 (via CSS stagger at 900ms) */
+    });
+
+    /* Init Phaser map early so it renders during Stage 1 */
+    setTimeout(function() {
+      {% if demo_run_id %}
+      initSimMap();
+      {% endif %}
+    }, 1200);
+
+    /* Stage 2: Split transition (2s ~ 3s) — after map is visible */
+    setTimeout(function() {
+      heroLeft.classList.remove('hero-left--entering');
+      heroLeft.classList.add('hero-left--settled');
+
+      /* Show right column container */
+      if (heroRight) {
+        heroRight.style.opacity = '1';
+        heroRight.style.transform = 'none';
+      }
+
+      /* Staggered card entrances */
+      cards.forEach(function(card, i) {
+        setTimeout(function() {
+          card.classList.add('demo-card--visible');
+        }, i * 200);
+      });
+
+      /* Flow connector lines from map to cards */
+      setTimeout(function() { drawFlowConnector(); }, 500);
+
+      /* Scroll hint */
+      if (scrollHint) {
+        setTimeout(function() {
+          scrollHint.classList.add('scroll-hint--visible');
+        }, 600);
+      }
+    }, 2000);
+
+    /* Stage 3: Post-animation cleanup (3s+) */
+    setTimeout(function() {
+      sessionStorage.setItem('clara_hero_animated', '1');
+    }, 3000);
+  }
+
+  function applyFinalState() {
+    var stage = document.getElementById('heroStage');
+    var scrollHint = document.getElementById('scrollHint');
+    if (stage) {
+      stage.classList.add('hero-stage--instant');
+    }
+    if (scrollHint) {
+      scrollHint.classList.add('scroll-hint--visible');
+    }
+    /* Init Phaser map immediately */
+    {% if demo_run_id %}
+    initSimMap();
+    {% endif %}
+    /* Draw flow connector immediately */
+    setTimeout(drawFlowConnector, 100);
+  }
+
+  /* ─── Flow Connector: draw SVG curves from map to each card ─── */
+  function drawFlowConnector() {
+    var stage = document.getElementById('heroStage');
+    var mapEl = document.getElementById('simMapContainer') || document.getElementById('simMapSection');
+    var cards = document.querySelectorAll('.demo-card');
+    var connector = document.getElementById('flowConnector');
+    var svg = document.getElementById('flowSvg');
+    if (!stage || !mapEl || !cards.length || !connector || !svg) return;
+
+    var stageRect = stage.getBoundingClientRect();
+
+    /* Source: right-center of map */
+    var mapRect = mapEl.getBoundingClientRect();
+    var srcX = mapRect.right - stageRect.left;
+    var srcY = mapRect.top + mapRect.height * 0.5 - stageRect.top;
+
+    /* Set viewBox to match stage dimensions */
+    svg.setAttribute('viewBox', '0 0 ' + stageRect.width + ' ' + stageRect.height);
+
+    /* Build paths + dots */
+    var html = svg.querySelector('defs').outerHTML;
+
+    /* Source dot */
+    html += '<circle class="flow-dot flow-dot--src" cx="' + srcX + '" cy="' + srcY + '" r="3"/>';
+
+    cards.forEach(function(card, i) {
+      var cardRect = card.getBoundingClientRect();
+      var dstX = cardRect.left - stageRect.left;
+      var dstY = cardRect.top + cardRect.height * 0.5 - stageRect.top;
+
+      /* Control points for smooth S-curve */
+      var midX = (srcX + dstX) / 2;
+      var cpOffset = 40;
+      var d = 'M ' + srcX + ' ' + srcY
+            + ' C ' + (srcX + cpOffset) + ' ' + srcY
+            + ', ' + (dstX - cpOffset) + ' ' + dstY
+            + ', ' + dstX + ' ' + dstY;
+
+      html += '<path class="flow-line flow-line--' + (i + 1) + '" d="' + d + '"/>';
+      html += '<circle class="flow-dot flow-dot--' + (i + 1) + '" cx="' + dstX + '" cy="' + dstY + '" r="3"/>';
+    });
+
+    svg.innerHTML = html;
+    connector.classList.add('flow-connector--visible');
+  }
+
+  /* Gate: animate once per session */
+  if (sessionStorage.getItem('clara_hero_animated')) {
+    applyFinalState();
+  } else {
+    initHeroAnimation();
+  }
+
+  /* ─── Scroll-triggered reveal (Intersection Observer) ─── */
   var revealEls = document.querySelectorAll('.reveal');
   if ('IntersectionObserver' in window) {
     var io = new IntersectionObserver(function(entries) {
@@ -1961,64 +1430,34 @@
     revealEls.forEach(function(el) { el.classList.add('visible'); });
   }
 
-  /* ─── 4. Counter animation (count-up on scroll) ─── */
-  var counters = document.querySelectorAll('.stat-number[data-target]');
-  var counterDone = new Set();
-
-  function animateCounter(el) {
-    var target = parseFloat(el.dataset.target);
-    var suffix = el.dataset.suffix || '';
-    var decimals = parseInt(el.dataset.decimals || '0', 10);
-    var duration = 1800;
-    var startTime = null;
-
-    function step(timestamp) {
-      if (!startTime) startTime = timestamp;
-      var progress = Math.min((timestamp - startTime) / duration, 1);
-      /* Ease-out cubic */
-      var eased = 1 - Math.pow(1 - progress, 3);
-      var current = target * eased;
-      el.textContent = (decimals > 0 ? current.toFixed(decimals) : Math.round(current)) + suffix;
-      if (progress < 1) requestAnimationFrame(step);
-    }
-    requestAnimationFrame(step);
-  }
-
-  if ('IntersectionObserver' in window) {
-    var counterIO = new IntersectionObserver(function(entries) {
-      entries.forEach(function(entry) {
-        if (entry.isIntersecting && !counterDone.has(entry.target)) {
-          counterDone.add(entry.target);
-          animateCounter(entry.target);
-          counterIO.unobserve(entry.target);
-        }
-      });
-    }, { threshold: 0.5 });
-    counters.forEach(function(el) { counterIO.observe(el); });
-  } else {
-    counters.forEach(function(el) {
-      var suffix = el.dataset.suffix || '';
-      var decimals = parseInt(el.dataset.decimals || '0', 10);
-      var target = parseFloat(el.dataset.target);
-      el.textContent = (decimals > 0 ? target.toFixed(decimals) : target) + suffix;
+  /* ─── Card mouse-tracking glow ─── */
+  document.querySelectorAll('.tech-card').forEach(function(card) {
+    card.addEventListener('mousemove', function(e) {
+      var rect = card.getBoundingClientRect();
+      card.style.setProperty('--card-mouse-x', ((e.clientX - rect.left) / rect.width * 100) + '%');
+      card.style.setProperty('--card-mouse-y', ((e.clientY - rect.top) / rect.height * 100) + '%');
     });
-  }
+  });
 
-  /* ─── 8. Simulation Map Auto-Play ─── */
+  /* ─── Simulation Map Auto-Play ─── */
   {% if demo_run_id %}
-  (function simMapAutoPlay() {
+  function initSimMap() {
     var RUN_ID = '{{ demo_run_id }}';
     var container = document.getElementById('simMapContainer');
     if (!container || typeof TrialMap === 'undefined') return;
+
+    /* Prevent double-init */
+    if (container.dataset.mapInit) return;
+    container.dataset.mapInit = '1';
 
     var dayLabel = document.getElementById('simMapDay');
     var currentDay = 1;
     var totalDays = 1;
     var trialMap = null;
     var autoTimer = null;
-    var INTERVAL = 1800; // ms between days
+    var INTERVAL = 1800;
 
-    // Fetch run meta for total days
+    /* Fetch run meta for total days */
     fetch('/api/run/' + RUN_ID + '/')
       .then(function(r) { return r.json(); })
       .then(function(meta) {
@@ -2026,7 +1465,7 @@
       })
       .catch(function() {});
 
-    // Fetch initial day data + init map
+    /* Fetch initial day data + init map */
     fetch('/api/day/' + RUN_ID + '/1/')
       .then(function(r) { return r.json(); })
       .then(function(data) {
@@ -2034,17 +1473,17 @@
         setSpriteOffset(RUN_ID);
         trialMap = new TrialMap('simMapContainer', patients, null, RUN_ID);
 
-        // Start zoomed out, then smoothly zoom in
+        /* Start zoomed out, then smoothly zoom in */
         setTimeout(function() {
           if (trialMap && trialMap._scene) {
             var cam = trialMap._scene.cameras.main;
-            var targetZoom = cam.zoom;   // save the auto-fitted zoom
-            cam.setZoom(targetZoom * 0.4); // start zoomed out
+            var targetZoom = cam.zoom;
+            cam.setZoom(targetZoom * 0.4);
             cam.zoomTo(targetZoom, 2500, 'Cubic.easeOut');
           }
         }, 500);
 
-        // Wait for zoom-in to finish, then start auto-play
+        /* Wait for zoom-in to finish, then start auto-play */
         setTimeout(function() {
           advanceDay();
         }, 3500);
@@ -2074,7 +1513,7 @@
         });
     }
 
-    // Pause when not visible
+    /* Pause when not visible */
     document.addEventListener('visibilitychange', function() {
       if (document.hidden) {
         clearTimeout(autoTimer);
@@ -2082,7 +1521,7 @@
         autoTimer = setTimeout(advanceDay, 500);
       }
     });
-  })();
+  }
   {% endif %}
 
 })();
