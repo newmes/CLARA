@@ -651,8 +651,18 @@ def _patient_summary(profile: dict, day_data: dict | None,
 # ─── Page views ───────────────────────────────────────────────
 
 def landing(request):
-    """Landing page: pure technology showcase (no runs context)."""
-    return render(request, "landing/landing.html")
+    """Landing page: pure technology showcase + demo map preview."""
+    runs = _get_runs()
+    # Pick the first completed run with enough patients for a nice map
+    demo_run_id = ""
+    for r in runs:
+        if r.get("status") == "completed" and (r.get("n_patients") or 0) >= 5:
+            demo_run_id = r["id"]
+            break
+    if not demo_run_id and runs:
+        demo_run_id = runs[0]["id"]
+    context = {"demo_run_id": demo_run_id}
+    return render(request, "landing/landing.html", context)
 
 
 def simulation_list(request):
