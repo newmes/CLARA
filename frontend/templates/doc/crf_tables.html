@@ -764,7 +764,8 @@
     }
   };
 
-  function loadDomainData() {
+  function loadDomainData(retries) {
+    if (retries === undefined) retries = 2;
     const area = document.getElementById('tableArea');
     area.innerHTML = '<div class="crf-loading"><div class="spinner"></div><div style="margin-top:8px;">Loading...</div></div>';
     document.getElementById('pagination').innerHTML = '';
@@ -772,8 +773,11 @@
     let url = `/api/crf/${RUN_ID}/${currentDomain.toLowerCase()}/?source=${currentSource}&mode=${currentMode}&page=${currentPage}&per_page=${PER_PAGE}`;
     if (currentPatient) url += `&patient=${currentPatient}`;
 
-    fetch(url)
-      .then(r => r.json())
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+
+    fetch(url, { signal: controller.signal })
+      .then(r => { clearTimeout(timeoutId); return r.json(); })
       .then(data => {
         if (data.error) {
           area.innerHTML = `<div class="crf-empty">${data.error}</div>`;
@@ -785,7 +789,12 @@
         renderPagination(data);
       })
       .catch(err => {
-        area.innerHTML = `<div class="crf-empty">Error loading data</div>`;
+        clearTimeout(timeoutId);
+        if (retries > 0) {
+          setTimeout(() => loadDomainData(retries - 1), 2000);
+        } else {
+          area.innerHTML = `<div class="crf-empty">Error loading data — <a href="#" onclick="loadDomainData();return false;" style="color:var(--primary);">Retry</a></div>`;
+        }
       });
   }
 

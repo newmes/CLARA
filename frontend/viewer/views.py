@@ -23,7 +23,7 @@ from django.views.decorators.http import require_POST, require_GET
 
 DATA_DIR = settings.DATA_DIR
 MAP_ASSETS_DIR = Path(settings.BASE_DIR) / "static_dirs" / "assets" / "map"
-PINNED_RUN_ID = "20260224_061414_Etoposide___Cisplatin_100pt_126d"
+PINNED_RUN_ID = "20260224_183746_Padcev___Pembrolizumab_100pt_126d"
 
 
 def _get_runs():
@@ -1454,11 +1454,16 @@ def api_run_meta(request, run_id: str):
     })
 
 
+_missing_runs: set = set()
+
 def api_day_data(request, run_id: str, day: int):
     """All patients' data for a specific day — for AJAX day navigation."""
+    if run_id in _missing_runs:
+        return JsonResponse({"error": "not found", "stop_polling": True}, status=404)
     run_path = _get_run_path(run_id)
     if not run_path.exists():
-        return JsonResponse({"error": "not found"}, status=404)
+        _missing_runs.add(run_id)
+        return JsonResponse({"error": "not found", "stop_polling": True}, status=404)
 
     mode = request.GET.get("mode", "natural")
     view_mode = request.GET.get("view", "hr")
@@ -1818,6 +1823,11 @@ def api_care_agent_run(request):
                     json=nurse_payload,
                     timeout=120,
                 )
+                if resp.status_code == 403:
+                    detail = resp.json().get("detail", "Invalid API key")
+                    q.put(json.dumps({"type": "error", "message": detail}))
+                    q.put(json.dumps({"type": "finished"}))
+                    return
                 resp.raise_for_status()
                 nurse_data = resp.json()
                 session_id = nurse_data.get("session_id", "")
@@ -2906,7 +2916,10 @@ def _load_patient_data(run_path, patient_id, mode="natural"):
     Uses hospital record (HR) when available — SAE reporting should be
     based on what the hospital actually observed, not ground truth.
     Falls back to GT for older runs that lack *_hospital.jsonl.
+    Uses crf_aggregator's file cache for fast repeated access.
     """
+    from viewer.crf_aggregator import _read_jsonl_cached, _load_patient_json
+
     profile_path = run_path / "patients" / f"{patient_id}.json"
     hr_path = run_path / "simulations" / f"{patient_id}_{mode}_hospital.jsonl"
     gt_path = run_path / "simulations" / f"{patient_id}_{mode}.jsonl"
@@ -2915,15 +2928,11 @@ def _load_patient_data(run_path, patient_id, mode="natural"):
     if not profile_path.exists() or not sim_path.exists():
         return None, None
 
-    with open(profile_path, encoding="utf-8") as f:
-        profile = json.load(f)
+    profile = _load_patient_json(run_path, patient_id)
+    if profile is None:
+        return None, None
 
-    records = []
-    with open(sim_path, encoding="utf-8") as f:
-        for line in f:
-            if line.strip():
-                records.append(json.loads(line))
-
+    records = _read_jsonl_cached(sim_path)
     return profile, records
 
 
@@ -3370,7 +3379,7 @@ def sae_report_editor(request, run_id: str, patient_id: str, ae_slug: str):
 
     if medwatch_data is None:
         # Generate fresh
-        mode = request.GET.get("mode", "natural")
+        mode = request.GET.get("mode", "care_ai")
         profile, records = _load_patient_data(run_path, patient_id, mode)
         if profile is None:
             return HttpResponse("Patient not found", status=404)
