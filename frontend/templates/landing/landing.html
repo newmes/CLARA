@@ -78,24 +78,39 @@
   }
 
   /* =================================================================
-     HERO STAGE — Two-column grid (always 55/45)
+     HERO STAGE — Text on top, Map+Cards grid below
      ================================================================= */
   .hero-stage {
-    display: grid;
-    grid-template-columns: 55fr 45fr;
-    gap: 64px;
     min-height: calc(100vh - 44px);
-    align-items: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
     padding: 2em 0;
     position: relative;
   }
 
-  /* Hero LEFT column — initially shifted right for center illusion */
+  /* Hero text — always centered above the grid */
+  .hero-text {
+    text-align: center;
+    will-change: opacity;
+    opacity: 0;
+  }
+
+  /* Two-column grid: map (left) + cards (right) */
+  .hero-content {
+    display: grid;
+    grid-template-columns: 55fr 45fr;
+    gap: 120px;
+    align-items: center;
+    position: relative;
+    margin-top: 2.5em;
+  }
+
+  /* Hero LEFT column (map) — initially centered */
   .hero-left {
     will-change: transform, opacity;
     opacity: 0;
     transform: translateX(22.5%) scale(0.92);
-    text-align: center;
   }
 
   /* Hero RIGHT column — initially hidden off-screen */
@@ -131,46 +146,36 @@
     100% { opacity: 1; transform: translateY(0) scale(1); }
   }
 
-  /* -- Stage 1: Hero enters center -- */
-  .hero-left--entering {
-    animation: heroCenterIn 800ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  /* -- Stage 1: Text fades in -- */
+  .hero-text--entering {
+    animation: fadeUpSoft 800ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
-
-  /* Stagger child elements during Stage 1 */
-  .hero-left--entering .hero-overline {
+  .hero-text--entering .hero-overline {
     opacity: 0;
     animation: fadeUpSoft 600ms cubic-bezier(0.16, 1, 0.3, 1) 100ms forwards;
   }
-  .hero-left--entering .hero-title {
+  .hero-text--entering .hero-title {
     opacity: 0;
     animation: fadeUpSoft 700ms cubic-bezier(0.16, 1, 0.3, 1) 250ms forwards;
   }
-  .hero-left--entering .hero-title .word-expansion {
+  .hero-text--entering .hero-title .word-expansion {
     opacity: 0;
     animation: fadeUpSoft 600ms cubic-bezier(0.16, 1, 0.3, 1) 500ms forwards;
   }
-  .hero-left--entering .hero-subtitle {
+  .hero-text--entering .hero-subtitle {
     opacity: 0;
     animation: fadeUpSoft 600ms cubic-bezier(0.16, 1, 0.3, 1) 750ms forwards;
   }
-  .hero-left--entering .sim-map-section {
-    animation: mapReveal 900ms cubic-bezier(0.16, 1, 0.3, 1) 900ms forwards;
+
+  /* -- Stage 1: Map enters center -- */
+  .hero-left--entering {
+    animation: heroCenterIn 800ms cubic-bezier(0.16, 1, 0.3, 1) 900ms forwards;
   }
 
-  /* -- Stage 2: Hero settles left -- */
+  /* -- Stage 2: Map settles left -- */
   .hero-left--settled {
     opacity: 1;
     animation: heroSettleLeft 900ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    text-align: center;
-  }
-  .hero-left--settled .hero-overline,
-  .hero-left--settled .hero-title,
-  .hero-left--settled .hero-title .word-expansion,
-  .hero-left--settled .hero-subtitle,
-  .hero-left--settled .sim-map-section {
-    opacity: 1;
-    animation: none;
-    transform: none;
   }
 
   /* Demo card entrance */
@@ -182,56 +187,39 @@
     animation: cardSlideIn 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
   }
 
-  /* Sim map — visible during Stage 1 (fades in with hero) */
-  .sim-map-section {
-    opacity: 0;
-    transform: translateY(20px) scale(0.98);
-  }
-  .sim-map-section--visible {
-    animation: mapReveal 900ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
-  }
-
   /* -- Skip animation (return visitors) -- */
-  .hero-stage--instant .hero-left {
-    opacity: 1;
-    transform: none;
-    text-align: center;
-    animation: none;
+  .hero-stage--instant .hero-text {
+    opacity: 1; animation: none;
   }
-  .hero-stage--instant .hero-left .hero-overline,
-  .hero-stage--instant .hero-left .hero-title,
-  .hero-stage--instant .hero-left .hero-title .word,
-  .hero-stage--instant .hero-left .hero-title .word-expansion,
-  .hero-stage--instant .hero-left .hero-subtitle,
-  .hero-stage--instant .hero-left .sim-map-section {
-    opacity: 1;
-    transform: none;
-    animation: none;
+  .hero-stage--instant .hero-text .hero-overline,
+  .hero-stage--instant .hero-text .hero-title,
+  .hero-stage--instant .hero-text .hero-title .word-expansion,
+  .hero-stage--instant .hero-text .hero-subtitle {
+    opacity: 1; transform: none; animation: none;
+  }
+  .hero-stage--instant .hero-left {
+    opacity: 1; transform: none; animation: none;
   }
   .hero-stage--instant .hero-right {
-    opacity: 1;
-    transform: none;
-    animation: none;
+    opacity: 1; transform: none; animation: none;
   }
   .hero-stage--instant .demo-card {
-    opacity: 1;
-    transform: none;
-    animation: none;
+    opacity: 1; transform: none; animation: none;
   }
+  .hero-stage--instant .flow-line-bg { opacity: 0.2; }
   .hero-stage--instant .flow-line {
-    opacity: 1;
-    stroke-dasharray: none;
-    stroke-dashoffset: 0;
-    animation: none;
+    opacity: 0.8;
+    stroke-dasharray: 8 24;
+    animation: flowStream 2s linear infinite;
   }
+  .hero-stage--instant .flow-line--2 { animation-delay: -0.6s; }
+  .hero-stage--instant .flow-line--3 { animation-delay: -1.2s; }
   .hero-stage--instant .flow-dot {
     opacity: 1;
-    animation: none;
+    animation: dotPulse 2s ease-in-out infinite;
   }
   .hero-stage--instant .sim-map-section {
-    opacity: 1;
-    transform: none;
-    animation: none;
+    opacity: 1; transform: none; animation: none;
   }
 
   /* =================================================================
@@ -558,6 +546,20 @@
     width: 100%; height: 100%;
     overflow: visible;
   }
+  /* Base line (faint trail) */
+  .flow-line-bg {
+    fill: none;
+    stroke-width: 1;
+    stroke-linecap: round;
+    opacity: 0;
+    transition: opacity 0.6s ease;
+  }
+  .flow-line-bg--1 { stroke: url(#flowGrad1); }
+  .flow-line-bg--2 { stroke: url(#flowGrad2); }
+  .flow-line-bg--3 { stroke: url(#flowGrad3); }
+  .flow-connector--visible .flow-line-bg { opacity: 0.2; }
+
+  /* Animated flowing dashes (card → map direction) */
   .flow-line {
     fill: none;
     stroke-width: 1.5;
@@ -570,16 +572,17 @@
   .flow-line--3 { stroke: url(#flowGrad3); }
 
   .flow-connector--visible .flow-line {
-    opacity: 1;
-    stroke-dasharray: 1000;
-    stroke-dashoffset: 1000;
-    animation: flowDraw 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+    opacity: 0.8;
+    stroke-dasharray: 8 24;
+    animation: flowStream 2s linear infinite;
   }
-  .flow-connector--visible .flow-line--2 { animation-delay: 0.15s; }
-  .flow-connector--visible .flow-line--3 { animation-delay: 0.3s; }
+  .flow-connector--visible .flow-line--2 { animation-delay: -0.6s; }
+  .flow-connector--visible .flow-line--3 { animation-delay: -1.2s; }
 
-  @keyframes flowDraw {
-    to { stroke-dashoffset: 0; }
+  /* Negative offset = dashes move from right (card) to left (map) */
+  @keyframes flowStream {
+    from { stroke-dashoffset: 0; }
+    to   { stroke-dashoffset: 64; }
   }
 
   /* Glow dots at endpoints */
@@ -593,13 +596,13 @@
   .flow-dot--2 { fill: #3fb950; filter: drop-shadow(0 0 6px rgba(63,185,80,0.6)); }
   .flow-dot--3 { fill: #bc8cff; filter: drop-shadow(0 0 6px rgba(188,140,255,0.6)); }
   .flow-connector--visible .flow-dot { opacity: 1; }
-  .flow-connector--visible .flow-dot--1 { transition-delay: 1.0s; }
-  .flow-connector--visible .flow-dot--2 { transition-delay: 1.15s; }
-  .flow-connector--visible .flow-dot--3 { transition-delay: 1.3s; }
+  .flow-connector--visible .flow-dot--1 { transition-delay: 0.3s; }
+  .flow-connector--visible .flow-dot--2 { transition-delay: 0.45s; }
+  .flow-connector--visible .flow-dot--3 { transition-delay: 0.6s; }
 
   /* Pulse animation on endpoint dots */
   .flow-connector--visible .flow-dot {
-    animation: dotPulse 2s ease-in-out infinite 1.5s;
+    animation: dotPulse 2s ease-in-out infinite 1s;
   }
   @keyframes dotPulse {
     0%, 100% { r: 3; opacity: 1; }
@@ -947,7 +950,6 @@
      SIMULATION MAP PREVIEW
      ================================================================= */
   .sim-map-section {
-    margin: 2em 0 0;
     width: 100%;
   }
   .sim-map-day-overlay {
@@ -1012,30 +1014,23 @@
      RESPONSIVE
      ================================================================= */
   @media (max-width: 900px) {
-    .hero-stage {
+    .hero-stage { min-height: auto; padding: 3em 0 1em; }
+    .hero-content {
       grid-template-columns: 1fr;
-      min-height: auto;
-      padding: 3em 0 1em;
+      margin-top: 1.5em;
     }
-    .hero-left {
-      text-align: center;
-      transform: none;
-      opacity: 0;
-    }
+    .hero-text { opacity: 1; animation: none; }
+    .hero-text .hero-overline,
+    .hero-text .hero-title,
+    .hero-text .hero-title .word-expansion,
+    .hero-text .hero-subtitle { opacity: 1; transform: none; animation: none; }
+    .hero-left { transform: none; opacity: 0; }
     .hero-left--entering {
       animation: fadeUpSoft 800ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
-    .hero-left--settled {
-      animation: none;
-      opacity: 1;
-      text-align: center;
-    }
-    .hero-right {
-      transform: translateY(30px);
-    }
-    .demo-card {
-      transform: translateY(20px);
-    }
+    .hero-left--settled { animation: none; opacity: 1; }
+    .hero-right { transform: translateY(30px); }
+    .demo-card { transform: translateY(20px); }
     .demo-card--visible {
       animation: fadeUpSoft 600ms cubic-bezier(0.16, 1, 0.3, 1) forwards;
     }
@@ -1058,23 +1053,20 @@
      REDUCED MOTION — accessibility
      ================================================================= */
   @media (prefers-reduced-motion: reduce) {
+    .hero-text,
     .hero-left,
     .hero-right,
     .demo-card,
     .sim-map-section,
-    .hero-left .hero-overline,
-    .hero-left .hero-title,
-    .hero-left .hero-title .word-expansion,
-    .hero-left .hero-subtitle {
+    .hero-text .hero-overline,
+    .hero-text .hero-title,
+    .hero-text .hero-title .word-expansion,
+    .hero-text .hero-subtitle {
       opacity: 1 !important;
       transform: none !important;
       animation: none !important;
       transition: none !important;
     }
-    .hero-left { text-align: center; }
-    .hero-right { opacity: 1; transform: none; }
-    .demo-card { opacity: 1; transform: none; }
-    .sim-map-section { opacity: 1; transform: none; }
     .scroll-hint { opacity: 1; }
     .scroll-hint__arrow { animation: none; }
     .aurora-bg::before,
@@ -1108,12 +1100,12 @@
 <div class="landing-wrap">
 
   <!-- ============================================================
-       HERO STAGE — 55/45 Grid with Two-Stage Animation
+       HERO STAGE — Text on top, Map+Cards grid below
        ============================================================ -->
   <section class="hero-stage" id="heroStage">
 
-    <!-- LEFT COLUMN: Hero text + Map -->
-    <div class="hero-left" id="heroLeft">
+    <!-- TEXT — centered above the grid -->
+    <div class="hero-text" id="heroText">
       <div class="hero-overline">
         <span class="pulse-pip"></span>
         MedGemma Impact Challenge 2026
@@ -1128,57 +1120,57 @@
         Generate realistic patient journeys from a <strong>single drug name</strong>.
         AI-driven AE detection proves the value of continuous monitoring.
       </p>
+    </div>
 
-      {% if demo_run_id %}
-      <!-- Simulation Map Preview -->
-      <div class="sim-map-section" id="simMapSection">
-        <a href="{% url 'simulation_list' %}" class="sim-map-container" id="simMapContainer" style="display:block;cursor:pointer;">
-          <span class="sim-map-day-overlay" id="simMapDay">DAY 1</span>
-          <span class="sim-map-cta-overlay">
-            <svg class="cta-play" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 3 20 12 6 21"/></svg>
+    <!-- MAP + CARDS — side by side grid -->
+    <div class="hero-content" id="heroContent">
+
+      <!-- LEFT: Map -->
+      <div class="hero-left" id="heroLeft">
+        {% if demo_run_id %}
+        <div class="sim-map-section" id="simMapSection">
+          <a href="{% url 'simulation_list' %}" class="sim-map-container" id="simMapContainer" style="display:block;cursor:pointer;">
+            <span class="sim-map-day-overlay" id="simMapDay">DAY 1</span>
+            <span class="sim-map-cta-overlay">
+              <svg class="cta-play" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="6 3 20 12 6 21"/></svg>
+              Enter Simulation
+              <svg class="cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </span>
+          </a>
+        </div>
+        {% else %}
+        <div class="hero-actions">
+          <a href="{% url 'simulation_list' %}" class="btn-hero-primary">
             Enter Simulation
-            <svg class="cta-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-          </span>
-        </a>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+          </a>
+        </div>
+        {% endif %}
       </div>
-      {% else %}
-      <!-- Fallback CTA buttons when no map available -->
-      <div class="hero-actions">
-        <a href="{% url 'simulation_list' %}" class="btn-hero-primary">
-          Enter Simulation
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-        </a>
-        <a href="#core-technology" class="btn-hero-secondary">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
-          Explore Demos
-        </a>
+
+      <!-- FLOW CONNECTOR SVG — animated lines from map to cards -->
+      <div class="flow-connector" id="flowConnector">
+        <svg id="flowSvg">
+          <defs>
+            <linearGradient id="flowGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="rgba(57,210,192,0.6)"/>
+              <stop offset="100%" stop-color="rgba(88,166,255,0.5)"/>
+            </linearGradient>
+            <linearGradient id="flowGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="rgba(57,210,192,0.6)"/>
+              <stop offset="100%" stop-color="rgba(63,185,80,0.5)"/>
+            </linearGradient>
+            <linearGradient id="flowGrad3" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%" stop-color="rgba(57,210,192,0.6)"/>
+              <stop offset="100%" stop-color="rgba(188,140,255,0.5)"/>
+            </linearGradient>
+          </defs>
+          <!-- Paths and dots computed by JS -->
+        </svg>
       </div>
-      {% endif %}
-    </div>
 
-    <!-- FLOW CONNECTOR SVG — animated lines from map to cards -->
-    <div class="flow-connector" id="flowConnector">
-      <svg viewBox="0 0 100 100" preserveAspectRatio="none" id="flowSvg">
-        <defs>
-          <linearGradient id="flowGrad1" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="rgba(57,210,192,0.6)"/>
-            <stop offset="100%" stop-color="rgba(88,166,255,0.5)"/>
-          </linearGradient>
-          <linearGradient id="flowGrad2" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="rgba(57,210,192,0.6)"/>
-            <stop offset="100%" stop-color="rgba(63,185,80,0.5)"/>
-          </linearGradient>
-          <linearGradient id="flowGrad3" x1="0%" y1="0%" x2="100%" y2="0%">
-            <stop offset="0%" stop-color="rgba(57,210,192,0.6)"/>
-            <stop offset="100%" stop-color="rgba(188,140,255,0.5)"/>
-          </linearGradient>
-        </defs>
-        <!-- Paths and dots computed by JS -->
-      </svg>
-    </div>
-
-    <!-- RIGHT COLUMN: 3 Demo Cards -->
-    <div class="hero-right" id="heroRight">
+      <!-- RIGHT: 3 Demo Cards -->
+      <div class="hero-right" id="heroRight">
 
       <!-- Card 1: Simulation Engine -->
       <div class="tech-card accent-blue demo-card">
@@ -1261,6 +1253,7 @@
       </div>
 
     </div>
+    </div><!-- /hero-content -->
   </section>
 
 
@@ -1288,18 +1281,17 @@
   /* ─── Hero Two-Stage Animation ─── */
 
   function initHeroAnimation() {
+    var heroText = document.getElementById('heroText');
     var heroLeft = document.getElementById('heroLeft');
     var heroRight = document.getElementById('heroRight');
     var cards = document.querySelectorAll('.demo-card');
-    var mapEl = document.getElementById('simMapSection');
-    var scrollHint = document.getElementById('scrollHint');
 
-    if (!heroLeft) return;
+    if (!heroText) return;
 
-    /* Stage 1: Hero + Map enter at center (0 ~ 2s) */
+    /* Stage 1: Text + Map fade in (0 ~ 2s) */
     requestAnimationFrame(function() {
+      heroText.classList.add('hero-text--entering');
       heroLeft.classList.add('hero-left--entering');
-      /* Map fades in as part of Stage 1 (via CSS stagger at 900ms) */
     });
 
     /* Init Phaser map early so it renders during Stage 1 */
@@ -1309,12 +1301,15 @@
       {% endif %}
     }, 1200);
 
-    /* Stage 2: Split transition (2s ~ 3s) — after map is visible */
+    /* Stage 2: Map settles left, cards slide in (2s ~ 3s) */
     setTimeout(function() {
+      heroText.classList.remove('hero-text--entering');
+      heroText.style.opacity = '1';
+
       heroLeft.classList.remove('hero-left--entering');
       heroLeft.classList.add('hero-left--settled');
 
-      /* Show right column container */
+      /* Show right column */
       if (heroRight) {
         heroRight.style.opacity = '1';
         heroRight.style.transform = 'none';
@@ -1327,85 +1322,74 @@
         }, i * 200);
       });
 
-      /* Flow connector lines from map to cards */
-      setTimeout(function() { drawFlowConnector(); }, 500);
-
-      /* Scroll hint */
-      if (scrollHint) {
-        setTimeout(function() {
-          scrollHint.classList.add('scroll-hint--visible');
-        }, 600);
-      }
+      /* Draw flow connector after cards settle */
+      setTimeout(drawFlowConnector, 1100);
     }, 2000);
 
-    /* Stage 3: Post-animation cleanup (3s+) */
+    /* Stage 3: Post-animation cleanup */
     setTimeout(function() {
       sessionStorage.setItem('clara_hero_animated', '1');
-    }, 3000);
+    }, 3500);
   }
 
   function applyFinalState() {
     var stage = document.getElementById('heroStage');
-    var scrollHint = document.getElementById('scrollHint');
-    if (stage) {
-      stage.classList.add('hero-stage--instant');
-    }
-    if (scrollHint) {
-      scrollHint.classList.add('scroll-hint--visible');
-    }
-    /* Init Phaser map immediately */
+    if (stage) stage.classList.add('hero-stage--instant');
     {% if demo_run_id %}
     initSimMap();
     {% endif %}
-    /* Draw flow connector immediately */
     setTimeout(drawFlowConnector, 100);
   }
 
   /* ─── Flow Connector: draw SVG curves from map to each card ─── */
   function drawFlowConnector() {
-    var stage = document.getElementById('heroStage');
-    var mapEl = document.getElementById('simMapContainer') || document.getElementById('simMapSection');
-    var cards = document.querySelectorAll('.demo-card');
-    var connector = document.getElementById('flowConnector');
-    var svg = document.getElementById('flowSvg');
-    if (!stage || !mapEl || !cards.length || !connector || !svg) return;
+    requestAnimationFrame(function() {
+      var mapEl = document.getElementById('simMapContainer') || document.getElementById('simMapSection');
+      var cards = document.querySelectorAll('.demo-card');
+      var connector = document.getElementById('flowConnector');
+      var svg = document.getElementById('flowSvg');
+      if (!mapEl || !cards.length || !connector || !svg) return;
 
-    var stageRect = stage.getBoundingClientRect();
+      /* Use connector div rect — CSS-driven, always reliable */
+      var ref = connector.getBoundingClientRect();
+      if (ref.width === 0 || ref.height === 0) return;
 
-    /* Source: right-center of map */
-    var mapRect = mapEl.getBoundingClientRect();
-    var srcX = mapRect.right - stageRect.left;
-    var srcY = mapRect.top + mapRect.height * 0.5 - stageRect.top;
+      var mapRect = mapEl.getBoundingClientRect();
+      var srcX = mapRect.right - ref.left;
+      var srcY = mapRect.top + mapRect.height * 0.5 - ref.top;
 
-    /* Set viewBox to match stage dimensions */
-    svg.setAttribute('viewBox', '0 0 ' + stageRect.width + ' ' + stageRect.height);
+      svg.setAttribute('viewBox', '0 0 ' + ref.width + ' ' + ref.height);
 
-    /* Build paths + dots */
-    var html = svg.querySelector('defs').outerHTML;
+      var html = svg.querySelector('defs').outerHTML;
+      html += '<circle class="flow-dot flow-dot--src" cx="' + srcX + '" cy="' + srcY + '" r="3"/>';
 
-    /* Source dot */
-    html += '<circle class="flow-dot flow-dot--src" cx="' + srcX + '" cy="' + srcY + '" r="3"/>';
+      cards.forEach(function(card, i) {
+        var cr = card.getBoundingClientRect();
+        var dstX = cr.left - ref.left;
+        var dstY = cr.top + cr.height * 0.5 - ref.top;
 
-    cards.forEach(function(card, i) {
-      var cardRect = card.getBoundingClientRect();
-      var dstX = cardRect.left - stageRect.left;
-      var dstY = cardRect.top + cardRect.height * 0.5 - stageRect.top;
+        var cpOffset = 60;
+        var d = 'M ' + srcX + ' ' + srcY
+              + ' C ' + (srcX + cpOffset) + ' ' + srcY
+              + ', ' + (dstX - cpOffset) + ' ' + dstY
+              + ', ' + dstX + ' ' + dstY;
 
-      /* Control points for smooth S-curve */
-      var midX = (srcX + dstX) / 2;
-      var cpOffset = 40;
-      var d = 'M ' + srcX + ' ' + srcY
-            + ' C ' + (srcX + cpOffset) + ' ' + srcY
-            + ', ' + (dstX - cpOffset) + ' ' + dstY
-            + ', ' + dstX + ' ' + dstY;
+        html += '<path class="flow-line-bg flow-line-bg--' + (i + 1) + '" d="' + d + '"/>';
+        html += '<path class="flow-line flow-line--' + (i + 1) + '" d="' + d + '"/>';
+        html += '<circle class="flow-dot flow-dot--' + (i + 1) + '" cx="' + dstX + '" cy="' + dstY + '" r="3"/>';
+      });
 
-      html += '<path class="flow-line flow-line--' + (i + 1) + '" d="' + d + '"/>';
-      html += '<circle class="flow-dot flow-dot--' + (i + 1) + '" cx="' + dstX + '" cy="' + dstY + '" r="3"/>';
+      svg.innerHTML = html;
+      connector.classList.add('flow-connector--visible');
     });
-
-    svg.innerHTML = html;
-    connector.classList.add('flow-connector--visible');
   }
+
+  /* Redraw on resize */
+  var _flowTimer;
+  window.addEventListener('resize', function() {
+    clearTimeout(_flowTimer);
+    _flowTimer = setTimeout(drawFlowConnector, 200);
+  });
 
   /* Gate: animate once per session */
   if (sessionStorage.getItem('clara_hero_animated')) {
