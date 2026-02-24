@@ -1,6 +1,6 @@
 """Google Cloud Text-to-Speech wrapper.
 
-Converts nurse text responses into audio bytes (MP3).
+Converts nurse text responses into audio bytes (WAV, 24 kHz).
 Falls back to a simple text-only response if TTS is unavailable.
 """
 
@@ -22,7 +22,7 @@ class TTSService:
     def __init__(
         self,
         language_code: str = "en-US",
-        voice_name: str = "en-US-Neural2-F",
+        voice_name: str = "Kore",
         speaking_rate: float = 0.95,
     ):
         self.language_code = language_code
@@ -41,7 +41,7 @@ class TTSService:
         return self._client is not None
 
     def synthesize(self, text: str) -> bytes | None:
-        """Convert text to MP3 audio bytes. Returns None if TTS is unavailable."""
+        """Convert text to WAV audio bytes (24 kHz). Returns None if TTS is unavailable."""
         if not self._client or not text.strip():
             return None
 
@@ -51,7 +51,8 @@ class TTSService:
             name=self.voice_name,
         )
         audio_config = texttospeech.AudioConfig(
-            audio_encoding=texttospeech.AudioEncoding.MP3,
+            audio_encoding=texttospeech.AudioEncoding.LINEAR16,
+            sample_rate_hertz=24000,
             speaking_rate=self.speaking_rate,
         )
 
@@ -61,7 +62,7 @@ class TTSService:
         return response.audio_content
 
     def synthesize_base64(self, text: str) -> str | None:
-        """Convert text to base64-encoded MP3 for JSON transport."""
+        """Convert text to base64-encoded WAV for JSON transport."""
         audio = self.synthesize(text)
         if audio:
             return base64.b64encode(audio).decode("utf-8")

@@ -2,8 +2,12 @@
 
 Endpoints:
     POST /v1/consult
-        Input:  SigLIP 1152-dim vector + patient STT text + (optional) drug/patient info
-        Output: Nurse AI text response + TTS audio (base64 MP3)
+        Input:  SigLIP 1152-dim vector + patient STT text + (optional) audio WAV + drug/patient info
+        Output: Nurse AI text response + TTS audio (base64) + cough analysis + medical transcript + session_id
+
+    POST /v1/chat
+        Input:  session_id + follow-up message
+        Output: Nurse AI text response + TTS audio (base64)
 
     GET /v1/health
         Health check
@@ -19,6 +23,7 @@ import logging
 import os
 import sys
 import time
+import uuid
 from pathlib import Path
 from typing import Optional
 
@@ -32,6 +37,8 @@ load_dotenv()
 from care_ai.siglip_classifier import SigLIPClassifier
 from care_ai.nurse_engine import NurseEngine
 from care_ai.tts_service import TTSService
+from care_ai.cough_classifier import CoughClassifier
+from care_ai.medasr_service import MedASRService
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 log = logging.getLogger("care-ai-api")
@@ -40,15 +47,32 @@ log = logging.getLogger("care-ai-api")
 # Config (environment variables with defaults)
 # ===================================================================
 
+CARE_AI_DIR = Path(__file__).resolve().parent
+
 GPU_ID = int(os.getenv("CARE_AI_GPU", "0"))
 MEDGEMMA_PATH = os.getenv("MEDGEMMA_MODEL", "google/medgemma-4b-it")
 MEDGEMMA_ADAPTER = os.getenv("MEDGEMMA_ADAPTER", "")
 MEDGEMMA_TOKENIZER = os.getenv("MEDGEMMA_TOKENIZER", "")
-SIGLIP_HEAD = os.getenv("SIGLIP_HEAD", str(Path(__file__).resolve().parent / "models" / "siglip_head.pt"))
+SIGLIP_HEAD = os.getenv("SIGLIP_HEAD", str(CARE_AI_DIR / "models" / "siglip_head.pt"))
 
 DEFAULT_RULE_SET = os.getenv(
     "DEFAULT_RULE_SET",
     "/data/rule_set_calibrated_ev302.json",
+)
+
+HEAR_GPU = os.getenv("HEAR_GPU", None)  # None = CPU (default, ~400-750ms)
+MEDASR_GPU = os.getenv("MEDASR_GPU", None)  # None = CPU (default, Conformer 105M is fast on CPU)
+SEGMENTATION_DIR = os.getenv(
+    "SEGMENTATION_DIR",
+    str(CARE_AI_DIR / "models" / "segmentation"),
+)
+COUGH_MODEL_DIR_3C = os.getenv(
+    "COUGH_MODEL_DIR_3C",
+    str(CARE_AI_DIR / "models" / "hear_3c"),
+)
+COUGH_MODEL_DIR_2C = os.getenv(
+    "COUGH_MODEL_DIR_2C",
+    str(CARE_AI_DIR / "models" / "hear_2c"),
 )
 
 # ===================================================================
@@ -74,6 +98,10 @@ class ConsultRequest(BaseModel):
         None,
         description="Indication (e.g., 'metastatic urothelial carcinoma'). Falls back to default.",
     )
+    audio_b64: Optional[str] = Field(
+        None,
+        description="Base64-encoded WAV audio from the patient (for cough detection).",
+    )
     skip_tts: bool = Field(
         False,
         description="If true, skip TTS and return text only (faster).",
@@ -88,6 +116,10 @@ class VisualFinding(BaseModel):
 
 
 class ConsultResponse(BaseModel):
+    session_id: str = Field(
+        ...,
+        description="Session ID for follow-up chat via /v1/chat",
+    )
     nurse_text: str = Field(
         ...,
         description="Natural language nurse response (ready for TTS or display)",
@@ -100,14 +132,35 @@ class ConsultResponse(BaseModel):
         ...,
         description="SigLIP visual analysis results",
     )
+    audio_assessment: dict | None = Field(
+        None,
+        description="Cough detection results from HeAR pipeline (null if no audio provided or classifier unavailable)",
+    )
+    medical_transcript: str | None = Field(
+        None,
+        description="Medical ASR transcript from MedASR (null if no audio provided or MedASR unavailable)",
+    )
     audio_base64: str | None = Field(
         None,
-        description="Base64-encoded MP3 audio of the nurse response (null if TTS unavailable or skipped)",
+        description="Base64-encoded audio of the nurse response (null if TTS unavailable or skipped)",
     )
     latency_ms: dict = Field(
         ...,
         description="Latency breakdown in milliseconds",
     )
+
+
+class ChatRequest(BaseModel):
+    session_id: str = Field(..., description="Session ID from /v1/consult response")
+    message: str = Field(..., description="Patient follow-up message")
+    skip_tts: bool = Field(False, description="If true, skip TTS and return text only")
+
+
+class ChatResponse(BaseModel):
+    nurse_text: str = Field(..., description="Natural language nurse response")
+    nurse_structured: dict = Field(..., description="Structured nurse response")
+    audio_base64: str | None = Field(None, description="Base64-encoded TTS audio (null if skipped)")
+    latency_ms: dict = Field(..., description="Latency breakdown in milliseconds")
 
 
 # ===================================================================
@@ -116,8 +169,8 @@ class ConsultResponse(BaseModel):
 
 app = FastAPI(
     title="Care AI — Nurse Agent API",
-    version="0.1.0",
-    description="MedGemma Nurse Agent with MedSigLIP visual assessment + Google TTS",
+    version="0.2.0",
+    description="MedGemma Nurse Agent with MedSigLIP visual assessment + HeAR cough detection + MedASR + Google TTS",
 )
 app.add_middleware(
     CORSMiddleware,
@@ -126,18 +179,55 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# ── Session store (in-memory, TTL 30 min) ──
+SESSION_TTL_SEC = 30 * 60
+sessions: dict[str, dict] = {}
+
+
+def _cleanup_sessions() -> None:
+    """Remove expired sessions."""
+    now = time.time()
+    expired = [sid for sid, s in sessions.items() if now - s["last_active"] > SESSION_TTL_SEC]
+    for sid in expired:
+        del sessions[sid]
+
+
 classifier: SigLIPClassifier | None = None
+cough_clf: CoughClassifier | None = None
+medasr: MedASRService | None = None
 nurse: NurseEngine | None = None
 tts: TTSService | None = None
 
 
 @app.on_event("startup")
 async def startup():
-    global classifier, nurse, tts
+    global classifier, cough_clf, medasr, nurse, tts
 
     log.info("Loading SigLIP classification head from %s", SIGLIP_HEAD)
     classifier = SigLIPClassifier(SIGLIP_HEAD, device="cpu")
     log.info("SigLIP head loaded.")
+
+    try:
+        log.info("Loading CoughClassifier (3c=%s, 2c=%s, gpu=%s)", COUGH_MODEL_DIR_3C, COUGH_MODEL_DIR_2C, HEAR_GPU)
+        cough_clf = CoughClassifier(
+            segmentation_dir=SEGMENTATION_DIR,
+            model_dir_3c=COUGH_MODEL_DIR_3C,
+            model_dir_2c=COUGH_MODEL_DIR_2C,
+            hear_gpu=HEAR_GPU,
+        )
+        log.info("CoughClassifier ready.")
+    except Exception as exc:
+        log.warning("CoughClassifier failed to load — audio analysis disabled: %s", exc)
+        cough_clf = None
+
+    try:
+        medasr_device = f"cuda:{MEDASR_GPU}" if MEDASR_GPU is not None else "cpu"
+        log.info("Loading MedASR (device=%s)", medasr_device)
+        medasr = MedASRService(device=medasr_device)
+        log.info("MedASR ready.")
+    except Exception as exc:
+        log.warning("MedASR failed to load — medical transcription disabled: %s", exc)
+        medasr = None
 
     log.info("Loading MedGemma nurse from %s (GPU %d)", MEDGEMMA_PATH, GPU_ID)
     nurse = NurseEngine(
@@ -177,6 +267,8 @@ async def health():
     return {
         "status": "ok",
         "classifier_loaded": classifier is not None,
+        "cough_classifier_loaded": cough_clf is not None,
+        "medasr_loaded": medasr is not None,
         "nurse_loaded": nurse is not None,
         "tts_available": tts.available if tts else False,
         "loaded_drugs": list(nurse._drug_profiles.keys()) if nurse else [],
@@ -194,30 +286,146 @@ async def consult(req: ConsultRequest):
     visual_assessment = classifier.build_visual_assessment(req.siglip_vector)
     timings["siglip_ms"] = round((time.time() - t0) * 1000)
 
+    # Cough analysis (optional — only if audio provided and classifier loaded)
+    audio_assessment = None
+    if req.audio_b64 and cough_clf:
+        try:
+            t0 = time.time()
+            audio_assessment = cough_clf.build_audio_assessment(req.audio_b64)
+            timings["cough_ms"] = round((time.time() - t0) * 1000)
+        except Exception as exc:
+            log.warning("Cough analysis failed: %s", exc)
+            audio_assessment = None
+
+    # MedASR transcription (optional — only if audio provided and MedASR loaded)
+    medical_transcript = None
+    if req.audio_b64 and medasr:
+        try:
+            t0 = time.time()
+            medical_transcript = medasr.transcribe(req.audio_b64)
+            timings["medasr_ms"] = round((time.time() - t0) * 1000)
+        except Exception as exc:
+            log.warning("MedASR transcription failed: %s", exc)
+            medical_transcript = None
+
     t0 = time.time()
     nurse_response = nurse.generate_response(
         patient_text=req.patient_text,
         visual_assessment=visual_assessment,
         drug_name=req.drug_name,
         indication=req.indication,
+        audio_assessment=audio_assessment,
+        medical_transcript=medical_transcript,
     )
     timings["nurse_ms"] = round((time.time() - t0) * 1000)
 
     speech_text = nurse.response_to_speech_text(nurse_response)
 
-    audio_b64 = None
+    tts_audio_b64 = None
     if not req.skip_tts and tts and tts.available:
         t0 = time.time()
-        audio_b64 = tts.synthesize_base64(speech_text)
+        tts_audio_b64 = tts.synthesize_base64(speech_text)
         timings["tts_ms"] = round((time.time() - t0) * 1000)
 
     timings["total_ms"] = sum(timings.values())
 
+    # ── Create session for follow-up chat ──
+    session_id = uuid.uuid4().hex
+    drug_name = req.drug_name
+    indication = req.indication
+    drug_ae_profile = None
+    if drug_name and drug_name in nurse._drug_profiles:
+        ctx = nurse._drug_profiles[drug_name]
+        drug_name = ctx["drug_name"]
+        indication = indication or ctx["indication"]
+        drug_ae_profile = ctx["ae_profile"]
+    elif not drug_name and nurse._drug_profiles:
+        ctx = next(iter(nurse._drug_profiles.values()))
+        drug_name = ctx["drug_name"]
+        indication = indication or ctx["indication"]
+        drug_ae_profile = ctx["ae_profile"]
+    else:
+        drug_name = drug_name or "Unknown"
+        indication = indication or ""
+        drug_ae_profile = []
+
+    system_prompt = nurse.build_system_prompt(
+        drug_name, indication, visual_assessment, drug_ae_profile,
+        audio_assessment=audio_assessment,
+        medical_transcript=medical_transcript,
+    )
+    user_prompt = nurse.build_user_prompt(
+        req.patient_text,
+        has_audio=audio_assessment is not None,
+        medical_transcript=medical_transcript,
+    )
+
+    now = time.time()
+    sessions[session_id] = {
+        "system_prompt": system_prompt,
+        "messages": [
+            {"role": "user", "content": user_prompt},
+            {"role": "assistant", "content": json.dumps(nurse_response, ensure_ascii=False)},
+        ],
+        "created_at": now,
+        "last_active": now,
+        "drug_name": drug_name,
+    }
+
     return ConsultResponse(
+        session_id=session_id,
         nurse_text=speech_text,
         nurse_structured=nurse_response,
         visual_assessment=visual_assessment,
-        audio_base64=audio_b64,
+        audio_assessment=audio_assessment,
+        medical_transcript=medical_transcript,
+        audio_base64=tts_audio_b64,
+        latency_ms=timings,
+    )
+
+
+@app.post("/v1/chat", response_model=ChatResponse)
+async def chat(req: ChatRequest):
+    """Follow-up chat within an existing consult session."""
+    if not nurse:
+        raise HTTPException(status_code=503, detail="Models not loaded yet")
+
+    _cleanup_sessions()
+
+    session = sessions.get(req.session_id)
+    if not session:
+        raise HTTPException(status_code=404, detail="Session not found or expired")
+
+    timings = {}
+
+    session["messages"].append({"role": "user", "content": req.message})
+    session["last_active"] = time.time()
+
+    t0 = time.time()
+    nurse_response = nurse.generate_chat_response(
+        system_prompt=session["system_prompt"],
+        messages=session["messages"],
+    )
+    timings["nurse_ms"] = round((time.time() - t0) * 1000)
+
+    session["messages"].append(
+        {"role": "assistant", "content": json.dumps(nurse_response, ensure_ascii=False)}
+    )
+
+    speech_text = nurse.chat_response_to_speech_text(nurse_response)
+
+    tts_audio_b64 = None
+    if not req.skip_tts and tts and tts.available:
+        t0 = time.time()
+        tts_audio_b64 = tts.synthesize_base64(speech_text)
+        timings["tts_ms"] = round((time.time() - t0) * 1000)
+
+    timings["total_ms"] = sum(timings.values())
+
+    return ChatResponse(
+        nurse_text=speech_text,
+        nurse_structured=nurse_response,
+        audio_base64=tts_audio_b64,
         latency_ms=timings,
     )
 

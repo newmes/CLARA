@@ -184,9 +184,10 @@ services:
       CARE_AI_PORT: "8300"
       MEDGEMMA_MODEL: "/model_repo/snapshots/290cda5eeccbee130f987c4ad74a59ae6f196408"
       GOOGLE_API_KEY: "${GOOGLE_API_KEY}"
-      HF_HUB_OFFLINE: "1"
-      TRANSFORMERS_OFFLINE: "1"
+      HF_HOME: "/hf_cache"
+      HF_TOKEN: "${HF_TOKEN}"
     volumes:
+      - /data2/huggingface:/hf_cache
       - /data2/huggingface/hub/models--google--medgemma-4b-it:/model_repo:ro
       - /data2/workspace/ClinicalTrialEngine/data:/data:ro
     shm_size: "4g"
