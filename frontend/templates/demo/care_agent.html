@@ -655,30 +655,6 @@
   background: rgba(180,142,250,0.1); color: #b48efa; border: 1px solid rgba(180,142,250,0.2);
 }
 
-/* Row 3: confidence bar + percentage */
-.ci-model-row3 {
-  display: flex; align-items: center; gap: 8px;
-  height: 14px;
-}
-.ci-conf-bar {
-  flex: 1; height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px;
-  overflow: hidden;
-}
-.ci-conf-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; min-width: 0; }
-.ci-conf-fill.fill-teal { background: var(--ci-teal); }
-.ci-conf-fill.fill-purple { background: #b48efa; }
-.ci-conf-fill.fill-amber { background: var(--ci-amber); }
-.ci-conf-fill.fill-blue { background: var(--ci-model-blue); }
-.ci-conf-fill.fill-pink { background: var(--ci-pink); }
-.ci-conf-pct {
-  font: 700 0.72em 'JetBrains Mono', monospace; color: var(--text-muted);
-  min-width: 32px; text-align: right; flex-shrink: 0;
-}
-
-/* Row 3 alt: word count for MedASR (no bar) */
-.ci-model-row3-text {
-  font: 500 0.72em 'JetBrains Mono', monospace; color: var(--text-muted);
-  height: 14px; display: flex; align-items: center;
 }
 
 /* Expandable detail panel */
@@ -928,13 +904,10 @@
 {% endblock %}
 
 {% block nav_items %}
-  <span class="nav-sep">/</span>
-  <a href="{% url 'demo_anti_hallucination' %}">Data Analysis Agent</a>
-  <span class="nav-sep">|</span>
-  <a href="{% url 'demo_care_agent' %}" class="nav-active">Data Collection Agent</a>
-  <span class="nav-sep">|</span>
-  <a href="{% url 'demo_hazard' %}">Simulation Engine</a>
-  <a href="{% url 'simulation_list' %}" class="nav-cta"><svg viewBox="0 0 24 24" fill="none" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg>Simulation Runs</a>
+<span class="nav-sep">/</span>
+<a href="/" class="nav-crumb">Home</a>
+<span class="nav-sep">/</span>
+<span class="nav-crumb nav-active">Data Collection Agent</span>
 {% endblock %}
 
 {% block content %}
@@ -1231,10 +1204,6 @@
               <span class="ci-model-finding" id="ciFindSiglip">Waiting for image...</span>
               <span class="ci-grade-badge" id="ciBadgeSiglip" style="display:none"></span>
             </div>
-            <div class="ci-model-row3">
-              <div class="ci-conf-bar"><div class="ci-conf-fill fill-amber" id="ciBarSiglip" style="width:0%"></div></div>
-              <span class="ci-conf-pct" id="ciPctSiglip">--%</span>
-            </div>
           </div>
           <div class="ci-model-detail" id="ciDetailSiglip">
             <div class="ci-model-detail-row"><span class="ci-model-detail-label">Top predictions</span></div>
@@ -1491,9 +1460,6 @@ function ciResetModels() {
     el.textContent = '--'; el.classList.remove('has-val');
   });
 
-  // Reset confidence bars and percentages (MedSigLIP only)
-  document.getElementById('ciBarSiglip').style.width = '0%';
-  document.getElementById('ciPctSiglip').textContent = '--%';
 
   // Reset grade/word badges
   ['ciBadgeSiglip','ciBadgeGemma','ciBadgeCtcae','ciBadgeMedasr'].forEach(function(id) {
@@ -1571,8 +1537,6 @@ function ciUpdateSiglip(findings, latency, rawPred) {
   ciSetModelState('ciCardSiglip', 'done');
   var findEl = document.getElementById('ciFindSiglip');
   var badgeEl = document.getElementById('ciBadgeSiglip');
-  var barEl = document.getElementById('ciBarSiglip');
-  var pctEl = document.getElementById('ciPctSiglip');
   var latEl = document.getElementById('ciLatSiglip');
   var topKEl = document.getElementById('ciDetSiglipTopK');
 
@@ -1580,7 +1544,6 @@ function ciUpdateSiglip(findings, latency, rawPred) {
 
   if (findings && findings.length > 0) {
     var f = findings[0];
-    var conf = Math.round((f.confidence || 0) * 100);
     var grade = f.estimated_grade || f.grade || 0;
     var aeTerm = f.ae_term ? f.ae_term.replace(/_/g, ' ') : 'Unknown';
 
@@ -1592,10 +1555,6 @@ function ciUpdateSiglip(findings, latency, rawPred) {
     badgeEl.textContent = 'G' + grade;
     badgeEl.className = 'ci-grade-badge ' + gCls;
     badgeEl.style.display = '';
-
-    // Confidence bar
-    barEl.style.width = conf + '%';
-    pctEl.textContent = conf + '%';
 
     // Pipeline tracking
     pipelineAeCount++;
@@ -1616,8 +1575,6 @@ function ciUpdateSiglip(findings, latency, rawPred) {
     findEl.textContent = 'Normal appearance';
     findEl.className = 'ci-model-finding finding-ok';
     badgeEl.style.display = 'none';
-    barEl.style.width = '0%';
-    pctEl.textContent = '--%';
     topKEl.textContent = 'No abnormalities detected';
   }
 }
