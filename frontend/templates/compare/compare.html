@@ -9,109 +9,26 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
   /* ═══════════════════════════════════════════════════════
-     A/B Comparison Dashboard — Aurora Redesign
+     A/B Comparison Dashboard — Unified Style
      ═══════════════════════════════════════════════════════ */
 
   /* ── Layout ── */
-  .cmp-wrap {
-    max-width: 1200px; margin: 0 auto; padding: 0;
+  .doc-container { margin-top: 2em; padding: 0 24px 3em; }
+  .doc-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.5em; flex-wrap: wrap; gap: 12px;
   }
-  .cmp-title {
-    font-size: 1.6em; font-weight: 800; margin-bottom: 0.1em;
-    background: var(--gradient-title);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
+  .doc-title {
+    font-size: 1.4em; font-weight: 800;
+    background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
   }
-  .cmp-sub { color: var(--text-secondary); font-size: 0.95em; margin-bottom: 1.5em; }
-  .cmp-sub strong { color: var(--accent-orange); }
+  .doc-subtitle { color: var(--text-secondary); font-size: 0.95em; margin-top: 4px; }
 
-  /* ── Section Divider ── */
-  .sec-title {
-    font-size: 0.78em; text-transform: uppercase; letter-spacing: 2.5px;
-    color: var(--text-muted); font-weight: 700;
-    margin: 2.5em 0 1.2em; padding-bottom: 0;
-    border-bottom: none;
-    display: flex; align-items: center; gap: 12px;
-  }
-  .sec-title::before {
-    content: ''; width: 3px; height: 16px; border-radius: 2px; flex-shrink: 0;
-    background: var(--gradient-title);
-  }
-  .sec-title::after {
-    content: ''; flex: 1; height: 1px;
-    background: linear-gradient(90deg, var(--border), transparent);
-  }
-
-  /* ══════════════════════════════════════
-     1. HERO INSIGHT BANNER
-     ══════════════════════════════════════ */
-  .hero-banner {
-    position: relative; overflow: hidden;
-    background: linear-gradient(135deg, rgba(57,210,192,0.08) 0%, rgba(88,166,255,0.06) 50%, rgba(13,17,23,0.95) 100%);
-    border: 1px solid rgba(57,210,192,0.15);
-    border-radius: 16px;
-    padding: 40px 48px;
-    margin-bottom: 2.5em;
-  }
-  .hero-banner::before {
-    content: ''; position: absolute; inset: 0;
-    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-    opacity: 0.6; pointer-events: none;
-  }
-  .hero-banner::after {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue), var(--accent-purple), transparent);
-  }
-  .hero-eyebrow {
-    font-size: 0.72em; text-transform: uppercase; letter-spacing: 3px;
-    color: var(--accent-cyan); font-weight: 700; margin-bottom: 12px;
-    display: flex; align-items: center; gap: 8px;
-  }
-  .hero-eyebrow .pulse-dot {
-    width: 6px; height: 6px; border-radius: 50%;
-    background: var(--accent-cyan);
-    box-shadow: 0 0 8px var(--accent-cyan);
-    animation: pulse 2s ease-in-out infinite;
-  }
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(1.4); }
-  }
-  .hero-headline {
-    font-size: 2.2em; font-weight: 800; line-height: 1.15;
-    color: var(--text-primary); margin-bottom: 8px;
-  }
-  .hero-headline .hl-number {
-    background: var(--gradient-title);
-    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-    background-clip: text;
-    font-size: 1.1em;
-  }
-  .hero-subline {
-    font-size: 1em; color: var(--text-secondary); line-height: 1.5;
-    max-width: 700px;
-  }
-  .hero-stats {
-    display: flex; gap: 40px; margin-top: 28px; flex-wrap: wrap;
-  }
-  .hero-stat {
-    display: flex; flex-direction: column;
-  }
-  .hero-stat-value {
-    font-size: 1.6em; font-weight: 800;
-    font-family: 'JetBrains Mono', monospace;
-    color: var(--text-primary);
-  }
-  .hero-stat-value.positive { color: var(--accent-green); }
-  .hero-stat-value.negative { color: #ff6b6b; }
-  .hero-stat-value.cyan { color: var(--accent-cyan); }
-  .hero-stat-label {
-    font-size: 0.75em; text-transform: uppercase; letter-spacing: 1.5px;
-    color: var(--text-muted); font-weight: 600; margin-top: 2px;
-  }
-  .hero-shield {
-    position: absolute; right: 48px; top: 50%; transform: translateY(-50%);
-    width: 120px; height: 120px; opacity: 0.06;
+  /* ── Section Heading ── */
+  .sec-heading {
+    font-size: 1em; font-weight: 600; color: var(--text-primary);
+    margin: 1.5em 0 .8em; letter-spacing: -0.2px;
   }
 
   /* ══════════════════════════════════════
@@ -125,19 +42,12 @@
   .vs-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 8px;
     padding: 20px 24px;
     position: relative; overflow: hidden;
     transition: all 0.25s ease;
   }
-  .vs-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
-    opacity: 0.7;
-  }
   .vs-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 24px rgba(57,210,192,0.1);
     border-color: rgba(57,210,192,0.25);
   }
   .vs-card-header {
@@ -216,18 +126,8 @@
   }
   .chart-card {
     background: var(--bg-card); border: 1px solid var(--border);
-    border-radius: 12px; padding: 20px 24px;
+    border-radius: 8px; padding: 20px 24px;
     position: relative; overflow: hidden;
-    transition: all 0.25s ease;
-  }
-  .chart-card:hover {
-    border-color: rgba(57,210,192,0.2);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-  }
-  .chart-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
-    opacity: 0.6;
   }
   .chart-card-header {
     display: flex; justify-content: space-between; align-items: flex-start;
@@ -260,21 +160,12 @@
      4. CARE AI IMPACT PANEL
      ══════════════════════════════════════ */
   .impact-panel {
-    background: linear-gradient(135deg, rgba(57,210,192,0.05), rgba(88,166,255,0.03));
-    border: 1px solid rgba(57,210,192,0.15);
-    border-radius: 16px;
-    padding: 32px;
-    margin-bottom: 2.5em;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 24px;
+    margin-bottom: 1.4em;
     position: relative; overflow: hidden;
-  }
-  .impact-panel::before {
-    content: ''; position: absolute; inset: 0;
-    background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.02'/%3E%3C/svg%3E");
-    pointer-events: none;
-  }
-  .impact-panel::after {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-    background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue), var(--accent-purple));
   }
   .impact-header {
     display: flex; align-items: center; gap: 16px; margin-bottom: 28px;
@@ -301,7 +192,7 @@
   .impact-num-card {
     background: rgba(13,17,23,0.4);
     border: 1px solid rgba(48,54,61,0.5);
-    border-radius: 10px; padding: 16px; text-align: center;
+    border-radius: 6px; padding: 16px; text-align: center;
     transition: all 0.2s ease;
   }
   .impact-num-card:hover {
@@ -325,7 +216,7 @@
   .impact-chart-wrap {
     background: rgba(13,17,23,0.3);
     border: 1px solid rgba(48,54,61,0.4);
-    border-radius: 10px; padding: 20px;
+    border-radius: 6px; padding: 20px;
   }
   .impact-chart-wrap canvas { width: 100% !important; max-height: 220px; }
 
@@ -339,14 +230,12 @@
   .evidence-card {
     background: var(--bg-card);
     border: 1px solid var(--border);
-    border-radius: 12px;
+    border-radius: 8px;
     padding: 20px 24px;
     position: relative; overflow: hidden;
-    transition: all 0.25s ease;
   }
   .evidence-card:hover {
     border-color: rgba(57,210,192,0.2);
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
   }
   .evidence-card-header {
     display: flex; justify-content: space-between; align-items: center;
@@ -413,7 +302,7 @@
      6. PATIENT COMPARISON TABLE
      ══════════════════════════════════════ */
   .table-container {
-    border: 1px solid var(--border); border-radius: 12px;
+    border: 1px solid var(--border); border-radius: 8px;
     overflow: hidden; margin-bottom: 2.5em;
     background: var(--bg-card);
   }
@@ -482,29 +371,6 @@
   }
 
   /* ══════════════════════════════════════
-     ANIMATIONS
-     ══════════════════════════════════════ */
-  @keyframes fadeInUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-  .animate-in {
-    animation: fadeInUp 0.5s ease forwards;
-    opacity: 0;
-  }
-  .animate-in:nth-child(1) { animation-delay: 0.05s; }
-  .animate-in:nth-child(2) { animation-delay: 0.1s; }
-  .animate-in:nth-child(3) { animation-delay: 0.15s; }
-  .animate-in:nth-child(4) { animation-delay: 0.2s; }
-  .animate-in:nth-child(5) { animation-delay: 0.25s; }
-  .animate-in:nth-child(6) { animation-delay: 0.3s; }
-
-  @keyframes countUp {
-    from { opacity: 0; transform: scale(0.8); }
-    to { opacity: 1; transform: scale(1); }
-  }
-
-  /* ══════════════════════════════════════
      RESPONSIVE
      ══════════════════════════════════════ */
   @media (max-width: 1100px) {
@@ -512,14 +378,9 @@
     .vs-grid { grid-template-columns: 1fr; }
     .evidence-grid { grid-template-columns: 1fr; }
     .impact-numbers { grid-template-columns: repeat(2, 1fr); }
-    .hero-banner { padding: 28px 24px; }
-    .hero-headline { font-size: 1.6em; }
-    .hero-stats { gap: 24px; }
-    .hero-shield { display: none; }
   }
   @media (max-width: 600px) {
     .impact-numbers { grid-template-columns: 1fr 1fr; }
-    .hero-stats { flex-direction: column; gap: 16px; }
     .vs-body { grid-template-columns: 1fr; gap: 8px; }
     .vs-divider { width: 100%; height: 1px; background: linear-gradient(90deg, transparent, var(--border), transparent); }
     .vs-divider::after { display: none; }
@@ -541,7 +402,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="doc-container" style="margin-top: 2em; padding: 0 24px 3em;">
+<div class="doc-container">
   <!-- Subtab bar (Data section) -->
   <div class="tab-bar">
     <a href="{% url 'crf_tables' run_id %}" class="tab-link">CRF Tables</a>
@@ -550,12 +411,14 @@
     <a href="{% url 'compare_dashboard' run_id %}" class="tab-link active">A/B Comparison</a>
   </div>
 
-<div class="cmp-wrap" style="max-width:1200px; margin:0 auto; padding:0;">
-  <div class="cmp-title">A/B Comparison Dashboard</div>
-  <p class="cmp-sub">
-    <strong>{{ drug_name }}</strong> — {{ indication }}<br>
-    Natural (No <span title="Data Collection Agent">DCA</span>) vs <span title="Data Collection Agent">DCA</span> (Daily Video Calls) — Simulation Comparison
-  </p>
+  <div class="doc-header">
+    <div>
+      <div class="doc-title">A/B Comparison Dashboard</div>
+      <div class="doc-subtitle">
+        {{ drug_name }} · {{ indication }} · Natural vs DCA Comparison · Run {{ run_id|truncatechars:16 }}
+      </div>
+    </div>
+  </div>
 
   {% if error %}
   <div style="background: rgba(255,100,100,0.1); border: 1px solid rgba(255,100,100,0.3); border-radius: 8px; padding: 20px 24px; margin-bottom: 1.5em;">
@@ -574,15 +437,12 @@
   </div>
   {% else %}
 
-  <!-- ═══ 1. HERO INSIGHT BANNER ═══ -->
-  <div class="hero-banner" id="heroBanner"></div>
-
-  <!-- ═══ 2. SIDE-BY-SIDE COMPARISON CARDS ═══ -->
-  <div class="sec-title">Key Metrics</div>
+  <!-- ═══ SIDE-BY-SIDE COMPARISON CARDS ═══ -->
+  <h3 class="sec-heading">Key Metrics</h3>
   <div class="vs-grid" id="cards"></div>
 
   <!-- ═══ 3. CHARTS ═══ -->
-  <div class="sec-title">Charts</div>
+  <h3 class="sec-heading">Charts</h3>
   <div class="chart-grid-2x2">
     <div class="chart-card">
       <div class="chart-card-header">
@@ -615,7 +475,7 @@
   </div>
 
   <!-- ═══ 4. CARE AI IMPACT PANEL ═══ -->
-  <div class="sec-title" title="Data Collection Agent">DCA Activity</div>
+  <h3 class="sec-heading" title="Data Collection Agent">DCA Activity</h3>
   <div class="impact-panel">
     <div class="impact-header">
       <div class="impact-icon">
@@ -637,11 +497,11 @@
   </div>
 
   <!-- ═══ 5. STATISTICAL EVIDENCE ═══ -->
-  <div class="sec-title">Statistical Evidence</div>
+  <h3 class="sec-heading">Statistical Evidence</h3>
   <div class="evidence-grid" id="statsBox"></div>
 
   <!-- ═══ 6. PATIENT TABLE ═══ -->
-  <div class="sec-title">Per-Patient Comparison</div>
+  <h3 class="sec-heading">Per-Patient Comparison</h3>
   <div class="table-container">
     <div class="table-scroll">
       <table class="ptable" id="patientTable">
@@ -662,8 +522,6 @@
       </table>
     </div>
   </div>
-
-</div>
 
 <script>
 const R = {{ report_json|safe }};
@@ -711,52 +569,6 @@ function deltaObj(care, nat, lowerIsBetter) {
 function deltaHTML(care, nat, lowerIsBetter) {
   var o = deltaObj(care, nat, lowerIsBetter);
   return '<span class="vs-delta ' + o.cls + '">' + o.text + '</span>';
-}
-
-// ═══════════════════════════════════════
-// 1. HERO INSIGHT BANNER
-// ═══════════════════════════════════════
-function renderHero() {
-  var el = document.getElementById('heroBanner');
-
-  // Find the most dramatic stat for the headline
-  var delayNat = R.detection_delay.natural_mean;
-  var delayAI = R.detection_delay.care_ai_mean;
-  var burdenNat = R.ae_burden.natural_mean;
-  var burdenAI = R.ae_burden.care_ai_mean;
-  var g3Nat = R.severe_aes.natural_g3plus_mean;
-  var g3AI = R.severe_aes.care_ai_g3plus_mean;
-
-  var delayReduction = delayNat > 0 ? Math.abs(Math.round(((delayAI - delayNat) / delayNat) * 100)) : 0;
-  var burdenReduction = burdenNat > 0 ? Math.abs(Math.round(((burdenAI - burdenNat) / burdenNat) * 100)) : 0;
-  var g3Reduction = g3Nat > 0 ? Math.abs(Math.round(((g3AI - g3Nat) / g3Nat) * 100)) : 0;
-
-  // Pick the best headline
-  var headline, subline;
-  if (delayReduction >= burdenReduction && delayReduction >= g3Reduction && delayReduction > 0 && delayAI <= delayNat) {
-    headline = '<span title="Data Collection Agent">DCA</span> reduced AE detection delay by <span class="hl-number">' + delayReduction + '%</span>';
-    subline = 'Patients using daily AI video calls had adverse events detected ' + fmt(delayNat - delayAI) + ' days faster on average, enabling earlier clinical intervention and better outcomes.';
-  } else if (burdenReduction >= g3Reduction && burdenReduction > 0 && burdenAI <= burdenNat) {
-    headline = '<span title="Data Collection Agent">DCA</span> reduced AE burden by <span class="hl-number">' + burdenReduction + '%</span>';
-    subline = 'The total adverse event burden (grade x days) was significantly lower in the <span title="Data Collection Agent">DCA</span> cohort, demonstrating the value of proactive daily monitoring.';
-  } else if (g3Reduction > 0 && g3AI <= g3Nat) {
-    headline = '<span title="Data Collection Agent">DCA</span> reduced severe AE days by <span class="hl-number">' + g3Reduction + '%</span>';
-    subline = 'Patients experienced fewer Grade 3+ adverse event days with AI-assisted monitoring, reducing the impact of serious toxicities.';
-  } else {
-    headline = '<span title="Data Collection Agent">DCA</span> vs Natural: <span class="hl-number">' + R.cohort_sizes.natural + '</span> patients compared';
-    subline = 'Head-to-head comparison of patient outcomes with and without AI-assisted daily video call monitoring.';
-  }
-
-  el.innerHTML = '<svg class="hero-shield" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>' +
-    '<div class="hero-eyebrow"><span class="pulse-dot"></span>A/B Simulation Results</div>' +
-    '<div class="hero-headline">' + headline + '</div>' +
-    '<div class="hero-subline">' + subline + '</div>' +
-    '<div class="hero-stats">' +
-      '<div class="hero-stat"><span class="hero-stat-value cyan">' + R.cohort_sizes.natural + '+' + R.cohort_sizes.care_ai + '</span><span class="hero-stat-label">Patients Compared</span></div>' +
-      '<div class="hero-stat"><span class="hero-stat-value ' + (delayAI < delayNat ? 'positive' : 'negative') + '">' + fmt(delayAI) + 'd vs ' + fmt(delayNat) + 'd</span><span class="hero-stat-label">Detection Delay</span></div>' +
-      '<div class="hero-stat"><span class="hero-stat-value ' + (burdenAI < burdenNat ? 'positive' : 'negative') + '">' + fmt(burdenAI) + ' vs ' + fmt(burdenNat) + '</span><span class="hero-stat-label">AE Burden</span></div>' +
-      '<div class="hero-stat"><span class="hero-stat-value ' + (R.mortality.care_ai_deaths <= R.mortality.natural_deaths ? 'positive' : 'negative') + '">' + R.mortality.care_ai_deaths + ' vs ' + R.mortality.natural_deaths + '</span><span class="hero-stat-label">Mortality</span></div>' +
-    '</div>';
 }
 
 // ═══════════════════════════════════════
@@ -834,7 +646,7 @@ function renderCards() {
     var maxRaw = Math.max(c.natRaw, c.aiRaw, 0.01);
     var natPct = Math.round((c.natRaw / maxRaw) * 100);
     var aiPct = Math.round((c.aiRaw / maxRaw) * 100);
-    html += '<div class="vs-card animate-in">' +
+    html += '<div class="vs-card">' +
       '<div class="vs-card-header">' +
         '<span class="vs-card-label">' + c.label + '</span>' +
         c.delta +
@@ -1175,7 +987,7 @@ function renderStats() {
 
     if (val.p_value !== undefined) {
       // Wilcoxon test card
-      html += '<div class="evidence-card animate-in">' +
+      html += '<div class="evidence-card">' +
         '<div class="evidence-card-header">' +
           '<span class="evidence-card-title">' + title + '</span>' +
           sigBadge(val.p_value) +
@@ -1196,7 +1008,7 @@ function renderStats() {
       var rightPct = Math.min(100, Math.round((val.ci_upper / barMax) * 100));
       var meanPct = Math.round((val.mean / barMax) * 100);
 
-      html += '<div class="evidence-card animate-in">' +
+      html += '<div class="evidence-card">' +
         '<div class="evidence-card-header">' +
           '<span class="evidence-card-title">' + title + '</span>' +
           '<span class="sig-badge sig-mid">' + conf + '% CI</span>' +
@@ -1292,7 +1104,6 @@ function renderPatientTable() {
 }
 
 // ═══ INIT ═══
-renderHero();
 renderCards();
 renderDelayChart();
 renderBurdenChart();
@@ -1326,12 +1137,6 @@ chatbot.init({
         e.target.closest('a') || e.target.closest('select') ||
         e.target.closest('button:not(.vs-card)')) {
       return null;
-    }
-    // Hero banner
-    var hero = e.target.closest('.hero-banner');
-    if (hero) {
-      var headline = (hero.querySelector('.hero-headline') || {}).textContent || '';
-      return 'Hero Insight: ' + headline.trim();
     }
     // Summary cards grid -> all cards at once
     var cardGrid = e.target.closest('.vs-grid');

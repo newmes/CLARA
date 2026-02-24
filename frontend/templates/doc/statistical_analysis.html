@@ -7,528 +7,261 @@
 {% block extra_head %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-/* ═══════════════════════════════════════════════════════════════
-   Statistical Analysis — Aurora Redesign
-   ═══════════════════════════════════════════════════════════════ */
+/* ── Container ── */
+.doc-container {
+  margin-top: 2em; padding: 0 24px 3em;
+}
+/* ── Header ── */
+.doc-header {
+  display: flex; align-items: center; justify-content: space-between;
+  margin-bottom: 1.5em; flex-wrap: wrap; gap: 12px;
+}
+.doc-title {
+  font-size: 1.4em; font-weight: 800;
+  background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+}
+.doc-subtitle { color: var(--text-secondary); font-size: 0.95em; margin-top: 4px; }
 
-/* ── Base ── */
-.sa-wrap { max-width: 1200px; margin: 0 auto; padding: 0 0 3em; position: relative; z-index: 1; }
-
-/* ── Noise Overlay ── */
-.sa-noise {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  z-index: 0; pointer-events: none; opacity: 0.035;
-}
-
-/* ── Aurora Background Glow ── */
-.sa-aurora {
-  position: fixed; top: 0; left: 0; right: 0; bottom: 0;
-  z-index: -1; pointer-events: none; overflow: hidden;
-}
-.sa-aurora::before {
-  content: '';
-  position: absolute; top: -40%; left: -40%; right: -40%; bottom: -40%;
-  background:
-    radial-gradient(ellipse 50% 40% at 20% 15%, rgba(57,210,192,0.07) 0%, transparent 60%),
-    radial-gradient(ellipse 40% 50% at 75% 25%, rgba(88,166,255,0.05) 0%, transparent 55%),
-    radial-gradient(ellipse 35% 35% at 50% 65%, rgba(188,140,255,0.04) 0%, transparent 50%);
-  animation: saAuroraShift 25s ease-in-out infinite alternate;
-}
-@keyframes saAuroraShift {
-  0%   { transform: translate(0, 0) rotate(0deg) scale(1); }
-  33%  { transform: translate(2%, -1.5%) rotate(0.5deg) scale(1.01); }
-  66%  { transform: translate(-1.5%, 2%) rotate(-0.3deg) scale(0.99); }
-  100% { transform: translate(1%, -0.5%) rotate(0.3deg) scale(1.005); }
-}
-
-/* ══════════════════════════════════════
-   1. HERO INSIGHT BANNER
-   ══════════════════════════════════════ */
-.sa-hero {
-  position: relative; overflow: hidden;
-  background: linear-gradient(135deg, rgba(57,210,192,0.08) 0%, rgba(88,166,255,0.06) 50%, rgba(13,17,23,0.95) 100%);
-  border: 1px solid rgba(57,210,192,0.15);
-  border-radius: 16px;
-  padding: 36px 44px 32px;
-  margin-bottom: 2em;
-}
-.sa-hero::before {
-  content: ''; position: absolute; inset: 0;
-  background: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
-  opacity: 0.6; pointer-events: none;
-}
-.sa-hero::after {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue), var(--accent-purple), transparent);
-}
-.sa-hero-eyebrow {
-  font-size: 0.7em; text-transform: uppercase; letter-spacing: 3px;
-  color: var(--accent-cyan); font-weight: 700; margin-bottom: 10px;
-  display: flex; align-items: center; gap: 8px;
-}
-.sa-hero-eyebrow .pulse-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: var(--accent-cyan);
-  box-shadow: 0 0 8px var(--accent-cyan);
-  animation: saPulse 2s ease-in-out infinite;
-}
-@keyframes saPulse {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.5; transform: scale(1.4); }
-}
-.sa-hero-title {
-  font-size: 1.8em; font-weight: 800; line-height: 1.15;
-  color: var(--text-primary); margin-bottom: 6px;
-}
-.sa-hero-title .hl {
-  background: var(--gradient-title);
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-  background-clip: text;
-}
-.sa-hero-sub {
-  font-size: 0.92em; color: var(--text-secondary); line-height: 1.5;
-  max-width: 650px;
-}
-.sa-hero-sub strong { color: var(--accent-blue); }
-.sa-hero-stats {
-  display: flex; gap: 36px; margin-top: 24px; flex-wrap: wrap;
-}
-.sa-hero-stat { display: flex; flex-direction: column; }
-.sa-hero-stat-value {
-  font-size: 1.5em; font-weight: 800;
-  font-family: 'JetBrains Mono', monospace;
-  color: var(--text-primary);
-}
-.sa-hero-stat-value.cyan { color: var(--accent-cyan); }
-.sa-hero-stat-value.green { color: var(--accent-green); }
-.sa-hero-stat-value.orange { color: var(--accent-orange); }
-.sa-hero-stat-label {
-  font-size: 0.72em; text-transform: uppercase; letter-spacing: 1.5px;
-  color: var(--text-muted); font-weight: 600; margin-top: 2px;
-}
-.sa-hero-icon {
-  position: absolute; right: 44px; top: 50%; transform: translateY(-50%);
-  opacity: 0.04;
-}
-
-/* ══════════════════════════════════════
-   2. SECTION NAVIGATION
-   ══════════════════════════════════════ */
-.sa-nav {
-  display: flex; gap: 4px; margin-bottom: 2em; flex-wrap: wrap;
-  padding: 5px; background: var(--bg-secondary);
-  border: 1px solid var(--border); border-radius: 12px;
-  position: relative;
-}
-.sa-nav-btn {
-  padding: 9px 18px; border-radius: 8px; font-size: 0.82em; font-weight: 600;
-  border: none; background: transparent;
-  color: var(--text-muted); cursor: pointer;
-  transition: all 0.2s ease; text-decoration: none;
-  letter-spacing: 0.3px; position: relative; z-index: 1;
-  white-space: nowrap;
-}
-.sa-nav-btn:hover {
-  color: var(--text-primary); background: rgba(255,255,255,0.03);
-}
-.sa-nav-btn.active {
-  background: rgba(57,210,192,0.1);
-  color: var(--accent-cyan);
-  box-shadow: 0 0 12px rgba(57,210,192,0.08), inset 0 0 0 1px rgba(57,210,192,0.2);
-}
-.sa-nav-btn.active::after {
-  content: ''; position: absolute; bottom: -1px; left: 25%; right: 25%;
-  height: 2px; background: var(--accent-cyan); border-radius: 1px;
-  box-shadow: 0 0 6px rgba(57,210,192,0.5);
-}
-
-/* ══════════════════════════════════════
-   3. DCA SWITCH (iOS-style + pulse)
-   ══════════════════════════════════════ */
-@keyframes dcaPulse {
+/* ── DCA Switch Toggle (iOS-style + pulse) ── */
+@keyframes dca-pulse {
   0%, 100% { box-shadow: 0 0 8px rgba(57,210,192,0.8); }
   50% { box-shadow: 0 0 16px rgba(57,210,192,1), 0 0 24px rgba(57,210,192,0.4); }
 }
-@keyframes dcaTrackPulse {
+@keyframes dca-track-pulse {
   0%, 100% { box-shadow: 0 0 12px rgba(57,210,192,0.3), inset 0 0 8px rgba(57,210,192,0.15); }
   50% { box-shadow: 0 0 20px rgba(57,210,192,0.5), inset 0 0 10px rgba(57,210,192,0.25); }
 }
-.sa-dca {
-  display: inline-flex; align-items: center; gap: 10px; cursor: pointer;
-  user-select: none; -webkit-user-select: none;
-  margin-bottom: 0; padding: 8px 16px;
-  background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
-  transition: all 0.25s;
+.dca-switch {
+  display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  user-select: none; -webkit-user-select: none; margin-bottom: 1em;
 }
-.sa-dca:hover { border-color: rgba(57,210,192,0.3); }
-.sa-dca input { display: none; }
-.sa-dca-label {
-  font: 600 0.82em 'JetBrains Mono', monospace;
+.dca-switch input { display: none; }
+.dca-label {
+  font: 700 0.92em 'JetBrains Mono', monospace;
   color: var(--text-muted); letter-spacing: 0.5px;
-  opacity: 0.6; transition: color 0.3s, text-shadow 0.3s, opacity 0.3s;
+  opacity: 0.5; transition: color 0.3s, text-shadow 0.3s, opacity 0.3s;
 }
-.sa-dca-slider {
+.dca-slider {
   position: relative; width: 44px; height: 24px;
   background: rgba(110,118,129,0.2); border-radius: 12px;
   transition: background 0.3s, box-shadow 0.3s; flex-shrink: 0;
 }
-.sa-dca-slider::before {
+.dca-slider::before {
   content: ''; position: absolute; left: 2px; top: 2px;
   width: 20px; height: 20px; border-radius: 50%;
   background: #6e7681; transition: transform 0.3s, background 0.3s, box-shadow 0.3s;
 }
-.sa-dca input:checked + .sa-dca-slider {
+.dca-switch input:checked + .dca-slider {
   background: rgba(57,210,192,0.35);
-  animation: dcaTrackPulse 2s ease-in-out infinite;
+  animation: dca-track-pulse 2s ease-in-out infinite;
 }
-.sa-dca input:checked + .sa-dca-slider::before {
+.dca-switch input:checked + .dca-slider::before {
   transform: translateX(20px); background: #39d2c0;
-  animation: dcaPulse 2s ease-in-out infinite;
+  animation: dca-pulse 2s ease-in-out infinite;
 }
-.sa-dca input:checked ~ .sa-dca-label,
-.sa-dca:has(input:checked) .sa-dca-label {
+.dca-switch input:checked ~ .dca-label,
+.dca-switch:has(input:checked) .dca-label {
   color: #39d2c0; text-shadow: 0 0 8px rgba(57,210,192,0.5); opacity: 1;
 }
-.sa-dca-tag {
-  font-size: 0.68em; text-transform: uppercase; letter-spacing: 1.5px;
-  font-weight: 700; padding: 2px 8px; border-radius: 4px;
-  background: rgba(110,118,129,0.1); color: var(--text-muted);
-  transition: all 0.3s;
+
+/* ── Section Tabs ── */
+.section-tabs {
+  display: flex; gap: 4px; margin-bottom: 1.6em; flex-wrap: wrap;
 }
-.sa-dca:has(input:checked) .sa-dca-tag {
-  background: rgba(57,210,192,0.1); color: var(--accent-cyan);
+.sec-tab {
+  padding: 8px 18px; border-radius: 6px; font-size: .84em; font-weight: 600;
+  border: 1px solid var(--border); background: var(--bg-secondary);
+  color: var(--text-secondary); cursor: pointer; transition: all .15s;
+  letter-spacing: .2px;
+}
+.sec-tab:hover { border-color: var(--accent-cyan); color: var(--text-primary); }
+.sec-tab.active {
+  background: rgba(57,210,192,.12); border-color: var(--accent-cyan);
+  color: var(--accent-cyan);
 }
 
-/* ══════════════════════════════════════
-   4. HEADER BAR (title + DCA)
-   ══════════════════════════════════════ */
-.sa-header-bar {
-  display: flex; align-items: center; justify-content: space-between;
-  margin-bottom: 1.5em; flex-wrap: wrap; gap: 12px;
-}
-
-/* ══════════════════════════════════════
-   5. SECTION PANELS
-   ══════════════════════════════════════ */
-.sa-panel { display: none; }
-.sa-panel.active { display: block; animation: saFadeUp 0.35s ease both; }
-@keyframes saFadeUp {
-  from { opacity: 0; transform: translateY(10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
+/* ── Section Panels ── */
+.sec-panel { display: none; }
+.sec-panel.active { display: block; }
 
 /* ── Section Headings ── */
-.sa-sec-title {
-  font-size: 0.78em; text-transform: uppercase; letter-spacing: 2.5px;
-  color: var(--text-muted); font-weight: 700;
-  margin: 2em 0 1.2em; padding-bottom: 0;
-  display: flex; align-items: center; gap: 12px;
+.sec-panel h3 {
+  font-size: 1em; font-weight: 600; color: var(--text-primary);
+  margin-bottom: .8em; letter-spacing: -0.2px;
 }
-.sa-sec-title::before {
-  content: ''; width: 3px; height: 16px; border-radius: 2px; flex-shrink: 0;
-  background: var(--gradient-title);
+.sec-panel h4 {
+  font-size: .9em; font-weight: 500; color: var(--text-secondary);
+  margin: 1.2em 0 .6em;
 }
-.sa-sec-title::after {
-  content: ''; flex: 1; height: 1px;
-  background: linear-gradient(90deg, var(--border), transparent);
-}
-.sa-sec-title:first-child { margin-top: 0; }
 
 /* ── Section Note ── */
-.sa-note {
-  background: rgba(56,189,248,0.04); border-left: 3px solid rgba(57,210,192,0.4);
-  padding: 12px 16px; margin-top: 16px; border-radius: 0 8px 8px 0;
-  font-size: 0.86em; color: var(--text-secondary); line-height: 1.7;
+.section-note {
+  background: rgba(56,189,248,.06); border-left: 3px solid var(--accent-cyan);
+  padding: 12px 16px; margin-top: 16px; border-radius: 0 6px 6px 0;
+  font-size: .88em; color: var(--text-secondary); line-height: 1.7;
 }
-.sa-note strong { color: var(--text-primary); }
+.section-note strong { color: var(--text-primary); }
 
-/* ══════════════════════════════════════
-   6. KPI CARDS (Glassmorphism)
-   ══════════════════════════════════════ */
-.sa-kpi-row {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
-  gap: 12px; margin-bottom: 1.5em;
+/* ── KPI Cards ── */
+.kpi-row {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px; margin-bottom: 1.4em;
 }
-.sa-kpi {
-  padding: 18px 20px; text-align: center;
-  background: var(--bg-glass); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
-  border: 1px solid var(--border); border-radius: 12px;
-  position: relative; overflow: hidden;
-  transition: all 0.25s ease;
+.kpi-card {
+  padding: 16px 18px; background: var(--bg-card);
+  border: 1px solid var(--border); border-radius: 8px; text-align: center;
 }
-.sa-kpi::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue));
-  opacity: 0.7;
-}
-.sa-kpi:hover {
-  transform: translateY(-2px); border-color: rgba(57,210,192,0.25);
-  box-shadow: 0 4px 24px rgba(57,210,192,0.1);
-}
-.sa-kpi-val {
-  font-size: 1.6em; font-weight: 700; color: var(--accent-cyan);
+.kpi-val {
+  font-size: 1.65em; font-weight: 700; color: var(--accent-cyan);
   font-family: 'JetBrains Mono', monospace; letter-spacing: -0.5px;
 }
-.sa-kpi-label {
-  font-size: 0.72em; color: var(--text-muted); margin-top: 4px;
-  text-transform: uppercase; letter-spacing: 0.7px; font-weight: 600;
-  line-height: 1.35;
+.kpi-label {
+  font-size: .73em; color: var(--text-muted); margin-top: 4px;
+  text-transform: uppercase; letter-spacing: .6px; font-weight: 600;
 }
-.sa-kpi-sub {
-  font-size: 0.82em; color: var(--text-secondary); margin-top: 3px;
+.kpi-sub {
+  font-size: .82em; color: var(--text-secondary); margin-top: 2px;
   font-family: 'JetBrains Mono', monospace;
 }
 
-/* ══════════════════════════════════════
-   7. TABLES (Enhanced)
-   ══════════════════════════════════════ */
-.sa-table-wrap {
+/* ── Tables ── */
+.csr-table-wrap {
   background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: 12px; overflow: hidden; margin-bottom: 1.5em;
-  position: relative;
+  border-radius: 8px; overflow: hidden; margin-bottom: 1.4em;
 }
-.sa-table-wrap::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(57,210,192,0.2), rgba(88,166,255,0.15), transparent);
-}
-.sa-table {
-  width: 100%; border-collapse: collapse; font-size: 0.92em;
-}
-.sa-table th {
-  text-align: left; padding: 12px 16px; font-weight: 700; font-size: 0.73em;
-  text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-muted);
-  background: rgba(255,255,255,0.02); border-bottom: 1px solid var(--border);
+.csr-table { width: 100%; border-collapse: collapse; font-size: .92em; }
+.csr-table th {
+  text-align: left; padding: 11px 16px; font-weight: 600; font-size: .74em;
+  text-transform: uppercase; letter-spacing: .7px; color: var(--text-muted);
+  background: rgba(255,255,255,.03); border-bottom: 1px solid var(--border);
   user-select: none; white-space: nowrap;
-  position: sticky; top: 0; z-index: 2;
 }
-.sa-table td {
-  padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,0.03);
-  color: var(--text-primary); font-size: 0.95em;
-  transition: background 0.12s;
+.csr-table td {
+  padding: 9px 16px; border-bottom: 1px solid rgba(255,255,255,.04);
+  color: var(--text-primary); font-size: .95em;
 }
-.sa-table tbody tr:last-child td { border-bottom: none; }
-.sa-table tbody tr {
-  transition: background 0.15s;
-}
-.sa-table tbody tr:hover td {
-  background: rgba(57,210,192,0.04);
-}
-.sa-table .num {
+.csr-table tbody tr:last-child td { border-bottom: none; }
+.csr-table tr:hover td { background: rgba(255,255,255,.02); }
+.csr-table .num {
   text-align: right; font-variant-numeric: tabular-nums;
-  font-family: 'JetBrains Mono', monospace; font-size: 0.93em;
+  font-family: 'JetBrains Mono', monospace; font-size: .95em;
 }
 
-/* ══════════════════════════════════════
-   8. CHART CARDS (Gradient Top Accent)
-   ══════════════════════════════════════ */
-.sa-chart {
+/* ── Chart Cards ── */
+.chart-card {
   background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: 12px; padding: 24px; margin-bottom: 1.5em;
-  position: relative; overflow: hidden;
-  transition: border-color 0.25s;
+  border-radius: 8px; padding: 20px; margin-bottom: 1.4em;
 }
-.sa-chart::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue), transparent);
-  opacity: 0.5;
+.chart-title {
+  font-size: .95em; font-weight: 600; color: var(--text-primary);
+  margin-bottom: 12px; letter-spacing: -0.1px;
 }
-.sa-chart:hover { border-color: rgba(57,210,192,0.2); }
-.sa-chart-title {
-  font-size: 0.92em; font-weight: 600; color: var(--text-primary);
-  margin-bottom: 14px; letter-spacing: -0.1px;
-  display: flex; align-items: center; gap: 8px;
-}
-.sa-chart-title::before {
-  content: ''; width: 3px; height: 14px; border-radius: 2px;
-  background: var(--gradient-title); flex-shrink: 0;
-}
-.sa-chart-area { position: relative; width: 100%; }
-.sa-chart-area canvas { display: block; }
+.chart-area { position: relative; width: 100%; }
+.chart-area canvas { display: block; }
 
-/* ══════════════════════════════════════
-   9. CONSORT DIAGRAM (SVG Connectors)
-   ══════════════════════════════════════ */
-.sa-consort {
+/* ── CONSORT Diagram ── */
+.consort {
   display: flex; flex-direction: column; align-items: center;
-  gap: 0; margin-bottom: 1.5em; padding: 28px;
-  background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: 12px; position: relative; overflow: hidden;
+  gap: 10px; margin-bottom: 1.4em;
 }
-.sa-consort::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, var(--accent-cyan), var(--accent-blue), transparent);
-  opacity: 0.4;
+.consort-box {
+  padding: 14px 28px; border-radius: 8px; text-align: center; font-weight: 600;
+  border: 1px solid var(--border); min-width: 200px; font-size: .95em;
 }
-.sa-consort-box {
-  padding: 16px 32px; border-radius: 10px; text-align: center; font-weight: 600;
-  border: 1px solid var(--border); min-width: 200px; font-size: 0.95em;
-  position: relative; z-index: 1;
-  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+.consort-box.main {
+  background: rgba(57,210,192,.1); border-color: var(--accent-cyan); color: var(--accent-cyan);
 }
-.sa-consort-box.main {
-  background: rgba(57,210,192,0.08); border-color: rgba(57,210,192,0.3);
-  color: var(--accent-cyan);
-  box-shadow: 0 0 20px rgba(57,210,192,0.08);
+.consort-box.out {
+  background: rgba(248,81,73,.08); border-color: var(--accent-red); color: var(--accent-red);
 }
-.sa-consort-box.ok {
-  background: rgba(63,185,80,0.06); border-color: rgba(63,185,80,0.25);
-  color: var(--accent-green);
+.consort-box.ok {
+  background: rgba(63,185,80,.08); border-color: var(--accent-green); color: var(--accent-green);
 }
-.sa-consort-box.out {
-  background: rgba(248,81,73,0.06); border-color: rgba(248,81,73,0.2);
-  color: var(--accent-red);
-}
-.sa-consort-box b {
+.consort-box b {
   font-family: 'JetBrains Mono', monospace; font-size: 1.1em;
 }
-.sa-consort-connector {
-  width: 2px; height: 28px;
-  background: linear-gradient(180deg, var(--accent-cyan), rgba(57,210,192,0.2));
-  position: relative; z-index: 1;
-}
-.sa-consort-connector.fork {
-  width: 2px; height: 16px;
-  background: linear-gradient(180deg, rgba(57,210,192,0.4), rgba(57,210,192,0.15));
-}
-.sa-consort-row {
-  display: flex; gap: 16px; flex-wrap: wrap; justify-content: center;
-  position: relative;
-}
-.sa-consort-row::before {
-  content: ''; position: absolute; top: -16px; left: 50%;
-  transform: translateX(-50%);
-  width: calc(100% - 200px); height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(57,210,192,0.3), transparent);
-}
-.sa-consort-branches {
-  display: flex; gap: 16px; justify-content: center;
-  position: relative;
-}
-.sa-consort-branch {
-  display: flex; flex-direction: column; align-items: center;
-  gap: 0;
-}
+.consort-arrow { color: var(--text-muted); font-size: 1.4em; }
+.consort-row { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; }
 
-/* ══════════════════════════════════════
-   10. SHIFT TABLE
-   ══════════════════════════════════════ */
-.sa-shift-wrap {
+/* ── Shift Table ── */
+.shift-wrap {
   background: var(--bg-card); border: 1px solid var(--border);
-  border-radius: 12px; padding: 24px; margin-bottom: 1em;
-  display: inline-block; position: relative; overflow: hidden;
+  border-radius: 8px; padding: 20px; margin-bottom: 1em; display: inline-block;
 }
-.sa-shift-wrap::before {
-  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(57,210,192,0.2), transparent);
-}
-.sa-shift-grid { display: grid; gap: 3px; }
-.sa-shift-hdr {
-  font-size: 0.8em; font-weight: 700; color: var(--text-muted);
-  text-transform: uppercase; letter-spacing: 0.5px;
+.shift-grid { display: grid; gap: 3px; }
+.shift-hdr {
+  font-size: .82em; font-weight: 600; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: .5px;
   display: flex; align-items: center; justify-content: center; padding: 8px 4px;
 }
-.sa-shift-row-label {
-  font-size: 0.88em; font-weight: 500; color: var(--text-primary);
+.shift-row-label {
+  font-size: .88em; font-weight: 500; color: var(--text-primary);
   display: flex; align-items: center; padding: 0 8px;
 }
-.sa-shift-cell {
+.shift-cell {
   display: flex; align-items: center; justify-content: center;
-  height: 48px; border-radius: 8px;
-  font-family: 'JetBrains Mono', monospace; font-size: 0.93em; font-weight: 600;
-  transition: transform 0.15s, box-shadow 0.15s;
+  height: 48px; border-radius: 6px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: .95em; font-weight: 600; transition: transform .15s;
 }
-.sa-shift-cell:hover { transform: scale(1.06); }
-.sa-shift-cell.empty { background: rgba(255,255,255,0.015); color: var(--text-muted); }
-.sa-shift-cell.stable { background: rgba(45,212,191,0.1); color: #2dd4bf; border: 1px solid rgba(45,212,191,0.2); }
-.sa-shift-cell.stable:hover { box-shadow: 0 0 12px rgba(45,212,191,0.15); }
-.sa-shift-cell.improved { background: rgba(52,211,153,0.1); color: #34d399; border: 1px solid rgba(52,211,153,0.2); }
-.sa-shift-cell.improved:hover { box-shadow: 0 0 12px rgba(52,211,153,0.15); }
-.sa-shift-cell.worsened-mild { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
-.sa-shift-cell.worsened-mild:hover { box-shadow: 0 0 12px rgba(251,191,36,0.15); }
-.sa-shift-cell.worsened-severe { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.2); }
-.sa-shift-cell.worsened-severe:hover { box-shadow: 0 0 12px rgba(248,113,113,0.15); }
-.sa-shift-legend { display: flex; gap: 18px; margin-top: 12px; flex-wrap: wrap; }
-.sa-shift-legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.8em; color: var(--text-muted); }
-.sa-shift-legend-dot { width: 10px; height: 10px; border-radius: 3px; }
-.sa-shift-legend-dot.stable { background: #2dd4bf; }
-.sa-shift-legend-dot.improved { background: #34d399; }
-.sa-shift-legend-dot.mild { background: #fbbf24; }
-.sa-shift-legend-dot.severe { background: #f87171; }
-.sa-shift-axis-label {
+.shift-cell:hover { transform: scale(1.05); }
+.shift-cell.empty { background: rgba(255,255,255,0.015); color: var(--text-muted); }
+.shift-cell.stable { background: rgba(45,212,191,0.1); color: #2dd4bf; border: 1px solid rgba(45,212,191,0.2); }
+.shift-cell.improved { background: rgba(52,211,153,0.1); color: #34d399; border: 1px solid rgba(52,211,153,0.2); }
+.shift-cell.worsened-mild { background: rgba(251,191,36,0.1); color: #fbbf24; border: 1px solid rgba(251,191,36,0.2); }
+.shift-cell.worsened-severe { background: rgba(248,113,113,0.1); color: #f87171; border: 1px solid rgba(248,113,113,0.2); }
+.shift-legend { display: flex; gap: 18px; margin-top: 12px; flex-wrap: wrap; }
+.shift-legend-item { display: flex; align-items: center; gap: 6px; font-size: 0.8em; color: var(--text-muted); }
+.shift-legend-dot { width: 10px; height: 10px; border-radius: 3px; }
+.shift-legend-dot.stable { background: #2dd4bf; }
+.shift-legend-dot.improved { background: #34d399; }
+.shift-legend-dot.mild { background: #fbbf24; }
+.shift-legend-dot.severe { background: #f87171; }
+.shift-axis-label {
   font-size: 0.8em; color: var(--text-muted); margin-bottom: 8px;
   text-align: center; letter-spacing: 0.3px; font-weight: 600;
 }
 
-/* ══════════════════════════════════════
-   11. LAB SELECT
-   ══════════════════════════════════════ */
-.sa-lab-select {
-  padding: 8px 16px; border-radius: 8px; font-size: 0.9em;
+/* ── Lab Select ── */
+.lab-select {
+  padding: 6px 14px; border-radius: 6px; font-size: .92em;
   border: 1px solid var(--border); background: var(--bg-secondary);
   color: var(--text-primary); cursor: pointer;
-  font-family: 'Inter', system-ui, sans-serif;
-  transition: border-color 0.2s;
 }
-.sa-lab-select:hover { border-color: rgba(57,210,192,0.3); }
-.sa-lab-select:focus { outline: none; border-color: var(--accent-cyan); box-shadow: 0 0 0 3px rgba(57,210,192,0.1); }
 
-/* ══════════════════════════════════════
-   12. LOADING STATE
-   ══════════════════════════════════════ */
-.sa-loading {
-  display: flex; align-items: center; justify-content: center;
-  padding: 100px 0; color: var(--text-muted); font-size: 1em;
-  gap: 12px;
-}
-.sa-spinner {
-  display: inline-block; width: 22px; height: 22px;
-  border: 2px solid var(--border); border-top-color: var(--accent-cyan);
-  border-radius: 50%; animation: saSpin 0.8s linear infinite;
-}
-@keyframes saSpin { to { transform: rotate(360deg); } }
-
-/* ══════════════════════════════════════
-   13. GRADE LEGEND (for heatmap)
-   ══════════════════════════════════════ */
-.sa-grade-legend {
+/* ── Grade Legend (heatmap) ── */
+.grade-legend {
   display: flex; gap: 14px; margin-top: 10px; flex-wrap: wrap;
   justify-content: center;
 }
-.sa-grade-legend-item {
+.grade-legend-item {
   display: flex; align-items: center; gap: 5px;
   font-size: 0.78em; color: var(--text-muted);
 }
-.sa-grade-legend-dot {
-  width: 10px; height: 10px; border-radius: 2px;
-}
+.grade-legend-dot { width: 10px; height: 10px; border-radius: 2px; }
 
-/* ══════════════════════════════════════
-   14. RESPONSIVE
-   ══════════════════════════════════════ */
+/* ── Loading State ── */
+.loading-overlay {
+  display: flex; align-items: center; justify-content: center;
+  padding: 80px 0; color: var(--text-muted); font-size: 1.05em;
+}
+.spinner {
+  display: inline-block; width: 20px; height: 20px;
+  border: 2px solid var(--border); border-top-color: var(--accent-cyan);
+  border-radius: 50%; animation: spin .8s linear infinite; margin-right: 10px;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ── Responsive ── */
 @media (max-width: 768px) {
-  .sa-hero { padding: 24px 20px 20px; }
-  .sa-hero-title { font-size: 1.3em; }
-  .sa-hero-stats { gap: 20px; }
-  .sa-hero-stat-value { font-size: 1.2em; }
-  .sa-hero-icon { display: none; }
-  .sa-nav { gap: 2px; }
-  .sa-nav-btn { padding: 7px 12px; font-size: 0.78em; }
-  .sa-kpi-row { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
-  .sa-kpi { padding: 14px 12px; }
-  .sa-kpi-val { font-size: 1.3em; }
-  .sa-consort-box { min-width: 140px; padding: 12px 16px; font-size: 0.85em; }
+  .section-tabs { gap: 2px; }
+  .sec-tab { padding: 7px 12px; font-size: 0.78em; }
+  .kpi-row { grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 8px; }
+  .kpi-card { padding: 14px 12px; }
+  .kpi-val { font-size: 1.3em; }
+  .consort-box { min-width: 140px; padding: 12px 16px; font-size: 0.85em; }
 }
-
-/* ══════════════════════════════════════
-   15. CHART-PAIR GRID (side by side)
-   ══════════════════════════════════════ */
-.sa-chart-pair {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 1.5em;
-}
-@media (max-width: 900px) {
-  .sa-chart-pair { grid-template-columns: 1fr; }
-}
-
 </style>
 <link rel="stylesheet" href="{% static 'css/chatbot.css' %}">
 {% endblock %}
@@ -546,16 +279,7 @@
 {% endblock %}
 
 {% block content %}
-<!-- Aurora Background -->
-<div class="sa-aurora"></div>
-
-<!-- Noise Overlay -->
-<svg class="sa-noise" viewBox="0 0 256 256" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="none">
-  <filter id="saNoiseFilter"><feTurbulence type="fractalNoise" baseFrequency="0.75" numOctaves="4" stitchTiles="stitch"/></filter>
-  <rect width="100%" height="100%" filter="url(#saNoiseFilter)"/>
-</svg>
-
-<div class="sa-wrap">
+<div class="doc-container">
 
   <!-- Subtab bar (Data section) -->
   <div class="tab-bar">
@@ -565,171 +289,140 @@
     <a href="{% url 'compare_dashboard' run_id %}" class="tab-link">A/B Comparison</a>
   </div>
 
-  <!-- Hero Insight Banner -->
-  <div class="sa-hero" id="sa-hero">
-    <div class="sa-hero-eyebrow">
-      <span class="pulse-dot"></span>
-      ICH E3 Statistical Analysis
+  <!-- Header -->
+  <div class="doc-header">
+    <div>
+      <div class="doc-title">Statistical Analysis</div>
+      <div class="doc-subtitle">
+        ICH E3 Clinical Study Report
+        {% if drug_name %} · <strong style="color:var(--accent-blue)">{{ drug_name }}</strong>{% endif %}
+        {% if indication %} · {{ indication }}{% endif %}
+        · {{ n_patients }} patients · Run {{ run_id|truncatechars:16 }}
+      </div>
     </div>
-    <div class="sa-hero-title">
-      <span class="hl">{{ drug_name }}</span> Clinical Study Report
-    </div>
-    <div class="sa-hero-sub">
-      {% if indication %}{{ indication }} &middot; {% endif %}<strong>{{ n_patients }} patients</strong> enrolled &middot; Run <code style="font-size:0.88em;color:var(--accent-cyan);background:rgba(57,210,192,0.08);padding:1px 6px;border-radius:4px;">{{ run_id|truncatechars:16 }}</code>
-    </div>
-    <div class="sa-hero-stats" id="hero-stats">
-      <!-- Populated by JS -->
-    </div>
-    <!-- Decorative icon -->
-    <svg class="sa-hero-icon" width="140" height="140" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="0.8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
-    </svg>
-  </div>
-
-  <!-- Header Bar: DCA Toggle -->
-  <div class="sa-header-bar">
     {% if available_modes|length > 1 %}
-    <label class="sa-dca" id="dca-toggle">
-      <span class="sa-dca-tag">Mode</span>
+    <label class="dca-switch" id="dca-toggle">
+      <span class="dca-label">DCA</span>
       <input type="checkbox" data-mode-on="care_ai" data-mode-off="natural">
-      <span class="sa-dca-slider"></span>
-      <span class="sa-dca-label">DCA</span>
+      <span class="dca-slider"></span>
     </label>
-    {% else %}
-    <div></div>
     {% endif %}
   </div>
 
   <!-- Section Navigation -->
-  <div class="sa-nav">
-    <button class="sa-nav-btn active" data-sec="disposition">
-      <span>Disposition</span>
-    </button>
-    <button class="sa-nav-btn" data-sec="demographics">
-      <span>Demographics</span>
-    </button>
-    <button class="sa-nav-btn" data-sec="efficacy">
-      <span>Efficacy</span>
-    </button>
-    <button class="sa-nav-btn" data-sec="safety">
-      <span>Safety</span>
-    </button>
-    <button class="sa-nav-btn" data-sec="labs">
-      <span>Lab Abnormalities</span>
-    </button>
-    <button class="sa-nav-btn" data-sec="treatment">
-      <span>Treatment Exposure</span>
-    </button>
-    <button class="sa-nav-btn" data-sec="ecog">
-      <span>ECOG PS</span>
-    </button>
-    <button class="sa-nav-btn" data-sec="conmeds">
-      <span>Concomitant Meds</span>
-    </button>
+  <div class="section-tabs">
+    <button class="sec-tab active" data-sec="disposition">Disposition</button>
+    <button class="sec-tab" data-sec="demographics">Demographics</button>
+    <button class="sec-tab" data-sec="efficacy">Efficacy</button>
+    <button class="sec-tab" data-sec="safety">Safety</button>
+    <button class="sec-tab" data-sec="labs">Lab Abnormalities</button>
+    <button class="sec-tab" data-sec="treatment">Treatment Exposure</button>
+    <button class="sec-tab" data-sec="ecog">ECOG PS</button>
+    <button class="sec-tab" data-sec="conmeds">Concomitant Meds</button>
   </div>
 
   <!-- Loading -->
-  <div id="loading" class="sa-loading"><span class="sa-spinner"></span>Computing statistics...</div>
+  <div id="loading" class="loading-overlay"><span class="spinner"></span>Computing statistics...</div>
 
-  <!-- ═══ DISPOSITION ═══ -->
-  <div class="sa-panel" id="panel-disposition">
-    <div class="sa-sec-title">CONSORT Flow Diagram</div>
-    <div id="consort-diagram" class="sa-consort"></div>
-    <div class="sa-sec-title">Reasons for Discontinuation / Death</div>
-    <div class="sa-table-wrap"><table class="sa-table" id="tbl-disp"></table></div>
+  <!-- DISPOSITION -->
+  <div class="sec-panel" id="panel-disposition">
+    <h3>CONSORT Flow Diagram</h3>
+    <div id="consort-diagram" class="consort"></div>
+    <h3>Reasons for Discontinuation / Death</h3>
+    <div class="csr-table-wrap"><table class="csr-table" id="tbl-disp"></table></div>
   </div>
 
-  <!-- ═══ DEMOGRAPHICS ═══ -->
-  <div class="sa-panel" id="panel-demographics">
-    <div class="sa-sec-title">Continuous Variables</div>
-    <div class="sa-table-wrap"><table class="sa-table" id="tbl-demo-cont"></table></div>
-    <div class="sa-sec-title">Categorical Variables</div>
-    <div class="sa-table-wrap"><table class="sa-table" id="tbl-demo-cat"></table></div>
-    <div class="sa-chart-pair">
-      <div class="sa-chart"><div class="sa-chart-title">Age Distribution</div>
-        <div class="sa-chart-area" style="height:220px"><canvas id="chartAge"></canvas></div></div>
-      <div class="sa-chart"><div class="sa-chart-title">ECOG PS Distribution</div>
-        <div class="sa-chart-area" style="height:220px"><canvas id="chartEcog"></canvas></div></div>
+  <!-- DEMOGRAPHICS -->
+  <div class="sec-panel" id="panel-demographics">
+    <h3>Continuous Variables</h3>
+    <div class="csr-table-wrap"><table class="csr-table" id="tbl-demo-cont"></table></div>
+    <h3>Categorical Variables</h3>
+    <div class="csr-table-wrap"><table class="csr-table" id="tbl-demo-cat"></table></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:1.4em">
+      <div class="chart-card"><div class="chart-title">Age Distribution</div>
+        <div class="chart-area" style="height:220px"><canvas id="chartAge"></canvas></div></div>
+      <div class="chart-card"><div class="chart-title">ECOG PS Distribution</div>
+        <div class="chart-area" style="height:220px"><canvas id="chartEcog"></canvas></div></div>
     </div>
   </div>
 
-  <!-- ═══ EFFICACY ═══ -->
-  <div class="sa-panel" id="panel-efficacy">
-    <div class="sa-kpi-row" id="kpi-efficacy"></div>
-    <div class="sa-sec-title">Best Overall Response (RECIST v1.1)</div>
-    <div class="sa-table-wrap"><table class="sa-table" id="tbl-response"></table></div>
-    <div class="sa-chart"><div class="sa-chart-title">Waterfall Plot -- Best Tumor Change (%)</div>
-      <div class="sa-chart-area" style="height:300px"><canvas id="chartWaterfall"></canvas></div></div>
-    <div class="sa-chart"><div class="sa-chart-title">Overall Survival (Kaplan-Meier)</div>
-      <div class="sa-chart-area" style="height:300px"><canvas id="chartKmOs"></canvas></div>
+  <!-- EFFICACY -->
+  <div class="sec-panel" id="panel-efficacy">
+    <div class="kpi-row" id="kpi-efficacy"></div>
+    <h3>Best Overall Response (RECIST v1.1)</h3>
+    <div class="csr-table-wrap"><table class="csr-table" id="tbl-response"></table></div>
+    <div class="chart-card"><div class="chart-title">Waterfall Plot -- Best Tumor Change (%)</div>
+      <div class="chart-area" style="height:300px"><canvas id="chartWaterfall"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Overall Survival (Kaplan-Meier)</div>
+      <div class="chart-area" style="height:300px"><canvas id="chartKmOs"></canvas></div>
       <div id="km-os-info" style="margin-top:10px;font-size:.9em;color:var(--text-secondary)"></div>
       <div id="km-os-risk" style="margin-top:6px;font-size:.84em;color:var(--text-muted);font-family:'JetBrains Mono',monospace"></div></div>
-    <div class="sa-chart"><div class="sa-chart-title">Progression-Free Survival (Kaplan-Meier)</div>
-      <div class="sa-chart-area" style="height:300px"><canvas id="chartKmPfs"></canvas></div>
+    <div class="chart-card"><div class="chart-title">Progression-Free Survival (Kaplan-Meier)</div>
+      <div class="chart-area" style="height:300px"><canvas id="chartKmPfs"></canvas></div>
       <div id="km-pfs-info" style="margin-top:10px;font-size:.9em;color:var(--text-secondary)"></div></div>
 
     <!-- DoR & TTR -->
-    <div class="sa-sec-title">Time to Response (TTR) &amp; Duration of Response (DoR)</div>
+    <h3>Time to Response (TTR) &amp; Duration of Response (DoR)</h3>
     <div id="ttr-dor-area"></div>
-    <div class="sa-chart"><div class="sa-chart-title">Duration of Response (Kaplan-Meier)</div>
-      <div class="sa-chart-area" style="height:280px"><canvas id="chartKmDor"></canvas></div>
+    <div class="chart-card"><div class="chart-title">Duration of Response (Kaplan-Meier)</div>
+      <div class="chart-area" style="height:280px"><canvas id="chartKmDor"></canvas></div>
       <div id="km-dor-info" style="margin-top:10px;font-size:.9em;color:var(--text-secondary)"></div></div>
   </div>
 
-  <!-- ═══ SAFETY ═══ -->
-  <div class="sa-panel" id="panel-safety">
-    <div class="sa-kpi-row" id="kpi-safety"></div>
-    <div class="sa-sec-title">Adverse Events by Preferred Term</div>
-    <div class="sa-table-wrap" style="max-height:600px;overflow-y:auto"><table class="sa-table" id="tbl-ae"></table></div>
-    <div class="sa-chart"><div class="sa-chart-title">AE Incidence -- All Grades vs Grade >=3</div>
-      <div class="sa-chart-area" style="height:340px"><canvas id="chartButterfly"></canvas></div></div>
-    <div class="sa-chart"><div class="sa-chart-title">AE Timeline Heatmap</div>
-      <div class="sa-chart-area" style="height:340px"><canvas id="chartHeatmap"></canvas></div>
-      <div class="sa-grade-legend" id="heatmap-legend"></div></div>
+  <!-- SAFETY -->
+  <div class="sec-panel" id="panel-safety">
+    <div class="kpi-row" id="kpi-safety"></div>
+    <h3>Adverse Events by Preferred Term</h3>
+    <div class="csr-table-wrap" style="max-height:600px;overflow-y:auto"><table class="csr-table" id="tbl-ae"></table></div>
+    <div class="chart-card"><div class="chart-title">AE Incidence -- All Grades vs Grade >=3</div>
+      <div class="chart-area" style="height:340px"><canvas id="chartButterfly"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">AE Timeline Heatmap</div>
+      <div class="chart-area" style="height:340px"><canvas id="chartHeatmap"></canvas></div>
+      <div class="grade-legend" id="heatmap-legend"></div></div>
   </div>
 
-  <!-- ═══ LABS ═══ -->
-  <div class="sa-panel" id="panel-labs">
-    <div class="sa-sec-title">Lab Abnormality Summary</div>
-    <div class="sa-table-wrap"><table class="sa-table" id="tbl-lab-abn"></table></div>
-    <div class="sa-sec-title">Shift Table &amp; Lab Trend</div>
+  <!-- LABS -->
+  <div class="sec-panel" id="panel-labs">
+    <h3>Lab Abnormality Summary</h3>
+    <div class="csr-table-wrap"><table class="csr-table" id="tbl-lab-abn"></table></div>
+    <h3>Shift Table &amp; Lab Trend</h3>
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-      <select class="sa-lab-select" id="lab-param-select"></select>
+      <select class="lab-select" id="lab-param-select"></select>
     </div>
     <div id="shift-table-area"></div>
-    <div class="sa-chart"><div class="sa-chart-title">Lab Trend by Cycle</div>
-      <div class="sa-chart-area" style="height:280px"><canvas id="chartLabTrend"></canvas></div></div>
+    <div class="chart-card"><div class="chart-title">Lab Trend by Cycle</div>
+      <div class="chart-area" style="height:280px"><canvas id="chartLabTrend"></canvas></div></div>
   </div>
 
-  <!-- ═══ TREATMENT ═══ -->
-  <div class="sa-panel" id="panel-treatment">
-    <div class="sa-kpi-row" id="kpi-treatment"></div>
-    <div class="sa-sec-title">Treatment Exposure Summary</div>
-    <div class="sa-table-wrap"><table class="sa-table" id="tbl-tx"></table></div>
-    <div class="sa-chart"><div class="sa-chart-title">Dose Modifications</div>
-      <div class="sa-chart-area" style="height:260px"><canvas id="chartDoseMod"></canvas></div></div>
+  <!-- TREATMENT -->
+  <div class="sec-panel" id="panel-treatment">
+    <div class="kpi-row" id="kpi-treatment"></div>
+    <h3>Treatment Exposure Summary</h3>
+    <div class="csr-table-wrap"><table class="csr-table" id="tbl-tx"></table></div>
+    <div class="chart-card"><div class="chart-title">Dose Modifications</div>
+      <div class="chart-area" style="height:260px"><canvas id="chartDoseMod"></canvas></div></div>
   </div>
 
-  <!-- ═══ ECOG PS ═══ -->
-  <div class="sa-panel" id="panel-ecog">
-    <div class="sa-sec-title">ECOG Performance Status</div>
-    <div class="sa-kpi-row" id="kpi-ecog"></div>
-    <div class="sa-sec-title">Baseline -> Last Assessment</div>
+  <!-- ECOG PS -->
+  <div class="sec-panel" id="panel-ecog">
+    <h3>ECOG Performance Status</h3>
+    <div class="kpi-row" id="kpi-ecog"></div>
+    <h4>Baseline -> Last Assessment</h4>
     <div id="ecog-shift-last"></div>
-    <div class="sa-sec-title">Baseline -> Worst Post-Baseline</div>
+    <h4>Baseline -> Worst Post-Baseline</h4>
     <div id="ecog-shift-worst"></div>
-    <div class="sa-chart" style="margin-top:1.2em">
-      <div class="sa-chart-title">ECOG PS Change from Baseline</div>
-      <div class="sa-chart-area" style="height:240px"><canvas id="chartEcogShift"></canvas></div>
+    <div class="chart-card" style="margin-top:1.2em">
+      <div class="chart-title">ECOG PS Change from Baseline</div>
+      <div class="chart-area" style="height:240px"><canvas id="chartEcogShift"></canvas></div>
     </div>
   </div>
 
-  <!-- ═══ CONCOMITANT MEDS ═══ -->
-  <div class="sa-panel" id="panel-conmeds">
-    <div class="sa-sec-title">Concomitant Medications</div>
-    <div class="sa-kpi-row" id="kpi-conmeds"></div>
-    <div class="sa-sec-title">All Concomitant Medications (by frequency)</div>
-    <div class="sa-table-wrap"><table class="sa-table" id="tbl-conmeds"></table></div>
+  <!-- CONCOMITANT MEDS -->
+  <div class="sec-panel" id="panel-conmeds">
+    <h3>Concomitant Medications</h3>
+    <div class="kpi-row" id="kpi-conmeds"></div>
+    <h4>All Concomitant Medications (by frequency)</h4>
+    <div class="csr-table-wrap"><table class="csr-table" id="tbl-conmeds"></table></div>
   </div>
 </div>
 
@@ -748,20 +441,19 @@ const COLORS = {
 };
 const chartInstances = {};
 Chart.defaults.devicePixelRatio = Math.max(window.devicePixelRatio || 1, 2);
-Chart.defaults.font.family = "'Inter', system-ui, sans-serif";
-Chart.defaults.color = '#9ca3af';
+Chart.defaults.font.family = "'JetBrains Mono', monospace";
 
-// ── Tab switching ──
-document.querySelectorAll('.sa-nav-btn').forEach(b => {
+// -- Tab switching --
+document.querySelectorAll('.sec-tab').forEach(b => {
   b.addEventListener('click', () => {
-    document.querySelectorAll('.sa-nav-btn').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.sa-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.sec-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.sec-panel').forEach(p => p.classList.remove('active'));
     b.classList.add('active');
     document.getElementById('panel-' + b.dataset.sec).classList.add('active');
   });
 });
 
-// ── DCA Switch Toggle ──
+// -- DCA Switch Toggle --
 function switchStatsMode(mode) {
   currentMode = mode;
   loadData();
@@ -775,10 +467,10 @@ if (dcaToggle) {
 }
 window.switchStatsMode = switchStatsMode;
 
-// ── Data loading ──
+// -- Data loading --
 function loadData() {
   document.getElementById('loading').style.display = 'flex';
-  document.querySelectorAll('.sa-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sec-panel').forEach(p => p.classList.remove('active'));
   fetch(API_URL + '?mode=' + currentMode)
     .then(r => r.json())
     .then(d => {
@@ -786,12 +478,12 @@ function loadData() {
       DATA = d;
       document.getElementById('loading').style.display = 'none';
       renderAll();
-      document.querySelector('.sa-nav-btn.active').click();
+      document.querySelector('.sec-tab.active').click();
     })
     .catch(e => { document.getElementById('loading').innerHTML = '<span style="color:var(--accent-red)">Failed: ' + e + '</span>'; });
 }
 
-// ── Helpers ──
+// -- Helpers --
 function pct(n,d){ return d ? (n/d*100).toFixed(1) : '0.0'; }
 function fmtCI(ci){ return ci ? `(${ci[0]}\u2013${ci[1]}%)` : ''; }
 function npct(obj){ return `${obj.n} (${obj.pct}%)`; }
@@ -811,9 +503,8 @@ function makeChart(id, cfg){
   return c;
 }
 
-// ═══ RENDER ALL ═══
+// === RENDER ALL ===
 function renderAll(){
-  renderHeroStats();
   renderDisposition();
   renderDemographics();
   renderEfficacy();
@@ -824,52 +515,17 @@ function renderAll(){
   renderConmeds();
 }
 
-// ── Hero Stats ──
-function renderHeroStats(){
-  const el = document.getElementById('hero-stats');
-  if(!DATA) return;
-  const e = DATA.efficacy;
-  const s = DATA.safety;
-  const tx = DATA.treatment;
-  el.innerHTML = `
-    <div class="sa-hero-stat">
-      <div class="sa-hero-stat-value cyan">${e.orr.pct}%</div>
-      <div class="sa-hero-stat-label">ORR</div>
-    </div>
-    <div class="sa-hero-stat">
-      <div class="sa-hero-stat-value">${e.km_os.median||'NR'}</div>
-      <div class="sa-hero-stat-label">Median OS (d)</div>
-    </div>
-    <div class="sa-hero-stat">
-      <div class="sa-hero-stat-value orange">${s.summary.grade_gte3.pct}%</div>
-      <div class="sa-hero-stat-label">Grade >=3 AE</div>
-    </div>
-    <div class="sa-hero-stat">
-      <div class="sa-hero-stat-value green">${tx.cycles.median||'\u2014'}</div>
-      <div class="sa-hero-stat-label">Median Cycles</div>
-    </div>`;
-}
-
-// ── Disposition ──
+// -- Disposition --
 function renderDisposition(){
   const d = DATA.disposition;
   const el = document.getElementById('consort-diagram');
   el.innerHTML = `
-    <div class="sa-consort-box main">Enrolled<br><b>${d.enrolled}</b></div>
-    <div class="sa-consort-connector"></div>
-    <div class="sa-consort-row">
-      <div class="sa-consort-branch">
-        <div class="sa-consort-connector fork"></div>
-        <div class="sa-consort-box ok">Completed Treatment<br><b>${d.completed.n}</b> (${d.completed.pct}%)</div>
-      </div>
-      <div class="sa-consort-branch">
-        <div class="sa-consort-connector fork"></div>
-        <div class="sa-consort-box out">Discontinued<br><b>${d.discontinued.n}</b> (${d.discontinued.pct}%)</div>
-      </div>
-      <div class="sa-consort-branch">
-        <div class="sa-consort-connector fork"></div>
-        <div class="sa-consort-box out">Deaths<br><b>${d.deaths.n}</b> (${d.deaths.pct}%)</div>
-      </div>
+    <div class="consort-box main">Enrolled<br><b>${d.enrolled}</b></div>
+    <div class="consort-arrow">\u2193</div>
+    <div class="consort-row">
+      <div class="consort-box ok">Completed Treatment<br><b>${d.completed.n}</b> (${d.completed.pct}%)</div>
+      <div class="consort-box out">Discontinued<br><b>${d.discontinued.n}</b> (${d.discontinued.pct}%)</div>
+      <div class="consort-box out">Deaths<br><b>${d.deaths.n}</b> (${d.deaths.pct}%)</div>
     </div>`;
   const reasons = d.reasons || {};
   const tbl = document.getElementById('tbl-disp');
@@ -882,7 +538,7 @@ function renderDisposition(){
   tbl.innerHTML = html;
 }
 
-// ── Demographics ──
+// -- Demographics --
 function renderDemographics(){
   const d = DATA.demographics;
   // Continuous
@@ -936,14 +592,14 @@ function renderDemographics(){
   });
 }
 
-// ── Efficacy ──
+// -- Efficacy --
 function renderEfficacy(){
   const e = DATA.efficacy;
   document.getElementById('kpi-efficacy').innerHTML = `
-    <div class="sa-kpi"><div class="sa-kpi-val">${e.orr.pct}%</div><div class="sa-kpi-label">ORR</div><div class="sa-kpi-sub">95% CI: ${fmtCI(e.orr.ci)}</div></div>
-    <div class="sa-kpi"><div class="sa-kpi-val">${e.dcr.pct}%</div><div class="sa-kpi-label">DCR</div><div class="sa-kpi-sub">95% CI: ${fmtCI(e.dcr.ci)}</div></div>
-    <div class="sa-kpi"><div class="sa-kpi-val">${e.km_os.median||'NR'}</div><div class="sa-kpi-label">Median OS (days)</div><div class="sa-kpi-sub">${e.km_os.n_events} events</div></div>
-    <div class="sa-kpi"><div class="sa-kpi-val">${e.km_pfs.median||'NR'}</div><div class="sa-kpi-label">Median PFS (days)</div><div class="sa-kpi-sub">${e.km_pfs.n_events} events</div></div>`;
+    <div class="kpi-card"><div class="kpi-val">${e.orr.pct}%</div><div class="kpi-label">ORR</div><div class="kpi-sub">95% CI: ${fmtCI(e.orr.ci)}</div></div>
+    <div class="kpi-card"><div class="kpi-val">${e.dcr.pct}%</div><div class="kpi-label">DCR</div><div class="kpi-sub">95% CI: ${fmtCI(e.dcr.ci)}</div></div>
+    <div class="kpi-card"><div class="kpi-val">${e.km_os.median||'NR'}</div><div class="kpi-label">Median OS (days)</div><div class="kpi-sub">${e.km_os.n_events} events</div></div>
+    <div class="kpi-card"><div class="kpi-val">${e.km_pfs.median||'NR'}</div><div class="kpi-label">Median PFS (days)</div><div class="kpi-sub">${e.km_pfs.n_events} events</div></div>`;
 
   // Response table
   const br = e.best_response;
@@ -994,12 +650,12 @@ function renderEfficacy(){
   let th = '';
   // TTR section
   if(ttr.n){
-    th += `<div class="sa-kpi-row" style="margin-top:0">
-      <div class="sa-kpi"><div class="sa-kpi-val" style="color:var(--accent-blue)">${ttr.median||'\u2014'}</div><div class="sa-kpi-label">Median TTR (days)</div></div>
-      <div class="sa-kpi"><div class="sa-kpi-val">${ttr.n}</div><div class="sa-kpi-label">Responders</div><div class="sa-kpi-sub">CR + PR</div></div>
+    th += `<div class="kpi-row" style="margin-top:0">
+      <div class="kpi-card"><div class="kpi-val" style="color:var(--accent-blue)">${ttr.median||'\u2014'}</div><div class="kpi-label">Median TTR (days)</div></div>
+      <div class="kpi-card"><div class="kpi-val">${ttr.n}</div><div class="kpi-label">Responders</div><div class="kpi-sub">CR + PR</div></div>
     </div>`;
   }
-  th += '<div class="sa-table-wrap"><table class="sa-table" style="margin-bottom:0">';
+  th += '<div class="csr-table-wrap"><table class="csr-table" style="margin-bottom:0">';
   th += '<thead><tr><th>Statistic</th><th class="num">All Responders</th></tr></thead><tbody>';
   if(ttr.n){
     th += `<tr><td>Median TTR, days</td><td class="num">${ttr.median}</td></tr>`;
@@ -1011,15 +667,15 @@ function renderEfficacy(){
   }
   th += '</tbody></table></div>';
   // DoR section
-  th += '<div class="sa-sec-title" style="margin-top:1.5em">Duration of Response (DoR)</div>';
+  th += '<h4 style="margin-top:1.5em">Duration of Response (DoR)</h4>';
   if(dor.n){
-    th += `<div class="sa-kpi-row">
-      <div class="sa-kpi"><div class="sa-kpi-val" style="color:var(--accent-green)">${dor.median||'NR'}</div><div class="sa-kpi-label">Median DoR (days)</div></div>
-      <div class="sa-kpi"><div class="sa-kpi-val">${dor.n}</div><div class="sa-kpi-label">Responders</div></div>
-      <div class="sa-kpi"><div class="sa-kpi-val">${dor.events||0}</div><div class="sa-kpi-label">Events</div><div class="sa-kpi-sub">progression or death</div></div>
+    th += `<div class="kpi-row">
+      <div class="kpi-card"><div class="kpi-val" style="color:var(--accent-green)">${dor.median||'NR'}</div><div class="kpi-label">Median DoR (days)</div></div>
+      <div class="kpi-card"><div class="kpi-val">${dor.n}</div><div class="kpi-label">Responders</div></div>
+      <div class="kpi-card"><div class="kpi-val">${dor.events||0}</div><div class="kpi-label">Events</div><div class="kpi-sub">progression or death</div></div>
     </div>`;
   }
-  th += '<div class="sa-table-wrap"><table class="sa-table">';
+  th += '<div class="csr-table-wrap"><table class="csr-table">';
   th += '<thead><tr><th>Statistic</th><th class="num">All Responders</th></tr></thead><tbody>';
   if(dor.n){
     th += `<tr><td>Median DoR, days</td><td class="num">${dor.median||'NR'}</td></tr>`;
@@ -1032,7 +688,7 @@ function renderEfficacy(){
     th += '<tr><td colspan="2" style="text-align:center;color:var(--text-muted)">No responders (CR/PR) \u2014 DoR not applicable</td></tr>';
   }
   th += '</tbody></table></div>';
-  th += `<div class="sa-note"><strong>TTR</strong> = time from first dose to first documented response (CR/PR per RECIST v1.1). <strong>DoR</strong> = time from first response to first progression or death.</div>`;
+  th += `<div class="section-note"><strong>TTR</strong> = time from first dose to first documented response (CR/PR per RECIST v1.1). <strong>DoR</strong> = time from first response to first progression or death.</div>`;
   document.getElementById('ttr-dor-area').innerHTML = th;
 
   // KM DoR
@@ -1085,20 +741,20 @@ function renderKM(canvasId, km, infoId, riskId, label){
   }
 }
 
-// ── Safety ──
+// -- Safety --
 function renderSafety(){
   const s = DATA.safety;
   const sm = s.summary;
   const tx = DATA.treatment;
   const N = s.n;
   document.getElementById('kpi-safety').innerHTML = `
-    <div class="sa-kpi"><div class="sa-kpi-val">${sm.any_ae.pct}%</div><div class="sa-kpi-label">Any AE</div><div class="sa-kpi-sub">${sm.any_ae.n}/${N} patients</div></div>
-    <div class="sa-kpi"><div class="sa-kpi-val" style="color:var(--accent-orange)">${sm.grade_gte3.pct}%</div><div class="sa-kpi-label">Grade >=3</div><div class="sa-kpi-sub">${sm.grade_gte3.n}/${N} patients</div></div>
-    <div class="sa-kpi"><div class="sa-kpi-val" style="color:var(--accent-red)">${sm.sae.pct}%</div><div class="sa-kpi-label">SAE</div><div class="sa-kpi-sub">${sm.sae.n}/${N} patients</div></div>
-    <div class="sa-kpi"><div class="sa-kpi-val" style="color:var(--grade-5)">${sm.fatal.pct}%</div><div class="sa-kpi-label">Fatal AE</div><div class="sa-kpi-sub">${sm.fatal.n}/${N} patients</div></div>
-    <div class="sa-kpi"><div class="sa-kpi-val">${tx.ae_discontinuation.pct}%</div><div class="sa-kpi-label">AE -> Discont.</div><div class="sa-kpi-sub">${tx.ae_discontinuation.n}/${N} patients</div></div>
-    <div class="sa-kpi"><div class="sa-kpi-val">${tx.ae_dose_interruption.pct}%</div><div class="sa-kpi-label">AE -> Dose Hold</div><div class="sa-kpi-sub">${tx.ae_dose_interruption.n}/${N} patients</div></div>
-    <div class="sa-kpi"><div class="sa-kpi-val">${tx.ae_dose_reduction.pct}%</div><div class="sa-kpi-label">AE -> Dose Red.</div><div class="sa-kpi-sub">${tx.ae_dose_reduction.n}/${N} patients</div></div>`;
+    <div class="kpi-card"><div class="kpi-val">${sm.any_ae.pct}%</div><div class="kpi-label">Any AE</div><div class="kpi-sub">${sm.any_ae.n}/${N} patients</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--accent-orange)">${sm.grade_gte3.pct}%</div><div class="kpi-label">Grade >=3</div><div class="kpi-sub">${sm.grade_gte3.n}/${N} patients</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--accent-red)">${sm.sae.pct}%</div><div class="kpi-label">SAE</div><div class="kpi-sub">${sm.sae.n}/${N} patients</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--grade-5)">${sm.fatal.pct}%</div><div class="kpi-label">Fatal AE</div><div class="kpi-sub">${sm.fatal.n}/${N} patients</div></div>
+    <div class="kpi-card"><div class="kpi-val">${tx.ae_discontinuation.pct}%</div><div class="kpi-label">AE -> Discont.</div><div class="kpi-sub">${tx.ae_discontinuation.n}/${N} patients</div></div>
+    <div class="kpi-card"><div class="kpi-val">${tx.ae_dose_interruption.pct}%</div><div class="kpi-label">AE -> Dose Hold</div><div class="kpi-sub">${tx.ae_dose_interruption.n}/${N} patients</div></div>
+    <div class="kpi-card"><div class="kpi-val">${tx.ae_dose_reduction.pct}%</div><div class="kpi-label">AE -> Dose Red.</div><div class="kpi-sub">${tx.ae_dose_reduction.n}/${N} patients</div></div>`;
 
   // AE table
   const terms = s.by_term||[];
@@ -1176,12 +832,12 @@ function renderSafety(){
   const legendEl = document.getElementById('heatmap-legend');
   if(legendEl){
     legendEl.innerHTML = [1,2,3,4,5].map(g =>
-      `<div class="sa-grade-legend-item"><div class="sa-grade-legend-dot" style="background:${gradeColors[g]}"></div>Grade ${g}</div>`
+      `<div class="grade-legend-item"><div class="grade-legend-dot" style="background:${gradeColors[g]}"></div>Grade ${g}</div>`
     ).join('');
   }
 }
 
-// ── Labs ──
+// -- Labs --
 function renderLabs(){
   const lb = DATA.labs;
   const abn = lb.abnormalities||{};
@@ -1214,13 +870,13 @@ function renderShiftTable(matrix, label){
   const area = document.getElementById('shift-table-area');
   const gradeLabels = ['Normal','G1','G2','G3+'];
   const cols = gradeLabels.length;
-  let html = `<div class="sa-shift-wrap">`;
-  html += `<div class="sa-shift-axis-label">Post-Baseline Worst Grade</div>`;
-  html += `<div class="sa-shift-grid" style="grid-template-columns:100px repeat(${cols},1fr);max-width:${cols*90+100}px">`;
-  html += '<div class="sa-shift-hdr"></div>';
-  gradeLabels.forEach(g => html += `<div class="sa-shift-hdr">${g}</div>`);
+  let html = `<div class="shift-wrap">`;
+  html += `<div class="shift-axis-label">Post-Baseline Worst Grade</div>`;
+  html += `<div class="shift-grid" style="grid-template-columns:100px repeat(${cols},1fr);max-width:${cols*90+100}px">`;
+  html += '<div class="shift-hdr"></div>';
+  gradeLabels.forEach(g => html += `<div class="shift-hdr">${g}</div>`);
   matrix.forEach((row,ri) => {
-    html += `<div class="sa-shift-row-label">${gradeLabels[ri]}</div>`;
+    html += `<div class="shift-row-label">${gradeLabels[ri]}</div>`;
     row.forEach((v,ci) => {
       let cls = 'empty';
       if(v > 0){
@@ -1228,17 +884,17 @@ function renderShiftTable(matrix, label){
         else if(ci === ri) cls = 'stable';
         else cls = 'improved';
       }
-      html += `<div class="sa-shift-cell ${cls}">${v||'\u00b7'}</div>`;
+      html += `<div class="shift-cell ${cls}">${v||'\u00b7'}</div>`;
     });
   });
   html += '</div>';
-  html += `<div class="sa-shift-legend">
-    <div class="sa-shift-legend-item"><div class="sa-shift-legend-dot stable"></div>Stable</div>
-    <div class="sa-shift-legend-item"><div class="sa-shift-legend-dot improved"></div>Improved</div>
-    <div class="sa-shift-legend-item"><div class="sa-shift-legend-dot mild"></div>Worsened (+1)</div>
-    <div class="sa-shift-legend-item"><div class="sa-shift-legend-dot severe"></div>Worsened (>=2)</div>
+  html += `<div class="shift-legend">
+    <div class="shift-legend-item"><div class="shift-legend-dot stable"></div>Stable</div>
+    <div class="shift-legend-item"><div class="shift-legend-dot improved"></div>Improved</div>
+    <div class="shift-legend-item"><div class="shift-legend-dot mild"></div>Worsened (+1)</div>
+    <div class="shift-legend-item"><div class="shift-legend-dot severe"></div>Worsened (>=2)</div>
   </div></div>`;
-  html += `<div class="sa-note"><strong>Reading:</strong> Rows = Baseline grade, Columns = Worst post-baseline grade. Diagonal = no change.</div>`;
+  html += `<div class="section-note"><strong>Reading:</strong> Rows = Baseline grade, Columns = Worst post-baseline grade. Diagonal = no change.</div>`;
   area.innerHTML = html;
 }
 
@@ -1286,7 +942,7 @@ function renderLabTrend(trend, label){
           ctx.lineWidth = 1;
           ctx.setLineDash([6,4]);
           ctx.beginPath(); ctx.moveTo(chartArea.left,y); ctx.lineTo(chartArea.right,y); ctx.stroke();
-          ctx.fillStyle = '#d29922'; ctx.font = '10px Inter';
+          ctx.fillStyle = '#d29922'; ctx.font = "10px 'JetBrains Mono', monospace";
           ctx.fillText(ref.toString(), chartArea.right+4, y+3);
           ctx.restore();
         });
@@ -1295,15 +951,15 @@ function renderLabTrend(trend, label){
   });
 }
 
-// ── Treatment ──
+// -- Treatment --
 function renderTreatment(){
   const tx = DATA.treatment;
   document.getElementById('kpi-treatment').innerHTML = `
-    <div class="sa-kpi"><div class="sa-kpi-val">${tx.duration.median||'\u2014'}</div><div class="sa-kpi-label">Median Duration (d)</div><div class="sa-kpi-sub">${tx.duration.min}\u2013${tx.duration.max}</div></div>
-    <div class="sa-kpi"><div class="sa-kpi-val">${tx.cycles.median||'\u2014'}</div><div class="sa-kpi-label">Median Cycles</div><div class="sa-kpi-sub">${tx.cycles.min}\u2013${tx.cycles.max}</div></div>
-    <div class="sa-kpi"><div class="sa-kpi-val">${tx.discontinuation_all.pct}%</div><div class="sa-kpi-label">Discontinuation<br><small>(All Causes)</small></div><div class="sa-kpi-sub">n=${tx.discontinuation_all.n}</div></div>
-    <div class="sa-kpi"><div class="sa-kpi-val">${tx.dose_interruption_all.pct}%</div><div class="sa-kpi-label">Dose Hold<br><small>(All Causes)</small></div><div class="sa-kpi-sub">n=${tx.dose_interruption_all.n}</div></div>
-    <div class="sa-kpi"><div class="sa-kpi-val">${tx.dose_reduction_all.pct}%</div><div class="sa-kpi-label">Dose Reduction<br><small>(All Causes)</small></div><div class="sa-kpi-sub">n=${tx.dose_reduction_all.n}</div></div>`;
+    <div class="kpi-card"><div class="kpi-val">${tx.duration.median||'\u2014'}</div><div class="kpi-label">Median Duration (d)</div><div class="kpi-sub">${tx.duration.min}\u2013${tx.duration.max}</div></div>
+    <div class="kpi-card"><div class="kpi-val">${tx.cycles.median||'\u2014'}</div><div class="kpi-label">Median Cycles</div><div class="kpi-sub">${tx.cycles.min}\u2013${tx.cycles.max}</div></div>
+    <div class="kpi-card"><div class="kpi-val">${tx.discontinuation_all.pct}%</div><div class="kpi-label">Discontinuation<br><small>(All Causes)</small></div><div class="kpi-sub">n=${tx.discontinuation_all.n}</div></div>
+    <div class="kpi-card"><div class="kpi-val">${tx.dose_interruption_all.pct}%</div><div class="kpi-label">Dose Hold<br><small>(All Causes)</small></div><div class="kpi-sub">n=${tx.dose_interruption_all.n}</div></div>
+    <div class="kpi-card"><div class="kpi-val">${tx.dose_reduction_all.pct}%</div><div class="kpi-label">Dose Reduction<br><small>(All Causes)</small></div><div class="kpi-sub">n=${tx.dose_reduction_all.n}</div></div>`;
 
   let h = '<thead><tr><th>Metric</th><th class="num">All Causes</th><th class="num">AE-Related</th></tr></thead><tbody>';
   h += `<tr><td>Treatment Duration (days)</td><td class="num" colspan="2">${tx.duration.mean} \u00b1 ${tx.duration.std} (median ${tx.duration.median})</td></tr>`;
@@ -1330,16 +986,16 @@ function renderTreatment(){
   });
 }
 
-// ── ECOG Shift ──
+// -- ECOG Shift --
 function renderEcogShift(){
   const ec = DATA.ecog_shift;
   if(!ec || !ec.n) return;
   const sm = ec.summary;
   document.getElementById('kpi-ecog').innerHTML = `
-    <div class="sa-kpi"><div class="sa-kpi-val">${ec.n}</div><div class="sa-kpi-label">Evaluable</div></div>
-    <div class="sa-kpi"><div class="sa-kpi-val" style="color:var(--accent-green)">${sm.improved.pct}%</div><div class="sa-kpi-label">Improved</div><div class="sa-kpi-sub">n=${sm.improved.n}</div></div>
-    <div class="sa-kpi"><div class="sa-kpi-val">${sm.stable.pct}%</div><div class="sa-kpi-label">Stable</div><div class="sa-kpi-sub">n=${sm.stable.n}</div></div>
-    <div class="sa-kpi"><div class="sa-kpi-val" style="color:var(--accent-red)">${sm.worsened.pct}%</div><div class="sa-kpi-label">Worsened</div><div class="sa-kpi-sub">n=${sm.worsened.n}</div></div>`;
+    <div class="kpi-card"><div class="kpi-val">${ec.n}</div><div class="kpi-label">Evaluable</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--accent-green)">${sm.improved.pct}%</div><div class="kpi-label">Improved</div><div class="kpi-sub">n=${sm.improved.n}</div></div>
+    <div class="kpi-card"><div class="kpi-val">${sm.stable.pct}%</div><div class="kpi-label">Stable</div><div class="kpi-sub">n=${sm.stable.n}</div></div>
+    <div class="kpi-card"><div class="kpi-val" style="color:var(--accent-red)">${sm.worsened.pct}%</div><div class="kpi-label">Worsened</div><div class="kpi-sub">n=${sm.worsened.n}</div></div>`;
 
   renderEcogMatrix(ec.shift_last, 'ecog-shift-last');
   renderEcogMatrix(ec.shift_worst, 'ecog-shift-worst');
@@ -1367,13 +1023,13 @@ function renderEcogMatrix(matrix, containerId){
     ...matrix.map(r => {let m=0; r.forEach((v,ci)=>{if(v>0)m=ci;}); return m;})
   );
   const sz = Math.min(maxUsed+1, 6);
-  let html = `<div class="sa-shift-wrap">`;
-  html += `<div class="sa-shift-axis-label">Post-Treatment ECOG PS</div>`;
-  html += `<div class="sa-shift-grid" style="grid-template-columns:100px repeat(${sz},1fr);max-width:${sz*90+100}px">`;
-  html += '<div class="sa-shift-hdr"></div>';
-  for(let c=0;c<sz;c++) html += `<div class="sa-shift-hdr">${labels[c]}</div>`;
+  let html = `<div class="shift-wrap">`;
+  html += `<div class="shift-axis-label">Post-Treatment ECOG PS</div>`;
+  html += `<div class="shift-grid" style="grid-template-columns:100px repeat(${sz},1fr);max-width:${sz*90+100}px">`;
+  html += '<div class="shift-hdr"></div>';
+  for(let c=0;c<sz;c++) html += `<div class="shift-hdr">${labels[c]}</div>`;
   for(let r=0;r<sz;r++){
-    html += `<div class="sa-shift-row-label">ECOG ${labels[r]}</div>`;
+    html += `<div class="shift-row-label">ECOG ${labels[r]}</div>`;
     for(let c=0;c<sz;c++){
       const v = matrix[r][c];
       let cls = 'empty';
@@ -1382,27 +1038,27 @@ function renderEcogMatrix(matrix, containerId){
         else if(c === r) cls = 'stable';
         else cls = 'improved';
       }
-      html += `<div class="sa-shift-cell ${cls}">${v||'\u00b7'}</div>`;
+      html += `<div class="shift-cell ${cls}">${v||'\u00b7'}</div>`;
     }
   }
   html += '</div>';
-  html += `<div class="sa-shift-legend">
-    <div class="sa-shift-legend-item"><div class="sa-shift-legend-dot stable"></div>Stable (maintained)</div>
-    <div class="sa-shift-legend-item"><div class="sa-shift-legend-dot improved"></div>Improved</div>
-    <div class="sa-shift-legend-item"><div class="sa-shift-legend-dot mild"></div>Worsened (+1 grade)</div>
-    <div class="sa-shift-legend-item"><div class="sa-shift-legend-dot severe"></div>Worsened (>=2 grades)</div>
+  html += `<div class="shift-legend">
+    <div class="shift-legend-item"><div class="shift-legend-dot stable"></div>Stable (maintained)</div>
+    <div class="shift-legend-item"><div class="shift-legend-dot improved"></div>Improved</div>
+    <div class="shift-legend-item"><div class="shift-legend-dot mild"></div>Worsened (+1 grade)</div>
+    <div class="shift-legend-item"><div class="shift-legend-dot severe"></div>Worsened (>=2 grades)</div>
   </div></div>`;
-  html += `<div class="sa-note"><strong>Reading:</strong> Rows = Baseline ECOG, Columns = Post-treatment ECOG. Diagonal = no change. Above diagonal = worsening, below = improvement.</div>`;
+  html += `<div class="section-note"><strong>Reading:</strong> Rows = Baseline ECOG, Columns = Post-treatment ECOG. Diagonal = no change. Above diagonal = worsening, below = improvement.</div>`;
   document.getElementById(containerId).innerHTML = html;
 }
 
-// ── Concomitant Meds ──
+// -- Concomitant Meds --
 function renderConmeds(){
   const cm = DATA.concomitant_meds;
   if(!cm) return;
   document.getElementById('kpi-conmeds').innerHTML = `
-    <div class="sa-kpi"><div class="sa-kpi-val">${cm.n}</div><div class="sa-kpi-label">Patients</div></div>
-    <div class="sa-kpi"><div class="sa-kpi-val">${cm.total_unique_meds}</div><div class="sa-kpi-label">Unique Medications</div></div>`;
+    <div class="kpi-card"><div class="kpi-val">${cm.n}</div><div class="kpi-label">Patients</div></div>
+    <div class="kpi-card"><div class="kpi-val">${cm.total_unique_meds}</div><div class="kpi-label">Unique Medications</div></div>`;
 
   const tbl = cm.table || [];
   let h = '<thead><tr><th>Medication</th><th class="num">N (%)</th><th class="num">Baseline</th><th class="num">New on Study</th><th>Indication</th><th>Route</th></tr></thead><tbody>';
@@ -1414,14 +1070,14 @@ function renderConmeds(){
   document.getElementById('tbl-conmeds').innerHTML = h;
   // Add note
   const noteEl = document.createElement('div');
-  noteEl.className = 'sa-note';
+  noteEl.className = 'section-note';
   noteEl.style.marginTop = '12px';
   noteEl.innerHTML = '<strong>Note:</strong> "Baseline" = medication ongoing at study entry. "New on Study" = started after first dose. Only medications with >=1 patient are listed.';
-  const tblWrap = document.getElementById('tbl-conmeds').closest('.sa-table-wrap');
-  if(tblWrap && !tblWrap.nextElementSibling?.classList?.contains('sa-note')) tblWrap.parentElement.insertBefore(noteEl, tblWrap.nextSibling);
+  const tblWrap = document.getElementById('tbl-conmeds').closest('.csr-table-wrap');
+  if(tblWrap && !tblWrap.nextElementSibling?.classList?.contains('section-note')) tblWrap.parentElement.insertBefore(noteEl, tblWrap.nextSibling);
 }
 
-// ── Init ──
+// -- Init --
 loadData();
 </script>
 <script src="{% static 'js/chatbot.js' %}"></script>
@@ -1432,51 +1088,50 @@ chatbot.init({
   pageType: 'stats',
   suggestions: ['Summarize ORR and DCR', 'Top 3 adverse events?', 'Grade 3+ AE breakdown', 'Dose modification rate?'],
   getPageContext: function() {
-    var activeTab = document.querySelector('.sa-nav-btn.active');
+    var activeTab = document.querySelector('.sec-tab.active');
     return { mode: currentMode, tab: activeTab ? activeTab.dataset.sec : '' };
   },
   clickToRef: function(e) {
-    if (e.target.closest('.sa-nav-btn') || e.target.closest('.mode-opt') || e.target.closest('.mode-banner') ||
+    if (e.target.closest('.sec-tab') || e.target.closest('.mode-opt') || e.target.closest('.mode-banner') ||
         e.target.closest('select') || e.target.closest('.tab-bar') ||
-        e.target.closest('.tab-link') || e.target.closest('button:not(.sa-kpi)') ||
-        e.target.closest('a')) {
+        e.target.closest('.tab-link') || e.target.closest('a')) {
       return null;
     }
-    var kpi = e.target.closest('.sa-kpi');
-    var tableWrap = e.target.closest('.sa-table-wrap');
-    var chart = e.target.closest('.sa-chart');
-    var shiftCell = e.target.closest('.sa-shift-cell:not(.empty)');
+    var kpi = e.target.closest('.kpi-card');
+    var tableWrap = e.target.closest('.csr-table-wrap');
+    var chart = e.target.closest('.chart-card');
+    var shiftCell = e.target.closest('.shift-cell:not(.empty)');
     if (kpi) {
-      var val = (kpi.querySelector('.sa-kpi-val') || {}).textContent || '';
-      var label = (kpi.querySelector('.sa-kpi-label') || {}).textContent || '';
+      var val = (kpi.querySelector('.kpi-val') || {}).textContent || '';
+      var label = (kpi.querySelector('.kpi-label') || {}).textContent || '';
       return label.replace(/<[^>]*>/g, '').replace(/\s+/g, ' ').trim() + ': ' + val.trim();
     }
     if (tableWrap) {
       var tLabel = '';
       var el = tableWrap.previousElementSibling;
       while (el) {
-        if (el.classList && el.classList.contains('sa-sec-title')) { tLabel = el.textContent.trim(); break; }
+        if (el.tagName === 'H3' || el.tagName === 'H4') { tLabel = el.textContent.trim(); break; }
         el = el.previousElementSibling;
       }
       if (!tLabel) {
-        var at = document.querySelector('.sa-nav-btn.active');
+        var at = document.querySelector('.sec-tab.active');
         tLabel = at ? at.textContent.trim() + ' Table' : 'Table';
       }
-      var tbl = tableWrap.querySelector('.sa-table');
+      var tbl = tableWrap.querySelector('.csr-table');
       return tbl ? tLabel + ' (' + tbl.querySelectorAll('tbody tr').length + ' rows)' : tLabel;
     }
     if (chart) {
-      var ct = (chart.querySelector('.sa-chart-title') || {}).textContent || '';
+      var ct = (chart.querySelector('.chart-title') || {}).textContent || '';
       return ct.trim() || null;
     }
     if (shiftCell) {
       var sv = shiftCell.textContent.trim();
-      var grid = shiftCell.closest('.sa-shift-grid');
+      var grid = shiftCell.closest('.shift-grid');
       if (grid) {
         var allCells = Array.from(grid.children);
         var ci = allCells.indexOf(shiftCell);
-        var hdrs = Array.from(grid.querySelectorAll('.sa-shift-hdr'));
-        var rLabels = Array.from(grid.querySelectorAll('.sa-shift-row-label'));
+        var hdrs = Array.from(grid.querySelectorAll('.shift-hdr'));
+        var rLabels = Array.from(grid.querySelectorAll('.shift-row-label'));
         var cm = (grid.style.gridTemplateColumns || '').match(/repeat\((\d+)/);
         var dc = cm ? parseInt(cm[1]) : hdrs.length - 1;
         var tc = dc + 1;
