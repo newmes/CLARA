@@ -29,6 +29,9 @@ httpx>=0.25
 requests>=2.31
 aiohttp>=3.9
 
+# --- Scientific ---
+scipy>=1.11
+
 # --- Visualization ---
 matplotlib>=3.8
 seaborn>=0.13
@@ -36,6 +39,7 @@ seaborn>=0.13
 # --- Notebook utilities ---
 nest-asyncio>=1.5
 ipython>=8.0
+ipykernel>=6.25
 Pillow>=10.0
 
 # --- HuggingFace Hub ---

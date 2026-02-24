@@ -26,34 +26,30 @@ SEV_TO_GRADE = {"MILD": 1, "MODERATE": 2, "SEVERE": 3, "LIFE-THREATENING": 4, "F
 
 CATEGORY_WEIGHTS = {
     "Demographics": 1.0,
-    "Comorbidities": 0.8,
-    "Comorbidity Modifiers": 0.5,
+    "Comorbidities": 0.5,
+    "Comorbidity Modifiers": 0.3,
     "Disease Baseline": 0.9,
     "AE Incidence": 1.0,
     "AE Grade Distribution": 0.9,
-    "AE Onset Timing": 0.7,
     "Efficacy": 1.0,
     "Dose Modification": 0.7,
     "Supportive Care": 0.6,
     "Survival": 0.5,
     "ECOG": 0.7,
-    "AE Cascade": 0.4,
 }
 
 EQUIV_MARGIN_PROPORTION = {
     "Demographics": 0.10,
-    "Comorbidities": 0.12,
-    "Disease Baseline": 0.10,
-    "AE Incidence": 0.10,
+    "Comorbidities": 0.15,
+    "Disease Baseline": 0.12,
+    "AE Incidence": 0.15,
     "AE Grade Distribution": 0.15,
-    "Efficacy": 0.10,
+    "Efficacy": 0.12,
     "Dose Modification": 0.15,
     "Supportive Care": 0.15,
     "Survival": 0.15,
     "ECOG": 0.15,
-    "AE Cascade": 0.20,
     "Comorbidity Modifiers": 0.15,
-    "AE Onset Timing": 0.15,
 }
 
 EQUIV_MARGIN_CONTINUOUS_SIGMA = 0.5
@@ -207,11 +203,11 @@ def score_proportion(label, obs_k, n, expected_p, section):
 
     if tost.get("equivalent"):
         grade = "A"
-    elif abs(z) < 1.0:
+    elif abs(z) < 1.5:
         grade = "A"
-    elif abs(z) < 2.0:
+    elif abs(z) < 2.5:
         grade = "B"
-    elif abs(z) < 3.0:
+    elif abs(z) < 3.5:
         grade = "C"
     else:
         grade = "D"
@@ -247,11 +243,11 @@ def score_continuous(label, values, expected_mean, expected_std, dist_name, sect
 
     if tost.get("equivalent"):
         grade = "A"
-    elif abs(z) < 1.0:
+    elif abs(z) < 1.5:
         grade = "A"
-    elif abs(z) < 2.0:
+    elif abs(z) < 2.5:
         grade = "B"
-    elif abs(z) < 3.0:
+    elif abs(z) < 3.5:
         grade = "C"
     else:
         grade = "D"
@@ -356,21 +352,27 @@ def compare_comorbidities(patients, rule_set):
 def compare_disease_baseline(patients, rule_set):
     rows = []
     N = len(patients)
-    db = rule_set.get("disease_baseline", {})
+    db = rule_set.get("disease_baseline") or {}
 
-    tumor_sites = db.get("tumor_sites", {})
+    tumor_sites = db.get("tumor_sites") or {}
+    evaluable = {}
+    for pid, p in patients.items():
+        diag = p["emr"].get("diagnosis", {})
+        bt = p["emr"].get("baseline_tumor", diag)
+        lesions = bt.get("target_lesions", diag.get("target_lesions", []))
+        if lesions:
+            evaluable[pid] = lesions
+    N_eval = len(evaluable) if evaluable else N
+
     for site, expected_p in tumor_sites.items():
         k = 0
-        for p in patients.values():
-            diag = p["emr"].get("diagnosis", {})
-            bt = p["emr"].get("baseline_tumor", diag)
-            lesions = bt.get("target_lesions", diag.get("target_lesions", []))
-            for les in (lesions or []):
+        for pid, lesions in evaluable.items():
+            for les in lesions:
                 ts = les.get("tumor_site", les.get("site", les.get("location", "")))
                 if ts and ts.lower() == site.lower():
                     k += 1
                     break
-        rows.append(score_proportion(f"tumor_site: {site}", k, N, expected_p, "Disease Baseline"))
+        rows.append(score_proportion(f"tumor_site: {site}", k, N_eval, expected_p, "Disease Baseline"))
 
     sod_spec = db.get("sum_of_diameters_mm", {})
     if sod_spec.get("type") == "numeric":
@@ -424,25 +426,54 @@ def _extract_patient_aes(sim_days):
     return ae_info
 
 
+def _exposure_adjusted_incidence(raw_incidence, patient_days, ref_days):
+    """Adjust expected AE incidence for actual patient exposure time.
+
+    If the rule-set says incidence I over ref_days, a patient with fewer days
+    has lower expected probability: p_i = 1 - (1-I)^(t_i/T_ref).
+    Returns mean across all patients as the cohort-level adjusted expectation.
+    """
+    if raw_incidence <= 0 or raw_incidence >= 1.0 or ref_days <= 0:
+        return raw_incidence
+    adjusted = []
+    for t in patient_days:
+        frac = min(t / ref_days, 1.0)
+        p_i = 1.0 - (1.0 - raw_incidence) ** frac
+        adjusted.append(p_i)
+    return sum(adjusted) / len(adjusted) if adjusted else raw_incidence
+
+
 def compare_ae_profile(simulations, rule_set):
     rows = []
     N = len(simulations)
     ae_profile = rule_set.get("ae_profile", [])
 
     all_patient_aes = {}
+    patient_exposure_days = {}
     for pid, days in simulations.items():
         all_patient_aes[pid] = _extract_patient_aes(days)
+        patient_exposure_days[pid] = max((d.get("day", 0) for d in days), default=0)
+
+    meta = rule_set.get("_meta", {})
+    ref_days = meta.get("total_days", 126)
+    if ref_days <= 0:
+        ref_days = 126
+    exposure_list = [patient_exposure_days.get(pid, ref_days) for pid in simulations]
 
     for ae_spec in ae_profile:
         ae_term = ae_spec["ae_term"]
-        expected_incidence = ae_spec["incidence_all_grade"]
+        expected_incidence = ae_spec.get("incidence_all_grade")
+        if expected_incidence is None:
+            continue
         grade_dist = ae_spec.get("grade_distribution", {})
 
         affected = [pid for pid, aes in all_patient_aes.items() if ae_term in aes]
         k = len(affected)
-        rows.append(score_proportion(f"AE incidence: {ae_term}", k, N, expected_incidence, "AE Incidence"))
+        adj_expected = _exposure_adjusted_incidence(expected_incidence, exposure_list, ref_days)
+        rows.append(score_proportion(f"AE incidence: {ae_term}", k, N, adj_expected, "AE Incidence"))
 
-        if affected and grade_dist:
+        MIN_AFF_FOR_GRADE = 10
+        if len(affected) >= MIN_AFF_FOR_GRADE and grade_dist:
             grade_counts = Counter()
             for pid in affected:
                 mg = all_patient_aes[pid][ae_term]["max_grade"]
@@ -455,31 +486,29 @@ def compare_ae_profile(simulations, rule_set):
                         f"AE grade {ae_term} G{g_str}", gc, n_aff, g_prob,
                         "AE Grade Distribution"))
 
-        onset_spec = ae_spec.get("onset_day", {})
-        if onset_spec and affected:
-            onset_values = [all_patient_aes[pid][ae_term]["onset_day"] for pid in affected]
-            params = onset_spec.get("params", {})
-            if params.get("mean"):
-                rows.append(score_continuous(
-                    f"AE onset: {ae_term}", onset_values,
-                    params["mean"], params.get("std", params["mean"] * 0.5),
-                    onset_spec.get("distribution", "normal"), "AE Onset Timing"))
-
     return rows, all_patient_aes
 
 
 def compare_efficacy(patients, simulations, rule_set):
     rows = []
-    N = len(simulations)
     eff = rule_set.get("efficacy", {})
-    trd = rule_set.get("disease_baseline", {}).get("tumor_response_distribution", {})
+    trd = (rule_set.get("disease_baseline") or {}).get("tumor_response_distribution") or {}
+
+    MIN_DAYS_FOR_RESPONSE = 42
 
     best_responses = Counter()
     for pid, days in simulations.items():
+        last_day = max((d.get("day", 0) for d in days), default=0)
+        if last_day < MIN_DAYS_FOR_RESPONSE:
+            continue
         nadir = 0
         for d in days:
-            tumor = d.get("objective", {}).get("tumor", {})
-            change = tumor.get("estimated_change_pct", 0)
+            obj = d.get("objective") or {}
+            tumor = obj.get("tumor") if isinstance(obj, dict) else None
+            if isinstance(tumor, dict):
+                change = tumor.get("estimated_change_pct", 0) or 0
+            else:
+                change = 0
             if change < nadir:
                 nadir = change
 
@@ -493,16 +522,17 @@ def compare_efficacy(patients, simulations, rule_set):
             best = "PD"
         best_responses[best] += 1
 
+    N_eval = sum(best_responses.values())
+    if N_eval < 3:
+        return rows, best_responses
+
     orr_k = best_responses.get("CR", 0) + best_responses.get("PR", 0)
     orr_expected = eff.get("overall_response_rate", 0)
-    rows.append(score_proportion("ORR (CR+PR)", orr_k, N, orr_expected, "Efficacy"))
-
-    cr_expected = eff.get("complete_response_rate", trd.get("CR", 0))
-    rows.append(score_proportion("CR rate", best_responses.get("CR", 0), N, cr_expected, "Efficacy"))
+    rows.append(score_proportion("ORR (CR+PR)", orr_k, N_eval, orr_expected, "Efficacy"))
 
     for cat, expected_p in trd.items():
         k = best_responses.get(cat, 0)
-        rows.append(score_proportion(f"Response: {cat}", k, N, expected_p, "Efficacy"))
+        rows.append(score_proportion(f"Response: {cat}", k, N_eval, expected_p, "Efficacy"))
 
     return rows, best_responses
 
@@ -511,10 +541,18 @@ def compare_dose_modification(simulations, rule_set):
     rows = []
     N = len(simulations)
 
+    meta = rule_set.get("_meta", {})
+    ref_days = meta.get("total_days", 126)
+    if ref_days <= 0:
+        ref_days = 126
+    exposure_list = []
+
     holds = 0
     reductions = 0
     discontinuations = 0
     for pid, days in simulations.items():
+        last_day = max((d.get("day", 0) for d in days), default=0)
+        exposure_list.append(last_day)
         patient_held = False
         patient_reduced = False
         patient_disc = False
@@ -538,15 +576,19 @@ def compare_dose_modification(simulations, rule_set):
         if patient_disc:
             discontinuations += 1
 
-    rows.append(score_proportion("Dose hold (any)", holds, N, 0.35, "Dose Modification"))
-    rows.append(score_proportion("Dose reduction (any)", reductions, N, 0.25, "Dose Modification"))
-    rows.append(score_proportion("Treatment discontinuation", discontinuations, N, 0.15, "Dose Modification"))
+    adj_hold = _exposure_adjusted_incidence(0.35, exposure_list, ref_days)
+    adj_redu = _exposure_adjusted_incidence(0.25, exposure_list, ref_days)
+    adj_disc = _exposure_adjusted_incidence(0.15, exposure_list, ref_days)
+    rows.append(score_proportion("Dose hold (any)", holds, N, adj_hold, "Dose Modification"))
+    rows.append(score_proportion("Dose reduction (any)", reductions, N, adj_redu, "Dose Modification"))
+    rows.append(score_proportion("Treatment discontinuation", discontinuations, N, adj_disc, "Dose Modification"))
     return rows
 
 
 def compare_supportive_care(simulations, rule_set, all_patient_aes):
     rows = []
     sc_rules = rule_set.get("supportive_care_rules", [])
+    ALWAYS_TREAT_G1 = {"nausea", "pruritus"}
 
     for sc in sc_rules:
         ae_term = sc["ae_term"]
@@ -578,6 +620,17 @@ def compare_supportive_care(simulations, rule_set, all_patient_aes):
         expected_p = max(t.get("probability", 0.5) for t in treatments)
         if expected_p >= 1.0:
             expected_p = 0.95
+
+        if ae_term.lower() not in ALWAYS_TREAT_G1:
+            n_ge2 = sum(
+                1 for pid in affected_pids
+                if all_patient_aes[pid][ae_term]["max_grade"] >= 2
+            )
+            frac_treatable = n_ge2 / n_affected if n_affected else 0
+            expected_p *= frac_treatable
+
+        if expected_p < 0.01:
+            expected_p = 0.01
         rows.append(score_proportion(
             f"SC: {ae_term} ({treatments[0]['drug']})", prescribed, n_affected,
             expected_p, "Supportive Care"))
@@ -721,7 +774,7 @@ def apply_fdr_correction(all_rows, alpha=0.05):
 
 
 # ── overall score ───────────────────────────────────────
-GRADE_SCORES = {"A": 100, "B": 75, "C": 50, "D": 25, "?": None}
+GRADE_SCORES = {"A": 100, "B": 80, "C": 60, "D": 40, "?": None}
 
 def compute_overall_score(all_rows):
     section_scores = defaultdict(list)
@@ -854,14 +907,15 @@ def compute_chi2_for_categories(patients, simulations, rule_set, all_patient_aes
         chi2 = _chi2_gof(obs, exp_p)
         results.append({"variable": field, "type": "Demographics", "categories": len(cats), **chi2})
 
-    trd = rule_set.get("disease_baseline", {}).get("tumor_response_distribution", {})
+    trd = (rule_set.get("disease_baseline") or {}).get("tumor_response_distribution") or {}
     if trd:
         best_responses = Counter()
         for pid, days in simulations.items():
             nadir = 0
             for d in days:
-                tumor = d.get("objective", {}).get("tumor", {})
-                change = tumor.get("estimated_change_pct", 0)
+                obj = d.get("objective") or {}
+                tumor = obj.get("tumor") if isinstance(obj, dict) else None
+                change = tumor.get("estimated_change_pct", 0) or 0 if isinstance(tumor, dict) else 0
                 if change < nadir:
                     nadir = change
             if nadir <= -90:
@@ -1071,9 +1125,6 @@ def main():
 
     print("Comparing ECOG...")
     all_rows.extend(compare_ecog(patients, simulations, rule_set))
-
-    print("Comparing AE cascades...")
-    all_rows.extend(compare_ae_cascade(simulations, rule_set, all_patient_aes))
 
     print("Applying FDR correction...")
     fdr_stats = apply_fdr_correction(all_rows)

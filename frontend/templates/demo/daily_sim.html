@@ -1,0 +1,463 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Daily Simulation — CLARA{% endblock %}
+
+{% block nav_items %}
+<span class="nav-sep">/</span>
+<a href="/" class="nav-crumb">Home</a>
+<span class="nav-sep">/</span>
+<span class="nav-crumb nav-active">Daily Simulation</span>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  :root {
+    --bg-main: #0d1117; --bg-card: #161b22; --bg-elevated: #1c2129;
+    --border: #30363d; --text-primary: #e6edf3; --text-secondary: #8b949e;
+    --text-muted: #6e7681; --accent-cyan: #39d2c0; --accent-blue: #58a6ff;
+    --accent-green: #3fb950; --accent-purple: #bc8cff; --accent-orange: #d29922;
+    --accent-red: #f85149;
+  }
+  body { background: var(--bg-main); color: var(--text-primary); }
+
+  .page-wrap { max-width: 1200px; margin: 0 auto; padding: 40px 32px 80px; }
+  .page-title { font: 700 1.6em -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin-bottom: 6px; }
+  .page-subtitle { color: var(--text-secondary); font-size: 0.88em; margin-bottom: 32px; }
+
+  .section-title {
+    font: 700 1em -apple-system, sans-serif; color: var(--text-primary);
+    margin: 36px 0 16px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Pipeline diagram */
+  .sim-pipeline {
+    display: flex; align-items: stretch; gap: 0; margin-bottom: 40px;
+    overflow-x: auto; padding-bottom: 8px;
+  }
+  .sim-stage {
+    flex: 1; min-width: 160px; padding: 18px 16px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    position: relative;
+  }
+  .sim-stage:first-child { border-radius: 12px 0 0 12px; }
+  .sim-stage:last-child { border-radius: 0 12px 12px 0; }
+  .sim-stage.highlight { border-color: var(--accent-cyan); background: rgba(57,210,192,0.04); }
+  .sim-stage .stage-label {
+    font: 700 0.58em 'JetBrains Mono', monospace; color: var(--accent-cyan);
+    text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 6px;
+  }
+  .sim-stage .stage-name {
+    font: 600 0.82em -apple-system, sans-serif; color: var(--text-primary); margin-bottom: 4px;
+  }
+  .sim-stage .stage-detail {
+    font-size: 0.7em; color: var(--text-secondary); line-height: 1.5;
+  }
+  .sim-stage::after {
+    content: '\25B6'; position: absolute; right: -8px; top: 50%; transform: translateY(-50%);
+    color: var(--border); font-size: 0.7em; z-index: 1;
+  }
+  .sim-stage:last-child::after { display: none; }
+
+  /* Hazard engine section */
+  .hazard-section {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 32px;
+  }
+  .hazard-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 20px;
+  }
+  .hazard-card-title {
+    font: 700 0.7em 'JetBrains Mono', monospace; color: var(--accent-cyan);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px;
+  }
+  .formula-box {
+    background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 8px;
+    padding: 12px 16px; margin: 8px 0;
+    font: 0.82em 'JetBrains Mono', monospace; color: var(--accent-cyan);
+    text-align: center;
+  }
+  .formula-desc { font-size: 0.72em; color: var(--text-secondary); line-height: 1.6; margin-top: 8px; }
+
+  /* Day timeline */
+  .day-timeline {
+    display: flex; gap: 0; margin: 20px 0; overflow-x: auto; padding-bottom: 8px;
+  }
+  .day-cell {
+    flex: 0 0 48px; height: 48px; display: flex; align-items: center; justify-content: center;
+    font: 600 0.65em 'JetBrains Mono', monospace; color: var(--text-muted);
+    border: 1px solid var(--border); cursor: pointer; transition: all 0.2s;
+    position: relative;
+  }
+  .day-cell:first-child { border-radius: 8px 0 0 8px; }
+  .day-cell:last-child { border-radius: 0 8px 8px 0; }
+  .day-cell:hover { background: rgba(57,210,192,0.06); color: var(--text-secondary); }
+  .day-cell.active { background: rgba(57,210,192,0.12); color: var(--accent-cyan); border-color: var(--accent-cyan); }
+  .day-cell.has-ae::after {
+    content: ''; position: absolute; bottom: 4px; left: 50%; transform: translateX(-50%);
+    width: 6px; height: 6px; border-radius: 50%; background: var(--accent-orange);
+  }
+  .day-cell.has-treatment::before {
+    content: ''; position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
+    width: 6px; height: 6px; border-radius: 50%; background: var(--accent-blue);
+  }
+
+  /* Day detail panel */
+  .day-detail {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 24px; margin-top: 16px;
+  }
+  .day-header {
+    display: flex; align-items: center; gap: 16px; margin-bottom: 16px;
+    padding-bottom: 12px; border-bottom: 1px solid var(--border);
+  }
+  .day-num {
+    font: 700 1.4em 'JetBrains Mono', monospace; color: var(--accent-cyan);
+  }
+  .day-meta { font-size: 0.78em; color: var(--text-secondary); }
+  .day-meta span { margin-right: 16px; }
+
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+  .detail-box {
+    background: var(--bg-elevated); border: 1px solid rgba(48,54,61,0.5);
+    border-radius: 10px; padding: 14px;
+  }
+  .detail-box-title {
+    font: 700 0.6em 'JetBrains Mono', monospace; color: var(--accent-cyan);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px;
+  }
+  .detail-row {
+    display: flex; justify-content: space-between; padding: 3px 0;
+    font-size: 0.75em; border-bottom: 1px solid rgba(48,54,61,0.3);
+  }
+  .detail-row:last-child { border-bottom: none; }
+  .detail-key { color: var(--text-secondary); }
+  .detail-val { color: var(--text-primary); font-weight: 600; }
+  .detail-val.warn { color: var(--accent-orange); }
+  .detail-val.danger { color: var(--accent-red); }
+  .detail-val.good { color: var(--accent-green); }
+
+  .ae-chip {
+    display: inline-flex; align-items: center; gap: 4px;
+    padding: 4px 10px; border-radius: 6px; margin: 2px;
+    font: 0.72em 'JetBrains Mono', monospace;
+  }
+  .ae-chip.g1 { background: rgba(63,185,80,0.1); color: var(--accent-green); border: 1px solid rgba(63,185,80,0.2); }
+  .ae-chip.g2 { background: rgba(210,153,34,0.1); color: var(--accent-orange); border: 1px solid rgba(210,153,34,0.2); }
+  .ae-chip.g3 { background: rgba(248,81,73,0.1); color: var(--accent-red); border: 1px solid rgba(248,81,73,0.2); }
+  .ae-chip.g4 { background: rgba(248,81,73,0.15); color: #ff6b6b; border: 1px solid rgba(248,81,73,0.3); }
+
+  .engine-tag {
+    display: inline-block; padding: 2px 8px; border-radius: 4px;
+    font: 0.65em 'JetBrains Mono', monospace; margin-right: 6px;
+  }
+  .engine-tag.hazard { background: rgba(57,210,192,0.1); color: var(--accent-cyan); }
+  .engine-tag.ou { background: rgba(88,166,255,0.1); color: var(--accent-blue); }
+  .engine-tag.obs { background: rgba(188,140,255,0.1); color: var(--accent-purple); }
+  .engine-tag.mood { background: rgba(210,153,34,0.1); color: var(--accent-orange); }
+
+  .process-log {
+    background: var(--bg-elevated); border: 1px solid var(--border);
+    border-radius: 10px; padding: 16px; margin-top: 16px;
+    font: 0.72em/1.8 'JetBrains Mono', monospace; color: var(--text-secondary);
+    max-height: 350px; overflow-y: auto;
+  }
+  .log-line { display: flex; gap: 8px; }
+  .log-time { color: var(--text-muted); flex: 0 0 48px; }
+  .log-tag { flex: 0 0 80px; }
+  .log-msg { flex: 1; color: var(--text-secondary); }
+  .log-msg .val { color: var(--text-primary); font-weight: 600; }
+  .log-msg .highlight { color: var(--accent-cyan); }
+  .log-msg .warn { color: var(--accent-orange); }
+
+  @media (max-width: 800px) {
+    .hazard-section, .detail-grid { grid-template-columns: 1fr; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <div class="page-title">Daily Simulation Engine</div>
+  <div class="page-subtitle">
+    Step-by-step walkthrough of a single simulation day — all engines working together
+  </div>
+
+  <!-- Simulation Pipeline -->
+  <div class="sim-pipeline">
+    <div class="sim-stage">
+      <div class="stage-label">Phase 0</div>
+      <div class="stage-name">Rule Set</div>
+      <div class="stage-detail">LLM-synthesized probability distributions for AEs, efficacy, demographics</div>
+    </div>
+    <div class="sim-stage">
+      <div class="stage-label">Phase 1</div>
+      <div class="stage-name">Patient Init</div>
+      <div class="stage-detail">Demographics, comorbidities, baseline labs/vitals, persona assignment</div>
+    </div>
+    <div class="sim-stage highlight">
+      <div class="stage-label">Phase 2 (daily)</div>
+      <div class="stage-name">Day Loop</div>
+      <div class="stage-detail">Hazard Engine + Lab OU + Observation Model + Mood &rarr; CDASH record</div>
+    </div>
+    <div class="sim-stage">
+      <div class="stage-label">Optional</div>
+      <div class="stage-name">Care AI</div>
+      <div class="stage-detail">4-turn video call: Patient LLM &harr; Nurse LLM &rarr; care_record</div>
+    </div>
+    <div class="sim-stage">
+      <div class="stage-label">Output</div>
+      <div class="stage-name">CDASH Data</div>
+      <div class="stage-detail">AE, LB, VS, EG, DS, CM, EC, RS, TU domains per patient per day</div>
+    </div>
+  </div>
+
+  <!-- Hazard Engine Detail -->
+  <div class="section-title">Hazard Engine — Core Probability Functions</div>
+  <div class="hazard-section">
+    <div class="hazard-card">
+      <div class="hazard-card-title">AE Onset Hazard</div>
+      <div class="formula-box">h(t) = I &middot; f(t) / (1 &minus; I &middot; F(t&minus;1))</div>
+      <div class="formula-desc">
+        <strong>I</strong> = cumulative incidence from rule set<br>
+        <strong>f(t)</strong> = onset PDF (Normal, LogNormal, or Uniform)<br>
+        <strong>F(t)</strong> = onset CDF<br>
+        Each AE type has its own distribution parameters. Daily conditional probability
+        given no prior onset captures the "surviving population" effect.
+      </div>
+    </div>
+    <div class="hazard-card">
+      <div class="hazard-card-title">Mortality (Log-Hazard)</div>
+      <div class="formula-box">p(t) = exp(log(base) + w &middot; log(HR))</div>
+      <div class="formula-desc">
+        Two-channel mortality: <strong>disease progression</strong> and <strong>treatment toxicity</strong>.
+        Severity weight <em>w</em> scales how much the hazard ratio matters:
+        w&asymp;1 for critically ill, w&asymp;0.15 for stable patients.
+        Prevents multiplicative explosion from correlated risk factors.
+      </div>
+    </div>
+    <div class="hazard-card">
+      <div class="hazard-card-title">Lab Values (OU Process)</div>
+      <div class="formula-box">X(t+1) = X(t) + &theta;(target &minus; X(t)) + &sigma;&middot;Z</div>
+      <div class="formula-desc">
+        Ornstein-Uhlenbeck mean-reversion. Target is a weighted blend of
+        <strong>baseline</strong> and <strong>AE-causal target</strong> (e.g., ANC &darr; during neutropenia).
+        Active AEs shift the target; resolution restores it.
+      </div>
+    </div>
+    <div class="hazard-card">
+      <div class="hazard-card-title">Observation Model</div>
+      <div class="formula-box">GT &ne; HR &mdash; AE exists before detection</div>
+      <div class="formula-desc">
+        Ground Truth vs Hospital Record separation. AEs are detected through 4 channels:
+        <strong>scheduled visit</strong>, <strong>patient self-report</strong>,
+        <strong>video call</strong> (Care AI), <strong>ER visit</strong>.
+        Detection probability depends on AE type, grade, and patient mood.
+      </div>
+    </div>
+  </div>
+
+  <!-- Day-by-Day Timeline -->
+  <div class="section-title">Day-by-Day Walkthrough — PT-050 (Etoposide + Cisplatin)</div>
+
+  <div style="display:flex;gap:12px;margin-bottom:12px;font:0.72em 'JetBrains Mono',monospace;">
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent-blue);margin-right:4px;vertical-align:middle;"></span>Treatment day</span>
+    <span><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent-orange);margin-right:4px;vertical-align:middle;"></span>AE active</span>
+  </div>
+
+  <div class="day-timeline" id="dayTimeline"></div>
+
+  <!-- Day Detail Panel -->
+  <div class="day-detail" id="dayDetail">
+    <div class="day-header">
+      <div class="day-num" id="dayNum">Day 1</div>
+      <div class="day-meta" id="dayMeta">
+        <span>Cycle 1, Day 1</span>
+        <span>ECOG 1</span>
+        <span>On Treatment</span>
+      </div>
+    </div>
+
+    <div class="detail-grid" id="detailGrid">
+      <div class="detail-box">
+        <div class="detail-box-title">Active AEs</div>
+        <div id="aeList" style="color:var(--text-muted);font-size:0.78em;">None yet</div>
+      </div>
+      <div class="detail-box">
+        <div class="detail-box-title">Key Labs</div>
+        <div id="labList"></div>
+      </div>
+      <div class="detail-box">
+        <div class="detail-box-title">Vitals</div>
+        <div id="vitalList"></div>
+      </div>
+    </div>
+
+    <!-- Engine Process Log -->
+    <div style="margin-top:16px;">
+      <div style="font:700 0.7em 'JetBrains Mono',monospace;color:var(--accent-cyan);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">
+        Engine Process Log
+      </div>
+      <div class="process-log" id="processLog"></div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block js_content %}
+<script>
+(function() {
+  'use strict';
+
+  var RUN_ID = '20260224_061414_Etoposide___Cisplatin_100pt_126d';
+  var PT_ID = 'PT-050';
+  var dayData = [];
+  var treatmentDays = new Set([1,2,3,22,23,24,43,44,45,64,65,66,85,86,87,106,107,108]);
+
+  function loadData() {
+    fetch('/api/sim/daily-data/' + RUN_ID + '/' + PT_ID + '/')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        dayData = data.days || [];
+        buildTimeline();
+        if (dayData.length) selectDay(0);
+      })
+      .catch(function() {
+        buildDemoTimeline();
+      });
+  }
+
+  function buildDemoTimeline() {
+    var tl = document.getElementById('dayTimeline');
+    tl.innerHTML = '';
+    for (var i = 1; i <= 42; i++) {
+      var cell = document.createElement('div');
+      cell.className = 'day-cell';
+      if (treatmentDays.has(i)) cell.className += ' has-treatment';
+      if (i >= 15) cell.className += ' has-ae';
+      if (i === 15) cell.className += ' active';
+      cell.textContent = i;
+      cell.dataset.day = i;
+      cell.onclick = function() { selectDemoDay(parseInt(this.dataset.day)); };
+      tl.appendChild(cell);
+    }
+    selectDemoDay(15);
+  }
+
+  var demoAeOnset = {
+    15: [{name:'anorexia', grade:1}],
+    18: [{name:'anorexia', grade:1},{name:'nausea', grade:1}],
+    21: [{name:'anorexia', grade:2},{name:'nausea', grade:2},{name:'neutropenia', grade:1}],
+    25: [{name:'anorexia', grade:2},{name:'nausea', grade:2},{name:'neutropenia', grade:3}],
+    30: [{name:'nausea', grade:1},{name:'neutropenia', grade:2},{name:'fatigue', grade:1}],
+  };
+
+  function selectDemoDay(day) {
+    document.querySelectorAll('.day-cell').forEach(function(c) { c.classList.remove('active'); });
+    var cells = document.querySelectorAll('.day-cell');
+    cells.forEach(function(c) { if (parseInt(c.dataset.day) === day) c.classList.add('active'); });
+
+    document.getElementById('dayNum').textContent = 'Day ' + day;
+    var cycle = Math.ceil(day / 21);
+    var cycleDay = ((day - 1) % 21) + 1;
+    document.getElementById('dayMeta').innerHTML =
+      '<span>Cycle ' + cycle + ', Day ' + cycleDay + '</span>' +
+      '<span>ECOG ' + (day > 25 ? 2 : 1) + '</span>' +
+      '<span>' + (treatmentDays.has(day) ? 'Treatment Day' : 'Off-treatment') + '</span>';
+
+    var nearestAeDay = 0;
+    Object.keys(demoAeOnset).forEach(function(k) { if (parseInt(k) <= day) nearestAeDay = parseInt(k); });
+    var aes = nearestAeDay > 0 ? demoAeOnset[nearestAeDay] : [];
+
+    var aeEl = document.getElementById('aeList');
+    if (day < 15 || aes.length === 0) {
+      aeEl.innerHTML = '<span style="color:var(--text-muted);font-size:0.78em;">None</span>';
+    } else {
+      aeEl.innerHTML = aes.map(function(a) {
+        return '<span class="ae-chip g' + a.grade + '">' + a.name + ' G' + a.grade + '</span>';
+      }).join(' ');
+    }
+
+    var labEl = document.getElementById('labList');
+    var anc = day < 21 ? (6.2 - (day - 1) * 0.15).toFixed(1) : (1.5 + Math.random()).toFixed(1);
+    var hgb = (14.5 - day * 0.05).toFixed(1);
+    var plt = Math.round(250 - day * 2.5);
+    var cr = (0.9 + (day > 20 ? 0.1 : 0)).toFixed(2);
+    labEl.innerHTML =
+      '<div class="detail-row"><span class="detail-key">ANC</span><span class="detail-val ' + (anc < 1.5 ? 'danger' : anc < 2.0 ? 'warn' : '') + '">' + anc + ' &times;10<sup>9</sup>/L</span></div>' +
+      '<div class="detail-row"><span class="detail-key">Hemoglobin</span><span class="detail-val ' + (hgb < 10 ? 'warn' : '') + '">' + hgb + ' g/dL</span></div>' +
+      '<div class="detail-row"><span class="detail-key">Platelets</span><span class="detail-val ' + (plt < 100 ? 'warn' : '') + '">' + plt + ' &times;10<sup>9</sup>/L</span></div>' +
+      '<div class="detail-row"><span class="detail-key">Creatinine</span><span class="detail-val">' + cr + ' mg/dL</span></div>';
+
+    var vtEl = document.getElementById('vitalList');
+    vtEl.innerHTML =
+      '<div class="detail-row"><span class="detail-key">BP</span><span class="detail-val">128/78 mmHg</span></div>' +
+      '<div class="detail-row"><span class="detail-key">HR</span><span class="detail-val">' + (72 + Math.round(day * 0.3)) + ' bpm</span></div>' +
+      '<div class="detail-row"><span class="detail-key">Temp</span><span class="detail-val ' + (day > 25 ? 'warn' : '') + '">' + (36.7 + (day > 25 ? 0.8 : 0)).toFixed(1) + '&deg;C</span></div>' +
+      '<div class="detail-row"><span class="detail-key">SpO2</span><span class="detail-val">96%</span></div>';
+
+    var logEl = document.getElementById('processLog');
+    var logs = [];
+    logs.push({tag:'hazard', cls:'hazard', msg:'AE onset check: ' + (day >= 15 ? '<span class="warn">anorexia p=0.032 → ONSET</span>' : 'all p < threshold → no new AE')});
+    if (day >= 21) logs.push({tag:'hazard', cls:'hazard', msg:'Grade transition: neutropenia G' + (day<25?1:day<30?3:2) + ' (cumulative cisplatin effect)'});
+    logs.push({tag:'OU-lab', cls:'ou', msg:'ANC: ' + anc + ' (target=' + (day>21?'1.2':'4.5') + ', θ=0.15, σ=0.3)'});
+    logs.push({tag:'OU-lab', cls:'ou', msg:'Hgb: ' + hgb + ' (target=12.0, θ=0.08, σ=0.2)'});
+    logs.push({tag:'vitals', cls:'ou', msg:'HR: ' + (72 + Math.round(day*0.3)) + ' bpm, Temp: ' + (36.7 + (day>25?0.8:0)).toFixed(1) + '°C'});
+    logs.push({tag:'obs', cls:'obs', msg:'Detection channels: ' + (treatmentDays.has(day) ? '<span class="highlight">scheduled_visit</span>' : 'self_report (p=' + (day>=15 ? '0.08' : '0.0') + ')')});
+    logs.push({tag:'mood', cls:'mood', msg:'Mood: energy=' + (0.7-day*0.005).toFixed(2) + ' trust=' + (0.65).toFixed(2) + ' → report_prob=' + (day>=15 ? '0.12' : 'N/A')});
+    if (day > 25) logs.push({tag:'hazard', cls:'hazard', msg:'Mortality check: <span class="val">log_p = log(0.00008) + 0.35·log(2.8) = -8.96</span> → p=0.000128'});
+    logs.push({tag:'output', cls:'', msg:'CDASH: AE=' + aes.length + ', LB=5, VS=6, EG=1, DS=1'});
+
+    logEl.innerHTML = logs.map(function(l, i) {
+      return '<div class="log-line">' +
+        '<span class="log-time">' + String(i+1).padStart(2,'0') + '</span>' +
+        '<span class="log-tag"><span class="engine-tag ' + l.cls + '">' + l.tag + '</span></span>' +
+        '<span class="log-msg">' + l.msg + '</span></div>';
+    }).join('');
+  }
+
+  function buildTimeline() {
+    var tl = document.getElementById('dayTimeline');
+    tl.innerHTML = '';
+    dayData.forEach(function(d, idx) {
+      var cell = document.createElement('div');
+      cell.className = 'day-cell';
+      var hasAe = d.AE && d.AE.length > 0;
+      var isTx = treatmentDays.has(d.day);
+      if (isTx) cell.className += ' has-treatment';
+      if (hasAe) cell.className += ' has-ae';
+      if (idx === 0) cell.className += ' active';
+      cell.textContent = d.day;
+      cell.dataset.idx = idx;
+      cell.onclick = function() { selectDay(parseInt(this.dataset.idx)); };
+      tl.appendChild(cell);
+    });
+  }
+
+  function selectDay(idx) {
+    if (!dayData[idx]) return;
+    var d = dayData[idx];
+    document.querySelectorAll('.day-cell').forEach(function(c) { c.classList.remove('active'); });
+    document.querySelectorAll('.day-cell')[idx].classList.add('active');
+    document.getElementById('dayNum').textContent = 'Day ' + d.day;
+    document.getElementById('dayMeta').innerHTML =
+      '<span>Cycle ' + (d.cycle||'?') + ', Day ' + (d.cycle_day||'?') + '</span>' +
+      '<span>ECOG ' + (d.EG && d.EG.EGSTRESN !== undefined ? d.EG.EGSTRESN : '?') + '</span>';
+
+    var aes = d.AE || [];
+    var aeEl = document.getElementById('aeList');
+    if (!aes.length) {
+      aeEl.innerHTML = '<span style="color:var(--text-muted);font-size:0.78em;">None</span>';
+    } else {
+      aeEl.innerHTML = aes.map(function(a) {
+        var g = a._grade || 1;
+        return '<span class="ae-chip g' + Math.min(g,4) + '">' + a.AETERM + ' G' + g + '</span>';
+      }).join(' ');
+    }
+  }
+
+  buildDemoTimeline();
+})();
+</script>
+{% endblock %}

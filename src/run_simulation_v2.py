@@ -232,8 +232,12 @@ def main():
             print(f"\n{'=' * 60}")
             print("Phase 3: A/B Comparison — Natural vs Care AI")
             print("=" * 60)
-            from src.evaluator import run_evaluation
-            comparison = run_evaluation(run_dir)
+            try:
+                from src.evaluator import run_evaluation
+                comparison = run_evaluation(run_dir)
+            except Exception as eval_err:
+                print(f"⚠ Evaluation failed (non-fatal): {eval_err}")
+                print("  Simulation data is intact. Run evaluation separately if needed.")
 
         runner.write_run_meta(args.patients, args.days, args.mode, 'completed')
 

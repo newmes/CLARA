@@ -1119,7 +1119,12 @@
      Clinical Trial Simulation — Inner Tabs
      ================================================================= */
   .cts-inner-tabs {
-    display: flex; gap: 4px; margin-bottom: 18px;
+    display: flex; gap: 4px; margin-bottom: 18px; align-items: center;
+  }
+  .cts-tab-arrow {
+    color: var(--text-muted); font-size: 0.7em; margin: 0 2px;
+    font-family: 'JetBrains Mono', monospace; user-select: none;
+    opacity: 0.5;
   }
   .cts-inner-tab {
     padding: 7px 16px; border-radius: 8px;
@@ -1565,7 +1570,7 @@
       </div>
     </div>
 
-    <!-- Card 3: Clinical Trial Simulation (tabbed: Hazard Engine + Rule Set Generation) -->
+    <!-- Card 3: Clinical Trial Simulation Engine (4 tabs) -->
     <div class="tech-card accent-cyan reveal reveal-d3">
       <div class="tc-layout">
         <div class="tc-left">
@@ -1575,36 +1580,21 @@
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
               </svg>
             </div>
-            <div class="tc-title">Clinical Trial Simulation</div>
-            <span class="tc-badge">Engine</span>
+            <div class="tc-title">Clinical Trial Simulation Engine</div>
           </div>
 
           <div class="cts-inner-tabs">
-            <button class="cts-inner-tab active" onclick="switchCtsTab('hazard', this)">Hazard Engine</button>
-            <button class="cts-inner-tab" onclick="switchCtsTab('ruleset', this)">Rule Set Generation</button>
+            <button class="cts-inner-tab active" onclick="switchCtsTab('ruleset', this)">Rule Set Generation</button>
+            <span class="cts-tab-arrow">&#9655;</span>
+            <button class="cts-inner-tab" onclick="switchCtsTab('patient', this)">Patient Initialization</button>
+            <span class="cts-tab-arrow">&#9655;</span>
+            <button class="cts-inner-tab" onclick="switchCtsTab('daily', this)">Daily Simulation</button>
+            <span class="cts-tab-arrow">&#9655;</span>
+            <button class="cts-inner-tab" onclick="switchCtsTab('validate', this)">Validate Simulation</button>
           </div>
 
-          <!-- Tab: Hazard Engine -->
-          <div class="cts-tab-pane active" id="ctsHazard">
-            <div class="tc-desc">
-              Mixture-model hazard functions compute daily AE onset probabilities from
-              onset distribution parameters. No fate tables &mdash; pure mathematical
-              hazard drives every simulation day. Each AE type has its own onset CDF
-              (Normal, LogNormal, or Uniform), and the engine calculates conditional
-              daily probability given no prior onset.
-            </div>
-            <div class="tc-stat">
-              <span class="tc-stat-val good" style="opacity:1;">Daily onset probability</span>
-              <span class="tc-stat-label">computed per AE type, per patient</span>
-            </div>
-            <a href="{% url 'demo_hazard' %}" class="tc-btn">
-              Try Demo
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </a>
-          </div>
-
-          <!-- Tab: Rule Set Generation -->
-          <div class="cts-tab-pane" id="ctsRuleset">
+          <!-- Tab 1: Rule Set Generation -->
+          <div class="cts-tab-pane active" id="ctsRuleset">
             <div class="tc-desc">
               Generate validated probabilistic rule sets from drug labels and
               10 biomedical evidence sources. Multi-stage LLM synthesis with
@@ -1622,35 +1612,63 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </a>
           </div>
+
+          <!-- Tab 2: Patient Initialization -->
+          <div class="cts-tab-pane" id="ctsPatient">
+            <div class="tc-desc">
+              LLM&rarr;rand&rarr;LLM pipeline generates internally consistent patients.
+              Demographics are sampled from rule-set distributions; comorbidities are
+              LLM-adjusted for coherence (e.g., elderly + diabetic &rarr; higher CKD probability);
+              personas from 10 behavioral archetypes govern reporting behavior.
+            </div>
+            <div class="tc-stat">
+              <span class="tc-stat-val good" style="opacity:1;">10 persona archetypes</span>
+              <span class="tc-stat-label">stoic, anxious, shame-avoidant, confused&hellip;</span>
+            </div>
+            <a href="{% url 'demo_patient_init' %}" class="tc-btn">
+              Try Demo
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
+
+          <!-- Tab 3: Daily Simulation -->
+          <div class="cts-tab-pane" id="ctsDaily">
+            <div class="tc-desc">
+              Hazard-function engine computes daily conditional probabilities for AE onset,
+              grade transitions, resolution, tumor response, ECOG changes, and mortality
+              &mdash; all without LLM calls on quiet days. Labs follow Ornstein-Uhlenbeck
+              mean-reversion with AE-causal targets.
+            </div>
+            <div class="tc-stat">
+              <span class="tc-stat-val good" style="opacity:1;">h(t) = I&middot;f(t) / (1&minus;I&middot;F(t&minus;1))</span>
+              <span class="tc-stat-label">mixture-model hazard per AE, per patient, per day</span>
+            </div>
+            <a href="{% url 'demo_daily_sim' %}" class="tc-btn">
+              Try Demo
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
+
+          <!-- Tab 4: Validate Simulation -->
+          <div class="cts-tab-pane" id="ctsValidate">
+            <div class="tc-desc">
+              Rule-set ground truth vs simulated data across 12 dimensions (168 comparisons).
+              SMD, TOST equivalence, chi-square GoF, and KS tests with
+              Benjamini-Hochberg FDR correction grade each metric A/B/C/D.
+            </div>
+            <div class="tc-stat">
+              <span class="tc-stat-val" style="opacity:1;color:#d29922;">Grade C (55.2/100)</span>
+              <span class="tc-stat-label">168 comparisons &mdash; Demographics A, ECOG A, AE Grade B</span>
+            </div>
+            <a href="{% url 'demo_validate_sim' %}" class="tc-btn">
+              View Results
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+            </a>
+          </div>
         </div>
         <div class="tc-right">
-          <!-- Hazard Engine visual (shown when hazard tab active) -->
-          <div id="ctsHazardRight">
-            <div class="hz-canvas-wrap">
-              <canvas id="hazardMiniCanvas" width="440" height="140"></canvas>
-              <div class="hz-label-row">
-                <span>Day 1</span>
-                <span>Day 84</span>
-              </div>
-              <div class="hz-formula">h(t) = I &middot; f(t) / (1 &minus; I &middot; F(t&minus;1))</div>
-              <div class="hz-legend">
-                <div class="hz-legend-item">
-                  <div class="hz-legend-dot" style="background:rgba(57,210,192,0.7);"></div>
-                  Early onset
-                </div>
-                <div class="hz-legend-item">
-                  <div class="hz-legend-dot" style="background:rgba(188,140,255,0.6);"></div>
-                  Mid-cycle
-                </div>
-                <div class="hz-legend-item">
-                  <div class="hz-legend-dot" style="background:rgba(210,153,34,0.5);"></div>
-                  Late onset
-                </div>
-              </div>
-            </div>
-          </div>
-          <!-- Rule Set visual (shown when ruleset tab active) -->
-          <div id="ctsRulesetRight" style="display:none;">
+          <!-- Rule Set visual (default shown) -->
+          <div id="ctsRulesetRight">
             <div class="rs-mini-grid">
               <div class="rs-mini-stat">
                 <div class="rs-mini-val">7</div>
@@ -1685,6 +1703,83 @@
                 <span class="rs-mini-source">OpenFDA</span>
                 <span class="rs-mini-source">PubChem</span>
                 <span class="rs-mini-source">ChEMBL</span>
+              </div>
+            </div>
+          </div>
+          <!-- Patient Init visual -->
+          <div id="ctsPatientRight" style="display:none;">
+            <div style="text-align:center;padding:16px;">
+              <img src="{% static 'assets/characters/patient_01.png' %}" style="width:80px;height:80px;image-rendering:pixelated;margin-bottom:12px;">
+              <div style="background:rgba(57,210,192,0.06);border:1px solid rgba(57,210,192,0.2);border-radius:12px;padding:14px;text-align:left;">
+                <div style="font:600 0.65em 'JetBrains Mono',monospace;color:var(--accent-cyan);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Generated Patient</div>
+                <div style="font:0.72em 'JetBrains Mono',monospace;color:var(--text-secondary);line-height:1.7;">
+                  <div>Age: <span style="color:var(--text-primary);">67</span> &middot; Sex: <span style="color:var(--text-primary);">Male</span></div>
+                  <div>ECOG: <span style="color:var(--text-primary);">1</span> &middot; Stage: <span style="color:var(--text-primary);">IV</span></div>
+                  <div>Comorbidities: <span style="color:var(--text-primary);">T2DM, HTN</span></div>
+                  <div>Persona: <span style="color:var(--accent-cyan);">stoic_minimizer</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Daily Sim visual (hazard canvas) -->
+          <div id="ctsDailyRight" style="display:none;">
+            <div class="hz-canvas-wrap">
+              <canvas id="hazardMiniCanvas" width="440" height="140"></canvas>
+              <div class="hz-label-row">
+                <span>Day 1</span>
+                <span>Day 84</span>
+              </div>
+              <div class="hz-formula">h(t) = I &middot; f(t) / (1 &minus; I &middot; F(t&minus;1))</div>
+              <div class="hz-legend">
+                <div class="hz-legend-item">
+                  <div class="hz-legend-dot" style="background:rgba(57,210,192,0.7);"></div>
+                  Early onset
+                </div>
+                <div class="hz-legend-item">
+                  <div class="hz-legend-dot" style="background:rgba(188,140,255,0.6);"></div>
+                  Mid-cycle
+                </div>
+                <div class="hz-legend-item">
+                  <div class="hz-legend-dot" style="background:rgba(210,153,34,0.5);"></div>
+                  Late onset
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Validate visual -->
+          <div id="ctsValidateRight" style="display:none;">
+            <div class="rs-mini-grid">
+              <div class="rs-mini-stat">
+                <div class="rs-mini-val">168</div>
+                <div class="rs-mini-label">Comparisons</div>
+              </div>
+              <div class="rs-mini-stat">
+                <div class="rs-mini-val">12</div>
+                <div class="rs-mini-label">Dimensions</div>
+              </div>
+              <div class="rs-mini-stat">
+                <div class="rs-mini-val" style="color:#d29922;">C</div>
+                <div class="rs-mini-label">Overall Grade</div>
+              </div>
+              <div class="rs-mini-stat">
+                <div class="rs-mini-val">55.2</div>
+                <div class="rs-mini-label">Score / 100</div>
+              </div>
+            </div>
+            <div class="hz-canvas-wrap" style="padding:14px 16px;">
+              <div style="font:600 0.6em 'JetBrains Mono',monospace;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Rule Set vs Sim</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <span style="font:600 0.72em 'JetBrains Mono',monospace;color:var(--accent-cyan);padding:4px 10px;border:1px solid rgba(57,210,192,0.25);border-radius:8px;background:rgba(57,210,192,0.06);">Rule Set</span>
+                <span style="color:var(--text-muted);font-size:0.8em;">vs</span>
+                <span style="font:600 0.72em 'JetBrains Mono',monospace;color:var(--accent-blue);padding:4px 10px;border:1px solid rgba(88,166,255,0.25);border-radius:8px;background:rgba(88,166,255,0.06);">Sim Data</span>
+                <span style="color:var(--text-muted);font-size:0.8em;">&#8594;</span>
+                <span style="font:600 0.72em 'JetBrains Mono',monospace;color:var(--accent-green);padding:4px 10px;border:1px solid rgba(63,185,80,0.25);border-radius:8px;background:rgba(63,185,80,0.06);">SMD + TOST + FDR</span>
+              </div>
+              <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+                <span style="font:0.62em 'JetBrains Mono',monospace;padding:2px 6px;border-radius:3px;background:rgba(63,185,80,0.12);color:#3fb950;">Demo A</span>
+                <span style="font:0.62em 'JetBrains Mono',monospace;padding:2px 6px;border-radius:3px;background:rgba(63,185,80,0.12);color:#3fb950;">ECOG A</span>
+                <span style="font:0.62em 'JetBrains Mono',monospace;padding:2px 6px;border-radius:3px;background:rgba(88,166,255,0.12);color:#58a6ff;">Survival B</span>
+                <span style="font:0.62em 'JetBrains Mono',monospace;padding:2px 6px;border-radius:3px;background:rgba(210,153,34,0.12);color:#d29922;">AE Onset C</span>
               </div>
             </div>
           </div>
@@ -1771,15 +1866,16 @@
     });
   }
 
-  /* ─── 5a. Clinical Trial Simulation — inner tab switcher ─── */
+  /* ─── 5a. Clinical Trial Simulation Engine — inner tab switcher ─── */
   window.switchCtsTab = function(tab, btn) {
     document.querySelectorAll('.cts-inner-tab').forEach(function(t) { t.classList.remove('active'); });
     document.querySelectorAll('.cts-tab-pane').forEach(function(p) { p.classList.remove('active'); });
     btn.classList.add('active');
-    var leftPane = tab === 'hazard' ? 'ctsHazard' : 'ctsRuleset';
-    document.getElementById(leftPane).classList.add('active');
-    document.getElementById('ctsHazardRight').style.display = tab === 'hazard' ? 'block' : 'none';
-    document.getElementById('ctsRulesetRight').style.display = tab === 'ruleset' ? 'block' : 'none';
+    var paneMap = {ruleset:'ctsRuleset', patient:'ctsPatient', daily:'ctsDaily', validate:'ctsValidate'};
+    var rightMap = {ruleset:'ctsRulesetRight', patient:'ctsPatientRight', daily:'ctsDailyRight', validate:'ctsValidateRight'};
+    document.getElementById(paneMap[tab]).classList.add('active');
+    Object.values(rightMap).forEach(function(id) { document.getElementById(id).style.display = 'none'; });
+    document.getElementById(rightMap[tab]).style.display = 'block';
   };
 
   /* ─── 5. Hazard Mini Canvas — 3 decorative curves ─── */

@@ -24,7 +24,7 @@ _logger = get_logger('patient_agent')
 
 def _sample_demographics(rule_set: dict, sampler: Sampler) -> dict:
     """rule_set.demographics에서 인구통계를 샘플링한다. 순수 코드."""
-    demo_rules = rule_set.get('demographics', {})
+    demo_rules = rule_set.get('demographics') or {}
     result = {}
     for field, spec in demo_rules.items():
         if isinstance(spec, dict) and 'type' in spec:
@@ -58,7 +58,7 @@ def _sample_comorbidities(
     rule_set.comorbidities를 기본 확률로 사용하되,
     환자의 인구통계에 따라 LLM이 조건부 확률을 조정한다.
     """
-    comorbidity_rules = rule_set.get('comorbidities', [])
+    comorbidity_rules = rule_set.get('comorbidities') or []
     if not comorbidity_rules:
         return []
     drug_name = rule_set.get('drug_name', '')
@@ -104,7 +104,7 @@ Also add conditional dependencies between comorbidities:
             original = next(
                 (c for c in comorbidity_rules if c['condition'] == condition), {}
             )
-            med_from_rule = original.get('associated_medications', [])
+            med_from_rule = original.get('associated_medications') or []
             if med_from_rule:
                 medication = med_from_rule[0]
             else:
@@ -119,7 +119,7 @@ Also add conditional dependencies between comorbidities:
                 'condition': condition,
                 'ongoing': True,
                 'medication': medication,
-                'lab_impacts': original.get('lab_impacts', {}),
+                'lab_impacts': original.get('lab_impacts') or {},
             })
 
     # Conditional modifiers: 한 질환이 다른 질환의 확률을 올리는 경우
@@ -146,8 +146,8 @@ Also add conditional dependencies between comorbidities:
                                 selected.append({
                                     'condition': condition,
                                     'ongoing': True,
-                                    'medication': (original.get('associated_medications', [None]) or [None])[0],
-                                    'lab_impacts': original.get('lab_impacts', {}),
+                                'medication': (original.get('associated_medications') or [None])[0],
+                                'lab_impacts': original.get('lab_impacts') or {},
                                 })
     return selected
 
@@ -166,8 +166,8 @@ def _generate_baseline(
     """
     drug_name = rule_set.get('drug_name', '')
     indication = rule_set.get('indication', '')
-    disease_baseline = rule_set.get('disease_baseline', {})
-    lab_ranges = rule_set.get('lab_reference_ranges', {})
+    disease_baseline = rule_set.get('disease_baseline') or {}
+    lab_ranges = rule_set.get('lab_reference_ranges') or {}
 
     pre_disease_text = ''
     if pre_disease:
@@ -339,10 +339,10 @@ def generate_patient(
     print(f"  Comorbidities: {cond_names}")
 
     # Step 2.5: 질환 기저값 사전 샘플링 (코드 — tumor sites, n_target_lesions)
-    disease_baseline = rule_set.get('disease_baseline', {})
+    disease_baseline = rule_set.get('disease_baseline') or {}
     pre_disease = {}
 
-    tumor_sites_prob = disease_baseline.get('tumor_sites', {})
+    tumor_sites_prob = disease_baseline.get('tumor_sites') or {}
     if tumor_sites_prob and isinstance(tumor_sites_prob, dict):
         sampled_sites = sampler.multi_boolean(tumor_sites_prob)
         selected_sites = [s for s, hit in sampled_sites.items() if hit]
@@ -350,7 +350,7 @@ def generate_patient(
             selected_sites = [max(tumor_sites_prob, key=tumor_sites_prob.get)]
         pre_disease['tumor_sites'] = selected_sites
 
-    n_lesions_spec = disease_baseline.get('n_target_lesions', {})
+    n_lesions_spec = disease_baseline.get('n_target_lesions') or {}
     if n_lesions_spec:
         raw = sampler.sample_from_spec(n_lesions_spec)
         import re as _re
@@ -373,6 +373,25 @@ def generate_patient(
         diagnosis = {}
     diagnosis.setdefault('primary', rule_set.get('indication', ''))
     diagnosis.setdefault('stage', '')
+
+    # Ensure target_lesions is populated from pre-sampled tumor sites
+    if not diagnosis.get('target_lesions') and pre_disease.get('tumor_sites'):
+        import random as _rand
+        sod_spec = disease_baseline.get('sum_of_diameters_mm', {}).get('params', {})
+        sod_mean = sod_spec.get('mean', 80)
+        sod_std = sod_spec.get('std', 40)
+        sites = pre_disease['tumor_sites']
+        n_lesions = pre_disease.get('n_target_lesions', len(sites))
+        n_lesions = max(n_lesions, len(sites))
+        lesions = []
+        diameters = []
+        for i in range(n_lesions):
+            site = sites[i % len(sites)]
+            d = max(10, _rand.gauss(sod_mean / n_lesions, sod_std / n_lesions))
+            diameters.append(d)
+            lesions.append({'tumor_site': site, 'diameter_mm': round(d, 1)})
+        diagnosis['target_lesions'] = lesions
+        diagnosis['sum_of_diameters_mm'] = round(sum(diameters), 1)
 
     patient = {
         'patient_id': pid,
@@ -427,7 +446,7 @@ def map_patient_record(patient: dict) -> dict:
     """환자 데이터를 CDASH DM + MH 형식으로 변환한다."""
     emr = patient.get('emr', {})
     demo = emr.get('demographics', {})
-    mh_list = emr.get('medical_history', [])
+    mh_list = emr.get('medical_history') or []
 
     dm = {
         'AGE': demo.get('age'),

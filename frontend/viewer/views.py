@@ -840,6 +840,32 @@ def demo_hazard(request):
     return render(request, "demo/hazard.html")
 
 
+def demo_patient_init(request):
+    """Patient Initialization demo — single patient generation with avatar."""
+    return render(request, "demo/patient_init.html")
+
+
+def demo_daily_sim(request):
+    """Daily Simulation demo — step-by-step daily simulation with hazard engine."""
+    return render(request, "demo/daily_sim.html")
+
+
+def demo_validate_sim(request):
+    """Validate Simulation — rule-set vs simulation statistical comparison."""
+    import json as _json
+    run_id = "20260224_061414_Etoposide___Cisplatin_100pt_126d"
+    run_dir = DATA_DIR / "runs" / run_id
+    ctx = {"run_id": run_id}
+    val_path = run_dir / "validation" / "ruleset_validation_natural_v4.json"
+    if val_path.exists():
+        ctx["validation_json"] = val_path.read_text(encoding="utf-8")
+    rs_path = run_dir / "rule_set.json"
+    if rs_path.exists():
+        rs = _json.loads(rs_path.read_text(encoding="utf-8"))
+        ctx["drug_name"] = rs.get("drug_name", "Unknown")
+    return render(request, "demo/validate_sim.html", ctx)
+
+
 # ─── AntiHallu API ───────────────────────────────────────────
 
 ANTIHALLU_ASSETS = Path(settings.BASE_DIR) / "static_dirs" / "assets" / "antihallu"
@@ -2505,10 +2531,19 @@ def api_sim_start(request):
             if skip_rules:
                 base_rule_path = None
                 if rule_set_preset:
+                    _RULE_SETS_DIR = DATA_DIR / "rule_sets"
                     _preset_map = {
                         "rule_set_calibrated_ev302": DATA_DIR / "rule_set_calibrated_ev302.json",
                         "rule_set_darbepoetin_sclc": DATA_DIR / "rule_set_darbepoetin_sclc.json",
                         "rule_set_ep_sclc": DATA_DIR / "rule_set_ep_sclc.json",
+                        "rule_set_default": DATA_DIR / "rule_set.json",
+                        "rs_1_Darbepoetin_alfa": _RULE_SETS_DIR / "1_Darbepoetin_alfa.json",
+                        "rs_2_Etoposide_Cisplatin": _RULE_SETS_DIR / "2_Etoposide_Cisplatin.json",
+                        "rs_3_CALGB9732_Paclitaxel_Cisplatin_Etoposide": _RULE_SETS_DIR / "3_CALGB9732_Paclitaxel_Cisplatin_Etoposide.json",
+                        "rs_4_Carboplatin_Etoposide": _RULE_SETS_DIR / "4_Carboplatin_Etoposide.json",
+                        "rs_6_Paclitaxel_Carboplatin_Bevacizumab": _RULE_SETS_DIR / "6_Paclitaxel_Carboplatin_Bevacizumab.json",
+                        "rs_7_Paclitaxel_Carboplatin": _RULE_SETS_DIR / "7_Paclitaxel_Carboplatin.json",
+                        "rs_8_Gemcitabine_Cisplatin": _RULE_SETS_DIR / "8_Gemcitabine_Cisplatin.json",
                     }
                     if rule_set_preset in _preset_map:
                         base_rule_path = _preset_map[rule_set_preset]
@@ -2689,11 +2724,15 @@ def api_sim_list(request):
             try:
                 meta = json.loads(meta_path.read_text(encoding="utf-8"))
                 entry["drug_name"] = meta.get("drug_name")
+                entry["indication"] = meta.get("indication")
                 entry["n_patients"] = meta.get("n_patients")
                 entry["total_days"] = meta.get("total_days")
                 entry["status"] = meta.get("status", entry["status"])
                 entry["started_at"] = meta.get("started_at")
                 entry["completed_at"] = meta.get("completed_at")
+                if meta.get("status") == "completed" and run_id in _live_sims:
+                    del _live_sims[run_id]
+                    entry.pop("live", None)
             except Exception:
                 pass
         else:

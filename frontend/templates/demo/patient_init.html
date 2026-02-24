@@ -1,0 +1,229 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Patient Initialization — CLARA{% endblock %}
+
+{% block nav_items %}
+<span class="nav-sep">/</span>
+<a href="/" class="nav-crumb">Home</a>
+<span class="nav-sep">/</span>
+<span class="nav-crumb nav-active">Patient Initialization</span>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  :root {
+    --bg-main: #0d1117; --bg-card: #161b22; --bg-elevated: #1c2129;
+    --border: #30363d; --text-primary: #e6edf3; --text-secondary: #8b949e;
+    --text-muted: #6e7681; --accent-cyan: #39d2c0; --accent-blue: #58a6ff;
+    --accent-green: #3fb950; --accent-purple: #bc8cff; --accent-orange: #d29922;
+  }
+  body { background: var(--bg-main); color: var(--text-primary); }
+
+  .page-wrap { max-width: 1100px; margin: 0 auto; padding: 40px 32px 80px; }
+  .page-title {
+    font: 700 1.6em -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    margin-bottom: 6px;
+  }
+  .page-subtitle { color: var(--text-secondary); font-size: 0.88em; margin-bottom: 32px; }
+
+  .pipeline-steps {
+    display: flex; gap: 12px; margin-bottom: 36px; flex-wrap: wrap;
+  }
+  .pipeline-step {
+    flex: 1; min-width: 140px; padding: 14px 16px;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    position: relative;
+  }
+  .pipeline-step.active { border-color: var(--accent-cyan); }
+  .pipeline-step .step-num {
+    font: 700 0.65em 'JetBrains Mono', monospace; color: var(--accent-cyan);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px;
+  }
+  .pipeline-step .step-title {
+    font: 600 0.82em -apple-system, sans-serif; color: var(--text-primary); margin-bottom: 4px;
+  }
+  .pipeline-step .step-desc {
+    font-size: 0.72em; color: var(--text-secondary); line-height: 1.5;
+  }
+  .pipeline-arrow {
+    display: flex; align-items: center; color: var(--text-muted); font-size: 1.2em;
+    flex: 0 0 auto;
+  }
+
+  .patient-showcase {
+    display: flex; gap: 32px; align-items: flex-start;
+  }
+  .avatar-section { flex: 0 0 200px; text-align: center; }
+  .avatar-img {
+    width: 128px; height: 128px; image-rendering: pixelated;
+    border: 2px solid var(--accent-cyan);
+    border-radius: 16px; padding: 8px;
+    background: rgba(57,210,192,0.04);
+    box-shadow: 0 0 24px rgba(57,210,192,0.12);
+  }
+  .avatar-label {
+    margin-top: 10px; font: 600 0.75em 'JetBrains Mono', monospace;
+    color: var(--accent-cyan);
+  }
+
+  .speech-bubble {
+    flex: 1; position: relative;
+    background: var(--bg-card); border: 1px solid rgba(57,210,192,0.25);
+    border-radius: 16px; padding: 24px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.3);
+  }
+  .speech-bubble::before {
+    content: ''; position: absolute; left: -12px; top: 40px;
+    width: 0; height: 0;
+    border-top: 12px solid transparent; border-bottom: 12px solid transparent;
+    border-right: 12px solid rgba(57,210,192,0.25);
+  }
+  .speech-bubble::after {
+    content: ''; position: absolute; left: -10px; top: 41px;
+    width: 0; height: 0;
+    border-top: 11px solid transparent; border-bottom: 11px solid transparent;
+    border-right: 11px solid var(--bg-card);
+  }
+
+  .info-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
+  }
+  .info-section {
+    background: rgba(57,210,192,0.03); border: 1px solid rgba(48,54,61,0.5);
+    border-radius: 10px; padding: 14px;
+  }
+  .info-section-title {
+    font: 700 0.6em 'JetBrains Mono', monospace; color: var(--accent-cyan);
+    text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 8px;
+  }
+  .info-row {
+    display: flex; justify-content: space-between; padding: 3px 0;
+    font-size: 0.78em; border-bottom: 1px solid rgba(48,54,61,0.3);
+  }
+  .info-row:last-child { border-bottom: none; }
+  .info-key { color: var(--text-secondary); }
+  .info-val { color: var(--text-primary); font-weight: 600; }
+  .info-val.accent { color: var(--accent-cyan); }
+
+  .persona-card {
+    grid-column: 1 / -1;
+    background: linear-gradient(135deg, rgba(188,140,255,0.05), rgba(57,210,192,0.05));
+    border-color: rgba(188,140,255,0.2);
+  }
+  .persona-type {
+    display: inline-block; padding: 3px 10px; border-radius: 6px;
+    background: rgba(188,140,255,0.12); color: var(--accent-purple);
+    font: 600 0.75em 'JetBrains Mono', monospace; margin-bottom: 8px;
+  }
+  .persona-desc { font-size: 0.76em; color: var(--text-secondary); line-height: 1.6; }
+
+  .gen-btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    margin-top: 28px; padding: 10px 24px;
+    background: rgba(57,210,192,0.1); border: 1px solid rgba(57,210,192,0.3);
+    border-radius: 10px; color: var(--accent-cyan);
+    font: 600 0.82em -apple-system, sans-serif;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .gen-btn:hover { background: rgba(57,210,192,0.18); border-color: var(--accent-cyan); }
+  .gen-btn svg { width: 16px; height: 16px; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <div class="page-title">Patient Initialization</div>
+  <div class="page-subtitle">
+    LLM&rarr;rand&rarr;LLM pipeline generates a single patient for Etoposide + Cisplatin (ES-SCLC)
+  </div>
+
+  <!-- Pipeline Steps -->
+  <div class="pipeline-steps">
+    <div class="pipeline-step active">
+      <div class="step-num">Step 1</div>
+      <div class="step-title">Demographics</div>
+      <div class="step-desc">Sample age, sex, race, BMI from rule-set distributions (code-only, no LLM)</div>
+    </div>
+    <div class="pipeline-arrow">&rarr;</div>
+    <div class="pipeline-step active">
+      <div class="step-num">Step 2</div>
+      <div class="step-title">Comorbidities</div>
+      <div class="step-desc">LLM adjusts probabilities based on demographics; Sampler draws conditions</div>
+    </div>
+    <div class="pipeline-arrow">&rarr;</div>
+    <div class="pipeline-step active">
+      <div class="step-num">Step 3</div>
+      <div class="step-title">Baseline</div>
+      <div class="step-desc">LLM generates internally consistent labs, vitals, and disease baseline</div>
+    </div>
+    <div class="pipeline-arrow">&rarr;</div>
+    <div class="pipeline-step active">
+      <div class="step-num">Step 4</div>
+      <div class="step-title">Persona</div>
+      <div class="step-desc">LLM assigns behavioral archetype governing symptom reporting throughout trial</div>
+    </div>
+  </div>
+
+  <!-- Patient Avatar + Speech Bubble -->
+  <div class="patient-showcase">
+    <div class="avatar-section">
+      <img src="{% static 'assets/characters/patient_01.png' %}" class="avatar-img" id="patientAvatar">
+      <div class="avatar-label">PT-001</div>
+    </div>
+
+    <div class="speech-bubble">
+      <div class="info-grid" id="patientInfo">
+        <div class="info-section">
+          <div class="info-section-title">Demographics</div>
+          <div class="info-row"><span class="info-key">Age</span><span class="info-val">71</span></div>
+          <div class="info-row"><span class="info-key">Sex</span><span class="info-val">Male</span></div>
+          <div class="info-row"><span class="info-key">Race</span><span class="info-val">Unknown</span></div>
+          <div class="info-row"><span class="info-key">BMI</span><span class="info-val">26.7</span></div>
+          <div class="info-row"><span class="info-key">ECOG PS</span><span class="info-val">1</span></div>
+        </div>
+
+        <div class="info-section">
+          <div class="info-section-title">Disease Baseline</div>
+          <div class="info-row"><span class="info-key">Primary</span><span class="info-val">ES-SCLC</span></div>
+          <div class="info-row"><span class="info-key">Stage</span><span class="info-val">IV</span></div>
+          <div class="info-row"><span class="info-key">Drug</span><span class="info-val accent">Etoposide + Cisplatin</span></div>
+        </div>
+
+        <div class="info-section">
+          <div class="info-section-title">Baseline Labs</div>
+          <div class="info-row"><span class="info-key">Hemoglobin</span><span class="info-val">14.5 g/dL</span></div>
+          <div class="info-row"><span class="info-key">WBC</span><span class="info-val">6.2 &times;10<sup>9</sup>/L</span></div>
+          <div class="info-row"><span class="info-key">Platelets</span><span class="info-val">250 &times;10<sup>9</sup>/L</span></div>
+          <div class="info-row"><span class="info-key">Creatinine</span><span class="info-val">0.9 mg/dL</span></div>
+        </div>
+
+        <div class="info-section">
+          <div class="info-section-title">Baseline Vitals</div>
+          <div class="info-row"><span class="info-key">BP</span><span class="info-val">130/80 mmHg</span></div>
+          <div class="info-row"><span class="info-key">HR</span><span class="info-val">75 bpm</span></div>
+          <div class="info-row"><span class="info-key">Temp</span><span class="info-val">36.8&deg;C</span></div>
+          <div class="info-row"><span class="info-key">SpO2</span><span class="info-val">95%</span></div>
+          <div class="info-row"><span class="info-key">Weight</span><span class="info-val">82.0 kg</span></div>
+        </div>
+
+        <div class="info-section persona-card">
+          <div class="info-section-title">Persona &amp; Reporting Behavior</div>
+          <div class="persona-type">minimizer</div>
+          <div class="persona-desc">
+            This 71-year-old gentleman tends to downplay his symptoms, often attributing them to old age or other benign causes.
+            He is generally stoic and prefers to avoid dwelling on health concerns, focusing instead on maintaining his independence.
+            He may underreport symptoms to avoid potential medical interventions.
+          </div>
+          <div style="margin-top:10px;display:flex;gap:12px;flex-wrap:wrap;">
+            <span style="font:0.7em 'JetBrains Mono',monospace;color:var(--accent-orange);padding:2px 8px;background:rgba(210,153,34,0.08);border-radius:4px;">pain: minimizes</span>
+            <span style="font:0.7em 'JetBrains Mono',monospace;color:var(--accent-orange);padding:2px 8px;background:rgba(210,153,34,0.08);border-radius:4px;">fatigue: attributes_to_age</span>
+            <span style="font:0.7em 'JetBrains Mono',monospace;color:var(--accent-orange);padding:2px 8px;background:rgba(210,153,34,0.08);border-radius:4px;">skin: reports_only_if_asked</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
