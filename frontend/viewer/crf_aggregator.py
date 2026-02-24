@@ -7,8 +7,28 @@ row lists suitable for CRF table display and Excel export.
 from __future__ import annotations
 
 import json
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
+
+
+# ─── In-memory cache for parsed JSONL ─────────────────────────────────
+# Key: (file_path, mtime) → parsed records.  Avoids re-reading 320 MB on
+# every CRF table API call.  Cache up to 64 patient files (~8 MB RAM).
+
+def _read_jsonl_cached(fpath: Path) -> list[dict]:
+    """Read & parse a JSONL file with mtime-based caching."""
+    return _read_jsonl_cached_inner(str(fpath), fpath.stat().st_mtime)
+
+@lru_cache(maxsize=256)
+def _read_jsonl_cached_inner(fpath_str: str, _mtime: float) -> list[dict]:
+    records = []
+    with open(fpath_str, encoding="utf-8") as fh:
+        for line in fh:
+            line = line.strip()
+            if line:
+                records.append(json.loads(line))
+    return records
 
 
 # ─── Lab name abbreviation mapping ────────────────────────────────────
@@ -362,30 +382,22 @@ DOMAIN_LABELS = {
 # ─── Internal helpers ───────────────────────────────────────────────────
 
 def _iter_jsonl(run_path: Path, patient_id: str, mode: str = "natural"):
-    """Yield parsed JSON records from a simulation JSONL file."""
+    """Yield parsed JSON records from a simulation JSONL file (cached)."""
     fpath = run_path / "simulations" / f"{patient_id}_{mode}.jsonl"
     if not fpath.exists():
         return
-    with open(fpath, encoding="utf-8") as fh:
-        for line in fh:
-            line = line.strip()
-            if line:
-                yield json.loads(line)
+    yield from _read_jsonl_cached(fpath)
 
 
 def _iter_hospital_jsonl(run_path: Path, patient_id: str, mode: str = "natural"):
-    """Yield parsed records from a hospital JSONL file.
+    """Yield parsed records from a hospital JSONL file (cached).
 
     Prefers the dedicated *_hospital.jsonl (v2.3+).
     Falls back to extracting hospital_record from the GT file (older runs).
     """
     hr_path = run_path / "simulations" / f"{patient_id}_{mode}_hospital.jsonl"
     if hr_path.exists():
-        with open(hr_path, encoding="utf-8") as fh:
-            for line in fh:
-                line = line.strip()
-                if line:
-                    yield json.loads(line)
+        yield from _read_jsonl_cached(hr_path)
     else:
         # Legacy: extract hospital_record from GT file
         for record in _iter_jsonl(run_path, patient_id, mode):
@@ -404,11 +416,15 @@ def _iter_hospital_jsonl(run_path: Path, patient_id: str, mode: str = "natural")
 
 
 def _load_patient_json(run_path: Path, patient_id: str) -> dict | None:
-    """Load patient profile JSON."""
+    """Load patient profile JSON (cached)."""
     fpath = run_path / "patients" / f"{patient_id}.json"
     if not fpath.exists():
         return None
-    with open(fpath, encoding="utf-8") as fh:
+    return _load_patient_json_cached(str(fpath), fpath.stat().st_mtime)
+
+@lru_cache(maxsize=256)
+def _load_patient_json_cached(fpath_str: str, _mtime: float) -> dict:
+    with open(fpath_str, encoding="utf-8") as fh:
         return json.load(fh)
 
 
@@ -714,6 +730,8 @@ def aggregate_cm(
         for record in _iter_jsonl(run_path, pid, mode):
             for cm in record.get("CM", []):
                 drug = cm.get("CMTRT", "")
+                if isinstance(drug, dict):
+                    drug = drug.get("name", str(drug))
                 key = (pid, drug)
                 rows_map[key] = {
                     "patient_id": pid,
@@ -1273,6 +1291,18 @@ AGGREGATE_FNS: dict[str, Any] = {
 }
 
 
+# ─── Aggregate result cache ────────────────────────────────────────────
+# Cache full (unpaginated) rows+columns per (domain, run, mode, source, patients).
+# Pagination is applied after cache lookup — so tab switching / page navigation
+# is instant after the first load.
+
+_aggregate_cache: dict[tuple, tuple[list[dict], list[dict]]] = {}
+
+def _aggregate_cache_key(domain, run_path, patient_ids, mode, source):
+    pt_key = tuple(patient_ids) if patient_ids else ()
+    return (domain.upper(), str(run_path), pt_key, mode, source)
+
+
 def aggregate_domain(
     domain: str,
     run_path: Path,
@@ -1285,22 +1315,33 @@ def aggregate_domain(
     """Dispatch to the appropriate domain aggregation function.
 
     Returns (rows, total_count, columns).
+    Uses cache for full result; pagination applied after lookup.
     """
-    fn = AGGREGATE_FNS.get(domain.upper())
-    if not fn:
-        return [], 0, []
+    cache_key = _aggregate_cache_key(domain, run_path, patient_ids, mode, source)
+    cached = _aggregate_cache.get(cache_key)
 
-    # Build kwargs based on what the function accepts
-    import inspect
-    sig = inspect.signature(fn)
-    kwargs: dict[str, Any] = {"run_path": run_path, "page": page, "per_page": per_page}
-    if "patient_ids" in sig.parameters:
-        kwargs["patient_ids"] = patient_ids
-    if "mode" in sig.parameters:
-        kwargs["mode"] = mode
-    if "source" in sig.parameters:
-        kwargs["source"] = source
-    return fn(**kwargs)
+    if cached is None:
+        fn = AGGREGATE_FNS.get(domain.upper())
+        if not fn:
+            return [], 0, []
+
+        # Fetch ALL rows (no pagination) and cache them
+        import inspect
+        sig = inspect.signature(fn)
+        kwargs: dict[str, Any] = {"run_path": run_path, "page": 1, "per_page": 0}
+        if "patient_ids" in sig.parameters:
+            kwargs["patient_ids"] = patient_ids
+        if "mode" in sig.parameters:
+            kwargs["mode"] = mode
+        if "source" in sig.parameters:
+            kwargs["source"] = source
+        all_rows, _total, columns = fn(**kwargs)
+        _aggregate_cache[cache_key] = (all_rows, columns)
+        cached = (all_rows, columns)
+
+    all_rows, columns = cached
+    page_rows, total = _paginate(all_rows, page, per_page)
+    return page_rows, total, columns
 
 
 # ─── Excel export helper ────────────────────────────────────────────────

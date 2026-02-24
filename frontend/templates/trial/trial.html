@@ -506,6 +506,17 @@
     background: rgba(63,185,80,0.1); color: var(--accent-green);
     border: 1px solid rgba(63,185,80,0.2);
   }
+  .patient-card.deceased {
+    opacity: 0.55;
+    border-left-color: #6e7681 !important;
+    background: rgba(110,118,129,0.06);
+  }
+  .patient-card.deceased:hover { opacity: 0.75; }
+  .patient-card .ae-badge.death {
+    background: rgba(110,118,129,0.2); color: #8b949e;
+    border: 1px solid rgba(110,118,129,0.4);
+    font-size: 0.82em; font-weight: 700;
+  }
 
   /* ── Patient Detail Modal ── */
   .patient-modal-overlay {
@@ -974,6 +985,10 @@
     background: rgba(110,118,129,0.08); border: 1px solid rgba(110,118,129,0.2);
     color: var(--text-muted);
   }
+  .map-loc-chip.loc-deceased {
+    background: rgba(110,118,129,0.06); border: 1px solid rgba(110,118,129,0.15);
+    color: #6e7681;
+  }
   .map-loc-chip .loc-num {
     font-size: 1em; min-width: 14px; text-align: center;
   }
@@ -1171,6 +1186,10 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"/><rect x="5" y="10" width="14" height="11" rx="1"/><rect x="9" y="14" width="6" height="7"/></svg>
           <span class="loc-num" id="loc-home-count">—</span> Home
         </span>
+        <span class="map-loc-chip loc-deceased" id="loc-deceased-chip" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <span class="loc-num" id="loc-deceased-count">0</span> Deceased
+        </span>
       </div>
     </div>
     <div id="game-container"></div>
@@ -1204,11 +1223,13 @@
     <div class="sidebar-cards-scroll">
       <div class="patient-cards" id="patient-cards">
         {% for p in patients %}
-        <div class="patient-card" data-pid="{{ p.patient_id }}" id="card-{{ p.patient_id }}">
+        <div class="patient-card{% if p.location == 'DECEASED' %} deceased{% endif %}" data-pid="{{ p.patient_id }}" id="card-{{ p.patient_id }}">
           <div class="char-sprite" data-pid="{{ p.patient_id }}" data-sex="{{ p.sex }}" data-race="{{ p.race }}"></div>
           <div class="pid">{{ p.patient_id }}</div>
           <div class="meta">{{ p.age }}{{ p.sex }} · E{{ p.ecog|default:"?" }}</div>
-          {% if p.active_aes %}
+          {% if p.location == 'DECEASED' %}
+            <span class="ae-badge death">Deceased</span>
+          {% elif p.active_aes %}
             {% for ae in p.active_aes %}
             <span class="ae-badge danger">{{ ae.term }} G{{ ae.grade }}</span>
             {% endfor %}
@@ -1516,9 +1537,16 @@
     }
 
     // ── Core polling: auto-follow + real-time updates ──
+    let livePollErrors = 0;
     let livePollInterval = setInterval(async () => {
       try {
         const statusResp = await fetch(`/api/sim/status/${RUN_ID}/`);
+        if (!statusResp.ok) {
+          livePollErrors++;
+          if (livePollErrors >= 3) { clearInterval(livePollInterval); console.warn('Polling stopped: status API unavailable'); }
+          return;
+        }
+        livePollErrors = 0;
         const statusData = await statusResp.json();
         const phase = detectPhase(statusData);
 
@@ -1636,6 +1664,8 @@
         }
       } catch(e) {
         console.warn('Live poll error:', e);
+        livePollErrors++;
+        if (livePollErrors >= 3) { clearInterval(livePollInterval); console.warn('Polling stopped after repeated errors'); }
       }
     }, 1500);
 
@@ -1650,15 +1680,21 @@
   }
 
   function updateMapLocationCount(patients) {
-    const hospCount = patients.filter(p => {
+    let hospCount = 0, deceasedCount = 0;
+    patients.forEach(p => {
       const l = (p.location || '').toUpperCase();
-      return l === 'HOSPITAL' || l === 'OUTPATIENT' || l === 'INPATIENT';
-    }).length;
-    const homeCount = patients.length - hospCount;
+      if (l === 'DECEASED') deceasedCount++;
+      else if (l === 'HOSPITAL' || l === 'OUTPATIENT' || l === 'INPATIENT') hospCount++;
+    });
+    const homeCount = patients.length - hospCount - deceasedCount;
     const hEl = document.getElementById('loc-hospital-count');
     const mEl = document.getElementById('loc-home-count');
+    const dEl = document.getElementById('loc-deceased-count');
+    const dChip = document.getElementById('loc-deceased-chip');
     if (hEl) hEl.textContent = hospCount;
     if (mEl) mEl.textContent = homeCount;
+    if (dEl) dEl.textContent = deceasedCount;
+    if (dChip) dChip.style.display = deceasedCount > 0 ? '' : 'none';
   }
 
   // ── Initialize Phaser Map ──
@@ -1772,26 +1808,34 @@
     let html = '';
     patients.forEach(p => {
       const isActive = selectedPatient === p.patient_id ? ' active' : '';
-      const hasAE = p.active_aes && p.active_aes.length > 0;
-      const aeBadges = hasAE
-        ? p.active_aes.map(ae => {
-            let extra = '';
-            if (ae.detection_delay != null) extra = ` (D+${ae.detection_delay})`;
-            return `<span class="ae-badge danger">${ae.term} G${ae.grade}${extra}</span>`;
-          }).join(' ')
-        : '<span class="ae-badge safe">No AEs</span>';
+      const isDeceased = (p.location || '').toUpperCase() === 'DECEASED';
+      const deceasedCls = isDeceased ? ' deceased' : '';
 
-      const staleNote = (currentView === 'hr' && p.labs_stale_days > 0)
+      let aeBadges;
+      if (isDeceased) {
+        aeBadges = '<span class="ae-badge death">Deceased</span>';
+      } else {
+        const hasAE = p.active_aes && p.active_aes.length > 0;
+        aeBadges = hasAE
+          ? p.active_aes.map(ae => {
+              let extra = '';
+              if (ae.detection_delay != null) extra = ` (D+${ae.detection_delay})`;
+              return `<span class="ae-badge danger">${ae.term} G${ae.grade}${extra}</span>`;
+            }).join(' ')
+          : '<span class="ae-badge safe">No AEs</span>';
+      }
+
+      const staleNote = (!isDeceased && currentView === 'hr' && p.labs_stale_days > 0)
         ? `<div style="font-size:0.8em;color:#d29922;margin-top:2px">Labs ${p.labs_stale_days}d old</div>`
         : '';
 
-      const visitBadge = (currentView === 'hr' && p.is_visit_day)
+      const visitBadge = (!isDeceased && currentView === 'hr' && p.is_visit_day)
         ? '<span class="ae-badge" style="background:rgba(88,166,255,0.2);color:var(--accent-blue);border:1px solid rgba(88,166,255,0.3);font-size:0.78em">Visit</span> '
         : '';
 
       const spriteUrl = getCharSpriteUrl(p.patient_id, p.sex, p.race);
       html += `
-        <div class="patient-card${isActive}" data-pid="${p.patient_id}" id="card-${p.patient_id}">
+        <div class="patient-card${isActive}${deceasedCls}" data-pid="${p.patient_id}" id="card-${p.patient_id}">
           <div class="pid">${p.patient_id}</div>
           <div class="char-sprite" style="background-image:url('${spriteUrl}')"></div>
           <div class="meta">${p.age}${p.sex} · ECOG ${p.ecog !== '?' ? p.ecog : '?'}</div>
