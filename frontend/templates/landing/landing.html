@@ -1765,7 +1765,7 @@
   <section id="core-technology" class="section-block">
     <div class="section-label-row reveal">
       <span class="sl-marker"></span>
-      <span class="sl-text">Core Technology</span>
+      <span class="sl-text">Core Engine</span>
       <span class="sl-line"></span>
     </div>
 
@@ -1876,7 +1876,7 @@
       </div>
     </div>
 
-    <!-- Card 2: Data Collection Agent (tabbed: SAE Detection + Voice Call Live) -->
+    <!-- Card 2: Data Collection Agent (SAE Detection) -->
     <div class="tech-card accent-purple reveal reveal-d2">
       <div class="tc-layout">
         <div class="tc-left">
@@ -1887,12 +1887,7 @@
             <div class="tc-title">Data Collection Agent</div>
           </div>
 
-          <div class="cts-inner-tabs">
-            <button class="cts-inner-tab active" onclick="switchDcTab('sae', this)">SAE Detection</button>
-            <button class="cts-inner-tab" onclick="switchDcTab('voice', this)">Voice Call Live</button>
-          </div>
-
-          <!-- Tab: SAE Detection -->
+          <!-- SAE Detection -->
           <div class="cts-tab-pane active" id="dcSae">
             <div class="tc-desc">
               Multi-model SAE detection: <strong>MedGemma 4B-IT</strong> (visual AE grading via LoRA),
@@ -1905,28 +1900,12 @@
               <span class="tc-stat-val good">90.5%</span>
               <span class="tc-stat-label">21 CTCAE classes &middot; LoRA finetuned</span>
             </div>
-            <a href="{% url 'demo_medgemma' %}" class="tc-btn">
+            <a href="http://49.254.130.90:19001/demo/care-agent/live/" class="tc-btn">
               <span class="btn-label">Try Demo</span><span class="btn-hover-label">Detect AE</span>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </a>
           </div>
 
-          <!-- Tab: Voice Call Live -->
-          <div class="cts-tab-pane" id="dcVoice">
-            <div class="tc-desc">
-              Real-time <strong>voice interactions</strong> to detect adverse events early through
-              <strong>auditory and conversational cues</strong>. 4-turn patient-nurse dialogue
-              with <strong>7-dimensional mood-aware</strong> patient modeling.
-            </div>
-            <div class="tc-stat">
-              <span class="tc-stat-val good" style="opacity:1;">94.2%</span>
-              <span class="tc-stat-label">AE detection &middot; 4-turn voice &middot; 7-dim mood</span>
-            </div>
-            <a href="{% url 'demo_care_agent' %}" class="tc-btn">
-              <span class="btn-label">Try Demo</span><span class="btn-hover-label">Call Now</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
-            </a>
-          </div>
         </div>
         <div class="tc-right">
           <!-- SAE Detection visual (shown when sae tab active) -->
@@ -1995,56 +1974,6 @@
               <div class="mm-fine-tune-tag">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                 LoRA r=8, &alpha;=16 &middot; 7 AE types + Normal &middot; bf16
-              </div>
-            </div>
-          </div>
-          <!-- Voice Call Live visual (shown when voice tab active) -->
-          <div id="dcVoiceRight" style="display:none;">
-            <div class="vc-mini-preview">
-              <div class="vc-mini-header">
-                <div class="vc-mini-header-left">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
-                  <span>Voice Call Live</span>
-                </div>
-                <span class="vc-mini-live">LIVE</span>
-              </div>
-              <div class="vc-mini-wave">
-                <div class="vc-mini-wave-bar" style="height:6px;animation-delay:0s;"></div>
-                <div class="vc-mini-wave-bar" style="height:12px;animation-delay:0.1s;"></div>
-                <div class="vc-mini-wave-bar" style="height:18px;animation-delay:0.2s;"></div>
-                <div class="vc-mini-wave-bar" style="height:10px;animation-delay:0.3s;"></div>
-                <div class="vc-mini-wave-bar" style="height:16px;animation-delay:0.15s;"></div>
-                <div class="vc-mini-wave-bar" style="height:8px;animation-delay:0.25s;"></div>
-                <div class="vc-mini-wave-bar" style="height:14px;animation-delay:0.05s;"></div>
-                <div class="vc-mini-wave-bar" style="height:6px;animation-delay:0.35s;"></div>
-                <div class="vc-mini-wave-bar" style="height:18px;animation-delay:0.12s;"></div>
-                <div class="vc-mini-wave-bar" style="height:10px;animation-delay:0.22s;"></div>
-                <div class="vc-mini-wave-bar" style="height:14px;animation-delay:0.08s;"></div>
-                <div class="vc-mini-wave-bar" style="height:8px;animation-delay:0.28s;"></div>
-              </div>
-              <div class="vc-mini-turns">
-                <div class="vc-mini-turn">
-                  <span class="vc-mini-turn-label patient">T1</span>
-                  <span class="vc-mini-turn-text">"I've been feeling more tired than usual..."</span>
-                </div>
-                <div class="vc-mini-turn">
-                  <span class="vc-mini-turn-label nurse">T2</span>
-                  <span class="vc-mini-turn-text">Visual assessment: mild rash detected on forearms</span>
-                </div>
-                <div class="vc-mini-turn">
-                  <span class="vc-mini-turn-label patient">T3</span>
-                  <span class="vc-mini-turn-text">"The itching started about three days ago..."</span>
-                </div>
-                <div class="vc-mini-turn">
-                  <span class="vc-mini-turn-label nurse">T4</span>
-                  <span class="vc-mini-turn-text">Recommend early visit &mdash; Grade 2 rash + pruritus</span>
-                </div>
-              </div>
-              <div class="vc-mini-mood-row">
-                <span class="vc-mini-mood">anxiety 0.6</span>
-                <span class="vc-mini-mood">trust 0.8</span>
-                <span class="vc-mini-mood">fatigue 0.7</span>
-                <span class="vc-mini-mood">hopefulness 0.5</span>
               </div>
             </div>
           </div>
@@ -2282,14 +2211,6 @@
     switchCardTab(btn,
       ['daAntihallu', 'daChatbot'],
       ['daAntihalluRight', 'daChatbotRight']
-    );
-  };
-
-  /* Card 2: Data Collection Agent */
-  window.switchDcTab = function(tab, btn) {
-    switchCardTab(btn,
-      ['dcSae', 'dcVoice'],
-      ['dcSaeRight', 'dcVoiceRight']
     );
   };
 

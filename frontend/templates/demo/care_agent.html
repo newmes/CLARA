@@ -1,32 +1,38 @@
 {% extends "base/base.html" %}
 {% load static %}
 
-{% block title %}CLARA — Data Collection Agent{% endblock %}
+{% block title %}Clara Call{% endblock %}
 
 {% block extra_head %}
 <style>
+/* ═══════════════════════════════════════════════════════════
+   Clara Call — Unified Demo (Phone Mockup + AI Dashboard)
+   Prefix: ci- (Care Intelligence)
+   ═══════════════════════════════════════════════════════════ */
 :root {
-  --ca-purple: #bc8cff;
-  --ca-purple-dim: rgba(188,140,255,0.1);
-  --ca-purple-border: rgba(188,140,255,0.2);
-  --ca-purple-glow: rgba(188,140,255,0.35);
-  --ca-green: #3fb950;
-  --ca-red: #f85149;
-  --ca-orange: #d29922;
-  --ca-blue: #58a6ff;
-  --ca-warm: #e8985a;
-  --ca-warm-dim: rgba(232,152,90,0.1);
-  --ca-warm-border: rgba(232,152,90,0.2);
+  --ci-purple: #bc8cff;
+  --ci-purple-dim: rgba(188,140,255,0.1);
+  --ci-purple-border: rgba(188,140,255,0.2);
+  --ci-purple-glow: rgba(188,140,255,0.35);
+  --ci-green: #3fb950;
+  --ci-red: #f85149;
+  --ci-orange: #d29922;
+  --ci-blue: #58a6ff;
+  --ci-warm: #e8985a;
+  --ci-warm-dim: rgba(232,152,90,0.1);
+  --ci-warm-border: rgba(232,152,90,0.2);
+  --ci-teal: #4ecdc4;
+  --ci-amber: #f7c948;
+  --ci-model-blue: #7aa2f7;
+  --ci-pink: #e879a8;
 }
 
-/* ═══════════════════════════════════════════════
-   BACKGROUND
-   ═══════════════════════════════════════════════ */
-.ca-bg {
+/* ── Background ── */
+.ci-bg {
   position: fixed; top: 0; left: 0; right: 0; bottom: 0;
   z-index: -1; pointer-events: none; overflow: hidden;
 }
-.ca-bg::before {
+.ci-bg::before {
   content: '';
   position: absolute; inset: 0;
   background-image:
@@ -36,977 +42,801 @@
   mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, black 20%, transparent 80%);
   -webkit-mask-image: radial-gradient(ellipse 60% 50% at 50% 30%, black 20%, transparent 80%);
 }
-.ca-bg .orb {
+.ci-bg .orb {
   position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.05;
 }
-.ca-bg .orb-1 { width: 400px; height: 400px; top: 5%; left: 5%; background: var(--ca-purple); }
-.ca-bg .orb-2 { width: 350px; height: 350px; bottom: 10%; right: 10%; background: var(--ca-blue); }
+.ci-bg .orb-1 { width: 400px; height: 400px; top: 5%; left: 5%; background: var(--ci-purple); }
+.ci-bg .orb-2 { width: 350px; height: 350px; bottom: 10%; right: 10%; background: var(--ci-blue); }
 
-.ca-wrap {
-  max-width: 1400px; margin: 0 auto; padding: 5.5em 24px 4em;
+.ci-wrap {
+  max-width: 1440px; margin: 0 auto; padding: 5.5em 24px 4em;
 }
 
-/* ═══════════════════════════════════════════════
-   TAB BAR
-   ═══════════════════════════════════════════════ */
-.ca-tab-bar {
-  display: flex; gap: 4px; justify-content: center;
-  margin-bottom: 2em; padding: 4px;
-  background: rgba(22,27,34,0.6);
-  border: 1px solid rgba(48,54,61,0.5);
-  border-radius: 12px;
-  width: fit-content; margin-left: auto; margin-right: auto;
+/* ── Hero ── */
+.ci-hero {
+  padding: 2em 0 1.8em; text-align: center; position: relative;
 }
-.ca-tab-link {
-  padding: 8px 20px; border-radius: 8px;
-  font: 600 0.78em 'JetBrains Mono', monospace;
-  color: var(--text-muted); text-decoration: none;
-  transition: all 0.25s; white-space: nowrap;
-  display: flex; align-items: center; gap: 6px;
-}
-.ca-tab-link:hover {
-  color: var(--text-secondary);
-  background: rgba(188,140,255,0.06);
-  text-decoration: none;
-}
-.ca-tab-link.active {
-  color: var(--ca-purple);
-  background: var(--ca-purple-dim);
-  border: 1px solid var(--ca-purple-border);
-}
-.ca-tab-link .ca-tab-dot {
-  width: 6px; height: 6px; border-radius: 50%;
-  background: currentColor; opacity: 0.5;
-}
-.ca-tab-link.active .ca-tab-dot { opacity: 1; }
-
-/* ═══════════════════════════════════════════════
-   HERO SECTION
-   ═══════════════════════════════════════════════ */
-.ca-hero {
-  padding: 2.5em 0 2em;
-  text-align: center;
-  position: relative;
-}
-.ca-hero-overline {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+.ci-hero-overline {
+  display: inline-flex; align-items: center; gap: 8px;
   font: 600 0.68em 'JetBrains Mono', monospace;
-  color: var(--ca-purple);
-  padding: 5px 16px;
-  border: 1px solid rgba(188,140,255,0.2);
-  border-radius: 24px;
-  background: rgba(188,140,255,0.05);
-  margin-bottom: 1.4em;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
+  color: var(--ci-purple);
+  padding: 5px 16px; border: 1px solid rgba(188,140,255,0.2);
+  border-radius: 24px; background: rgba(188,140,255,0.05);
+  margin-bottom: 1.2em; letter-spacing: 0.8px; text-transform: uppercase;
 }
-.ca-hero-overline .ca-pulse-pip {
+.ci-hero-overline .ci-pulse {
   width: 6px; height: 6px; border-radius: 50%;
-  background: var(--ca-purple);
-  animation: caPipPulse 2s ease-in-out infinite;
+  background: var(--ci-purple);
+  animation: ciPulse 2s ease-in-out infinite;
   box-shadow: 0 0 8px rgba(188,140,255,0.6);
 }
-@keyframes caPipPulse {
+@keyframes ciPulse {
   0%, 100% { opacity: 1; transform: scale(1); }
   50% { opacity: 0.4; transform: scale(0.8); }
 }
-
-.ca-hero-icon {
-  display: flex;
-  justify-content: center;
-  margin-top: 0.5em;
+.ci-hero-icon {
+  display: flex; justify-content: center;
   margin-bottom: 0.6em;
-  opacity: 0;
-  animation: caIconReveal 1s cubic-bezier(0.16, 1, 0.3, 1) forwards 0.05s;
+  opacity: 0; animation: ciReveal 1s cubic-bezier(0.16,1,0.3,1) forwards 0.05s;
 }
-.ca-hero-icon-inner {
-  display: flex; align-items: center; justify-content: center;
-  transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.ca-hero-icon-inner:hover {
-  transform: scale(1.08) rotate(2deg);
-}
-.ca-hero-icon-inner svg {
-  filter: drop-shadow(0 0 16px rgba(188,140,255,0.3));
-}
-@keyframes caIconReveal {
+@keyframes ciReveal {
   from { opacity: 0; transform: translateY(-16px) scale(0.9); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
 }
+.ci-hero-title {
+  font-size: 2.8em; font-weight: 800; letter-spacing: -0.5px;
+  line-height: 1.12; margin-bottom: 0.4em;
+}
+.ci-hero-title .ci-accent {
+  background: linear-gradient(135deg, #a855f7 0%, var(--ci-purple) 40%, #58a6ff 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  background-clip: text; filter: drop-shadow(0 0 30px rgba(188,140,255,0.3));
+}
+.ci-hero-title .ci-dim { color: var(--text-secondary); -webkit-text-fill-color: var(--text-secondary); }
+.ci-hero-sub {
+  font-size: 1em; color: var(--text-muted); max-width: 680px;
+  margin: 0 auto 1em; line-height: 1.7;
+}
+.ci-hero-sub strong { color: var(--text-secondary); font-weight: 600; }
 
-.ca-hero-title {
-  font-size: 3em;
-  font-weight: 800;
-  letter-spacing: -0.5px;
-  line-height: 1.12;
-  margin-bottom: 0.5em;
-  position: relative;
+/* Model badges row */
+.ci-model-badges {
+  display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;
+  margin-top: 0.8em; opacity: 0;
+  animation: ciFadeUp 0.8s ease forwards 0.6s;
 }
-.ca-hero-title .ca-title-line { display: block; }
-.ca-hero-title .ca-title-line-sub {
-  display: block;
-  font-size: 0.52em;
-  font-weight: 600;
-  letter-spacing: 0.5px;
-  margin-top: 0.3em;
-}
-.ca-hero-title .ca-word {
-  display: inline-block;
-  opacity: 0;
-  transform: translateY(30px);
-  animation: caWordReveal 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-.ca-hero-title .ca-word-accent {
-  background: linear-gradient(135deg, #a855f7 0%, var(--ca-purple) 40%, #58a6ff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  filter: drop-shadow(0 0 30px rgba(188,140,255,0.3));
-}
-.ca-hero-title .ca-word-dim {
-  color: var(--text-secondary);
-  -webkit-text-fill-color: var(--text-secondary);
-}
-@keyframes caWordReveal {
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.ca-hero-subtitle {
-  font-size: 1.05em;
-  color: var(--text-muted);
-  font-weight: 400;
-  max-width: 700px;
-  margin: 0 auto 1em;
-  line-height: 1.7;
-  opacity: 0;
-  animation: caFadeUpSoft 0.8s ease forwards 0.8s;
-}
-.ca-hero-subtitle strong {
-  color: var(--text-secondary);
-  font-weight: 600;
-}
-@keyframes caFadeUpSoft {
+@keyframes ciFadeUp {
   from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
-.ca-hero-badges {
-  display: flex; gap: 10px; margin-top: 1em; flex-wrap: wrap;
-  justify-content: center;
-  opacity: 0;
-  animation: caFadeUpSoft 0.8s ease forwards 1s;
-}
-.ca-hero-badge {
+.ci-model-badge {
   display: flex; align-items: center; gap: 6px;
   padding: 6px 14px; border-radius: 20px;
-  background: rgba(188,140,255,0.05); border: 1px solid rgba(188,140,255,0.15);
   font-size: 0.72em; font-family: 'JetBrains Mono', monospace; font-weight: 600;
-  color: var(--text-secondary);
-  transition: all 0.25s ease;
+  color: var(--text-secondary); transition: all 0.25s;
 }
-.ca-hero-badge:hover {
-  border-color: rgba(188,140,255,0.3);
-  background: rgba(188,140,255,0.08);
-  transform: translateY(-1px);
-}
-.ca-hero-badge .bv { color: var(--ca-purple); }
+.ci-model-badge:hover { transform: translateY(-1px); }
+.ci-badge-hear { background: rgba(78,205,196,0.08); border: 1px solid rgba(78,205,196,0.2); }
+.ci-badge-hear .bv { color: var(--ci-teal); }
+.ci-badge-siglip { background: rgba(247,201,72,0.08); border: 1px solid rgba(247,201,72,0.2); }
+.ci-badge-siglip .bv { color: var(--ci-amber); }
+.ci-badge-gemma { background: rgba(122,162,247,0.08); border: 1px solid rgba(122,162,247,0.2); }
+.ci-badge-gemma .bv { color: var(--ci-model-blue); }
+.ci-badge-ctcae { background: rgba(232,121,168,0.08); border: 1px solid rgba(232,121,168,0.2); }
+.ci-badge-ctcae .bv { color: var(--ci-pink); }
 
 /* ═══════════════════════════════════════════════
-   PATIENT SELECTOR — Enhanced Cards
+   PATIENT SELECTOR
    ═══════════════════════════════════════════════ */
-.ca-setup {
+.ci-setup {
   background: rgba(22,27,34,0.7);
   border: 1px solid rgba(48,54,61,0.6);
   border-radius: 14px; padding: 28px; margin-bottom: 24px;
 }
-.ca-setup-title {
+.ci-setup-title {
   font: 700 0.9em 'JetBrains Mono', monospace;
   color: var(--text-secondary); margin-bottom: 20px;
   display: flex; align-items: center; gap: 8px;
 }
-.ca-setup-title::before {
+.ci-setup-title::before {
   content: ''; width: 3px; height: 16px; border-radius: 2px;
-  background: var(--ca-purple);
+  background: var(--ci-purple);
 }
-
-.ca-patients-grid {
+.ci-patients-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 14px; margin-bottom: 20px;
 }
-
-.ca-pt-card {
+.ci-pt-card {
   padding: 0; border-radius: 14px;
   background: rgba(13,17,23,0.6); border: 1px solid rgba(48,54,61,0.5);
-  cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer; transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
   overflow: hidden; position: relative;
 }
-.ca-pt-card:hover {
-  border-color: rgba(188,140,255,0.3);
-  background: rgba(188,140,255,0.04);
+.ci-pt-card:hover {
+  border-color: rgba(188,140,255,0.3); background: rgba(188,140,255,0.04);
   transform: translateY(-2px);
 }
-.ca-pt-card.selected {
-  border-color: var(--ca-purple);
-  background: rgba(188,140,255,0.06);
-  box-shadow: 0 0 0 1px var(--ca-purple), 0 0 24px rgba(188,140,255,0.15), 0 0 48px rgba(188,140,255,0.06);
+.ci-pt-card.selected {
+  border-color: var(--ci-purple); background: rgba(188,140,255,0.06);
+  box-shadow: 0 0 0 1px var(--ci-purple), 0 0 24px rgba(188,140,255,0.15);
 }
-.ca-pt-card.selected::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, var(--ca-purple), var(--ca-blue));
+.ci-pt-card.selected::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--ci-purple), var(--ci-blue));
 }
-
-.ca-pt-card-inner {
-  display: flex; gap: 14px; padding: 16px;
+.ci-pt-card-inner { display: flex; gap: 14px; padding: 16px; }
+.ci-pt-avatar-wrap { flex-shrink: 0; position: relative; }
+.ci-pt-thumb {
+  width: 56px; height: 56px; border-radius: 50%; object-fit: cover;
+  border: 2px solid rgba(48,54,61,0.5); transition: border-color 0.3s;
 }
-
-/* Avatar with color ring */
-.ca-pt-avatar-wrap {
-  flex-shrink: 0; position: relative;
+.ci-pt-card.selected .ci-pt-thumb {
+  border-color: var(--ci-purple); box-shadow: 0 0 12px rgba(188,140,255,0.3);
 }
-.ca-pt-thumb {
-  width: 56px; height: 56px; border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid rgba(48,54,61,0.5);
-  transition: border-color 0.3s;
-}
-.ca-pt-card.selected .ca-pt-thumb {
-  border-color: var(--ca-purple);
-  box-shadow: 0 0 12px rgba(188,140,255,0.3);
-}
-.ca-pt-ecog-badge {
+.ci-pt-ecog {
   position: absolute; bottom: -2px; right: -2px;
   width: 20px; height: 20px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font: 700 0.55em 'JetBrains Mono', monospace;
-  color: #fff;
+  font: 700 0.55em 'JetBrains Mono', monospace; color: #fff;
   border: 2px solid rgba(13,17,23,0.8);
 }
-.ca-pt-ecog-badge.ecog-0 { background: var(--ca-green); }
-.ca-pt-ecog-badge.ecog-1 { background: var(--ca-blue); }
-.ca-pt-ecog-badge.ecog-2 { background: var(--ca-orange); }
-.ca-pt-ecog-badge.ecog-3, .ca-pt-ecog-badge.ecog-4 { background: var(--ca-red); }
-
-.ca-pt-details {
-  flex: 1; min-width: 0;
+.ci-pt-ecog.ecog-0 { background: var(--ci-green); }
+.ci-pt-ecog.ecog-1 { background: var(--ci-blue); }
+.ci-pt-ecog.ecog-2 { background: var(--ci-orange); }
+.ci-pt-ecog.ecog-3, .ci-pt-ecog.ecog-4 { background: var(--ci-red); }
+.ci-pt-details { flex: 1; min-width: 0; }
+.ci-pt-details .pt-id {
+  font: 700 0.8em 'JetBrains Mono', monospace; color: var(--ci-purple); margin-bottom: 2px;
 }
-.ca-pt-details .pt-id {
-  font: 700 0.8em 'JetBrains Mono', monospace;
-  color: var(--ca-purple); margin-bottom: 2px;
-  display: flex; align-items: center; gap: 6px;
-}
-.ca-pt-details .pt-name {
-  font-size: 0.92em; font-weight: 600; color: var(--text-secondary);
-  margin-bottom: 3px;
-}
-.ca-pt-details .pt-demo {
-  font-size: 0.72em; color: var(--text-muted); line-height: 1.5;
-}
-.ca-pt-details .pt-persona {
+.ci-pt-details .pt-name { font-size: 0.92em; font-weight: 600; color: var(--text-secondary); margin-bottom: 3px; }
+.ci-pt-details .pt-demo { font-size: 0.72em; color: var(--text-muted); }
+.ci-pt-details .pt-persona {
   font-size: 0.68em; color: var(--text-muted); opacity: 0.7;
   font-style: italic; margin-top: 2px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-
-.ca-pt-card-footer {
-  padding: 8px 16px 12px;
-  display: flex; flex-wrap: wrap; gap: 4px;
+.ci-pt-card-footer {
+  padding: 8px 16px 12px; display: flex; flex-wrap: wrap; gap: 4px;
   border-top: 1px solid rgba(48,54,61,0.3);
 }
-.ca-pt-ae-pill {
+.ci-pt-ae-pill {
   font: 600 0.6em 'JetBrains Mono', monospace;
-  padding: 2px 8px; border-radius: 10px;
-  white-space: nowrap;
+  padding: 2px 8px; border-radius: 10px; white-space: nowrap;
 }
-.ca-pt-ae-pill.ae-condition {
-  background: rgba(248,81,73,0.1); color: var(--ca-red);
-  border: 1px solid rgba(248,81,73,0.18);
-}
-.ca-pt-ae-pill.ae-day {
-  background: rgba(188,140,255,0.08); color: var(--ca-purple);
-  border: 1px solid rgba(188,140,255,0.18);
-}
-.ca-pt-ae-pill.ae-ecog {
-  background: rgba(88,166,255,0.08); color: var(--ca-blue);
-  border: 1px solid rgba(88,166,255,0.18);
-}
-
-/* Selected check indicator */
-.ca-pt-check {
+.ci-pt-ae-pill.ae-condition { background: rgba(248,81,73,0.1); color: var(--ci-red); border: 1px solid rgba(248,81,73,0.18); }
+.ci-pt-ae-pill.ae-day { background: rgba(188,140,255,0.08); color: var(--ci-purple); border: 1px solid rgba(188,140,255,0.18); }
+.ci-pt-ae-pill.ae-ecog { background: rgba(88,166,255,0.08); color: var(--ci-blue); border: 1px solid rgba(88,166,255,0.18); }
+.ci-pt-check {
   position: absolute; top: 10px; right: 10px;
   width: 22px; height: 22px; border-radius: 50%;
-  background: var(--ca-purple);
+  background: var(--ci-purple);
   display: none; align-items: center; justify-content: center;
   box-shadow: 0 0 10px rgba(188,140,255,0.4);
 }
-.ca-pt-card.selected .ca-pt-check {
-  display: flex;
-}
-.ca-pt-check svg { width: 12px; height: 12px; }
+.ci-pt-card.selected .ci-pt-check { display: flex; }
+.ci-pt-check svg { width: 12px; height: 12px; }
 
-/* ═══════════════════════════════════════════════
-   CALL CONTROLS — Start/End buttons
-   ═══════════════════════════════════════════════ */
-.ca-call-controls {
-  display: flex; justify-content: center; align-items: center; gap: 14px;
-  margin-top: 20px;
-}
-
-.ca-btn-call {
+/* ── Call Controls ── */
+.ci-call-controls { display: flex; justify-content: center; align-items: center; gap: 14px; margin-top: 20px; }
+.ci-btn {
   display: inline-flex; align-items: center; gap: 8px;
   padding: 12px 32px; border-radius: 12px; border: none;
   font: 700 0.85em 'JetBrains Mono', monospace;
-  cursor: pointer; transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer; transition: all 0.3s cubic-bezier(0.16,1,0.3,1);
   letter-spacing: 0.5px;
 }
-.ca-btn-call svg { width: 18px; height: 18px; }
-
-.ca-btn-start {
-  background: linear-gradient(135deg, #22c55e, #16a34a);
-  color: #fff;
+.ci-btn svg { width: 18px; height: 18px; }
+.ci-btn-start {
+  background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff;
   box-shadow: 0 4px 16px rgba(34,197,94,0.25);
 }
-.ca-btn-start:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(34,197,94,0.35);
+.ci-btn-start:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(34,197,94,0.35); }
+.ci-btn-start:disabled { opacity: 0.3; cursor: not-allowed; transform: none; box-shadow: none; }
+.ci-btn-end {
+  background: linear-gradient(135deg, #ef4444, #dc2626); color: #fff;
+  box-shadow: 0 4px 16px rgba(239,68,68,0.25); display: none;
 }
-.ca-btn-start:disabled {
-  opacity: 0.3; cursor: not-allowed; transform: none;
-  box-shadow: none;
-}
-
-.ca-btn-end {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: #fff;
-  box-shadow: 0 4px 16px rgba(239,68,68,0.25);
-  display: none;
-}
-.ca-btn-end:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 24px rgba(239,68,68,0.35);
-}
-.ca-btn-end.visible { display: inline-flex; }
-
-.ca-btn-call .btn-spinner {
+.ci-btn-end:hover { transform: translateY(-2px); box-shadow: 0 6px 24px rgba(239,68,68,0.35); }
+.ci-btn-end.visible { display: inline-flex; }
+.ci-btn .btn-spinner {
   display: none; width: 14px; height: 14px;
   border: 2px solid rgba(255,255,255,0.3);
   border-top-color: #fff; border-radius: 50%;
-  animation: caSpin 0.6s linear infinite;
+  animation: ciSpin 0.6s linear infinite;
 }
-.ca-btn-call.running .btn-spinner { display: inline-block; }
-.ca-btn-call.running .btn-label { display: none; }
-@keyframes caSpin { to { transform: rotate(360deg); } }
+.ci-btn.running .btn-spinner { display: inline-block; }
+.ci-btn.running .btn-label { display: none; }
+@keyframes ciSpin { to { transform: rotate(360deg); } }
 
 /* ═══════════════════════════════════════════════
-   LIVE INDICATOR BAR
+   LIVE BAR
    ═══════════════════════════════════════════════ */
-.ca-live-bar {
+.ci-live-bar {
   display: none; align-items: center; justify-content: space-between;
   padding: 10px 20px; margin-bottom: 16px;
-  background: rgba(22,27,34,0.8);
-  border: 1px solid rgba(48,54,61,0.6);
+  background: rgba(22,27,34,0.8); border: 1px solid rgba(48,54,61,0.6);
   border-radius: 12px;
 }
-.ca-live-bar.active { display: flex; }
-
-.ca-live-indicator {
-  display: flex; align-items: center; gap: 8px;
-  font: 700 0.8em 'JetBrains Mono', monospace;
-  color: var(--ca-green);
+.ci-live-bar.active { display: flex; }
+.ci-live-ind { display: flex; align-items: center; gap: 8px; font: 700 0.8em 'JetBrains Mono', monospace; color: var(--ci-green); }
+.ci-live-dot {
+  width: 10px; height: 10px; border-radius: 50%; background: var(--ci-green);
+  animation: ciLivePulse 1.5s ease-in-out infinite; box-shadow: 0 0 8px rgba(63,185,80,0.5);
 }
-.ca-live-dot {
-  width: 10px; height: 10px; border-radius: 50%;
-  background: var(--ca-green);
-  animation: caLivePulse 1.5s ease-in-out infinite;
-  box-shadow: 0 0 8px rgba(63,185,80,0.5);
-}
-@keyframes caLivePulse {
+@keyframes ciLivePulse {
   0%, 100% { opacity: 1; box-shadow: 0 0 8px rgba(63,185,80,0.5); }
   50% { opacity: 0.4; box-shadow: 0 0 4px rgba(63,185,80,0.2); }
 }
-.ca-live-bar.ended .ca-live-indicator { color: var(--text-muted); }
-.ca-live-bar.ended .ca-live-dot {
-  background: var(--text-muted); animation: none; box-shadow: none;
-}
-
-.ca-live-meta {
-  display: flex; align-items: center; gap: 16px;
-}
-.ca-live-day {
-  font: 700 0.78em 'JetBrains Mono', monospace;
-  color: var(--ca-purple);
+.ci-live-bar.ended .ci-live-ind { color: var(--text-muted); }
+.ci-live-bar.ended .ci-live-dot { background: var(--text-muted); animation: none; box-shadow: none; }
+.ci-live-meta { display: flex; align-items: center; gap: 16px; }
+.ci-live-day {
+  font: 700 0.78em 'JetBrains Mono', monospace; color: var(--ci-purple);
   padding: 4px 12px; border-radius: 6px;
-  background: var(--ca-purple-dim); border: 1px solid var(--ca-purple-border);
+  background: var(--ci-purple-dim); border: 1px solid var(--ci-purple-border);
 }
-.ca-live-elapsed {
-  font: 600 0.72em 'JetBrains Mono', monospace;
-  color: var(--text-muted);
-}
-.ca-live-controls {
-  display: flex; align-items: center; gap: 8px;
-}
-.ca-tts-toggle {
+.ci-live-elapsed { font: 600 0.72em 'JetBrains Mono', monospace; color: var(--text-muted); }
+.ci-live-ctrls { display: flex; align-items: center; gap: 8px; }
+.ci-tts-toggle {
   background: rgba(0,200,150,0.15); border: 1px solid rgba(0,200,150,0.3);
-  color: var(--ca-green); border-radius: 6px; padding: 4px 10px; font-size: 0.82em;
+  color: var(--ci-green); border-radius: 6px; padding: 4px 10px; font-size: 0.82em;
   cursor: pointer; transition: all 0.2s;
 }
-.ca-tts-toggle:not(.on) {
-  background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1);
-  color: var(--text-muted);
-}
+.ci-tts-toggle:not(.on) { background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.1); color: var(--text-muted); }
 
 /* ═══════════════════════════════════════════════
-   3-COLUMN CALL LAYOUT
+   MAIN LAYOUT: Phone + Dashboard
    ═══════════════════════════════════════════════ */
-.ca-call-layout {
-  display: none; gap: 16px; margin-bottom: 24px;
+.ci-main {
+  display: none; gap: 20px; margin-bottom: 24px;
 }
-.ca-call-layout.active {
+.ci-main.active {
   display: grid;
-  grid-template-columns: 300px 1fr 280px;
+  grid-template-columns: 340px 1fr;
 }
 
-/* ─── Left: Patient Info Panel ─── */
-.ca-patient-panel {
-  background: rgba(22,27,34,0.7);
-  border: 1px solid rgba(48,54,61,0.6);
-  border-radius: 14px; overflow: hidden;
+/* ── Left Column: Phone + Extras ── */
+.ci-left { display: flex; flex-direction: column; gap: 16px; align-items: center; }
+
+/* Phone Frame */
+.ci-phone {
+  width: 280px; height: 560px;
+  border-radius: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  background: #0a0a0a;
+  position: relative; overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
+  flex-shrink: 0;
+}
+.ci-phone-notch {
+  position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  width: 120px; height: 28px; background: #0a0a0a;
+  border-radius: 0 0 18px 18px; z-index: 10;
+}
+.ci-phone-status {
+  position: absolute; top: 6px; left: 16px; right: 16px;
+  display: flex; justify-content: space-between; z-index: 11;
+  font: 600 0.52em 'JetBrains Mono', monospace; color: rgba(255,255,255,0.5);
+}
+.ci-phone-inner {
+  position: absolute; inset: 0;
   display: flex; flex-direction: column;
-  max-height: 780px;
-}
-.ca-patient-panel-header {
-  padding: 14px 16px;
-  background: rgba(13,17,23,0.5);
-  border-bottom: 1px solid rgba(48,54,61,0.4);
-  display: flex; align-items: center; gap: 10px;
-}
-.ca-patient-panel-avatar {
-  width: 44px; height: 44px; border-radius: 50%;
-  object-fit: cover; border: 2px solid var(--ca-purple-border);
-}
-.ca-patient-panel-info {
-  flex: 1;
-}
-.ca-patient-panel-info .pp-name {
-  font: 700 0.82em 'JetBrains Mono', monospace;
-  color: var(--text-secondary);
-}
-.ca-patient-panel-info .pp-demo {
-  font-size: 0.7em; color: var(--text-muted);
+  padding-top: 32px;
 }
 
-.ca-patient-panel-body {
-  flex: 1; overflow-y: auto; padding: 0;
-}
-.ca-patient-panel-body::-webkit-scrollbar { width: 3px; }
-.ca-patient-panel-body::-webkit-scrollbar-thumb { background: rgba(188,140,255,0.2); border-radius: 2px; }
-
-/* Video section inside patient panel */
-.ca-video-section {
-  padding: 12px;
-  border-bottom: 1px solid rgba(48,54,61,0.3);
-}
-.ca-video-images {
-  display: grid; grid-template-columns: 1fr 1fr; gap: 4px;
-  border-radius: 8px; overflow: hidden;
-}
-.ca-video-pane {
-  position: relative; aspect-ratio: 1;
-  background: rgba(0,0,0,0.3); overflow: hidden;
-}
-.ca-video-pane img {
-  width: 100%; height: 100%; object-fit: cover;
-  transition: opacity 0.4s ease;
-}
-.ca-video-pane .pane-label {
-  position: absolute; bottom: 4px; left: 6px;
-  font: 600 0.58em 'JetBrains Mono', monospace;
-  color: rgba(255,255,255,0.8); background: rgba(0,0,0,0.5);
-  padding: 2px 6px; border-radius: 3px;
-}
-.ca-ae-overlay {
-  position: absolute; top: 6px; right: 6px;
-  padding: 2px 6px; border-radius: 4px;
-  font: 700 0.6em 'JetBrains Mono', monospace;
-  background: rgba(248,81,73,0.85); color: #fff;
-  display: none;
-}
-.ca-ae-overlay.visible { display: block; }
-
-/* Sensor data section */
-.ca-sensor-section {
-  padding: 10px 14px;
-  border-bottom: 1px solid rgba(48,54,61,0.3);
-}
-.ca-sensor-title {
-  font: 700 0.62em 'JetBrains Mono', monospace;
-  color: var(--ca-purple); text-transform: uppercase;
-  letter-spacing: 0.5px; margin-bottom: 6px;
-}
-.ca-sensor-row {
-  display: flex; align-items: center; gap: 6px;
-  font-size: 0.72em; color: var(--text-muted); margin-bottom: 4px;
-}
-.ca-sensor-row .sensor-label { color: var(--text-secondary); font-weight: 600; min-width: 70px; }
-.ca-audio-badge {
-  padding: 2px 7px; border-radius: 4px; font-weight: 700;
-  font-size: 0.88em;
-}
-.ca-audio-badge.none { background: rgba(63,185,80,0.1); color: var(--ca-green); }
-.ca-audio-badge.dry { background: rgba(210,153,34,0.15); color: var(--ca-orange); }
-.ca-audio-badge.wet { background: rgba(248,81,73,0.15); color: var(--ca-red); }
-
-/* Nurse context inside patient panel */
-.ca-nurse-info {
-  padding: 10px 14px; flex: 1; overflow-y: auto;
-}
-.ca-nurse-info-title {
-  font: 700 0.62em 'JetBrains Mono', monospace;
-  color: var(--ca-purple); margin-bottom: 6px;
-  text-transform: uppercase; letter-spacing: 0.5px;
-}
-.ca-info-item {
-  font-size: 0.72em; color: var(--text-muted); line-height: 1.6;
-  margin-bottom: 4px;
-}
-.ca-info-item strong { color: var(--text-secondary); }
-.ca-info-section { margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px solid rgba(48,54,61,0.3); }
-.ca-info-section:last-child { border-bottom: none; }
-.ca-info-title { font: 600 0.62em 'JetBrains Mono', monospace; color: var(--ca-purple); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 3px; opacity: 0.8; }
-.ca-info-finding { font-size: 0.72em; color: var(--ca-red); font-weight: 600; margin: 2px 0; }
-.ca-info-conf { color: var(--text-muted); font-weight: 400; }
-.ca-info-reasoning { font-size: 0.65em; color: var(--text-muted); font-style: italic; margin: 1px 0 4px 8px; line-height: 1.4; }
-.ca-info-normal { font-size: 0.72em; color: var(--ca-green); }
-.ca-info-row { font-size: 0.68em; color: var(--text-muted); line-height: 1.5; padding-left: 6px; }
-.ca-labs-table { width: 100%; font-size: 0.65em; border-collapse: collapse; margin-top: 2px; }
-.ca-labs-table th { text-align: left; color: var(--text-muted); font-weight: 600; padding: 2px 3px; border-bottom: 1px solid rgba(48,54,61,0.4); }
-.ca-labs-table td { padding: 2px 3px; color: var(--text-secondary); }
-.ca-labs-table .trend-up { color: var(--ca-red); }
-.ca-labs-table .trend-down { color: #f0b429; }
-.ca-vitals-row { display: flex; flex-wrap: wrap; gap: 3px; }
-.ca-vital-chip { font-size: 0.62em; background: rgba(0,200,150,0.08); border: 1px solid rgba(0,200,150,0.15); border-radius: 4px; padding: 1px 5px; color: var(--text-secondary); }
-.ca-mood-row { display: flex; flex-wrap: wrap; gap: 3px; }
-.ca-mood-chip { font-size: 0.58em; border-radius: 4px; padding: 1px 5px; }
-.ca-mood-chip.high { background: rgba(248,81,73,0.12); color: var(--ca-red); border: 1px solid rgba(248,81,73,0.2); }
-.ca-mood-chip.mid { background: rgba(240,180,41,0.1); color: #f0b429; border: 1px solid rgba(240,180,41,0.2); }
-.ca-mood-chip.low { background: rgba(0,200,150,0.08); color: var(--ca-green); border: 1px solid rgba(0,200,150,0.15); }
-.ca-ae-chips { display: flex; flex-wrap: wrap; gap: 3px; }
-.ca-ae-chip { font-size: 0.58em; background: rgba(188,140,255,0.08); border: 1px solid rgba(188,140,255,0.15); border-radius: 3px; padding: 1px 5px; color: var(--ca-purple); }
-
-/* ─── Center: Chat/Conversation Panel ─── */
-.ca-chat-panel {
-  background: rgba(22,27,34,0.7);
-  border: 1px solid rgba(48,54,61,0.6);
-  border-radius: 14px; overflow: hidden;
-  display: flex; flex-direction: column;
-  max-height: 780px;
-}
-.ca-chat-header {
-  display: flex; align-items: center; justify-content: space-between;
-  padding: 12px 18px;
-  background: rgba(13,17,23,0.4);
-  border-bottom: 1px solid rgba(48,54,61,0.4);
-}
-.ca-chat-title {
-  font: 700 0.85em 'JetBrains Mono', monospace; color: var(--text-secondary);
+/* Nurse banner inside phone */
+.ci-phone-nurse {
   display: flex; align-items: center; gap: 8px;
+  padding: 8px 16px; background: rgba(188,140,255,0.12);
+  border-bottom: 1px solid rgba(188,140,255,0.15);
 }
-.ca-chat-title svg { width: 16px; height: 16px; opacity: 0.6; }
-.ca-chat-progress {
-  font: 600 0.72em 'JetBrains Mono', monospace; color: var(--text-muted);
-}
-
-.ca-feed {
-  flex: 1; padding: 14px 18px; overflow-y: auto;
-  scroll-behavior: smooth;
-}
-.ca-feed::-webkit-scrollbar { width: 4px; }
-.ca-feed::-webkit-scrollbar-thumb { background: rgba(188,140,255,0.2); border-radius: 2px; }
-
-/* Day divider */
-.ca-day-divider {
-  display: flex; align-items: center; gap: 10px;
-  margin: 18px 0 12px; padding: 0;
-}
-.ca-day-divider:first-child { margin-top: 0; }
-.ca-day-label {
-  font: 700 0.72em 'JetBrains Mono', monospace;
-  color: var(--ca-purple); white-space: nowrap;
-  padding: 4px 12px; border-radius: 6px;
-  background: var(--ca-purple-dim); border: 1px solid var(--ca-purple-border);
-}
-.ca-day-line { flex: 1; height: 1px; background: rgba(48,54,61,0.5); }
-.ca-day-meta {
-  font-size: 0.65em; color: var(--text-muted); white-space: nowrap;
-}
-
-/* Chat bubbles — enhanced with left-border coloring */
-.ca-msg {
-  margin-bottom: 12px; display: flex; gap: 10px;
-  animation: caFadeIn 0.35s ease forwards; opacity: 0;
-}
-@keyframes caFadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.ca-msg.patient { flex-direction: row; }
-.ca-msg.nurse { flex-direction: row; }
-
-.ca-msg-avatar {
-  width: 30px; height: 30px; border-radius: 50%;
+.ci-phone-nurse-avatar {
+  width: 32px; height: 32px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
-  font-size: 13px; flex-shrink: 0; margin-top: 2px;
+  flex-shrink: 0; overflow: hidden;
+  box-shadow: 0 0 12px rgba(188,140,255,0.3);
 }
-.ca-msg.patient .ca-msg-avatar {
-  background: var(--ca-warm-dim); border: 1px solid var(--ca-warm-border);
+.ci-phone-nurse-avatar img {
+  width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
 }
-.ca-msg.nurse .ca-msg-avatar {
-  background: var(--ca-purple-dim); border: 1px solid var(--ca-purple-border);
+.ci-phone-nurse-info { flex: 1; }
+.ci-phone-nurse-name {
+  font: 700 0.68em 'JetBrains Mono', monospace; color: #fff;
+}
+.ci-phone-nurse-status {
+  font: 500 0.52em 'JetBrains Mono', monospace; color: var(--ci-green);
 }
 
-.ca-msg-bubble {
-  max-width: 85%; padding: 10px 14px; border-radius: 12px;
-  font-size: 0.8em; line-height: 1.65; color: var(--text-primary);
+/* Patient camera area */
+.ci-phone-camera {
+  flex: 1; position: relative; overflow: hidden;
+  background: #111;
+}
+.ci-phone-camera img {
+  width: 100%; height: 100%; object-fit: cover;
+  transition: opacity 0.4s;
+}
+.ci-phone-ae-tag {
+  position: absolute; top: 8px; right: 8px;
+  padding: 3px 8px; border-radius: 6px;
+  font: 700 0.58em 'JetBrains Mono', monospace;
+  background: rgba(248,81,73,0.85); color: #fff;
+  display: none; z-index: 5;
+}
+.ci-phone-ae-tag.visible { display: block; }
+.ci-phone-day-tag {
+  position: absolute; top: 8px; left: 8px;
+  padding: 3px 8px; border-radius: 6px;
+  font: 700 0.58em 'JetBrains Mono', monospace;
+  background: rgba(188,140,255,0.7); color: #fff; z-index: 5;
+}
+
+/* Phone bottom controls */
+.ci-phone-controls {
+  padding: 12px 16px;
+  background: rgba(0,0,0,0.6);
+  display: flex; align-items: center; justify-content: center; gap: 16px;
+}
+.ci-phone-mic {
+  width: 48px; height: 48px; border-radius: 50%;
+  background: linear-gradient(135deg, var(--ci-green), #16a34a);
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 20px rgba(34,197,94,0.3);
   position: relative;
 }
-/* Nurse messages: purple left border */
-.ca-msg.nurse .ca-msg-bubble {
-  background: var(--ca-purple-dim); border: 1px solid var(--ca-purple-border);
-  border-left: 3px solid var(--ca-purple);
-  border-top-left-radius: 4px;
+.ci-phone-mic svg { width: 22px; height: 22px; stroke: #fff; fill: none; }
+.ci-phone-mic-ring {
+  position: absolute; inset: -4px; border-radius: 50%;
+  border: 2px solid rgba(34,197,94,0.4);
+  animation: ciMicRing 2s ease-in-out infinite;
 }
-/* Patient messages: warm orange left border */
-.ca-msg.patient .ca-msg-bubble {
-  background: var(--ca-warm-dim); border: 1px solid var(--ca-warm-border);
-  border-left: 3px solid var(--ca-warm);
-  border-top-left-radius: 4px;
+@keyframes ciMicRing {
+  0%, 100% { transform: scale(1); opacity: 0.6; }
+  50% { transform: scale(1.15); opacity: 0; }
+}
+.ci-phone-ctrl-btn {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.1);
+  display: flex; align-items: center; justify-content: center;
+}
+.ci-phone-ctrl-btn svg { width: 16px; height: 16px; stroke: rgba(255,255,255,0.6); fill: none; }
+
+/* Audio wave animation */
+.ci-wave {
+  display: flex; align-items: center; gap: 2px; height: 20px;
+}
+.ci-wave span {
+  width: 3px; border-radius: 2px; background: var(--ci-green);
+  animation: ciWave 1.2s ease-in-out infinite;
+}
+.ci-wave span:nth-child(1) { height: 8px; animation-delay: 0s; }
+.ci-wave span:nth-child(2) { height: 14px; animation-delay: 0.15s; }
+.ci-wave span:nth-child(3) { height: 20px; animation-delay: 0.3s; }
+.ci-wave span:nth-child(4) { height: 14px; animation-delay: 0.45s; }
+.ci-wave span:nth-child(5) { height: 8px; animation-delay: 0.6s; }
+@keyframes ciWave {
+  0%, 100% { transform: scaleY(0.4); }
+  50% { transform: scaleY(1); }
 }
 
-.ca-msg-header {
-  display: flex; align-items: center; gap: 8px; margin-bottom: 3px;
+/* ── Below phone: Mood, Vitals, Timeline ── */
+.ci-phone-extras {
+  width: 280px; display: flex; flex-direction: column; gap: 10px;
 }
-.ca-msg-role {
-  font: 600 0.68em 'JetBrains Mono', monospace;
-  text-transform: uppercase; letter-spacing: 0.5px;
+.ci-extras-card {
+  background: rgba(22,27,34,0.7); border: 1px solid rgba(48,54,61,0.5);
+  border-radius: 10px; padding: 10px 12px;
 }
-.ca-msg.patient .ca-msg-role { color: var(--ca-warm); }
-.ca-msg.nurse .ca-msg-role { color: var(--ca-purple); }
+.ci-extras-title {
+  font: 700 0.58em 'JetBrains Mono', monospace;
+  color: var(--ci-purple); text-transform: uppercase;
+  letter-spacing: 0.5px; margin-bottom: 6px;
+}
 
-.ca-msg-time {
-  font: 400 0.6em 'JetBrains Mono', monospace;
+/* Mood radar compact */
+.ci-mood-row { display: flex; flex-wrap: wrap; gap: 3px; }
+.ci-mood-chip {
+  font: 600 0.54em 'JetBrains Mono', monospace;
+  padding: 2px 6px; border-radius: 4px;
+}
+.ci-mood-chip.high { background: rgba(248,81,73,0.12); color: var(--ci-red); border: 1px solid rgba(248,81,73,0.2); }
+.ci-mood-chip.mid { background: rgba(240,180,41,0.1); color: #f0b429; border: 1px solid rgba(240,180,41,0.2); }
+.ci-mood-chip.low { background: rgba(0,200,150,0.08); color: var(--ci-green); border: 1px solid rgba(0,200,150,0.15); }
+
+/* Vitals chips */
+.ci-vitals-row { display: flex; flex-wrap: wrap; gap: 4px; }
+.ci-vital-chip {
+  font: 600 0.58em 'JetBrains Mono', monospace;
+  background: rgba(0,200,150,0.08); border: 1px solid rgba(0,200,150,0.15);
+  border-radius: 4px; padding: 2px 6px; color: var(--text-secondary);
+}
+
+/* Mini timeline */
+.ci-mini-tl { max-height: 140px; overflow-y: auto; }
+.ci-mini-tl::-webkit-scrollbar { width: 2px; }
+.ci-mini-tl::-webkit-scrollbar-thumb { background: rgba(188,140,255,0.2); border-radius: 2px; }
+.ci-mini-tl-item {
+  display: flex; align-items: flex-start; gap: 6px;
+  padding: 3px 0; font-size: 0.56em;
+}
+.ci-mini-tl-dot {
+  width: 6px; height: 6px; border-radius: 50%;
+  margin-top: 3px; flex-shrink: 0;
+}
+.ci-mini-tl-dot.dot-day { background: var(--ci-purple); }
+.ci-mini-tl-dot.dot-ae { background: var(--ci-red); }
+.ci-mini-tl-dot.dot-ok { background: var(--ci-green); }
+.ci-mini-tl-text { color: var(--text-muted); line-height: 1.4; }
+
+/* ═══════════════════════════════════════════════
+   RIGHT: AI DASHBOARD
+   ═══════════════════════════════════════════════ */
+.ci-dashboard {
+  display: flex; flex-direction: column; gap: 14px;
+  max-height: 880px; overflow: hidden;
+}
+
+/* ── AI Inference Pipeline ── */
+.ci-pipeline-section {
+  background: rgba(22,27,34,0.7); border: 1px solid rgba(48,54,61,0.6);
+  border-radius: 14px; overflow: hidden;
+}
+.ci-pipeline-header {
+  padding: 10px 16px; background: rgba(13,17,23,0.4);
+  border-bottom: 1px solid rgba(48,54,61,0.4);
+  font: 700 0.78em 'JetBrains Mono', monospace; color: var(--text-secondary);
+  display: flex; align-items: center; gap: 8px;
+}
+.ci-pipeline-header svg { width: 14px; height: 14px; opacity: 0.6; }
+.ci-pipeline-body { padding: 10px; display: flex; flex-direction: column; gap: 8px; }
+
+/* Model cards */
+.ci-model-card {
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 14px; border-radius: 10px;
+  background: rgba(13,17,23,0.5); border: 1px solid rgba(48,54,61,0.4);
+  transition: all 0.3s; position: relative; overflow: hidden;
+}
+.ci-model-card::before {
+  content: ''; position: absolute; top: 0; left: 0; bottom: 0; width: 3px;
+  border-radius: 3px 0 0 3px; opacity: 0.6;
+}
+.ci-model-card.idle { opacity: 0.5; }
+.ci-model-card.processing {
+  opacity: 1; border-color: rgba(188,140,255,0.3);
+  background: rgba(188,140,255,0.04);
+  animation: ciModelPulse 1.5s ease-in-out infinite;
+}
+@keyframes ciModelPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(188,140,255,0); }
+  50% { box-shadow: 0 0 12px 0 rgba(188,140,255,0.08); }
+}
+.ci-model-card.done { opacity: 1; }
+.ci-model-card.unavailable { opacity: 0.35; filter: grayscale(0.5); }
+
+/* Per-model accent colors */
+.ci-model-card.model-hear::before { background: var(--ci-teal); }
+.ci-model-card.model-siglip::before { background: var(--ci-amber); }
+.ci-model-card.model-gemma::before { background: var(--ci-model-blue); }
+.ci-model-card.model-ctcae::before { background: var(--ci-pink); }
+
+.ci-model-icon {
+  width: 36px; height: 36px; border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  font: 700 0.65em 'JetBrains Mono', monospace; flex-shrink: 0;
+}
+.ci-model-card.model-hear .ci-model-icon { background: rgba(78,205,196,0.12); color: var(--ci-teal); }
+.ci-model-card.model-siglip .ci-model-icon { background: rgba(247,201,72,0.12); color: var(--ci-amber); }
+.ci-model-card.model-gemma .ci-model-icon { background: rgba(122,162,247,0.12); color: var(--ci-model-blue); }
+.ci-model-card.model-ctcae .ci-model-icon { background: rgba(232,121,168,0.12); color: var(--ci-pink); }
+
+.ci-model-info { flex: 1; min-width: 0; }
+.ci-model-name { font: 700 0.72em 'JetBrains Mono', monospace; color: var(--text-secondary); margin-bottom: 1px; }
+.ci-model-role { font-size: 0.6em; color: var(--text-muted); }
+.ci-model-result { flex-shrink: 0; text-align: right; min-width: 100px; }
+.ci-model-result-val { font: 700 0.7em 'JetBrains Mono', monospace; color: var(--text-secondary); }
+.ci-model-result-sub { font: 500 0.55em 'JetBrains Mono', monospace; color: var(--text-muted); }
+.ci-model-spinner {
+  width: 14px; height: 14px;
+  border: 2px solid rgba(188,140,255,0.2);
+  border-top-color: var(--ci-purple); border-radius: 50%;
+  animation: ciSpin 0.8s linear infinite; display: inline-block;
+}
+.ci-model-pending {
+  font: 500 0.6em 'JetBrains Mono', monospace;
   color: var(--text-muted); opacity: 0.6;
-}
-.ca-msg-emotion {
-  display: inline-block; margin-top: 5px;
-  font-size: 0.72em; color: var(--text-muted);
-  padding: 2px 8px; border-radius: 8px;
+  padding: 2px 8px; border-radius: 4px;
   background: rgba(255,255,255,0.03); border: 1px solid rgba(48,54,61,0.3);
 }
 
-/* Nurse context (reasoning) */
-.ca-context {
-  margin: 6px 0 4px; padding: 0; border-radius: 8px;
+/* Confidence bar inline */
+.ci-conf-bar {
+  height: 4px; background: rgba(255,255,255,0.06); border-radius: 2px;
+  margin-top: 3px; overflow: hidden; max-width: 80px;
+}
+.ci-conf-fill { height: 100%; border-radius: 2px; transition: width 0.6s ease; }
+.ci-conf-fill.fill-teal { background: var(--ci-teal); }
+.ci-conf-fill.fill-amber { background: var(--ci-amber); }
+.ci-conf-fill.fill-blue { background: var(--ci-model-blue); }
+.ci-conf-fill.fill-pink { background: var(--ci-pink); }
+
+/* ── Conversation Panel ── */
+.ci-conv-section {
+  background: rgba(22,27,34,0.7); border: 1px solid rgba(48,54,61,0.6);
+  border-radius: 14px; overflow: hidden;
+  display: flex; flex-direction: column;
+  flex: 1; min-height: 0;
+}
+.ci-conv-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 16px; background: rgba(13,17,23,0.4);
+  border-bottom: 1px solid rgba(48,54,61,0.4);
+}
+.ci-conv-title {
+  font: 700 0.78em 'JetBrains Mono', monospace; color: var(--text-secondary);
+  display: flex; align-items: center; gap: 8px;
+}
+.ci-conv-title svg { width: 14px; height: 14px; opacity: 0.6; }
+.ci-conv-progress { font: 600 0.68em 'JetBrains Mono', monospace; color: var(--text-muted); }
+
+.ci-feed {
+  flex: 1; padding: 12px 16px; overflow-y: auto; scroll-behavior: smooth;
+}
+.ci-feed::-webkit-scrollbar { width: 4px; }
+.ci-feed::-webkit-scrollbar-thumb { background: rgba(188,140,255,0.2); border-radius: 2px; }
+
+/* Day divider */
+.ci-day-div { display: flex; align-items: center; gap: 10px; margin: 14px 0 10px; }
+.ci-day-div:first-child { margin-top: 0; }
+.ci-day-lbl {
+  font: 700 0.68em 'JetBrains Mono', monospace; color: var(--ci-purple);
+  white-space: nowrap; padding: 3px 10px; border-radius: 6px;
+  background: var(--ci-purple-dim); border: 1px solid var(--ci-purple-border);
+}
+.ci-day-line { flex: 1; height: 1px; background: rgba(48,54,61,0.5); }
+.ci-day-meta { font-size: 0.6em; color: var(--text-muted); white-space: nowrap; }
+
+/* Messages */
+.ci-msg {
+  margin-bottom: 10px; display: flex; gap: 8px;
+  animation: ciFadeIn 0.35s ease forwards; opacity: 0;
+}
+/* Nurse (AI): left-aligned (avatar left, bubble right) */
+.ci-msg.nurse { flex-direction: row; }
+/* Patient: right-aligned (bubble left, avatar right) */
+.ci-msg.patient { flex-direction: row-reverse; }
+@keyframes ciFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.ci-msg-avatar {
+  width: 30px; height: 30px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; margin-top: 2px; overflow: hidden;
+}
+.ci-msg-avatar img {
+  width: 100%; height: 100%; object-fit: cover; border-radius: 50%;
+}
+.ci-msg.patient .ci-msg-avatar { border: 1.5px solid var(--ci-warm-border); }
+.ci-msg.nurse .ci-msg-avatar { border: 1.5px solid var(--ci-purple-border); background: rgba(188,140,255,0.08); }
+.ci-msg-bubble {
+  max-width: 82%; padding: 8px 12px; border-radius: 12px;
+  font-size: 0.76em; line-height: 1.6; color: var(--text-primary);
+}
+.ci-msg.nurse .ci-msg-bubble {
+  background: var(--ci-purple-dim); border: 1px solid var(--ci-purple-border);
+  border-top-left-radius: 4px;
+}
+.ci-msg.patient .ci-msg-bubble {
+  background: var(--ci-warm-dim); border: 1px solid var(--ci-warm-border);
+  border-top-right-radius: 4px;
+}
+.ci-msg.patient .ci-msg-header { justify-content: flex-end; }
+.ci-msg-header { display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+.ci-msg-role { font: 600 0.62em 'JetBrains Mono', monospace; text-transform: uppercase; letter-spacing: 0.5px; }
+.ci-msg.patient .ci-msg-role { color: var(--ci-warm); }
+.ci-msg.nurse .ci-msg-role { color: var(--ci-purple); }
+.ci-msg-time { font: 400 0.56em 'JetBrains Mono', monospace; color: var(--text-muted); opacity: 0.6; }
+.ci-msg-emotion {
+  display: inline-block; margin-top: 4px;
+  font-size: 0.68em; color: var(--text-muted);
+  padding: 1px 6px; border-radius: 6px;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(48,54,61,0.3);
+}
+
+/* Context toggle */
+.ci-context {
+  margin: 4px 0; border-radius: 8px;
   background: rgba(188,140,255,0.03); border: 1px solid rgba(188,140,255,0.08);
-  animation: caFadeIn 0.3s ease forwards; opacity: 0; overflow: hidden;
+  animation: ciFadeIn 0.3s ease forwards; opacity: 0; overflow: hidden;
 }
-.ca-context-toggle {
+.ci-context-toggle {
   display: flex; align-items: center; gap: 6px;
-  padding: 6px 12px; cursor: pointer;
-  font: 600 0.65em 'JetBrains Mono', monospace;
-  color: var(--ca-purple); opacity: 0.7; transition: opacity 0.2s;
+  padding: 5px 10px; cursor: pointer;
+  font: 600 0.6em 'JetBrains Mono', monospace;
+  color: var(--ci-purple); opacity: 0.7; transition: opacity 0.2s;
 }
-.ca-context-toggle:hover { opacity: 1; }
-.ca-context-toggle .ctx-arrow { transition: transform 0.2s; font-size: 0.8em; }
-.ca-context.open .ca-context-toggle .ctx-arrow { transform: rotate(90deg); }
-.ca-context-body {
-  display: none; padding: 6px 12px 10px;
-  font-size: 0.72em; color: var(--text-muted); line-height: 1.5;
+.ci-context-toggle:hover { opacity: 1; }
+.ci-context-toggle .ctx-arrow { transition: transform 0.2s; font-size: 0.8em; }
+.ci-context.open .ci-context-toggle .ctx-arrow { transform: rotate(90deg); }
+.ci-context-body {
+  display: none; padding: 5px 10px 8px;
+  font-size: 0.68em; color: var(--text-muted); line-height: 1.5;
 }
-.ca-context.open .ca-context-body { display: block; }
-.ca-ctx-section { margin-bottom: 6px; }
-.ca-ctx-label {
-  font-weight: 700; color: var(--ca-purple); font-size: 0.9em;
+.ci-context.open .ci-context-body { display: block; }
+.ci-ctx-section { margin-bottom: 5px; }
+.ci-ctx-label {
+  font-weight: 700; color: var(--ci-purple); font-size: 0.9em;
   margin-bottom: 2px; text-transform: uppercase; letter-spacing: 0.3px;
 }
-.ca-ctx-finding {
+.ci-ctx-finding {
   display: inline-flex; align-items: center; gap: 3px;
-  padding: 2px 8px; border-radius: 5px; margin: 1px 3px 1px 0;
+  padding: 2px 7px; border-radius: 5px; margin: 1px 2px 1px 0;
   background: rgba(188,140,255,0.06); border: 1px solid rgba(188,140,255,0.12);
   font-weight: 600;
 }
-.ca-ctx-target {
+.ci-ctx-target {
   display: inline-block; padding: 1px 6px; border-radius: 4px;
   background: rgba(57,210,192,0.08); border: 1px solid rgba(57,210,192,0.15);
   color: var(--accent-cyan); font-weight: 600; margin: 1px 2px;
 }
 
 /* Assessment card */
-.ca-assessment {
-  margin: 10px 0; padding: 12px 14px; border-radius: 10px;
+.ci-assessment {
+  margin: 8px 0; padding: 10px 12px; border-radius: 10px;
   background: rgba(63,185,80,0.05); border: 1px solid rgba(63,185,80,0.15);
-  animation: caFadeIn 0.4s ease forwards; opacity: 0;
+  animation: ciFadeIn 0.4s ease forwards; opacity: 0;
 }
-.ca-assessment.high { background: rgba(248,81,73,0.06); border-color: rgba(248,81,73,0.2); }
-.ca-assessment.moderate { background: rgba(210,153,34,0.06); border-color: rgba(210,153,34,0.2); }
-.ca-assessment-title {
-  font: 700 0.72em 'JetBrains Mono', monospace;
-  margin-bottom: 6px; display: flex; align-items: center; gap: 6px;
-}
-.ca-assessment.high .ca-assessment-title { color: var(--ca-red); }
-.ca-assessment.moderate .ca-assessment-title { color: var(--ca-orange); }
-.ca-assessment:not(.high):not(.moderate) .ca-assessment-title { color: var(--ca-green); }
-.ca-ae-list { list-style: none; padding: 0; margin: 0; }
-.ca-ae-list li {
-  font-size: 0.76em; color: var(--text-secondary); padding: 2px 0;
+.ci-assessment.high { background: rgba(248,81,73,0.06); border-color: rgba(248,81,73,0.2); }
+.ci-assessment.moderate { background: rgba(210,153,34,0.06); border-color: rgba(210,153,34,0.2); }
+.ci-assessment-title {
+  font: 700 0.68em 'JetBrains Mono', monospace; margin-bottom: 4px;
   display: flex; align-items: center; gap: 6px;
 }
-.ca-ae-grade {
-  display: inline-block; padding: 1px 6px; border-radius: 4px;
-  font: 700 0.85em 'JetBrains Mono', monospace;
+.ci-assessment.high .ci-assessment-title { color: var(--ci-red); }
+.ci-assessment.moderate .ci-assessment-title { color: var(--ci-orange); }
+.ci-assessment:not(.high):not(.moderate) .ci-assessment-title { color: var(--ci-green); }
+.ci-ae-list { list-style: none; padding: 0; margin: 0; }
+.ci-ae-list li {
+  font-size: 0.72em; color: var(--text-secondary); padding: 2px 0;
+  display: flex; align-items: center; gap: 5px;
 }
-.ca-ae-grade.g1 { background: rgba(63,185,80,0.15); color: var(--ca-green); }
-.ca-ae-grade.g2 { background: rgba(210,153,34,0.15); color: var(--ca-orange); }
-.ca-ae-grade.g3, .ca-ae-grade.g4 { background: rgba(248,81,73,0.15); color: var(--ca-red); }
+.ci-ae-grade {
+  display: inline-block; padding: 1px 5px; border-radius: 4px;
+  font: 700 0.82em 'JetBrains Mono', monospace;
+}
+.ci-ae-grade.g1 { background: rgba(63,185,80,0.15); color: var(--ci-green); }
+.ci-ae-grade.g2 { background: rgba(210,153,34,0.15); color: var(--ci-orange); }
+.ci-ae-grade.g3, .ci-ae-grade.g4 { background: rgba(248,81,73,0.15); color: var(--ci-red); }
 
-/* Ground truth reveal */
-.ca-gt-reveal {
-  margin: 8px 0 16px; padding: 10px 14px; border-radius: 8px;
+/* GT reveal */
+.ci-gt-reveal {
+  margin: 6px 0 12px; padding: 8px 12px; border-radius: 8px;
   background: rgba(88,166,255,0.04); border: 1px solid rgba(88,166,255,0.1);
-  animation: caFadeIn 0.4s ease forwards; opacity: 0;
+  animation: ciFadeIn 0.4s ease forwards; opacity: 0;
 }
-.ca-gt-reveal-title {
-  font: 600 0.68em 'JetBrains Mono', monospace;
-  color: var(--ca-blue); margin-bottom: 6px; text-transform: uppercase;
+.ci-gt-title {
+  font: 600 0.62em 'JetBrains Mono', monospace;
+  color: var(--ci-blue); margin-bottom: 4px; text-transform: uppercase;
 }
-.ca-gt-ae {
+.ci-gt-ae {
   display: inline-flex; align-items: center; gap: 4px;
-  padding: 3px 10px; border-radius: 6px; margin: 2px 4px 2px 0;
-  font-size: 0.75em; font-weight: 600;
+  padding: 2px 8px; border-radius: 6px; margin: 2px 3px 2px 0;
+  font-size: 0.7em; font-weight: 600;
   background: rgba(88,166,255,0.08); border: 1px solid rgba(88,166,255,0.15);
   color: var(--text-secondary);
 }
-.ca-gt-ae.detected { background: rgba(63,185,80,0.1); border-color: rgba(63,185,80,0.2); color: var(--ca-green); }
-.ca-gt-ae.missed { background: rgba(248,81,73,0.08); border-color: rgba(248,81,73,0.15); color: var(--ca-red); }
-
-/* ─── Right: Event Timeline Panel ─── */
-.ca-timeline-panel {
-  background: rgba(22,27,34,0.7);
-  border: 1px solid rgba(48,54,61,0.6);
-  border-radius: 14px; overflow: hidden;
-  display: flex; flex-direction: column;
-  max-height: 780px;
-}
-.ca-timeline-header {
-  padding: 12px 14px;
-  background: rgba(13,17,23,0.4);
-  border-bottom: 1px solid rgba(48,54,61,0.4);
-  font: 700 0.78em 'JetBrains Mono', monospace;
-  color: var(--text-secondary);
-  display: flex; align-items: center; gap: 8px;
-}
-.ca-timeline-header svg { width: 14px; height: 14px; opacity: 0.6; }
-
-.ca-timeline-body {
-  flex: 1; overflow-y: auto; padding: 12px 14px;
-}
-.ca-timeline-body::-webkit-scrollbar { width: 3px; }
-.ca-timeline-body::-webkit-scrollbar-thumb { background: rgba(188,140,255,0.2); border-radius: 2px; }
-
-.ca-timeline-empty {
-  text-align: center; padding: 24px 12px;
-  color: var(--text-muted); font-size: 0.72em;
-}
-
-/* Timeline event items */
-.ca-tl-item {
-  position: relative; padding: 8px 0 8px 20px;
-  border-left: 2px solid rgba(48,54,61,0.4);
-  margin-left: 6px;
-  animation: caFadeIn 0.3s ease forwards; opacity: 0;
-}
-.ca-tl-item:last-child { border-left-color: transparent; }
-.ca-tl-item::before {
-  content: '';
-  position: absolute; left: -5px; top: 12px;
-  width: 8px; height: 8px; border-radius: 50%;
-  background: rgba(48,54,61,0.8);
-  border: 2px solid rgba(22,27,34,1);
-}
-.ca-tl-item.tl-ae::before { background: var(--ca-red); box-shadow: 0 0 6px rgba(248,81,73,0.4); }
-.ca-tl-item.tl-day::before { background: var(--ca-purple); box-shadow: 0 0 6px rgba(188,140,255,0.4); }
-.ca-tl-item.tl-detect::before { background: var(--ca-green); box-shadow: 0 0 6px rgba(63,185,80,0.4); }
-.ca-tl-item.tl-action::before { background: var(--ca-orange); box-shadow: 0 0 6px rgba(210,153,34,0.4); }
-
-.ca-tl-time {
-  font: 600 0.58em 'JetBrains Mono', monospace;
-  color: var(--text-muted); margin-bottom: 2px;
-}
-.ca-tl-content {
-  font-size: 0.72em; line-height: 1.5;
-}
-.ca-tl-content .tl-label {
-  font-weight: 700; display: block; margin-bottom: 1px;
-}
-.ca-tl-item.tl-ae .tl-label { color: var(--ca-red); }
-.ca-tl-item.tl-day .tl-label { color: var(--ca-purple); }
-.ca-tl-item.tl-detect .tl-label { color: var(--ca-green); }
-.ca-tl-item.tl-action .tl-label { color: var(--ca-orange); }
-.ca-tl-content .tl-detail { color: var(--text-muted); }
-
-.ca-tl-stat-bar {
-  margin-top: 12px; padding-top: 10px;
-  border-top: 1px solid rgba(48,54,61,0.4);
-}
-.ca-tl-stat {
-  display: flex; justify-content: space-between; align-items: center;
-  font-size: 0.68em; color: var(--text-muted); margin-bottom: 4px;
-}
-.ca-tl-stat .tl-stat-val {
-  font: 700 0.95em 'JetBrains Mono', monospace;
-  color: var(--ca-purple);
-}
+.ci-gt-ae.detected { background: rgba(63,185,80,0.1); border-color: rgba(63,185,80,0.2); color: var(--ci-green); }
+.ci-gt-ae.missed { background: rgba(248,81,73,0.08); border-color: rgba(248,81,73,0.15); color: var(--ci-red); }
 
 /* ═══════════════════════════════════════════════
-   ENHANCED SUMMARY DASHBOARD
+   SUMMARY
    ═══════════════════════════════════════════════ */
-.ca-summary {
-  display: none; margin-top: 24px;
-  animation: caFadeUpSoft 0.6s ease forwards;
-}
-.ca-summary.active { display: block; }
-
-.ca-summary-hero {
-  background: rgba(22,27,34,0.8);
-  border: 1px solid rgba(48,54,61,0.6);
+.ci-summary { display: none; margin-top: 24px; animation: ciFadeUp 0.6s ease forwards; }
+.ci-summary.active { display: block; }
+.ci-summary-hero {
+  background: rgba(22,27,34,0.8); border: 1px solid rgba(48,54,61,0.6);
   border-radius: 16px; padding: 28px 32px; margin-bottom: 16px;
   position: relative; overflow: hidden;
 }
-.ca-summary-hero::before {
-  content: '';
-  position: absolute; top: 0; left: 0; right: 0; height: 3px;
-  background: linear-gradient(90deg, var(--ca-purple), var(--ca-blue), var(--ca-green));
+.ci-summary-hero::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+  background: linear-gradient(90deg, var(--ci-purple), var(--ci-blue), var(--ci-green));
 }
-.ca-summary-title {
-  font: 800 1.2em 'JetBrains Mono', monospace;
-  margin-bottom: 6px;
-  background: linear-gradient(135deg, var(--ca-purple), var(--ca-blue));
+.ci-summary-title {
+  font: 800 1.2em 'JetBrains Mono', monospace; margin-bottom: 6px;
+  background: linear-gradient(135deg, var(--ci-purple), var(--ci-blue));
   -webkit-background-clip: text; -webkit-text-fill-color: transparent;
 }
-.ca-summary-subtitle {
-  font-size: 0.78em; color: var(--text-muted); margin-bottom: 20px;
+.ci-summary-subtitle { font-size: 0.78em; color: var(--text-muted); margin-bottom: 20px; }
+.ci-summary-stats {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px;
 }
-
-.ca-summary-stats {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 12px;
-}
-.ca-summary-stat {
-  padding: 18px 16px; border-radius: 12px;
+.ci-summary-stat {
+  padding: 16px 14px; border-radius: 12px;
   background: rgba(13,17,23,0.6); border: 1px solid rgba(48,54,61,0.4);
-  text-align: center;
-  transition: all 0.3s;
+  text-align: center; transition: all 0.3s;
 }
-.ca-summary-stat:hover {
-  border-color: rgba(188,140,255,0.2);
-  transform: translateY(-1px);
-}
-.ca-summary-val {
-  font: 800 1.6em 'JetBrains Mono', monospace; color: var(--ca-purple);
-}
-.ca-summary-stat.stat-green .ca-summary-val { color: var(--ca-green); }
-.ca-summary-stat.stat-red .ca-summary-val { color: var(--ca-red); }
-.ca-summary-stat.stat-blue .ca-summary-val { color: var(--ca-blue); }
-.ca-summary-stat.stat-orange .ca-summary-val { color: var(--ca-orange); }
-.ca-summary-label {
-  font-size: 0.7em; color: var(--text-muted); margin-top: 4px;
-  font-family: 'JetBrains Mono', monospace;
-}
+.ci-summary-stat:hover { border-color: rgba(188,140,255,0.2); transform: translateY(-1px); }
+.ci-summary-val { font: 800 1.4em 'JetBrains Mono', monospace; color: var(--ci-purple); }
+.ci-summary-stat.stat-green .ci-summary-val { color: var(--ci-green); }
+.ci-summary-stat.stat-red .ci-summary-val { color: var(--ci-red); }
+.ci-summary-stat.stat-blue .ci-summary-val { color: var(--ci-blue); }
+.ci-summary-stat.stat-orange .ci-summary-val { color: var(--ci-orange); }
+.ci-summary-label { font-size: 0.65em; color: var(--text-muted); margin-top: 4px; font-family: 'JetBrains Mono', monospace; }
 
-/* Summary AE detail cards */
-.ca-summary-sections {
-  display: grid; grid-template-columns: 1fr 1fr;
-  gap: 16px;
-}
-.ca-summary-card {
-  background: rgba(22,27,34,0.7);
-  border: 1px solid rgba(48,54,61,0.6);
+.ci-summary-sections { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.ci-summary-card {
+  background: rgba(22,27,34,0.7); border: 1px solid rgba(48,54,61,0.6);
   border-radius: 14px; padding: 20px; overflow: hidden;
 }
-.ca-summary-card-title {
-  font: 700 0.82em 'JetBrains Mono', monospace;
+.ci-summary-card-title {
+  font: 700 0.78em 'JetBrains Mono', monospace;
   color: var(--text-secondary); margin-bottom: 12px;
   display: flex; align-items: center; gap: 8px;
 }
-.ca-summary-card-title::before {
-  content: ''; width: 3px; height: 14px; border-radius: 2px;
-}
-.ca-summary-card.card-aes .ca-summary-card-title::before { background: var(--ca-red); }
-.ca-summary-card.card-actions .ca-summary-card-title::before { background: var(--ca-green); }
+.ci-summary-card-title::before { content: ''; width: 3px; height: 14px; border-radius: 2px; }
+.ci-summary-card.card-aes .ci-summary-card-title::before { background: var(--ci-red); }
+.ci-summary-card.card-actions .ci-summary-card-title::before { background: var(--ci-green); }
 
-.ca-summary-ae-item {
+.ci-summary-ae-item {
   display: flex; align-items: center; gap: 8px;
   padding: 8px 10px; border-radius: 8px;
   background: rgba(13,17,23,0.4); border: 1px solid rgba(48,54,61,0.3);
-  margin-bottom: 6px;
-  font-size: 0.76em;
+  margin-bottom: 6px; font-size: 0.72em;
 }
-.ca-summary-ae-badge {
+.ci-summary-ae-badge {
   padding: 2px 8px; border-radius: 4px;
-  font: 700 0.8em 'JetBrains Mono', monospace;
-  flex-shrink: 0;
+  font: 700 0.8em 'JetBrains Mono', monospace; flex-shrink: 0;
 }
-.ca-summary-ae-badge.sev-high { background: rgba(248,81,73,0.15); color: var(--ca-red); }
-.ca-summary-ae-badge.sev-mod { background: rgba(210,153,34,0.15); color: var(--ca-orange); }
-.ca-summary-ae-badge.sev-low { background: rgba(63,185,80,0.15); color: var(--ca-green); }
-.ca-summary-ae-name { color: var(--text-secondary); font-weight: 600; }
-.ca-summary-ae-detail { color: var(--text-muted); margin-left: auto; font-size: 0.88em; }
+.ci-summary-ae-badge.sev-high { background: rgba(248,81,73,0.15); color: var(--ci-red); }
+.ci-summary-ae-badge.sev-mod { background: rgba(210,153,34,0.15); color: var(--ci-orange); }
+.ci-summary-ae-badge.sev-low { background: rgba(63,185,80,0.15); color: var(--ci-green); }
+.ci-summary-ae-name { color: var(--text-secondary); font-weight: 600; }
+.ci-summary-ae-detail { color: var(--text-muted); margin-left: auto; font-size: 0.88em; }
 
-.ca-summary-action-item {
+.ci-summary-action-item {
   display: flex; align-items: center; gap: 8px;
-  padding: 6px 0; font-size: 0.76em;
+  padding: 6px 0; font-size: 0.72em;
   border-bottom: 1px solid rgba(48,54,61,0.2);
 }
-.ca-summary-action-item:last-child { border-bottom: none; }
-.ca-summary-action-icon {
+.ci-summary-action-item:last-child { border-bottom: none; }
+.ci-summary-action-icon {
   width: 22px; height: 22px; border-radius: 50%;
   display: flex; align-items: center; justify-content: center;
   font-size: 10px; flex-shrink: 0;
 }
-.ca-summary-action-icon.act-alert { background: rgba(248,81,73,0.12); color: var(--ca-red); }
-.ca-summary-action-icon.act-visit { background: rgba(88,166,255,0.12); color: var(--ca-blue); }
-.ca-summary-action-icon.act-ok { background: rgba(63,185,80,0.12); color: var(--ca-green); }
-.ca-summary-action-text { color: var(--text-secondary); }
-.ca-summary-action-day { color: var(--text-muted); margin-left: auto; font-size: 0.85em; }
+.ci-summary-action-icon.act-alert { background: rgba(248,81,73,0.12); color: var(--ci-red); }
+.ci-summary-action-icon.act-visit { background: rgba(88,166,255,0.12); color: var(--ci-blue); }
+.ci-summary-action-icon.act-ok { background: rgba(63,185,80,0.12); color: var(--ci-green); }
+.ci-summary-action-text { color: var(--text-secondary); }
+.ci-summary-action-day { color: var(--text-muted); margin-left: auto; font-size: 0.85em; }
 
-/* Resume button in summary */
-.ca-summary-resume {
-  text-align: center; margin-top: 20px;
-}
+.ci-summary-resume { text-align: center; margin-top: 20px; }
 
 /* ═══════════════════════════════════════════════
    RESPONSIVE
    ═══════════════════════════════════════════════ */
 @media (max-width: 1100px) {
-  .ca-call-layout.active {
-    grid-template-columns: 1fr;
-  }
-  .ca-patient-panel { max-height: 320px; }
-  .ca-timeline-panel { max-height: 300px; }
-  .ca-summary-sections { grid-template-columns: 1fr; }
+  .ci-main.active { grid-template-columns: 1fr; }
+  .ci-left { flex-direction: row; flex-wrap: wrap; justify-content: center; }
+  .ci-phone-extras { width: 100%; max-width: 400px; }
+  .ci-dashboard { max-height: none; }
+  .ci-summary-sections { grid-template-columns: 1fr; }
 }
 @media (max-width: 900px) {
-  .ca-wrap { padding: 5em 14px 3em; }
-  .ca-hero-title { font-size: 2.2em; }
-  .ca-patients-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+  .ci-wrap { padding: 5em 14px 3em; }
+  .ci-hero-title { font-size: 2.2em; }
+  .ci-patients-grid { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
 }
 @media (max-width: 600px) {
-  .ca-hero { padding: 1.5em 0 1em; }
-  .ca-hero-title { font-size: 1.8em; }
-  .ca-hero-badges { gap: 6px; }
-  .ca-hero-badge { font-size: 0.65em; padding: 5px 10px; }
-  .ca-patients-grid { grid-template-columns: 1fr; }
+  .ci-hero { padding: 1.5em 0 1em; }
+  .ci-hero-title { font-size: 1.8em; }
+  .ci-model-badges { gap: 6px; }
+  .ci-model-badge { font-size: 0.65em; padding: 5px 10px; }
+  .ci-patients-grid { grid-template-columns: 1fr; }
+  .ci-phone { width: 240px; height: 480px; border-radius: 32px; }
+  .ci-phone-extras { width: 240px; }
 }
 </style>
 {% endblock %}
@@ -1022,100 +852,78 @@
 {% endblock %}
 
 {% block content %}
-<div class="ca-bg">
+<div class="ci-bg">
   <div class="orb orb-1"></div>
   <div class="orb orb-2"></div>
 </div>
 
-<div class="ca-wrap">
+<div class="ci-wrap">
 
-<div class="ca-tab-bar">
-  <a href="{% url 'demo_medgemma' %}" class="ca-tab-link">
-    <span class="ca-tab-dot"></span>
-    SAE Detection
-  </a>
-  <a href="{% url 'demo_care_agent_live' %}" class="ca-tab-link active">
-    <span class="ca-tab-dot"></span>
-    Voice Call Live
-  </a>
-</div>
-
-<!-- ============================================================
-     HERO SECTION
-     ============================================================ -->
-<section class="ca-hero">
-  <div class="ca-hero-overline">
-    <span class="ca-pulse-pip"></span>
+<!-- ════════════════════════════════════════════════
+     HERO
+     ════════════════════════════════════════════════ -->
+<section class="ci-hero">
+  <div class="ci-hero-overline">
+    <span class="ci-pulse"></span>
     Data Collection Agent
   </div>
 
-  <div class="ca-hero-icon">
-    <div class="ca-hero-icon-inner">
-      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="url(#caHeroGrad)" stroke-width="1.8">
-        <defs>
-          <linearGradient id="caHeroGrad" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stop-color="#a855f7"/>
-            <stop offset="100%" stop-color="#58a6ff"/>
-          </linearGradient>
-        </defs>
-        <path d="M15.6 11.6A4.6 4.6 0 0 0 16 9.5 4.5 4.5 0 0 0 11.5 5 4.5 4.5 0 0 0 7 9.5a4.6 4.6 0 0 0 .4 2.1" stroke-linecap="round"/>
-        <path d="M12 12c-3.3 0-6 2.7-6 6v1h12v-1c0-3.3-2.7-6-6-6z"/>
-        <path d="M17 17l3-3" stroke-linecap="round"/>
-        <path d="M20 14v3h-3" stroke-linecap="round" stroke-linejoin="round"/>
-      </svg>
-    </div>
+  <div class="ci-hero-icon">
+    <svg width="52" height="52" viewBox="0 0 24 24" fill="none" stroke="url(#ciGrad)" stroke-width="1.8">
+      <defs>
+        <linearGradient id="ciGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#a855f7"/>
+          <stop offset="100%" stop-color="#58a6ff"/>
+        </linearGradient>
+      </defs>
+      <rect x="5" y="2" width="14" height="20" rx="3"/>
+      <line x1="12" y1="18" x2="12" y2="18.01" stroke-linecap="round" stroke-width="2.5"/>
+      <circle cx="12" cy="10" r="2.5" stroke-dasharray="2 2"/>
+    </svg>
   </div>
 
-  <h1 class="ca-hero-title">
-    <span class="ca-title-line">
-      <span class="ca-word ca-word-accent" style="animation-delay:0.1s">Voice Call Live</span>
-    </span>
-    <span class="ca-title-line-sub">
-      <span class="ca-word ca-word-dim" style="animation-delay:0.26s">Real-time</span>
-      <span class="ca-word ca-word-dim" style="animation-delay:0.36s">Patient</span>
-      <span class="ca-word ca-word-dim" style="animation-delay:0.46s">Voice</span>
-      <span class="ca-word ca-word-dim" style="animation-delay:0.56s">Interaction</span>
-    </span>
+  <h1 class="ci-hero-title">
+    <span class="ci-accent">Clara Call</span><br>
+    <span class="ci-dim" style="font-size:0.48em;font-weight:600;">Real-time patient monitoring via mobile AI</span>
   </h1>
 
-  <p class="ca-hero-subtitle">
-    <strong>Voice Call Live</strong> conducts real-time voice interactions to detect
-    adverse events early through <strong>auditory and conversational cues</strong>,
-    bridging the gap between hospital visits with <strong>7-dimensional mood-aware</strong> patient interaction.
+  <p class="ci-hero-sub">
+    A <strong>mobile app</strong> on the patient's phone runs video calls with an AI nurse.
+    During each call, <strong>4 AI models</strong> analyze audio, visual, and conversational cues
+    in real-time to detect adverse events <strong>between hospital visits</strong>.
   </p>
 
-  <div class="ca-hero-badges">
-    <div class="ca-hero-badge"><span class="bv">4-Turn</span> Voice Calls</div>
-    <div class="ca-hero-badge"><span class="bv">7-Dim</span> Mood Model</div>
-    <div class="ca-hero-badge"><span class="bv">94.2%</span> AE Detection</div>
-    <div class="ca-hero-badge"><span class="bv">Live</span> Voice Call</div>
+  <div class="ci-model-badges">
+    <div class="ci-model-badge ci-badge-hear"><span class="bv">HeAR</span> Audio Biomarker</div>
+    <div class="ci-model-badge ci-badge-siglip"><span class="bv">MedSigLIP</span> Visual Similarity</div>
+    <div class="ci-model-badge ci-badge-gemma"><span class="bv">MedGemma</span> AE Detection</div>
+    <div class="ci-model-badge ci-badge-ctcae"><span class="bv">CTCAE</span> Severity Grading</div>
   </div>
 </section>
 
-<!-- ============================================================
-     PATIENT SELECTOR — Enhanced Cards
-     ============================================================ -->
-<div class="ca-setup" id="caSetup">
-  <div class="ca-setup-title">Select Virtual Patient</div>
-  <div class="ca-patients-grid" id="caPatientsGrid">
+<!-- ════════════════════════════════════════════════
+     PHASE 1: PATIENT SELECTOR
+     ════════════════════════════════════════════════ -->
+<div class="ci-setup" id="ciSetup">
+  <div class="ci-setup-title">Select Virtual Patient</div>
+  <div class="ci-patients-grid" id="ciPatientsGrid">
     {% for vp in vpatients %}
-    <div class="ca-pt-card" data-pid="{{ vp.id }}" data-face="{{ vp.face_idx }}"
+    <div class="ci-pt-card" data-pid="{{ vp.id }}" data-face="{{ vp.face_idx }}"
          data-age="{{ vp.profile.age }}" data-sex="{{ vp.profile.sex }}"
          data-race="{{ vp.profile.race }}" data-persona="{{ vp.persona|default:'' }}"
          data-ecog="{{ vp.profile.ecog|default:'1' }}"
-         onclick="selectPatient('{{ vp.id }}')">
-      <!-- Check indicator -->
-      <div class="ca-pt-check">
+         onclick="ciSelectPatient('{{ vp.id }}')">
+      <div class="ci-pt-check">
         <svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="20 6 9 17 4 12"/>
         </svg>
       </div>
-      <div class="ca-pt-card-inner">
-        <div class="ca-pt-avatar-wrap">
-          <img class="ca-pt-thumb" src="/api/care-agent/media/image/normal_{{ vp.face_idx }}.png" alt="Patient">
-          <span class="ca-pt-ecog-badge ecog-{{ vp.profile.ecog|default:'1' }}">{{ vp.profile.ecog|default:'1' }}</span>
+      <div class="ci-pt-card-inner">
+        <div class="ci-pt-avatar-wrap">
+          <img class="ci-pt-thumb" src="/api/care-agent/media/image/normal_{{ vp.face_idx }}.png" alt="Patient">
+          <span class="ci-pt-ecog ecog-{{ vp.profile.ecog|default:'1' }}">{{ vp.profile.ecog|default:'1' }}</span>
         </div>
-        <div class="ca-pt-details">
+        <div class="ci-pt-details">
           <div class="pt-id">{{ vp.id }}</div>
           <div class="pt-name">{{ vp.profile.age }}yo {{ vp.profile.sex }}</div>
           <div class="pt-demo">{{ vp.profile.race }}</div>
@@ -1124,27 +932,26 @@
           {% endif %}
         </div>
       </div>
-      <div class="ca-pt-card-footer">
+      <div class="ci-pt-card-footer">
         {% if vp.representative_day.ae %}
-        <span class="ca-pt-ae-pill ae-condition">{{ vp.representative_day.ae }} G{{ vp.representative_day.grade }}</span>
-        <span class="ca-pt-ae-pill ae-day">Day {{ vp.representative_day.day }}</span>
+        <span class="ci-pt-ae-pill ae-condition">{{ vp.representative_day.ae }} G{{ vp.representative_day.grade }}</span>
+        <span class="ci-pt-ae-pill ae-day">Day {{ vp.representative_day.day }}</span>
         {% endif %}
-        <span class="ca-pt-ae-pill ae-ecog">ECOG {{ vp.profile.ecog|default:'1' }}</span>
+        <span class="ci-pt-ae-pill ae-ecog">ECOG {{ vp.profile.ecog|default:'1' }}</span>
       </div>
     </div>
     {% endfor %}
   </div>
 
-  <!-- Call Controls -->
-  <div class="ca-call-controls">
-    <button class="ca-btn-call ca-btn-start" id="caBtnRun" onclick="startCareAgent()" disabled>
+  <div class="ci-call-controls">
+    <button class="ci-btn ci-btn-start" id="ciBtnRun" onclick="ciStartCall()" disabled>
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
       </svg>
       <span class="btn-spinner"></span>
-      <span class="btn-label">Start Voice Call</span>
+      <span class="btn-label">Start Call</span>
     </button>
-    <button class="ca-btn-call ca-btn-end" id="caBtnEnd" onclick="endCall()">
+    <button class="ci-btn ci-btn-end" id="ciBtnEnd" onclick="ciEndCall()">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <path d="M10.68 13.31a16 16 0 003.41 2.6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91"/>
         <line x1="1" y1="1" x2="23" y2="23"/>
@@ -1154,134 +961,208 @@
   </div>
 </div>
 
-<!-- ============================================================
-     LIVE INDICATOR BAR
-     ============================================================ -->
-<div class="ca-live-bar" id="caLiveBar">
-  <div class="ca-live-indicator" id="caLiveIndicator">
-    <span class="ca-live-dot"></span>
-    <span id="caLiveLabel">LIVE</span>
+<!-- ════════════════════════════════════════════════
+     LIVE BAR
+     ════════════════════════════════════════════════ -->
+<div class="ci-live-bar" id="ciLiveBar">
+  <div class="ci-live-ind" id="ciLiveInd">
+    <span class="ci-live-dot"></span>
+    <span id="ciLiveLabel">LIVE</span>
   </div>
-  <div class="ca-live-meta">
-    <div class="ca-live-day" id="caLiveDay">Day --</div>
-    <div class="ca-live-elapsed" id="caLiveElapsed">00:00</div>
+  <div class="ci-live-meta">
+    <div class="ci-live-day" id="ciLiveDay">Day --</div>
+    <div class="ci-live-elapsed" id="ciLiveElapsed">00:00</div>
   </div>
-  <div class="ca-live-controls">
-    <button class="ca-tts-toggle on" id="caTtsBtn" onclick="toggleTts()" title="Toggle TTS">&#128266;</button>
+  <div class="ci-live-ctrls">
+    <button class="ci-tts-toggle on" id="ciTtsBtn" onclick="ciToggleTts()" title="Toggle TTS">&#128266;</button>
   </div>
 </div>
 
-<!-- ============================================================
-     3-COLUMN CALL LAYOUT
-     ============================================================ -->
-<div class="ca-call-layout" id="caCallLayout">
+<!-- ════════════════════════════════════════════════
+     PHASE 2: PHONE + AI DASHBOARD
+     ════════════════════════════════════════════════ -->
+<div class="ci-main" id="ciMain">
 
-  <!-- Left: Patient Info Panel -->
-  <div class="ca-patient-panel">
-    <div class="ca-patient-panel-header">
-      <img class="ca-patient-panel-avatar" id="caPanelAvatar" src="" alt="Patient">
-      <div class="ca-patient-panel-info">
-        <div class="pp-name" id="caPanelName">--</div>
-        <div class="pp-demo" id="caPanelDemo">--</div>
+  <!-- ── Left: Phone Mockup + Extras ── -->
+  <div class="ci-left">
+    <div class="ci-phone">
+      <div class="ci-phone-notch"></div>
+      <div class="ci-phone-status">
+        <span>9:41</span>
+        <span>Clara Call</span>
+      </div>
+      <div class="ci-phone-inner">
+        <!-- Nurse banner -->
+        <div class="ci-phone-nurse">
+          <div class="ci-phone-nurse-avatar"><img src="{% static 'assets/clara.png' %}" alt="CLARA"></div>
+          <div class="ci-phone-nurse-info">
+            <div class="ci-phone-nurse-name">CLARA Nurse</div>
+            <div class="ci-phone-nurse-status" id="ciPhoneNurseStatus">Connecting...</div>
+          </div>
+          <div class="ci-wave" id="ciWave">
+            <span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <!-- Camera view -->
+        <div class="ci-phone-camera">
+          <img id="ciPhoneImg" src="" alt="Patient view">
+          <div class="ci-phone-day-tag" id="ciPhoneDayTag">Day --</div>
+          <div class="ci-phone-ae-tag" id="ciPhoneAeTag"></div>
+        </div>
+
+        <!-- Controls -->
+        <div class="ci-phone-controls">
+          <div class="ci-phone-ctrl-btn">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
+          </div>
+          <div class="ci-phone-mic">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z"/>
+              <path d="M19 10v2a7 7 0 01-14 0v-2"/>
+              <line x1="12" y1="19" x2="12" y2="23"/>
+              <line x1="8" y1="23" x2="16" y2="23"/>
+            </svg>
+            <div class="ci-phone-mic-ring"></div>
+          </div>
+          <div class="ci-phone-ctrl-btn">
+            <svg viewBox="0 0 24 24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/></svg>
+          </div>
+        </div>
       </div>
     </div>
 
-    <div class="ca-patient-panel-body">
-      <!-- Video Section -->
-      <div class="ca-video-section">
-        <div class="ca-video-images">
-          <div class="ca-video-pane">
-            <img id="caImgBaseline" src="" alt="Baseline">
-            <span class="pane-label">BASELINE</span>
-          </div>
-          <div class="ca-video-pane">
-            <img id="caImgCurrent" src="" alt="Current">
-            <span class="pane-label">CURRENT</span>
-            <span class="ca-ae-overlay" id="caAeOverlay"></span>
-          </div>
+    <!-- Below phone extras -->
+    <div class="ci-phone-extras">
+      <!-- Mood -->
+      <div class="ci-extras-card">
+        <div class="ci-extras-title">Patient Mood</div>
+        <div class="ci-mood-row" id="ciMoodRow">
+          <span class="ci-mood-chip low">Waiting...</span>
         </div>
       </div>
-
-      <!-- Sensor Data -->
-      <div class="ca-sensor-section">
-        <div class="ca-sensor-title">Sensor Data</div>
-        <div class="ca-sensor-row">
-          <span class="sensor-label">Audio:</span>
-          <span class="ca-audio-badge none" id="caAudioBadge">No cough</span>
+      <!-- Vitals -->
+      <div class="ci-extras-card">
+        <div class="ci-extras-title">Vitals</div>
+        <div class="ci-vitals-row" id="ciVitalsRow">
+          <span class="ci-vital-chip">--</span>
         </div>
-        <div class="ca-sensor-row">
-          <span class="sensor-label">MedGemma:</span>
-          <span id="caMgStatus" style="color:var(--text-muted);">Waiting...</span>
-        </div>
-        <div id="caMgFindings" style="font-size:0.68em;color:var(--text-muted);padding:2px 0;"></div>
       </div>
-
-      <!-- Nurse Context -->
-      <div class="ca-nurse-info" id="caNurseInfo">
-        <div class="ca-nurse-info-title">Nurse Context</div>
-        <div id="caNurseInfoBody">
-          <div class="ca-info-item">Waiting for session to start...</div>
+      <!-- Mini Timeline -->
+      <div class="ci-extras-card">
+        <div class="ci-extras-title">Timeline</div>
+        <div class="ci-mini-tl" id="ciMiniTl">
+          <div style="font-size:0.56em;color:var(--text-muted);">Events appear here...</div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Center: Chat Panel -->
-  <div class="ca-chat-panel">
-    <div class="ca-chat-header">
-      <div class="ca-chat-title">
+  <!-- ── Right: AI Dashboard ── -->
+  <div class="ci-dashboard">
+
+    <!-- AI Inference Pipeline -->
+    <div class="ci-pipeline-section">
+      <div class="ci-pipeline-header">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/>
         </svg>
-        Conversation
+        AI Inference Pipeline
       </div>
-      <div class="ca-chat-progress" id="caChatProgress">Waiting...</div>
-    </div>
-    <div class="ca-feed" id="caFeed"></div>
-  </div>
+      <div class="ci-pipeline-body">
 
-  <!-- Right: Event Timeline -->
-  <div class="ca-timeline-panel">
-    <div class="ca-timeline-header">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-        <circle cx="12" cy="12" r="10"/>
-        <polyline points="12 6 12 12 16 14"/>
-      </svg>
-      Event Timeline
-    </div>
-    <div class="ca-timeline-body" id="caTimelineBody">
-      <div class="ca-timeline-empty">Events will appear here as the call progresses...</div>
-    </div>
-  </div>
+        <!-- HeAR -->
+        <div class="ci-model-card model-hear unavailable" id="ciCardHear">
+          <div class="ci-model-icon">HeAR</div>
+          <div class="ci-model-info">
+            <div class="ci-model-name">HeAR</div>
+            <div class="ci-model-role">Audio Biomarker</div>
+          </div>
+          <div class="ci-model-result" id="ciResHear">
+            <div class="ci-model-pending">Awaiting integration</div>
+          </div>
+        </div>
 
+        <!-- MedSigLIP -->
+        <div class="ci-model-card model-siglip idle" id="ciCardSiglip">
+          <div class="ci-model-icon">SigLIP</div>
+          <div class="ci-model-info">
+            <div class="ci-model-name">MedSigLIP</div>
+            <div class="ci-model-role">Visual Similarity</div>
+          </div>
+          <div class="ci-model-result" id="ciResSiglip">
+            <div class="ci-model-result-val">--</div>
+            <div class="ci-model-result-sub">Waiting</div>
+          </div>
+        </div>
+
+        <!-- MedGemma -->
+        <div class="ci-model-card model-gemma idle" id="ciCardGemma">
+          <div class="ci-model-icon">Gemma</div>
+          <div class="ci-model-info">
+            <div class="ci-model-name">MedGemma</div>
+            <div class="ci-model-role">AE Detection</div>
+          </div>
+          <div class="ci-model-result" id="ciResGemma">
+            <div class="ci-model-result-val">--</div>
+            <div class="ci-model-result-sub">Waiting</div>
+          </div>
+        </div>
+
+        <!-- CTCAE -->
+        <div class="ci-model-card model-ctcae unavailable" id="ciCardCtcae">
+          <div class="ci-model-icon">CTCAE</div>
+          <div class="ci-model-info">
+            <div class="ci-model-name">CTCAE v5.0</div>
+            <div class="ci-model-role">Severity Grading</div>
+          </div>
+          <div class="ci-model-result" id="ciResCtcae">
+            <div class="ci-model-pending">Awaiting integration</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Conversation -->
+    <div class="ci-conv-section">
+      <div class="ci-conv-header">
+        <div class="ci-conv-title">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+          </svg>
+          Conversation
+        </div>
+        <div class="ci-conv-progress" id="ciConvProgress">Waiting...</div>
+      </div>
+      <div class="ci-feed" id="ciFeed"></div>
+    </div>
+
+  </div>
 </div>
 
-<!-- ============================================================
-     ENHANCED SUMMARY DASHBOARD
-     ============================================================ -->
-<div class="ca-summary" id="caSummary">
-  <!-- Stats Hero -->
-  <div class="ca-summary-hero">
-    <div class="ca-summary-title">Session Complete</div>
-    <div class="ca-summary-subtitle" id="caSummarySubtitle">AI nurse call session finished.</div>
-    <div class="ca-summary-stats" id="caSummaryStats"></div>
+<!-- ════════════════════════════════════════════════
+     PHASE 3: SUMMARY
+     ════════════════════════════════════════════════ -->
+<div class="ci-summary" id="ciSummary">
+  <div class="ci-summary-hero">
+    <div class="ci-summary-title">Session Complete</div>
+    <div class="ci-summary-subtitle" id="ciSummSub">AI nurse call session finished.</div>
+    <div class="ci-summary-stats" id="ciSummStats"></div>
   </div>
-
-  <!-- Detail Cards -->
-  <div class="ca-summary-sections" id="caSummarySections">
-    <div class="ca-summary-card card-aes">
-      <div class="ca-summary-card-title">Detected Adverse Events</div>
-      <div id="caSummaryAEs"><div style="color:var(--text-muted);font-size:0.76em;">No AEs recorded.</div></div>
+  <div class="ci-summary-sections" id="ciSummSections">
+    <div class="ci-summary-card card-aes">
+      <div class="ci-summary-card-title">Detected Adverse Events</div>
+      <div id="ciSummAEs"><div style="color:var(--text-muted);font-size:0.72em;">No AEs recorded.</div></div>
     </div>
-    <div class="ca-summary-card card-actions">
-      <div class="ca-summary-card-title">Key Moments</div>
-      <div id="caSummaryActions"><div style="color:var(--text-muted);font-size:0.76em;">No actions recorded.</div></div>
+    <div class="ci-summary-card card-actions">
+      <div class="ci-summary-card-title">Key Moments</div>
+      <div id="ciSummActions"><div style="color:var(--text-muted);font-size:0.72em;">No actions recorded.</div></div>
     </div>
   </div>
-
-  <!-- Resume -->
-  <div class="ca-summary-resume">
-    <button class="ca-btn-call ca-btn-start" onclick="resetAndShow()" style="margin-top:16px;">
+  <div class="ci-summary-resume">
+    <button class="ci-btn ci-btn-start" onclick="ciReset()" style="margin-top:16px;">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="1 4 1 10 7 10"/>
         <path d="M3.51 15a9 9 0 102.13-9.36L1 10"/>
@@ -1293,439 +1174,490 @@
 
 </div>
 
+<!-- ════════════════════════════════════════════════
+     JAVASCRIPT
+     ════════════════════════════════════════════════ -->
 <script>
-let selectedPatientId = null;
-let ttsEnabled = true;
-const synth = window.speechSynthesis;
-let lastNurseContext = null;
-let dayCount = 0;
-let totalAEsDetected = 0;
-let totalGTAEs = 0;
-let totalMatchedAEs = 0;
-let callStartTime = null;
-let elapsedTimer = null;
-let callActive = false;
+/* ═══════════════════════════════════════════════
+   State
+   ═══════════════════════════════════════════════ */
+var CARE_AI_BASE = '';  // e.g. 'http://localhost:8300' when mobile server is up
 
-// Track events for summary
-let sessionEvents = [];
-let detectedAEsList = [];
-let actionsList = [];
+var MOCK_VISUAL = {
+  findings: [{ae_term: 'rash_maculopapular', estimated_grade: 2, confidence: 0.85}],
+  raw_prediction: {predicted_class: 'rash_maculopapular_g2', probability: 0.85}
+};
 
-const MEDIA_BASE = '/api/care-agent/media';
+var MOCK_CONSULT = {
+  visual_assessment: MOCK_VISUAL,
+  nurse_structured: {
+    questions: [{question: 'Can you show me the affected area?', target_ae: 'rash'}],
+    preliminary_concerns: ['Rash', 'Skin irritation']
+  },
+  latency_ms: {siglip_ms: 4, nurse_ms: 15000, total_ms: 15004}
+};
 
-function selectPatient(pid) {
-  selectedPatientId = pid;
-  document.querySelectorAll('.ca-pt-card').forEach(c => {
+var selectedPid = null;
+var selectedFaceIdx = null;
+var ttsEnabled = true;
+var synth = window.speechSynthesis;
+var lastCtx = null;
+var dayCount = 0;
+var totalDetected = 0;
+var totalGT = 0;
+var totalMatched = 0;
+var callStart = null;
+var elTimer = null;
+var callActive = false;
+var sessionEvents = [];
+var detectedAEs = [];
+var actionsList = [];
+var MEDIA = '/api/care-agent/media';
+
+/* ═══════════════════════════════════════════════
+   Patient Selection
+   ═══════════════════════════════════════════════ */
+function ciSelectPatient(pid) {
+  selectedPid = pid;
+  var card = document.querySelector('.ci-pt-card[data-pid="'+pid+'"]');
+  selectedFaceIdx = card ? card.dataset.face : null;
+  document.querySelectorAll('.ci-pt-card').forEach(function(c) {
     c.classList.toggle('selected', c.dataset.pid === pid);
   });
-  document.getElementById('caBtnRun').disabled = false;
+  document.getElementById('ciBtnRun').disabled = false;
 }
 
-function startCareAgent() {
-  if (!selectedPatientId) return;
+/* ═══════════════════════════════════════════════
+   Start Call
+   ═══════════════════════════════════════════════ */
+function ciStartCall() {
+  if (!selectedPid) return;
 
-  const btn = document.getElementById('caBtnRun');
-  btn.classList.add('running');
-  btn.disabled = true;
+  var btn = document.getElementById('ciBtnRun');
+  btn.classList.add('running'); btn.disabled = true;
+  document.getElementById('ciBtnEnd').classList.add('visible');
 
-  const endBtn = document.getElementById('caBtnEnd');
-  endBtn.classList.add('visible');
+  var main = document.getElementById('ciMain');
+  var feed = document.getElementById('ciFeed');
+  var summary = document.getElementById('ciSummary');
+  var setup = document.getElementById('ciSetup');
+  var liveBar = document.getElementById('ciLiveBar');
 
-  const layout = document.getElementById('caCallLayout');
-  const feed = document.getElementById('caFeed');
-  const summary = document.getElementById('caSummary');
-  const setup = document.getElementById('caSetup');
-  const liveBar = document.getElementById('caLiveBar');
-  const timelineBody = document.getElementById('caTimelineBody');
-
-  layout.classList.add('active');
+  main.classList.add('active');
   liveBar.classList.add('active');
   liveBar.classList.remove('ended');
   feed.innerHTML = '';
-  timelineBody.innerHTML = '<div class="ca-timeline-empty">Events will appear here as the call progresses...</div>';
   summary.classList.remove('active');
   setup.style.display = 'none';
 
-  dayCount = 0; totalAEsDetected = 0; totalGTAEs = 0; totalMatchedAEs = 0;
-  lastNurseContext = null; callActive = true;
-  sessionEvents = []; detectedAEsList = []; actionsList = [];
+  dayCount = 0; totalDetected = 0; totalGT = 0; totalMatched = 0;
+  lastCtx = null; callActive = true;
+  sessionEvents = []; detectedAEs = []; actionsList = [];
 
-  // Setup patient panel info
-  const card = document.querySelector('.ca-pt-card[data-pid="'+selectedPatientId+'"]');
-  const faceIdx = card ? card.dataset.face : '0';
-  const age = card ? card.dataset.age : '?';
-  const sex = card ? card.dataset.sex : '';
-  const race = card ? card.dataset.race : '';
-  const persona = card ? card.dataset.persona : '';
+  // Reset model cards
+  ciResetModels();
 
-  document.getElementById('caImgBaseline').src = MEDIA_BASE + '/image/normal_' + faceIdx + '.png';
-  document.getElementById('caImgCurrent').src = MEDIA_BASE + '/image/normal_' + faceIdx + '.png';
-  document.getElementById('caPanelAvatar').src = MEDIA_BASE + '/image/normal_' + faceIdx + '.png';
-  document.getElementById('caPanelName').textContent = selectedPatientId;
-  document.getElementById('caPanelDemo').textContent = age + 'yo ' + sex + ' / ' + race;
+  // Setup phone with patient info
+  var card = document.querySelector('.ci-pt-card[data-pid="'+selectedPid+'"]');
+  var faceIdx = card ? card.dataset.face : '0';
+  document.getElementById('ciPhoneImg').src = MEDIA + '/image/normal_' + faceIdx + '.png';
+  document.getElementById('ciPhoneDayTag').textContent = 'Day --';
+  document.getElementById('ciPhoneNurseStatus').textContent = 'Connected';
+  document.getElementById('ciConvProgress').textContent = 'Starting...';
+  document.getElementById('ciLiveLabel').textContent = 'LIVE';
+  document.getElementById('ciLiveDay').textContent = 'Day --';
 
-  document.getElementById('caChatProgress').textContent = 'Starting...';
-  document.getElementById('caLiveLabel').textContent = 'LIVE';
-  document.getElementById('caLiveDay').textContent = 'Day --';
+  // Reset extras
+  document.getElementById('ciMoodRow').innerHTML = '<span class="ci-mood-chip low">Connecting...</span>';
+  document.getElementById('ciVitalsRow').innerHTML = '<span class="ci-vital-chip">--</span>';
+  document.getElementById('ciMiniTl').innerHTML = '<div style="font-size:0.56em;color:var(--text-muted);">Events appear here...</div>';
 
-  // Start elapsed timer
-  callStartTime = Date.now();
-  if (elapsedTimer) clearInterval(elapsedTimer);
-  elapsedTimer = setInterval(updateElapsed, 1000);
+  // Elapsed timer
+  callStart = Date.now();
+  if (elTimer) clearInterval(elTimer);
+  elTimer = setInterval(ciUpdateElapsed, 1000);
 
-  // Add timeline start event
-  addTimelineEvent('day', 'Session Started', 'Connecting to ' + selectedPatientId + '...');
+  ciAddMiniTl('dot-day', 'Session started');
 
+  // SSE stream
   fetch('/api/care-agent/run/', {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({patient_id: selectedPatientId})
-  }).then(response => {
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
+    body: JSON.stringify({patient_id: selectedPid})
+  }).then(function(response) {
+    var reader = response.body.getReader();
+    var decoder = new TextDecoder();
+    var buffer = '';
 
     function processChunk() {
-      reader.read().then(({done, value}) => {
-        if (done) { onFinished(); return; }
-        buffer += decoder.decode(value, {stream: true});
-        const lines = buffer.split('\n');
+      reader.read().then(function(result) {
+        if (result.done) { ciOnFinished(); return; }
+        buffer += decoder.decode(result.value, {stream: true});
+        var lines = buffer.split('\n');
         buffer = lines.pop();
-        lines.forEach(line => {
+        lines.forEach(function(line) {
           if (line.startsWith('data: ')) {
-            try { handleEvent(JSON.parse(line.slice(6))); } catch(e) { console.error(e); }
+            try { ciHandleEvent(JSON.parse(line.slice(6))); } catch(e) { console.error(e); }
           }
         });
         processChunk();
       });
     }
     processChunk();
-  }).catch(err => {
-    feed.innerHTML += '<div style="color:var(--ca-red);padding:12px;font-size:0.85em;">Error: ' + err.message + '</div>';
-    onFinished();
+  }).catch(function(err) {
+    feed.innerHTML += '<div style="color:var(--ci-red);padding:12px;font-size:0.82em;">Error: ' + err.message + '</div>';
+    ciOnFinished();
   });
 }
 
-function endCall() {
-  // The SSE stream will continue but UI shows ended state
-  onFinished();
+function ciEndCall() { ciOnFinished(); }
+
+/* ═══════════════════════════════════════════════
+   Elapsed Timer
+   ═══════════════════════════════════════════════ */
+function ciUpdateElapsed() {
+  if (!callStart) return;
+  var el = Math.floor((Date.now() - callStart) / 1000);
+  var m = Math.floor(el / 60).toString().padStart(2, '0');
+  var s = (el % 60).toString().padStart(2, '0');
+  document.getElementById('ciLiveElapsed').textContent = m + ':' + s;
+}
+function ciTimestamp() {
+  if (!callStart) return '00:00';
+  var el = Math.floor((Date.now() - callStart) / 1000);
+  return Math.floor(el / 60).toString().padStart(2, '0') + ':' + (el % 60).toString().padStart(2, '0');
 }
 
-function updateElapsed() {
-  if (!callStartTime) return;
-  const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
-  const min = Math.floor(elapsed / 60).toString().padStart(2, '0');
-  const sec = (elapsed % 60).toString().padStart(2, '0');
-  document.getElementById('caLiveElapsed').textContent = min + ':' + sec;
+/* ═══════════════════════════════════════════════
+   Model Card Helpers
+   ═══════════════════════════════════════════════ */
+function ciResetModels() {
+  var hear = document.getElementById('ciCardHear');
+  var sig = document.getElementById('ciCardSiglip');
+  var gem = document.getElementById('ciCardGemma');
+  var ctc = document.getElementById('ciCardCtcae');
+  hear.className = 'ci-model-card model-hear unavailable';
+  sig.className = 'ci-model-card model-siglip idle';
+  gem.className = 'ci-model-card model-gemma idle';
+  ctc.className = 'ci-model-card model-ctcae unavailable';
+  document.getElementById('ciResHear').innerHTML = '<div class="ci-model-pending">Awaiting integration</div>';
+  document.getElementById('ciResSiglip').innerHTML = '<div class="ci-model-result-val">--</div><div class="ci-model-result-sub">Waiting</div>';
+  document.getElementById('ciResGemma').innerHTML = '<div class="ci-model-result-val">--</div><div class="ci-model-result-sub">Waiting</div>';
+  document.getElementById('ciResCtcae').innerHTML = '<div class="ci-model-pending">Awaiting integration</div>';
 }
 
-function getTimestamp() {
-  if (!callStartTime) return '00:00';
-  const elapsed = Math.floor((Date.now() - callStartTime) / 1000);
-  const min = Math.floor(elapsed / 60).toString().padStart(2, '0');
-  const sec = (elapsed % 60).toString().padStart(2, '0');
-  return min + ':' + sec;
+function ciSetModelState(id, state) {
+  var el = document.getElementById(id);
+  el.className = el.className.replace(/\b(idle|processing|done|unavailable)\b/g, '').trim() + ' ' + state;
 }
 
-function addTimelineEvent(type, label, detail) {
-  const body = document.getElementById('caTimelineBody');
-  // Remove empty placeholder
-  const empty = body.querySelector('.ca-timeline-empty');
-  if (empty) empty.remove();
-
-  const item = document.createElement('div');
-  item.className = 'ca-tl-item tl-' + type;
-  item.innerHTML =
-    '<div class="ca-tl-time">' + getTimestamp() + '</div>' +
-    '<div class="ca-tl-content">' +
-      '<span class="tl-label">' + label + '</span>' +
-      '<span class="tl-detail">' + (detail || '') + '</span>' +
-    '</div>';
-  body.appendChild(item);
-  body.scrollTop = body.scrollHeight;
-
-  sessionEvents.push({type, label, detail, time: getTimestamp()});
+function ciUpdateSiglip(findings, latency) {
+  ciSetModelState('ciCardSiglip', 'done');
+  var res = document.getElementById('ciResSiglip');
+  if (findings && findings.length > 0) {
+    var f = findings[0];
+    var conf = Math.round((f.confidence || 0) * 100);
+    res.innerHTML =
+      '<div class="ci-model-result-val">' + f.ae_term.replace(/_/g, ' ') + '</div>' +
+      '<div class="ci-model-result-sub">G' + (f.estimated_grade || f.grade || '?') + ' | ' + conf + '%</div>' +
+      '<div class="ci-conf-bar"><div class="ci-conf-fill fill-amber" style="width:' + conf + '%"></div></div>';
+  } else {
+    res.innerHTML =
+      '<div class="ci-model-result-val" style="color:var(--ci-green)">Normal</div>' +
+      '<div class="ci-model-result-sub">' + (latency || '?') + 'ms</div>';
+  }
 }
 
-function handleEvent(ev) {
-  const feed = document.getElementById('caFeed');
+function ciUpdateGemma(findings, latency) {
+  ciSetModelState('ciCardGemma', 'done');
+  var res = document.getElementById('ciResGemma');
+  if (findings && findings.length > 0) {
+    var f = findings[0];
+    var conf = Math.round((f.confidence || 0) * 100);
+    res.innerHTML =
+      '<div class="ci-model-result-val">' + f.ae_term.replace(/_/g, ' ') + '</div>' +
+      '<div class="ci-model-result-sub">G' + (f.estimated_grade || f.grade || '?') + ' | ' + conf + '%</div>' +
+      '<div class="ci-conf-bar"><div class="ci-conf-fill fill-blue" style="width:' + conf + '%"></div></div>';
+  } else {
+    res.innerHTML =
+      '<div class="ci-model-result-val" style="color:var(--ci-green)">Normal</div>' +
+      '<div class="ci-model-result-sub">' + (latency || '?') + 'ms</div>';
+  }
+}
+
+function ciUpdateHear(label) {
+  if (!label || label === 'none') {
+    ciSetModelState('ciCardHear', 'done');
+    document.getElementById('ciResHear').innerHTML =
+      '<div class="ci-model-result-val" style="color:var(--ci-green)">No cough</div>' +
+      '<div class="ci-model-result-sub">Clear</div>';
+  } else {
+    ciSetModelState('ciCardHear', 'done');
+    var color = label === 'wet' ? 'var(--ci-red)' : 'var(--ci-orange)';
+    document.getElementById('ciResHear').innerHTML =
+      '<div class="ci-model-result-val" style="color:' + color + '">' + label.charAt(0).toUpperCase() + label.slice(1) + ' cough</div>' +
+      '<div class="ci-model-result-sub">Detected</div>';
+  }
+}
+
+/* ═══════════════════════════════════════════════
+   /v1/consult API Integration (MedSigLIP)
+   ═══════════════════════════════════════════════ */
+function ciCallConsult(imageUrl) {
+  if (!CARE_AI_BASE) return;
+  ciSetModelState('ciCardSiglip', 'processing');
+  document.getElementById('ciResSiglip').innerHTML = '<div class="ci-model-spinner"></div>';
+
+  // Fetch the image, extract SigLIP vector via mobile server
+  fetch(CARE_AI_BASE + '/v1/consult', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      siglip_vector: new Array(1152).fill(0),  // Placeholder -- real app sends actual vector
+      patient_text: '',
+      skip_tts: true
+    })
+  }).then(function(r) { return r.json(); })
+  .then(function(data) {
+    var findings = (data.visual_assessment || {}).findings || [];
+    var lat = (data.latency_ms || {}).siglip_ms || 0;
+    ciUpdateSiglip(findings, lat);
+  }).catch(function(err) {
+    console.warn('Consult API unavailable:', err.message);
+    ciSetModelState('ciCardSiglip', 'idle');
+    document.getElementById('ciResSiglip').innerHTML =
+      '<div class="ci-model-result-val">--</div><div class="ci-model-result-sub">API offline</div>';
+  });
+}
+
+/* ═══════════════════════════════════════════════
+   Mini Timeline
+   ═══════════════════════════════════════════════ */
+function ciAddMiniTl(dotCls, text) {
+  var tl = document.getElementById('ciMiniTl');
+  // remove placeholder
+  var ph = tl.querySelector('div:not(.ci-mini-tl-item)');
+  if (ph) ph.remove();
+  var item = document.createElement('div');
+  item.className = 'ci-mini-tl-item';
+  item.innerHTML = '<span class="ci-mini-tl-dot ' + dotCls + '"></span><span class="ci-mini-tl-text">' + text + '</span>';
+  tl.appendChild(item);
+  tl.scrollTop = tl.scrollHeight;
+  sessionEvents.push({type: dotCls, text: text, time: ciTimestamp()});
+}
+
+/* ═══════════════════════════════════════════════
+   SSE Event Handler
+   ═══════════════════════════════════════════════ */
+function ciHandleEvent(ev) {
+  var feed = document.getElementById('ciFeed');
 
   switch(ev.type) {
     case 'session_start':
-      document.getElementById('caChatProgress').textContent = 'Connected -- ' + ev.patient_id;
-      addTimelineEvent('detect', 'Connected', ev.patient_id);
+      document.getElementById('ciConvProgress').textContent = 'Connected -- ' + ev.patient_id;
+      ciAddMiniTl('dot-ok', 'Connected to ' + ev.patient_id);
       break;
 
     case 'medgemma_start':
-      document.getElementById('caMgStatus').innerHTML =
-        '<span style="color:var(--ca-purple);font-size:0.82em;">Running...</span>';
-      document.getElementById('caMgFindings').textContent = '';
+      ciSetModelState('ciCardSiglip', 'processing');
+      ciSetModelState('ciCardGemma', 'processing');
+      document.getElementById('ciResSiglip').innerHTML = '<div class="ci-model-spinner"></div>';
+      document.getElementById('ciResGemma').innerHTML = '<div class="ci-model-spinner"></div>';
       break;
 
     case 'medgemma_result': {
-      const findings = ev.findings || [];
-      const ms = ev.latency_ms || 0;
-      const statusEl = document.getElementById('caMgStatus');
-      const findingsEl = document.getElementById('caMgFindings');
-      const overlay = document.getElementById('caAeOverlay');
+      var findings = ev.findings || [];
+      var ms = ev.latency_ms || 0;
+      ciUpdateSiglip(findings, ms);
+      ciUpdateGemma(findings, ms);
+
+      // Update phone AE tag
+      var aeTag = document.getElementById('ciPhoneAeTag');
       if (findings.length > 0) {
-        statusEl.innerHTML = '<span style="color:var(--ca-green);font-size:0.82em;">' + findings.length + ' AE(s)</span> <span style="color:var(--text-muted);font-size:0.72em;">' + ms + 'ms</span>';
-        findingsEl.innerHTML = findings.map(f =>
-          '<div style="margin:1px 0;"><span style="color:var(--ca-red);font-weight:600;">' +
-          f.ae_term.replace(/_/g,' ') + ' G' + f.grade + '</span> (' + Math.round((f.confidence||0)*100) + '%)</div>'
-        ).join('');
-        overlay.textContent = findings.map(f => f.ae_term.replace(/_/g,' ') + ' G' + f.grade).join(', ');
-        overlay.classList.add('visible');
-        findings.forEach(f => {
-          addTimelineEvent('ae', 'Visual AE: ' + f.ae_term.replace(/_/g,' '), 'Grade ' + f.grade + ' (' + Math.round((f.confidence||0)*100) + '% conf)');
+        aeTag.textContent = findings.map(function(f) { return f.ae_term.replace(/_/g,' ') + ' G' + f.grade; }).join(', ');
+        aeTag.classList.add('visible');
+        findings.forEach(function(f) {
+          ciAddMiniTl('dot-ae', 'Visual: ' + f.ae_term.replace(/_/g,' ') + ' G' + f.grade);
         });
       } else {
-        statusEl.innerHTML = '<span style="color:var(--ca-green);font-size:0.82em;">Normal</span> <span style="color:var(--text-muted);font-size:0.72em;">' + ms + 'ms</span>';
-        findingsEl.textContent = 'No visual AE detected';
-        overlay.classList.remove('visible');
+        aeTag.classList.remove('visible');
       }
       break;
     }
 
     case 'day_start': {
       dayCount++;
-      lastNurseContext = null;
-      document.getElementById('caLiveDay').textContent = 'Day ' + ev.day;
-      document.getElementById('caChatProgress').textContent = 'Day ' + ev.day + ' / ' + ev.patient_id;
+      lastCtx = null;
+      document.getElementById('ciLiveDay').textContent = 'Day ' + ev.day;
+      document.getElementById('ciConvProgress').textContent = 'Day ' + ev.day + ' / ' + ev.patient_id;
+      document.getElementById('ciPhoneDayTag').textContent = 'Day ' + ev.day;
+
+      // Reset SigLIP/Gemma to idle for new day
+      ciSetModelState('ciCardSiglip', 'idle');
+      ciSetModelState('ciCardGemma', 'idle');
+      document.getElementById('ciResSiglip').innerHTML = '<div class="ci-model-result-val">--</div><div class="ci-model-result-sub">Analyzing...</div>';
+      document.getElementById('ciResGemma').innerHTML = '<div class="ci-model-result-val">--</div><div class="ci-model-result-sub">Analyzing...</div>';
 
       if (ev.image) {
-        document.getElementById('caImgCurrent').src = MEDIA_BASE + '/image/' + ev.image;
+        var imgSrc = MEDIA + '/image/' + ev.image;
+        document.getElementById('ciPhoneImg').src = imgSrc;
+        // Attempt MedSigLIP via /v1/consult when server is available
+        ciCallConsult(imgSrc);
       }
-      if (ev.baseline_image) {
-        document.getElementById('caImgBaseline').src = MEDIA_BASE + '/image/' + ev.baseline_image;
+      document.getElementById('ciPhoneAeTag').classList.remove('visible');
+
+      // HeAR from audio label
+      if (ev.audio_label) {
+        ciUpdateHear(ev.audio_label);
       }
 
-      const overlay = document.getElementById('caAeOverlay');
-      overlay.classList.remove('visible');
-
-      const badge = document.getElementById('caAudioBadge');
-      badge.className = 'ca-audio-badge ' + (ev.audio_label || 'none');
-      const labels = {'none': 'No cough', 'dry': 'Dry cough', 'wet': 'Wet cough'};
-      badge.textContent = labels[ev.audio_label] || 'No cough';
-
-      const div = document.createElement('div');
-      div.className = 'ca-day-divider';
-      let meta = '';
+      // Day divider in conversation
+      var dayDiv = document.createElement('div');
+      dayDiv.className = 'ci-day-div';
+      var meta = '';
       if (ev.has_visual_ae) meta += 'Visual AE ';
       if (ev.audio_label && ev.audio_label !== 'none') meta += '| ' + ev.audio_label.toUpperCase() + ' cough';
-      div.innerHTML =
-        '<span class="ca-day-label">Day ' + ev.day + '</span>' +
-        '<span class="ca-day-line"></span>' +
-        (meta ? '<span class="ca-day-meta">' + meta + '</span>' : '');
-      feed.appendChild(div);
+      dayDiv.innerHTML =
+        '<span class="ci-day-lbl">Day ' + ev.day + '</span>' +
+        '<span class="ci-day-line"></span>' +
+        (meta ? '<span class="ci-day-meta">' + meta + '</span>' : '');
+      feed.appendChild(dayDiv);
 
-      addTimelineEvent('day', 'Day ' + ev.day, meta || 'Call started');
+      ciAddMiniTl('dot-day', 'Day ' + ev.day + (meta ? ' -- ' + meta : ''));
       break;
     }
 
     case 'patient_greet':
-      appendMsg(feed, 'patient', ev.text, ev.mood ? 'Mood: ' + ev.mood : '');
-      speak(ev.text, 'patient');
+      ciAppendMsg(feed, 'patient', ev.text, ev.mood ? 'Mood: ' + ev.mood : '');
+      ciSpeak(ev.text, 'patient');
       break;
 
     case 'nurse_context': {
-      lastNurseContext = ev;
-      const body = document.getElementById('caNurseInfoBody');
-      let html = '';
-      const vis = ev.visual_assessment || {};
-      const findings = vis.findings || [];
+      lastCtx = ev;
 
-      html += '<div class="ca-info-section"><div class="ca-info-title">Visual (MedGemma-4B)</div>';
-      if (findings.length > 0) {
-        findings.forEach(f => {
-          html += '<div class="ca-info-finding">' + f.ae_term.replace(/_/g,' ') + ' G' + f.grade +
-            ' <span class="ca-info-conf">(' + Math.round((f.confidence||0)*100) + '%)</span></div>';
-          if (f.reasoning) html += '<div class="ca-info-reasoning">' + f.reasoning + '</div>';
-        });
-      } else {
-        html += '<div class="ca-info-normal">Normal -- no AE detected</div>';
-      }
-      html += '</div>';
-
-      html += '<div class="ca-info-section"><div class="ca-info-title">Audio (HeAR)</div>' +
-        '<div>' + (ev.audio_assessment || 'Not analyzed') + '</div></div>';
-
-      const pi = ev.patient_info || {};
-      html += '<div class="ca-info-section"><div class="ca-info-title">Demographics</div>' +
-        '<div>' + (pi.age||'?') + 'yo ' + (pi.sex||'') + ' ' + (pi.race||'') + ', ECOG ' + (ev.ecog ?? '?') + '</div></div>';
-
-      const mh = ev.medical_history || [];
-      if (mh.length > 0) {
-        html += '<div class="ca-info-section"><div class="ca-info-title">Medical History</div>';
-        mh.forEach(h => { html += '<div class="ca-info-row">' + h + '</div>'; });
-        html += '</div>';
-      }
-
-      const meds = ev.current_medications || [];
-      if (meds.length > 0) {
-        html += '<div class="ca-info-section"><div class="ca-info-title">Current Medications</div>';
-        meds.forEach(m => { html += '<div class="ca-info-row">' + m + '</div>'; });
-        html += '</div>';
-      }
-
-      const labs = ev.current_labs || {};
-      const blabs = ev.baseline_labs || {};
-      const labKeys = Object.keys(labs);
-      if (labKeys.length > 0) {
-        html += '<div class="ca-info-section"><div class="ca-info-title">Labs (current vs baseline)</div><table class="ca-labs-table">';
-        html += '<tr><th>Test</th><th>Current</th><th>Baseline</th><th>Trend</th></tr>';
-        labKeys.forEach(k => {
-          const cur = labs[k]; const bl = blabs[k] || {};
-          const trend = cur.trend || '';
-          const trendCls = trend === 'rising' ? 'up' : trend === 'falling' ? 'down' : '';
-          const trendIcon = trend === 'rising' ? '&#9650;' : trend === 'falling' ? '&#9660;' : '&#8212;';
-          html += '<tr><td>' + k + '</td><td>' + cur.value + ' ' + (cur.unit||'') + '</td>' +
-            '<td>' + (bl.value||'?') + '</td><td class="trend-' + trendCls + '">' + trendIcon + ' ' + trend + '</td></tr>';
-        });
-        html += '</table></div>';
-      }
-
-      const vitals = ev.current_vitals || {};
-      const vKeys = Object.keys(vitals);
-      if (vKeys.length > 0) {
-        html += '<div class="ca-info-section"><div class="ca-info-title">Vitals</div><div class="ca-vitals-row">';
-        vKeys.forEach(k => {
-          html += '<span class="ca-vital-chip">' + k + ': ' + vitals[k] + '</span>';
-        });
-        html += '</div></div>';
-      }
-
-      const mood = ev.mood || {};
-      const moodKeys = Object.keys(mood);
+      // Update mood display
+      var mood = ev.mood || {};
+      var moodKeys = Object.keys(mood);
       if (moodKeys.length > 0) {
-        html += '<div class="ca-info-section"><div class="ca-info-title">Patient Mood</div><div class="ca-mood-row">';
-        moodKeys.forEach(k => {
-          const v = Math.round(mood[k] * 100);
-          const cls = v >= 60 ? 'high' : v >= 30 ? 'mid' : 'low';
-          html += '<span class="ca-mood-chip ' + cls + '">' + k.replace(/_/g,' ') + ': ' + v + '%</span>';
+        var moodHtml = '';
+        moodKeys.forEach(function(k) {
+          var v = Math.round(mood[k] * 100);
+          var cls = v >= 60 ? 'high' : v >= 30 ? 'mid' : 'low';
+          moodHtml += '<span class="ci-mood-chip ' + cls + '">' + k.replace(/_/g,' ') + ': ' + v + '%</span>';
         });
-        html += '</div></div>';
+        document.getElementById('ciMoodRow').innerHTML = moodHtml;
       }
 
-      html += '<div class="ca-info-section"><div class="ca-info-title">AE Screening Profile</div>' +
-        '<div class="ca-ae-chips">' + (ev.ae_profile_used || []).map(a => '<span class="ca-ae-chip">' + a.replace(/_/g,' ') + '</span>').join('') + '</div></div>';
+      // Update vitals display
+      var vitals = ev.current_vitals || {};
+      var vKeys = Object.keys(vitals);
+      if (vKeys.length > 0) {
+        var vHtml = '';
+        vKeys.forEach(function(k) {
+          vHtml += '<span class="ci-vital-chip">' + k + ': ' + vitals[k] + '</span>';
+        });
+        document.getElementById('ciVitalsRow').innerHTML = vHtml;
+      }
 
-      body.innerHTML = html;
+      // Update model cards with visual assessment data
+      var vis = ev.visual_assessment || {};
+      var vFindings = vis.findings || [];
+      ciUpdateSiglip(vFindings, vis.latency_ms || null);
+      ciUpdateGemma(vFindings, vis.latency_ms || null);
       break;
     }
 
     case 'nurse_turn': {
-      appendMsg(feed, 'nurse', ev.text, 'Turn ' + ev.turn);
-      speak(ev.text, 'nurse');
+      ciAppendMsg(feed, 'nurse', ev.text, 'Turn ' + ev.turn);
+      ciSpeak(ev.text, 'nurse');
 
-      const questions = ev.questions || [];
-      const concerns = ev.concerns || [];
-      if (questions.length > 0 || concerns.length > 0 || lastNurseContext) {
-        const ctx = document.createElement('div');
-        ctx.className = 'ca-context';
-        let bodyHtml = '';
-        if (lastNurseContext && lastNurseContext.visual_assessment) {
-          const vis = lastNurseContext.visual_assessment;
-          const findings = vis.findings || [];
-          bodyHtml += '<div class="ca-ctx-section"><div class="ca-ctx-label">Visual Input (MedGemma)</div>';
-          if (findings.length > 0) {
-            findings.forEach(f => {
-              bodyHtml += '<span class="ca-ctx-finding">' + f.ae_term.replace(/_/g,' ') + ' G' + f.grade +
+      var questions = ev.questions || [];
+      var concerns = ev.concerns || [];
+      if (questions.length > 0 || concerns.length > 0 || lastCtx) {
+        var ctx = document.createElement('div');
+        ctx.className = 'ci-context';
+        var bodyHtml = '';
+        if (lastCtx && lastCtx.visual_assessment) {
+          var vf = (lastCtx.visual_assessment.findings || []);
+          bodyHtml += '<div class="ci-ctx-section"><div class="ci-ctx-label">Visual (MedGemma)</div>';
+          if (vf.length > 0) {
+            vf.forEach(function(f) {
+              bodyHtml += '<span class="ci-ctx-finding">' + f.ae_term.replace(/_/g,' ') + ' G' + f.grade +
                 ' (' + Math.round((f.confidence||0)*100) + '%)</span>';
-              if (f.reasoning) bodyHtml += '<div style="font-size:0.85em;opacity:0.7;margin:1px 0 3px 4px;font-style:italic;">' + f.reasoning + '</div>';
             });
-          } else {
-            bodyHtml += '<span style="opacity:0.6">Normal</span>';
-          }
+          } else { bodyHtml += '<span style="opacity:0.6">Normal</span>'; }
           bodyHtml += '</div>';
         }
-        if (lastNurseContext && lastNurseContext.audio_assessment) {
-          bodyHtml += '<div class="ca-ctx-section"><div class="ca-ctx-label">Audio (HeAR)</div>' +
-            '<span class="ca-ctx-finding">' + lastNurseContext.audio_assessment + '</span></div>';
-        }
-        if (lastNurseContext && lastNurseContext.current_labs) {
-          const labs = lastNurseContext.current_labs;
-          const lks = Object.keys(labs).filter(k => labs[k].trend === 'rising' || labs[k].trend === 'falling');
-          if (lks.length > 0) {
-            bodyHtml += '<div class="ca-ctx-section"><div class="ca-ctx-label">Lab Alerts</div>';
-            lks.forEach(k => {
-              const l = labs[k];
-              const icon = l.trend === 'rising' ? '&#9650;' : '&#9660;';
-              const color = l.trend === 'rising' ? 'var(--ca-red)' : '#f0b429';
-              bodyHtml += '<span class="ca-ctx-finding" style="color:' + color + '">' + icon + ' ' + k + ': ' + l.value + ' ' + (l.unit||'') + ' (' + l.trend + ')</span>';
-            });
-            bodyHtml += '</div>';
-          }
-        }
-        if (lastNurseContext && lastNurseContext.medical_history) {
-          const mh = lastNurseContext.medical_history;
-          if (mh.length > 0) {
-            bodyHtml += '<div class="ca-ctx-section"><div class="ca-ctx-label">Relevant History</div>';
-            mh.forEach(h => { bodyHtml += '<div style="font-size:0.85em;opacity:0.7">' + h + '</div>'; });
-            bodyHtml += '</div>';
-          }
+        if (lastCtx && lastCtx.audio_assessment) {
+          bodyHtml += '<div class="ci-ctx-section"><div class="ci-ctx-label">Audio (HeAR)</div>' +
+            '<span class="ci-ctx-finding">' + lastCtx.audio_assessment + '</span></div>';
         }
         if (questions.length > 0) {
-          bodyHtml += '<div class="ca-ctx-section"><div class="ca-ctx-label">Question Targets</div>';
-          questions.forEach(q => {
-            if (q.target_ae) bodyHtml += '<span class="ca-ctx-target">' + q.target_ae.replace(/_/g,' ') + '</span>';
+          bodyHtml += '<div class="ci-ctx-section"><div class="ci-ctx-label">Question Targets</div>';
+          questions.forEach(function(q) {
+            if (q.target_ae) bodyHtml += '<span class="ci-ctx-target">' + q.target_ae.replace(/_/g,' ') + '</span>';
           });
           bodyHtml += '</div>';
         }
         if (concerns.length > 0) {
-          bodyHtml += '<div class="ca-ctx-section"><div class="ca-ctx-label">Concerns</div>';
-          concerns.forEach(c => { bodyHtml += '<div>' + c + '</div>'; });
+          bodyHtml += '<div class="ci-ctx-section"><div class="ci-ctx-label">Concerns</div>';
+          concerns.forEach(function(c) { bodyHtml += '<div>' + c + '</div>'; });
           bodyHtml += '</div>';
         }
         ctx.innerHTML =
-          '<div class="ca-context-toggle" onclick="this.parentElement.classList.toggle(\'open\')">' +
+          '<div class="ci-context-toggle" onclick="this.parentElement.classList.toggle(\'open\')">' +
             '<span class="ctx-arrow">&#9654;</span> Nurse Reasoning' +
           '</div>' +
-          '<div class="ca-context-body">' + bodyHtml + '</div>';
+          '<div class="ci-context-body">' + bodyHtml + '</div>';
         feed.appendChild(ctx);
       }
       break;
     }
 
     case 'patient_turn': {
-      let extra = ev.emotion || '';
+      var extra = ev.emotion || '';
       if (ev.revealed) extra += (extra ? ' | ' : '') + 'NEW info revealed';
-      appendMsg(feed, 'patient', ev.text, extra);
-      speak(ev.text, 'patient');
+      ciAppendMsg(feed, 'patient', ev.text, extra);
+      ciSpeak(ev.text, 'patient');
       if (ev.revealed) {
-        addTimelineEvent('detect', 'New Info Revealed', ev.emotion || 'Patient shared new details');
+        ciAddMiniTl('dot-ok', 'Patient revealed new info');
       }
       break;
     }
 
     case 'assessment': {
-      const lvl = ev.concern || 'low';
-      const cls = lvl === 'high' || lvl === 'emergency' ? 'high' : lvl === 'moderate' ? 'moderate' : '';
-      const div = document.createElement('div');
-      div.className = 'ca-assessment ' + cls;
+      var lvl = ev.concern || 'low';
+      var cls = lvl === 'high' || lvl === 'emergency' ? 'high' : lvl === 'moderate' ? 'moderate' : '';
+      var div = document.createElement('div');
+      div.className = 'ci-assessment ' + cls;
 
-      let aeHtml = '<ul class="ca-ae-list">';
-      const detected = ev.detected_aes || [];
-      totalAEsDetected += detected.length;
+      var aeHtml = '<ul class="ci-ae-list">';
+      var detected = ev.detected_aes || [];
+      totalDetected += detected.length;
       if (detected.length === 0) {
         aeHtml += '<li style="color:var(--text-muted);">No AEs detected</li>';
       } else {
-        detected.forEach(ae => {
-          const g = ae.grade || ae.estimated_grade || '?';
-          const gCls = g >= 3 ? 'g3' : g >= 2 ? 'g2' : 'g1';
-          const aeName = (ae.ae_term || ae.suspected_ae || 'unknown');
-          aeHtml += '<li><span class="ca-ae-grade ' + gCls + '">G' + g + '</span> ' +
-            aeName +
-            (ae.reasoning_summary ? ' -- ' + ae.reasoning_summary : '') + '</li>';
-          // Track for summary
-          detectedAEsList.push({name: aeName, grade: g, concern: lvl});
-          addTimelineEvent('ae', 'AE Detected: ' + aeName.replace(/_/g,' '), 'Grade ' + g + ' | ' + lvl);
+        detected.forEach(function(ae) {
+          var g = ae.grade || ae.estimated_grade || '?';
+          var gCls = g >= 3 ? 'g3' : g >= 2 ? 'g2' : 'g1';
+          var aeName = ae.ae_term || ae.suspected_ae || 'unknown';
+          aeHtml += '<li><span class="ci-ae-grade ' + gCls + '">G' + g + '</span> ' +
+            aeName + (ae.reasoning_summary ? ' -- ' + ae.reasoning_summary : '') + '</li>';
+          detectedAEs.push({name: aeName, grade: g, concern: lvl});
+          ciAddMiniTl('dot-ae', aeName.replace(/_/g,' ') + ' G' + g);
+
+          // Update CTCAE card with grading info
+          ciSetModelState('ciCardCtcae', 'done');
+          document.getElementById('ciResCtcae').innerHTML =
+            '<div class="ci-model-result-val" style="color:var(--ci-pink)">Grade ' + g + '</div>' +
+            '<div class="ci-model-result-sub">' + aeName.replace(/_/g,' ') + '</div>' +
+            '<div class="ci-conf-bar"><div class="ci-conf-fill fill-pink" style="width:' + (g * 25) + '%"></div></div>';
         });
       }
       aeHtml += '</ul>';
 
       div.innerHTML =
-        '<div class="ca-assessment-title">Nurse Assessment -- ' +
+        '<div class="ci-assessment-title">Nurse Assessment -- ' +
         lvl.charAt(0).toUpperCase() + lvl.slice(1) +
         (ev.action ? ' | ' + ev.action.replace(/_/g, ' ') : '') +
         '</div>' + aeHtml;
@@ -1733,223 +1665,211 @@ function handleEvent(ev) {
 
       if (ev.action) {
         actionsList.push({action: ev.action.replace(/_/g, ' '), concern: lvl, day: 'Day ' + dayCount});
-        addTimelineEvent('action', ev.action.replace(/_/g, ' '), 'Concern: ' + lvl);
+        ciAddMiniTl('dot-ok', ev.action.replace(/_/g, ' '));
       }
       break;
     }
 
     case 'day_end': {
-      const gtAes = ev.gt_aes || [];
-      const detected = (ev.detected_aes || []).map(a => (a.ae_term || a.suspected_ae || '').toLowerCase());
-      totalGTAEs += gtAes.length;
+      var gtAes = ev.gt_aes || [];
+      var det = (ev.detected_aes || []).map(function(a) { return (a.ae_term || a.suspected_ae || '').toLowerCase(); });
+      totalGT += gtAes.length;
 
       if (gtAes.length > 0) {
-        const div = document.createElement('div');
-        div.className = 'ca-gt-reveal';
-        let badges = '';
-        gtAes.forEach(a => {
-          const name = (a.ae || '').toLowerCase();
-          const wasDetected = detected.some(d => d.includes(name) || name.includes(d));
-          if (wasDetected) totalMatchedAEs++;
-          const cls = wasDetected ? 'detected' : 'missed';
-          const icon = wasDetected ? '&#10003;' : '&#10007;';
-          badges += '<span class="ca-gt-ae ' + cls + '">' + icon + ' ' + a.ae + ' G' + a.grade + '</span>';
-          if (!wasDetected) {
-            addTimelineEvent('ae', 'GT Missed: ' + a.ae.replace(/_/g,' '), 'Grade ' + a.grade + ' not detected');
-          }
+        var gtDiv = document.createElement('div');
+        gtDiv.className = 'ci-gt-reveal';
+        var badges = '';
+        gtAes.forEach(function(a) {
+          var name = (a.ae || '').toLowerCase();
+          var wasDetected = det.some(function(d) { return d.includes(name) || name.includes(d); });
+          if (wasDetected) totalMatched++;
+          var c = wasDetected ? 'detected' : 'missed';
+          var icon = wasDetected ? '&#10003;' : '&#10007;';
+          badges += '<span class="ci-gt-ae ' + c + '">' + icon + ' ' + a.ae + ' G' + a.grade + '</span>';
+          if (!wasDetected) ciAddMiniTl('dot-ae', 'Missed: ' + a.ae.replace(/_/g,' ') + ' G' + a.grade);
         });
-        div.innerHTML = '<div class="ca-gt-reveal-title">Ground Truth</div>' + badges;
-        feed.appendChild(div);
+        gtDiv.innerHTML = '<div class="ci-gt-title">Ground Truth</div>' + badges;
+        feed.appendChild(gtDiv);
       }
-
-      // Update timeline stats
-      updateTimelineStats();
       break;
     }
 
     case 'error': {
-      const div = document.createElement('div');
-      div.style.cssText = 'color:var(--ca-red);padding:12px;font-size:0.82em;';
-      div.textContent = 'Error: ' + ev.message;
-      feed.appendChild(div);
-      addTimelineEvent('ae', 'Error', ev.message);
+      var errDiv = document.createElement('div');
+      errDiv.style.cssText = 'color:var(--ci-red);padding:10px;font-size:0.78em;';
+      errDiv.textContent = 'Error: ' + ev.message;
+      feed.appendChild(errDiv);
+      ciAddMiniTl('dot-ae', 'Error: ' + ev.message);
       break;
     }
 
     case 'finished':
-      onFinished();
+      ciOnFinished();
       break;
   }
 
   feed.scrollTop = feed.scrollHeight;
 }
 
-function updateTimelineStats() {
-  const body = document.getElementById('caTimelineBody');
-  let existing = body.querySelector('.ca-tl-stat-bar');
-  if (existing) existing.remove();
-
-  const recall = totalGTAEs > 0 ? Math.round(totalMatchedAEs / totalGTAEs * 100) : 0;
-  const statBar = document.createElement('div');
-  statBar.className = 'ca-tl-stat-bar';
-  statBar.innerHTML =
-    '<div class="ca-tl-stat"><span>Days</span><span class="tl-stat-val">' + dayCount + '</span></div>' +
-    '<div class="ca-tl-stat"><span>AEs Found</span><span class="tl-stat-val">' + totalAEsDetected + '</span></div>' +
-    '<div class="ca-tl-stat"><span>GT AEs</span><span class="tl-stat-val">' + totalGTAEs + '</span></div>' +
-    '<div class="ca-tl-stat"><span>Recall</span><span class="tl-stat-val">' + recall + '%</span></div>';
-  body.appendChild(statBar);
-}
-
-const ttsQueue = [];
-let ttsPlaying = false;
-
-function speak(text, role) {
-  if (!ttsEnabled || !synth || !text) return;
-  ttsQueue.push({text, role});
-  _processQueue();
-}
-
-function _processQueue() {
-  if (ttsPlaying || ttsQueue.length === 0) return;
-  ttsPlaying = true;
-  const {text, role} = ttsQueue.shift();
-  const utt = new SpeechSynthesisUtterance(text);
-  utt.lang = 'en-US';
-  utt.rate = role === 'nurse' ? 1.05 : 0.95;
-  utt.pitch = role === 'nurse' ? 1.2 : 0.9;
-  const voices = synth.getVoices();
+/* ═══════════════════════════════════════════════
+   Message Rendering
+   ═══════════════════════════════════════════════ */
+function ciAppendMsg(feed, role, text, extra) {
+  var div = document.createElement('div');
+  div.className = 'ci-msg ' + role;
+  var avatarHtml;
   if (role === 'nurse') {
-    const fv = voices.find(v => v.name.includes('Female') || v.name.includes('Samantha') || v.name.includes('Google UK English Female'));
-    if (fv) utt.voice = fv;
+    avatarHtml = '<img src="/static/assets/clara.png" alt="CLARA">';
   } else {
-    const mv = voices.find(v => v.name.includes('Male') || v.name.includes('Daniel') || v.name.includes('Google UK English Male'));
-    if (mv) utt.voice = mv;
+    var faceUrl = selectedFaceIdx
+      ? '/api/care-agent/media/image/normal_' + selectedFaceIdx + '.png'
+      : '';
+    avatarHtml = faceUrl
+      ? '<img src="' + faceUrl + '" alt="Patient">'
+      : '&#x1F9D1;';
   }
-  utt.onend = () => { ttsPlaying = false; _processQueue(); };
-  utt.onerror = () => { ttsPlaying = false; _processQueue(); };
-  synth.speak(utt);
-}
-
-function appendMsg(feed, role, text, extra) {
-  const div = document.createElement('div');
-  div.className = 'ca-msg ' + role;
-  const avatar = role === 'nurse' ? '&#x1F469;&#x200D;&#x2695;&#xFE0F;' : '&#x1F9D1;';
-  const roleLabel = role === 'nurse' ? 'AI Nurse' : 'Patient';
-  const timestamp = getTimestamp();
-  let extraHtml = extra ? '<div class="ca-msg-emotion">' + extra + '</div>' : '';
+  var roleLabel = role === 'nurse' ? 'CLARA Nurse' : selectedPid || 'Patient';
+  var ts = ciTimestamp();
+  var extraHtml = extra ? '<div class="ci-msg-emotion">' + extra + '</div>' : '';
   div.innerHTML =
-    '<div class="ca-msg-avatar">' + avatar + '</div>' +
-    '<div class="ca-msg-bubble">' +
-      '<div class="ca-msg-header">' +
-        '<div class="ca-msg-role">' + roleLabel + '</div>' +
-        '<div class="ca-msg-time">' + timestamp + '</div>' +
+    '<div class="ci-msg-avatar">' + avatarHtml + '</div>' +
+    '<div class="ci-msg-bubble">' +
+      '<div class="ci-msg-header">' +
+        '<div class="ci-msg-role">' + roleLabel + '</div>' +
+        '<div class="ci-msg-time">' + ts + '</div>' +
       '</div>' +
-      '<div class="ca-msg-text">' + escapeHtml(text || '').replace(/\n/g, '<br>') + '</div>' +
+      '<div class="ci-msg-text">' + ciEsc(text || '').replace(/\n/g, '<br>') + '</div>' +
       extraHtml +
     '</div>';
   feed.appendChild(div);
 }
 
-function escapeHtml(s) {
+function ciEsc(s) {
   return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 
-function onFinished() {
-  callActive = false;
-  if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
+/* ═══════════════════════════════════════════════
+   TTS
+   ═══════════════════════════════════════════════ */
+var ttsQ = [];
+var ttsPlaying = false;
 
-  const btn = document.getElementById('caBtnRun');
-  btn.classList.remove('running');
-  btn.disabled = false;
-
-  const endBtn = document.getElementById('caBtnEnd');
-  endBtn.classList.remove('visible');
-
-  const liveBar = document.getElementById('caLiveBar');
-  liveBar.classList.add('ended');
-  document.getElementById('caLiveLabel').textContent = 'ENDED';
-
-  // Calculate duration
-  const elapsed = callStartTime ? Math.floor((Date.now() - callStartTime) / 1000) : 0;
-  const durationMin = Math.floor(elapsed / 60);
-  const durationSec = elapsed % 60;
-  const durationStr = durationMin + 'm ' + durationSec + 's';
-
-  const recall = totalGTAEs > 0 ? Math.round(totalMatchedAEs / totalGTAEs * 100) : 0;
-  const missed = totalGTAEs - totalMatchedAEs;
-
-  // Build summary stats
-  const statsEl = document.getElementById('caSummaryStats');
-  statsEl.innerHTML =
-    mkStat(dayCount, 'Days Covered', '') +
-    mkStat(durationStr, 'Duration', 'stat-blue') +
-    mkStat(totalAEsDetected, 'AEs Detected', 'stat-orange') +
-    mkStat(totalGTAEs, 'GT AEs', '') +
-    mkStat(recall + '%', 'Detection Rate', recall >= 70 ? 'stat-green' : 'stat-red') +
-    mkStat(missed, 'Missed', missed > 0 ? 'stat-red' : 'stat-green');
-
-  document.getElementById('caSummarySubtitle').textContent =
-    'Session with ' + selectedPatientId + ' completed after ' + dayCount + ' days (' + durationStr + ')';
-
-  // Build detected AEs list
-  const aesEl = document.getElementById('caSummaryAEs');
-  if (detectedAEsList.length > 0) {
-    aesEl.innerHTML = detectedAEsList.map(ae => {
-      const sevCls = ae.grade >= 3 ? 'sev-high' : ae.grade >= 2 ? 'sev-mod' : 'sev-low';
-      return '<div class="ca-summary-ae-item">' +
-        '<span class="ca-summary-ae-badge ' + sevCls + '">G' + ae.grade + '</span>' +
-        '<span class="ca-summary-ae-name">' + ae.name.replace(/_/g,' ') + '</span>' +
-        '<span class="ca-summary-ae-detail">' + ae.concern + '</span>' +
-      '</div>';
-    }).join('');
+function ciSpeak(text, role) {
+  if (!ttsEnabled || !synth || !text) return;
+  ttsQ.push({text: text, role: role});
+  ciProcessTts();
+}
+function ciProcessTts() {
+  if (ttsPlaying || ttsQ.length === 0) return;
+  ttsPlaying = true;
+  var item = ttsQ.shift();
+  var utt = new SpeechSynthesisUtterance(item.text);
+  utt.lang = 'en-US';
+  utt.rate = item.role === 'nurse' ? 1.05 : 0.95;
+  utt.pitch = item.role === 'nurse' ? 1.2 : 0.9;
+  var voices = synth.getVoices();
+  if (item.role === 'nurse') {
+    var fv = voices.find(function(v) { return v.name.includes('Female') || v.name.includes('Samantha') || v.name.includes('Google UK English Female'); });
+    if (fv) utt.voice = fv;
   } else {
-    aesEl.innerHTML = '<div style="color:var(--text-muted);font-size:0.76em;">No AEs detected during session.</div>';
+    var mv = voices.find(function(v) { return v.name.includes('Male') || v.name.includes('Daniel') || v.name.includes('Google UK English Male'); });
+    if (mv) utt.voice = mv;
   }
-
-  // Build actions list
-  const actEl = document.getElementById('caSummaryActions');
-  if (actionsList.length > 0) {
-    actEl.innerHTML = actionsList.map(a => {
-      const iconCls = a.concern === 'high' || a.concern === 'emergency' ? 'act-alert' :
-                      a.action.includes('visit') ? 'act-visit' : 'act-ok';
-      const icon = iconCls === 'act-alert' ? '!' : iconCls === 'act-visit' ? '&#8599;' : '&#10003;';
-      return '<div class="ca-summary-action-item">' +
-        '<span class="ca-summary-action-icon ' + iconCls + '">' + icon + '</span>' +
-        '<span class="ca-summary-action-text">' + a.action + '</span>' +
-        '<span class="ca-summary-action-day">' + a.day + '</span>' +
-      '</div>';
-    }).join('');
-  } else {
-    actEl.innerHTML = '<div style="color:var(--text-muted);font-size:0.76em;">No specific actions triggered.</div>';
-  }
-
-  // Show summary, add timeline event
-  const summary = document.getElementById('caSummary');
-  summary.classList.add('active');
-  addTimelineEvent('detect', 'Session Ended', recall + '% detection rate');
+  utt.onend = function() { ttsPlaying = false; ciProcessTts(); };
+  utt.onerror = function() { ttsPlaying = false; ciProcessTts(); };
+  synth.speak(utt);
 }
-
-function mkStat(val, label, extraCls) {
-  return '<div class="ca-summary-stat ' + (extraCls || '') + '">' +
-    '<div class="ca-summary-val">' + val + '</div>' +
-    '<div class="ca-summary-label">' + label + '</div>' +
-  '</div>';
-}
-
-function resetAndShow() {
-  document.getElementById('caCallLayout').classList.remove('active');
-  document.getElementById('caLiveBar').classList.remove('active');
-  document.getElementById('caSummary').classList.remove('active');
-  document.getElementById('caSetup').style.display = 'block';
-  document.getElementById('caLiveBar').classList.remove('ended');
-}
-
-function toggleTts() {
+function ciToggleTts() {
   ttsEnabled = !ttsEnabled;
-  const btn = document.getElementById('caTtsBtn');
+  var btn = document.getElementById('ciTtsBtn');
   btn.classList.toggle('on', ttsEnabled);
   btn.innerHTML = ttsEnabled ? '&#128266;' : '&#128263;';
   if (!ttsEnabled) synth.cancel();
+}
+
+/* ═══════════════════════════════════════════════
+   Finished / Summary
+   ═══════════════════════════════════════════════ */
+function ciOnFinished() {
+  callActive = false;
+  if (elTimer) { clearInterval(elTimer); elTimer = null; }
+
+  var btn = document.getElementById('ciBtnRun');
+  btn.classList.remove('running'); btn.disabled = false;
+  document.getElementById('ciBtnEnd').classList.remove('visible');
+
+  var liveBar = document.getElementById('ciLiveBar');
+  liveBar.classList.add('ended');
+  document.getElementById('ciLiveLabel').textContent = 'ENDED';
+  document.getElementById('ciPhoneNurseStatus').textContent = 'Call ended';
+
+  var elapsed = callStart ? Math.floor((Date.now() - callStart) / 1000) : 0;
+  var durMin = Math.floor(elapsed / 60);
+  var durSec = elapsed % 60;
+  var durStr = durMin + 'm ' + durSec + 's';
+
+  var recall = totalGT > 0 ? Math.round(totalMatched / totalGT * 100) : 0;
+  var missed = totalGT - totalMatched;
+
+  var statsEl = document.getElementById('ciSummStats');
+  statsEl.innerHTML =
+    ciMkStat(dayCount, 'Days Covered', '') +
+    ciMkStat(durStr, 'Duration', 'stat-blue') +
+    ciMkStat(totalDetected, 'AEs Detected', 'stat-orange') +
+    ciMkStat(totalGT, 'GT AEs', '') +
+    ciMkStat(recall + '%', 'Detection Rate', recall >= 70 ? 'stat-green' : 'stat-red') +
+    ciMkStat(missed, 'Missed', missed > 0 ? 'stat-red' : 'stat-green');
+
+  document.getElementById('ciSummSub').textContent =
+    'Session with ' + selectedPid + ' completed after ' + dayCount + ' days (' + durStr + ')';
+
+  var aesEl = document.getElementById('ciSummAEs');
+  if (detectedAEs.length > 0) {
+    aesEl.innerHTML = detectedAEs.map(function(ae) {
+      var sevCls = ae.grade >= 3 ? 'sev-high' : ae.grade >= 2 ? 'sev-mod' : 'sev-low';
+      return '<div class="ci-summary-ae-item">' +
+        '<span class="ci-summary-ae-badge ' + sevCls + '">G' + ae.grade + '</span>' +
+        '<span class="ci-summary-ae-name">' + ae.name.replace(/_/g,' ') + '</span>' +
+        '<span class="ci-summary-ae-detail">' + ae.concern + '</span>' +
+      '</div>';
+    }).join('');
+  } else {
+    aesEl.innerHTML = '<div style="color:var(--text-muted);font-size:0.72em;">No AEs detected during session.</div>';
+  }
+
+  var actEl = document.getElementById('ciSummActions');
+  if (actionsList.length > 0) {
+    actEl.innerHTML = actionsList.map(function(a) {
+      var iconCls = a.concern === 'high' || a.concern === 'emergency' ? 'act-alert' :
+                    a.action.includes('visit') ? 'act-visit' : 'act-ok';
+      var icon = iconCls === 'act-alert' ? '!' : iconCls === 'act-visit' ? '&#8599;' : '&#10003;';
+      return '<div class="ci-summary-action-item">' +
+        '<span class="ci-summary-action-icon ' + iconCls + '">' + icon + '</span>' +
+        '<span class="ci-summary-action-text">' + a.action + '</span>' +
+        '<span class="ci-summary-action-day">' + a.day + '</span>' +
+      '</div>';
+    }).join('');
+  } else {
+    actEl.innerHTML = '<div style="color:var(--text-muted);font-size:0.72em;">No specific actions triggered.</div>';
+  }
+
+  document.getElementById('ciSummary').classList.add('active');
+  ciAddMiniTl('dot-ok', 'Session ended -- ' + recall + '% recall');
+}
+
+function ciMkStat(val, label, cls) {
+  return '<div class="ci-summary-stat ' + (cls || '') + '">' +
+    '<div class="ci-summary-val">' + val + '</div>' +
+    '<div class="ci-summary-label">' + label + '</div>' +
+  '</div>';
+}
+
+function ciReset() {
+  document.getElementById('ciMain').classList.remove('active');
+  document.getElementById('ciLiveBar').classList.remove('active');
+  document.getElementById('ciSummary').classList.remove('active');
+  document.getElementById('ciSetup').style.display = 'block';
+  document.getElementById('ciLiveBar').classList.remove('ended');
 }
 </script>
 {% endblock %}
