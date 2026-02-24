@@ -182,10 +182,13 @@ services:
     environment:
       CARE_AI_GPU: "0"
       CARE_AI_PORT: "8300"
+      MEDASR_GPU: "0"
+      SIGLIP_ENCODER_DEVICE: "cuda:0"
       MEDGEMMA_MODEL: "/model_repo/snapshots/290cda5eeccbee130f987c4ad74a59ae6f196408"
       GOOGLE_API_KEY: "${GOOGLE_API_KEY}"
       HF_HOME: "/hf_cache"
       HF_TOKEN: "${HF_TOKEN}"
+      MEDASR_MODEL_PATH: "/hf_cache/hub/models--google--medasr/snapshots/7383e5e461baa820bdf9060652fe51b333bafba5"
     volumes:
       - /data2/huggingface:/hf_cache
       - /data2/huggingface/hub/models--google--medgemma-4b-it:/model_repo:ro

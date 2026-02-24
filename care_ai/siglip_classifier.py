@@ -1,17 +1,26 @@
-"""SigLIP AE Classification — vector-only inference (no encoder needed).
+"""SigLIP AE Classification — vector or image inference.
 
-The mobile app sends a pre-computed 1152-dim SigLIP embedding vector.
-We only load the classification head to predict AE type and grade.
+Supports two modes:
+  1. Vector mode: mobile app sends pre-computed 1152-dim SigLIP embedding
+  2. Image mode: server encodes image via MedSigLIP-448 vision encoder → 1152-dim → head
 """
 
 from __future__ import annotations
+
+import base64
+import io
+import logging
 
 import torch
 import torch.nn as nn
 import numpy as np
 from pathlib import Path
 
+log = logging.getLogger("care-ai-api.siglip")
+
 EMBED_DIM = 1152
+SIGLIP_MODEL_NAME = "google/medsiglip-448"
+SIGLIP_IMAGE_SIZE = 448
 
 CLASSES = [
     "normal",
@@ -36,13 +45,50 @@ def build_head(num_classes: int = len(CLASSES)) -> nn.Sequential:
 
 
 class SigLIPClassifier:
-    """Lightweight AE classifier that takes a pre-computed embedding vector."""
+    """AE classifier — supports both pre-computed vectors and raw images."""
 
     def __init__(self, head_path: str | Path, device: str = "cpu"):
         self.device = device
         self.head = build_head()
         self.head.load_state_dict(torch.load(head_path, map_location=device))
         self.head = self.head.to(device).eval()
+
+        # Encoder (lazy-loaded on first image request)
+        self._encoder = None
+        self._processor = None
+
+    def load_encoder(self, model_name: str = SIGLIP_MODEL_NAME, encoder_device: str | None = None):
+        """Load MedSigLIP-448 vision encoder for image → embedding."""
+        from transformers import AutoModel, AutoImageProcessor
+
+        dev = encoder_device or self.device
+        log.info("Loading MedSigLIP encoder: %s on %s", model_name, dev)
+        self._processor = AutoImageProcessor.from_pretrained(model_name)
+        self._encoder = AutoModel.from_pretrained(model_name).to(dev).eval()
+        self._encoder_device = dev
+        log.info("MedSigLIP encoder loaded.")
+
+    @property
+    def encoder_loaded(self) -> bool:
+        return self._encoder is not None
+
+    def encode_image(self, image_b64: str) -> list[float]:
+        """Encode a base64 image → 1152-dim embedding vector."""
+        from PIL import Image
+
+        if not self.encoder_loaded:
+            raise RuntimeError("SigLIP encoder not loaded. Call load_encoder() first.")
+
+        raw = base64.b64decode(image_b64)
+        img = Image.open(io.BytesIO(raw)).convert("RGB")
+        img = img.resize((SIGLIP_IMAGE_SIZE, SIGLIP_IMAGE_SIZE), Image.BILINEAR)
+
+        inputs = self._processor(images=img, return_tensors="pt").to(self._encoder_device)
+        with torch.inference_mode():
+            outputs = self._encoder.vision_model(**inputs)
+            embedding = outputs.pooler_output[0]  # (1152,)
+
+        return embedding.cpu().tolist()
 
     def predict(self, embedding: list[float], top_k: int = 3) -> dict:
         vec = torch.tensor(embedding, dtype=torch.float32).unsqueeze(0).to(self.device)
@@ -94,3 +140,8 @@ class SigLIPClassifier:
             "general_observations": general_obs if general_obs else ["No significant visual abnormalities detected"],
             "raw_prediction": result,
         }
+
+    def build_visual_assessment_from_image(self, image_b64: str) -> dict:
+        """Full pipeline: image → encode → classify → assessment."""
+        embedding = self.encode_image(image_b64)
+        return self.build_visual_assessment(embedding)

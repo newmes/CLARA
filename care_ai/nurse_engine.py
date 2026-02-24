@@ -7,11 +7,14 @@ given visual assessment + patient text + drug context + audio assessment.
 from __future__ import annotations
 
 import json
+import logging
 import re
 from pathlib import Path
 
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
+
+log = logging.getLogger("care-ai-api.nurse")
 
 from care_ai.ae_channels import AE_DETECTION_CHANNELS
 
@@ -170,11 +173,11 @@ class NurseEngine:
             f"  (b) MAINTAIN patient comfort — be warm, empathetic, build trust\n\n"
             f"STRATEGY:\n"
             f"1. Acknowledge what the patient shared (empathy first)\n"
-            f"2. If visual findings exist, acknowledge them naturally\n"
-            f"3. If cough was detected in audio, ask about cough characteristics (duration, frequency, mucus, triggers)\n"
+            f"2. If visual findings exist, ALWAYS state the detected AE name AND its CTCAE grade (e.g. 'Grade 2 maculopapular rash')\n"
+            f"3. If cough was detected in audio, mention the cough type (dry/wet) and ask about duration\n"
             f"4. Ask about TOP non-visual AEs for this drug — use open-ended, non-threatening language\n"
-            f"5. Maximum 3 targeted questions (don't overwhelm)\n"
-            f"6. Use OARS: Open questions, Affirmations, Reflective listening, Summarizing\n\n"
+            f"5. Maximum 2 targeted questions (keep it brief)\n"
+            f"6. Keep the acknowledgment under 2 sentences. Keep each question under 1 sentence.\n\n"
             f"Output JSON only."
         )
 
@@ -200,7 +203,7 @@ class NurseEngine:
             f'            "rationale": "string (why you\'re asking this)"\n'
             f'        }}\n'
             f'    ],\n'
-            f'    "visual_followup": "string|null (comment on visual assessment findings, if any)",\n'
+            f'    "visual_followup": "string|null (MUST include AE name + CTCAE grade, e.g. \'I noticed signs of Grade 2 maculopapular rash\')",\n'
             f'{audio_field}'
             f'    "preliminary_concerns": ["string (initial suspicions)"]\n'
             f'}}'
@@ -265,12 +268,18 @@ class NurseEngine:
         gen_ids = outputs[0][inputs["input_ids"].shape[1]:]
         raw = self.tokenizer.decode(gen_ids, skip_special_tokens=True).strip()
 
+        log.info("=== NurseEngine generate_response ===")
+        log.info("Input tokens: %d, Output tokens: %d", inputs["input_ids"].shape[1], len(gen_ids))
+        log.info("Raw output:\n%s", raw[:1000])
+
         try:
             match = re.search(r'\{.*\}', raw, re.DOTALL)
             parsed = json.loads(match.group()) if match else {"raw_response": raw}
         except (json.JSONDecodeError, AttributeError):
+            log.warning("JSON parse failed, returning raw response")
             parsed = {"raw_response": raw}
 
+        log.info("Parsed keys: %s", list(parsed.keys()))
         return parsed
 
     def generate_chat_response(
@@ -306,12 +315,18 @@ class NurseEngine:
         gen_ids = outputs[0][inputs["input_ids"].shape[1]:]
         raw = self.tokenizer.decode(gen_ids, skip_special_tokens=True).strip()
 
+        log.info("=== NurseEngine generate_chat_response ===")
+        log.info("Input tokens: %d, Output tokens: %d", inputs["input_ids"].shape[1], len(gen_ids))
+        log.info("Raw output:\n%s", raw[:1000])
+
         try:
             match = re.search(r'\{.*\}', raw, re.DOTALL)
             parsed = json.loads(match.group()) if match else {"raw_response": raw}
         except (json.JSONDecodeError, AttributeError):
+            log.warning("JSON parse failed, returning raw response")
             parsed = {"raw_response": raw}
 
+        log.info("Parsed keys: %s", list(parsed.keys()))
         return parsed
 
     def chat_response_to_speech_text(self, response: dict) -> str:
@@ -330,22 +345,19 @@ class NurseEngine:
         return " ".join(str(v) for v in response.values() if v)
 
     def response_to_speech_text(self, response: dict) -> str:
-        """Convert structured nurse JSON response into natural speech text for TTS."""
+        """Convert structured nurse JSON response into concise speech text for TTS.
+
+        Keeps acknowledgment + first question only to stay under ~200 chars.
+        """
         parts = []
         ack = response.get("acknowledgment", "")
         if ack:
             parts.append(ack)
 
-        visual = response.get("visual_followup")
-        if visual:
-            parts.append(visual)
-
-        audio_fu = response.get("audio_followup")
-        if audio_fu:
-            parts.append(audio_fu)
-
+        # Only the first question — keep it short for TTS
         questions = response.get("questions", [])
-        for q in questions:
+        if questions:
+            q = questions[0]
             q_text = q.get("question", "") if isinstance(q, dict) else str(q)
             if q_text:
                 parts.append(q_text)
@@ -355,4 +367,6 @@ class NurseEngine:
             if raw:
                 parts.append(raw)
 
-        return " ".join(parts)
+        speech = " ".join(parts)
+        log.info("Speech text (%d chars): %s", len(speech), speech[:200])
+        return speech

@@ -652,15 +652,19 @@ def _patient_summary(profile: dict, day_data: dict | None,
 
 def landing(request):
     """Landing page: pure technology showcase + demo map preview."""
-    runs = _get_runs()
-    # Pick the first completed run with enough patients for a nice map
-    demo_run_id = ""
-    for r in runs:
-        if r.get("status") == "completed" and (r.get("n_patients") or 0) >= 5:
-            demo_run_id = r["id"]
-            break
-    if not demo_run_id and runs:
-        demo_run_id = runs[0]["id"]
+    # Fixed to the 100-patient Etoposide + Cisplatin run for a visually rich map
+    demo_run_id = "20260224_061414_Etoposide___Cisplatin_100pt_126d"
+    # Verify the run exists, fall back to dynamic selection if not
+    run_path = _get_run_path(demo_run_id)
+    if not run_path.exists() or not (run_path / "simulations").exists():
+        runs = _get_runs()
+        demo_run_id = ""
+        for r in runs:
+            if r.get("status") == "completed" and (r.get("n_patients") or 0) >= 5:
+                demo_run_id = r["id"]
+                break
+        if not demo_run_id and runs:
+            demo_run_id = runs[0]["id"]
     context = {"demo_run_id": demo_run_id}
     return render(request, "landing/landing.html", context)
 
@@ -1543,9 +1547,9 @@ def demo_care_agent(request):
 @csrf_exempt
 @require_POST
 def api_care_agent_run(request):
-    """Run Care Agent for a virtual patient — SSE stream with images + audio."""
+    """Run Care Agent for a virtual patient — SSE stream via Care AI /v1/consult API."""
     from django.http import StreamingHttpResponse
-    import queue, threading
+    import queue, threading, base64, requests as _requests
 
     body = json.loads(request.body)
     patient_id = body.get("patient_id", "")
@@ -1563,135 +1567,25 @@ def api_care_agent_run(request):
     indication = config.get("indication", "")
     rep = vpt.get("representative_day", {})
     demographics = vpt.get("profile", {})
-    persona_type = vpt.get("persona", "minimizer")
 
     q = queue.Queue()
 
-    def _run_medgemma(baseline_name, current_name):
-        """Call MedGemma finetuned model for real visual AE inference."""
-        import base64, urllib.request as ureq, re as _re
-        img_dir = Path(settings.BASE_DIR).parent / "data" / "multimodal" / "v3_images"
-        bl_path = img_dir / baseline_name
-        cur_path = img_dir / current_name
-        if not bl_path.exists():
-            bl_path = Path(settings.BASE_DIR) / "static_dirs" / "assets" / "medgemma" / baseline_name
-        if not cur_path.exists():
-            cur_path = Path(settings.BASE_DIR) / "static_dirs" / "assets" / "medgemma" / current_name
-        if not bl_path.exists() or not cur_path.exists():
-            return []
-        b64_bl = base64.b64encode(bl_path.read_bytes()).decode()
-        b64_cur = base64.b64encode(cur_path.read_bytes()).decode()
-        vllm_url = os.environ.get("MEDGEMMA4B_VLLM_BASE_URL", "http://clara-medgemma4b-antihallu:8000/v1")
-        model_id = "medgemma-4b-ctcae"
-        payload = json.dumps({
-            "model": model_id, "max_completion_tokens": 512, "temperature": 0,
-            "messages": [{"role": "user", "content": [
-                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64_bl}"}},
-                {"type": "image_url", "image_url": {"url": f"data:image/png;base64,{b64_cur}"}},
-                {"type": "text", "text": _MEDGEMMA_PROMPT},
-            ]}],
-        }).encode()
-        req = Request(f"{vllm_url}/chat/completions", data=payload,
-                           headers={"Content-Type": "application/json"})
-        try:
-            with urlopen(req, timeout=60) as resp:
-                result = json.loads(resp.read())
-            text = result["choices"][0]["message"]["content"]
-            text = text.strip()
-            if text.startswith("```"):
-                text = _re.sub(r"^```\w*\n?", "", text)
-                text = _re.sub(r"\n?```$", "", text)
-            parsed = json.loads(text)
-            return parsed if isinstance(parsed, list) else []
-        except Exception as exc:
-            import logging
-            logging.getLogger("care_agent").error("MedGemma inference error: %s", exc)
-            return []
+    CARE_AI_URL = os.environ.get("CARE_AI_API_URL", "http://clara-care-ai:8300")
 
     def _run():
         try:
-            if not os.environ.get("GOOGLE_API_KEY"):
-                env_path = Path(settings.BASE_DIR).parent / ".env"
-                if env_path.exists():
-                    for line in env_path.read_text().splitlines():
-                        if line.startswith("GOOGLE_API_KEY="):
-                            os.environ["GOOGLE_API_KEY"] = line.split("=", 1)[1].strip()
+            import time as _time
+            import logging
+            log = logging.getLogger("care_agent")
 
-            from src.agents.llm_client import generate_json, set_caller
-            from src.experiments.eval_prompt_templates import template_f_realistic, generate_final_assessment
-
-            padcev_ae_profile = [
-                {"ae_term": "rash_maculopapular", "incidence_pct": "55%", "common_symptoms": "skin rash, itching, redness"},
-                {"ae_term": "peripheral_neuropathy", "incidence_pct": "53%", "common_symptoms": "tingling, numbness in hands/feet"},
-                {"ae_term": "alopecia", "incidence_pct": "50%", "common_symptoms": "hair thinning or loss"},
-                {"ae_term": "fatigue", "incidence_pct": "50%", "common_symptoms": "tiredness, lack of energy"},
-                {"ae_term": "decreased_appetite", "incidence_pct": "44%", "common_symptoms": "reduced appetite, weight loss"},
-                {"ae_term": "nausea", "incidence_pct": "42%", "common_symptoms": "stomach upset, queasiness"},
-                {"ae_term": "pruritus", "incidence_pct": "32%", "common_symptoms": "itching without visible rash"},
-                {"ae_term": "pneumonitis", "incidence_pct": "10%", "common_symptoms": "cough, shortness of breath"},
-                {"ae_term": "stomatitis", "incidence_pct": "20%", "common_symptoms": "mouth sores, lip blisters"},
-                {"ae_term": "periorbital_edema", "incidence_pct": "15%", "common_symptoms": "swelling around eyes"},
-            ]
-
-            day = rep.get("day", 7)
+            face_idx = vpt["face_idx"]
             ae_term = rep.get("ae")
             ae_grade = rep.get("grade", 0)
             image_file = rep.get("image", "")
             audio_label = rep.get("audio_label", "none")
-            baseline_image = f"normal_{vpt['face_idx']}.png"
-
-            q.put(json.dumps({"type": "session_start", "patient_id": patient_id,
-                              "total_days": 1}))
-
-            # --- Step 1: MedGemma visual inference ---
-            q.put(json.dumps({"type": "medgemma_start"}))
-            import time as _time
-            t0 = _time.time()
-            mg_findings = _run_medgemma(baseline_image, image_file)
-            mg_elapsed = round((_time.time() - t0) * 1000)
-            if not isinstance(mg_findings, list):
-                mg_findings = []
-
-            visual_findings = []
-            for f in mg_findings:
-                visual_findings.append({
-                    "ae_term": f.get("ae_term", "unknown"),
-                    "grade": f.get("grade", 1),
-                    "confidence": f.get("confidence", 0.5),
-                    "reasoning": f.get("reasoning", ""),
-                })
-            visual_obs = []
-            if visual_findings:
-                for vf in visual_findings:
-                    visual_obs.append(f"{vf['ae_term'].replace('_',' ')} G{vf['grade']}")
-            else:
-                visual_obs.append("No visual AE changes detected")
-
-            q.put(json.dumps({
-                "type": "medgemma_result",
-                "findings": visual_findings,
-                "latency_ms": mg_elapsed,
-                "baseline_image": baseline_image,
-                "current_image": image_file,
-            }))
-
-            audio_assessment = "No cough detected"
-            if audio_label == "dry":
-                audio_assessment = "Dry cough detected — possible pneumonitis indicator"
-            elif audio_label == "wet":
-                audio_assessment = "Wet/productive cough detected — possible infection or fluid"
-
-            q.put(json.dumps({
-                "type": "day_start", "day": day,
-                "image": image_file,
-                "baseline_image": baseline_image,
-                "audio_label": audio_label,
-                "has_visual_ae": len(visual_findings) > 0,
-                "gt_ae": ae_term or "none",
-                "gt_grade": ae_grade,
-            }))
-
-            visual_assessment = {"findings": visual_findings, "general_observations": visual_obs}
+            baseline_image = f"normal_{face_idx}.png"
+            patient_text = vpt.get("patient_text", "")
+            audio_file = vpt.get("audio_file", f"patient_{face_idx}.wav")
 
             current_labs = vpt.get("current_labs", {})
             baseline_labs = vpt.get("baseline_labs", {})
@@ -1701,11 +1595,138 @@ def api_care_agent_run(request):
             ecog = vpt.get("ecog", 1)
             mood_data = vpt.get("mood", {})
 
+            # --- Load image + audio as base64 ---
+            data_dir = Path(settings.BASE_DIR).parent / "data" / "multimodal"
+            img_path = data_dir / "v3_images" / image_file
+            audio_path = data_dir / "audio" / "patient1" / audio_file
+
+            image_b64 = None
+            if img_path.exists():
+                image_b64 = base64.b64encode(img_path.read_bytes()).decode()
+
+            audio_b64 = None
+            if audio_path.exists():
+                audio_b64 = base64.b64encode(audio_path.read_bytes()).decode()
+
+            # --- SSE: session_start ---
+            q.put(json.dumps({"type": "session_start", "patient_id": patient_id,
+                              "total_days": 1}))
+
+            # --- SSE: day_start ---
             q.put(json.dumps({
-                "type": "nurse_context", "day": day,
-                "visual_assessment": visual_assessment,
-                "audio_assessment": audio_assessment,
-                "ae_profile_used": [a["ae_term"] for a in padcev_ae_profile],
+                "type": "day_start",
+                "image": image_file,
+                "baseline_image": baseline_image,
+                "audio_label": audio_label,
+                "audio_url": f"/api/care-agent/media/audio/{audio_file}" if audio_b64 else None,
+                "has_visual_ae": bool(ae_term),
+                "gt_ae": ae_term or "none",
+                "gt_grade": ae_grade,
+            }))
+
+            # --- SSE: medgemma_start (models starting) ---
+            q.put(json.dumps({"type": "medgemma_start"}))
+
+            # --- Call Care AI /v1/consult ---
+            t0 = _time.time()
+            consult_payload = {
+                "patient_text": patient_text,
+                "drug_name": drug_name,
+                "indication": indication,
+                "skip_tts": True,
+            }
+            if image_b64:
+                consult_payload["image_b64"] = image_b64
+            if audio_b64:
+                consult_payload["audio_b64"] = audio_b64
+
+            try:
+                consult_resp = _requests.post(
+                    f"{CARE_AI_URL}/v1/consult",
+                    json=consult_payload,
+                    timeout=120,
+                )
+                consult_resp.raise_for_status()
+                consult = consult_resp.json()
+            except Exception as exc:
+                log.error("Care AI /v1/consult error: %s", exc)
+                q.put(json.dumps({"type": "error", "message": f"Care AI API error: {exc}"}))
+                q.put(json.dumps({"type": "finished"}))
+                return
+
+            consult_elapsed = round((_time.time() - t0) * 1000)
+            session_id = consult.get("session_id", "")
+
+            # --- Extract visual_assessment ---
+            visual_assessment = consult.get("visual_assessment", {})
+            va_findings = visual_assessment.get("findings", [])
+            raw_pred = visual_assessment.get("raw_prediction", {})
+            siglip_ms = (consult.get("latency_ms") or {}).get("siglip_ms", 0)
+
+            # Build SigLIP-style findings
+            siglip_findings = []
+            for f in va_findings:
+                siglip_findings.append({
+                    "ae_term": f.get("ae_term") or "normal",
+                    "grade": f.get("estimated_grade") or 0,
+                    "confidence": f.get("confidence", 0),
+                    "description": f.get("description", ""),
+                })
+
+            # --- SSE: medgemma_result (SigLIP visual) ---
+            q.put(json.dumps({
+                "type": "medgemma_result",
+                "findings": siglip_findings,
+                "raw_prediction": raw_pred,
+                "general_observations": visual_assessment.get("general_observations", []),
+                "latency_ms": siglip_ms,
+                "baseline_image": baseline_image,
+                "current_image": image_file,
+            }))
+
+            # --- Extract audio_assessment ---
+            audio_assessment = consult.get("audio_assessment")
+            audio_text = "No cough detected"
+            hear_result = {}
+            if audio_assessment:
+                hear_result = {
+                    "cough_detected": audio_assessment.get("cough_detected", False),
+                    "majority_type": audio_assessment.get("majority_type"),
+                    "num_cough_segments": audio_assessment.get("num_cough_segments", 0),
+                    "num_energy_segments": audio_assessment.get("num_energy_segments", 0),
+                    "duration_sec": audio_assessment.get("duration_sec", 0),
+                    "vote_counts": audio_assessment.get("vote_counts", {}),
+                    "latency_ms": audio_assessment.get("latency_ms", 0),
+                }
+                if audio_assessment.get("cough_detected"):
+                    mtype = audio_assessment.get("majority_type", "dry")
+                    audio_text = f"{mtype.capitalize()} cough detected"
+
+            # --- SSE: hear_result ---
+            q.put(json.dumps({
+                "type": "hear_result",
+                **hear_result,
+            }))
+
+            # --- Extract MedASR ---
+            medical_transcript = consult.get("medical_transcript")
+
+            # --- Build visual_obs for nurse_context ---
+            visual_obs = []
+            if siglip_findings:
+                for vf in siglip_findings:
+                    if vf["ae_term"] != "normal":
+                        visual_obs.append(f"{vf['ae_term'].replace('_',' ')} G{vf['grade']}")
+            if not visual_obs:
+                visual_obs.append("No visual AE changes detected")
+
+            visual_assessment_ctx = {"findings": siglip_findings, "general_observations": visual_obs}
+
+            # --- SSE: nurse_context ---
+            q.put(json.dumps({
+                "type": "nurse_context",
+                "visual_assessment": visual_assessment_ctx,
+                "audio_assessment": audio_text,
                 "patient_info": demographics,
                 "current_labs": current_labs,
                 "baseline_labs": baseline_labs,
@@ -1714,149 +1735,86 @@ def api_care_agent_run(request):
                 "medical_history": [h.get("condition", "") + (" (" + h.get("medication", "") + ")" if h.get("medication") and h["medication"] != "none" else "") for h in med_history],
                 "ecog": ecog,
                 "mood": mood_data,
+                "medical_transcript": medical_transcript,
             }))
 
-            quality = {
-                "engagement": max(0.3, 1.0 - mood_data.get("defensiveness", 0.3)),
-                "under_report_prob": mood_data.get("defensiveness", 0.3),
-                "over_report_prob": mood_data.get("anxiety", 0.3) * 0.3,
-                "video_cooperation": 1.0 - mood_data.get("defensiveness", 0.3) * 0.5,
-            }
-
-            labs_text = ""
-            if current_labs:
-                lab_lines = []
-                for lname, ldata in current_labs.items():
-                    bl_val = baseline_labs.get(lname, {}).get("value", "?")
-                    trend = ldata.get("trend", "")
-                    lab_lines.append(f"  {lname}: {ldata['value']} {ldata.get('unit','')} (baseline: {bl_val}, {trend})")
-                labs_text = "\n".join(lab_lines)
-
-            vitals_text = ""
-            if current_vitals:
-                vitals_text = ", ".join(f"{k}={v}" for k, v in current_vitals.items())
-
-            meds_text = "\n".join(f"  - {m}" for m in current_meds) if current_meds else "  None"
-            hx_text = "\n".join(f"  - {h.get('condition', '')} ({h.get('medication', 'none')})" for h in med_history) if med_history else "  None"
-
-            scenario = {
-                "drug_name": drug_name, "indication": indication,
-                "visual_assessment": visual_assessment,
-                "audio_assessment": audio_assessment,
-                "drug_ae_profile": padcev_ae_profile,
-                "patient_demographics": demographics,
-                "treatment_day": day,
-                "current_labs_text": labs_text,
-                "current_vitals_text": vitals_text,
-                "current_medications_text": meds_text,
-                "medical_history_text": hx_text,
-                "ecog": ecog,
-                "patient_persona_type": persona_type,
-                "patient_mood": mood_data,
-            }
-
-            # --- Step 2: Patient greeting ---
-            patient_sys = f"""You are a cancer patient in a video call. Persona: {persona_type}.
-Profile: {demographics.get('age','?')}yo {demographics.get('sex','?')}, {demographics.get('race','?')}.
-Drug: {drug_name} for {indication}. Day {day}.
-{"You have " + ae_term.replace('_',' ') + " Grade " + str(ae_grade) + " but may not fully realize it." if ae_term else "No active AEs today."}
-{"You have a " + audio_label + " cough." if audio_label != "none" else ""}
-Speak naturally in English. Be realistic — match your persona.
-Output JSON: {{"greeting":"...", "reported_symptoms":[...], "mood_expression":"..."}}"""
-
-            set_caller(f"care_agent.patient.{patient_id}")
-            try:
-                greet_resp = generate_json(patient_sys,
-                    f"Day {day}. Greet the nurse briefly. Be yourself.",
-                    model="gemini-2.0-flash", max_tokens=512)
-            except Exception:
-                greet_resp = {"greeting": "Hey.", "reported_symptoms": [], "mood_expression": "neutral"}
-
-            greet_text = greet_resp.get("greeting", "Hi.")
+            # --- SSE: patient_greet (patient text from file) ---
             q.put(json.dumps({
-                "type": "patient_greet", "day": day,
-                "text": greet_text,
-                "symptoms": greet_resp.get("reported_symptoms", []),
-                "mood": greet_resp.get("mood_expression", "neutral"),
+                "type": "patient_greet",
+                "text": patient_text,
+                "audio_url": f"/api/care-agent/media/audio/{audio_file}" if audio_b64 else None,
+                "symptoms": [],
+                "mood": "neutral",
             }))
 
-            history = [{"_role": "patient", "_turn": 1,
-                        "greeting": greet_text,
-                        "reported_symptoms": greet_resp.get("reported_symptoms", []),
-                        "general_wellbeing": greet_resp.get("mood_expression", ""),
-                        "mood_expression": greet_resp.get("mood_expression", "neutral")}]
+            # --- SSE: nurse_turn (first response from consult) ---
+            nurse_structured = consult.get("nurse_structured", {})
+            nurse_text = consult.get("nurse_text", "")
+            nurse_questions = nurse_structured.get("questions", [])
+            nurse_concerns = nurse_structured.get("preliminary_concerns", [])
+            nurse_audio_b64 = consult.get("audio_base64")
 
-            # --- Step 3: Multi-turn conversation ---
-            for turn in range(2, 5):
-                sys_prompt, usr_prompt = template_f_realistic(scenario, quality, turn, history)
-                set_caller(f"care_agent.nurse.{patient_id}")
-                try:
-                    nurse_resp = generate_json(sys_prompt, usr_prompt,
-                                               model="gemini-2.0-flash", max_tokens=1024)
-                except Exception:
-                    nurse_resp = {"acknowledgment": "Let me check a couple things.",
-                                  "questions": []}
+            # Build nurse audio URL if TTS was returned
+            nurse_audio_url = None
+            if nurse_audio_b64:
+                # Save nurse audio to a temp file for serving
+                nurse_wav_name = f"nurse_{face_idx}.wav"
+                nurse_wav_path = data_dir / "audio" / "nurse_1" / nurse_wav_name
+                if nurse_wav_path.exists():
+                    nurse_audio_url = f"/api/care-agent/media/audio/{nurse_wav_name}"
 
-                nurse_msg = nurse_resp.get("acknowledgment", "")
-                questions = nurse_resp.get("questions", [])
-                nurse_full = nurse_msg
-                for nq in questions:
-                    nurse_full += f"\n{nq.get('question', '')}"
-
-                q.put(json.dumps({
-                    "type": "nurse_turn", "day": day, "turn": turn,
-                    "text": nurse_full,
-                    "questions": questions,
-                    "concerns": nurse_resp.get("concerns", []),
-                }))
-
-                history.append({"_role": "nurse", "_turn": turn,
-                                "acknowledgment": nurse_msg, "questions": questions})
-
-                pt_chat_sys = f"""You are a cancer patient responding to a nurse. Persona: {persona_type}.
-Day {day}. {"Active AE: " + ae_term.replace('_',' ') + " G" + str(ae_grade) if ae_term else "No AEs."}
-{"You have a " + audio_label + " cough." if audio_label != "none" else ""}
-Respond naturally in English. 1-2 sentences max.
-Output JSON: {{"response":"...", "revealed_new_info":true/false, "emotional_state":"..."}}"""
-
-                set_caller(f"care_agent.patient.{patient_id}")
-                try:
-                    pt_resp = generate_json(pt_chat_sys,
-                        f'Nurse said: "{nurse_full}"\nHistory: {json.dumps(history[-4:], default=str)[:600]}',
-                        model="gemini-2.0-flash", max_tokens=512)
-                except Exception:
-                    pt_resp = {"response": "I guess so.", "revealed_new_info": False,
-                               "emotional_state": "neutral"}
-
-                pt_text = pt_resp.get("response", "")
-                q.put(json.dumps({
-                    "type": "patient_turn", "day": day, "turn": turn,
-                    "text": pt_text,
-                    "revealed": pt_resp.get("revealed_new_info", False),
-                    "emotion": pt_resp.get("emotional_state", "neutral"),
-                }))
-                history.append({"_role": "patient", "_turn": turn,
-                                "responses": [{"answer": pt_text}],
-                                "emotional_reaction": pt_resp.get("emotional_state", "neutral")})
-
-            # --- Step 4: Final assessment ---
-            try:
-                assessment = generate_final_assessment(scenario, history,
-                    lambda s, u: generate_json(s, u, model="gemini-2.0-flash", max_tokens=2048))
-            except Exception:
-                assessment = {"detected_aes": [], "overall_concern_level": "unknown"}
-
-            detected_aes = assessment.get("detected_aes", [])
             q.put(json.dumps({
-                "type": "assessment", "day": day,
+                "type": "nurse_turn", "turn": 1,
+                "text": nurse_text,
+                "questions": nurse_questions,
+                "concerns": nurse_concerns,
+                "audio_url": nurse_audio_url,
+                "approach_style": nurse_structured.get("approach_style", "empathetic"),
+            }))
+
+            # Note: /v1/chat follow-up is available via session_id if needed
+            # Currently skipped — consult already includes the full nurse response
+
+            # --- SSE: assessment ---
+            detected_aes = []
+            for f in siglip_findings:
+                if f["ae_term"] != "normal" and f["confidence"] > 0.1:
+                    detected_aes.append({
+                        "ae_term": f["ae_term"],
+                        "grade": f["grade"],
+                        "confidence": f["confidence"],
+                        "source": "visual",
+                    })
+            # Add concerns from nurse as potential AEs
+            for concern in nurse_concerns:
+                concern_lower = concern.lower().replace(" ", "_")
+                already = any(a["ae_term"] == concern_lower for a in detected_aes)
+                if not already:
+                    detected_aes.append({
+                        "ae_term": concern_lower,
+                        "grade": 0,
+                        "confidence": 0,
+                        "source": "nurse_concern",
+                    })
+
+            concern_level = "low"
+            if any(a.get("grade", 0) >= 3 for a in detected_aes):
+                concern_level = "high"
+            elif any(a.get("grade", 0) >= 2 for a in detected_aes):
+                concern_level = "moderate"
+
+            q.put(json.dumps({
+                "type": "assessment",
                 "detected_aes": detected_aes,
-                "concern": assessment.get("overall_concern_level", "unknown"),
-                "action": assessment.get("recommended_action", "continue"),
+                "concern": concern_level,
+                "action": "recommend_early_visit" if concern_level in ("high", "moderate") else "continue_monitoring",
+                "latency_ms": consult_elapsed,
             }))
 
+            # --- SSE: day_end ---
             gt_list = [{"ae": ae_term, "grade": ae_grade}] if ae_term else []
             q.put(json.dumps({
-                "type": "day_end", "day": day,
+                "type": "day_end",
                 "gt_aes": gt_list,
                 "detected_aes": detected_aes,
             }))
@@ -1914,7 +1872,12 @@ def api_care_agent_media(request, media_type: str, filename: str):
         fpath = base / "v3_images" / filename
         content_type = "image/png"
     elif media_type == "audio":
-        fpath = base / "generated_voices_v4" / filename
+        # Try patient audio first, then nurse audio, then legacy
+        fpath = base / "audio" / "patient1" / filename
+        if not fpath.exists():
+            fpath = base / "audio" / "nurse_1" / filename
+        if not fpath.exists():
+            fpath = base / "generated_voices_v4" / filename
         content_type = "audio/wav"
     else:
         return HttpResponse("Invalid media type", status=400)

@@ -86,6 +86,10 @@ class CoughClassifier:
                     log.info("HeAR pinned to GPU %d", idx)
             except (ValueError, RuntimeError) as exc:
                 log.warning("HeAR GPU config failed (%s), falling back to default", exc)
+        else:
+            # Force CPU-only: hide all GPUs from TF to avoid CUDA conflicts with PyTorch
+            tf.config.set_visible_devices([], "GPU")
+            log.info("HeAR forced to CPU (TF GPU disabled).")
 
         self._tf = tf
         hear_dir = snapshot_download("google/hear")
@@ -93,17 +97,27 @@ class CoughClassifier:
         self._serving = model.signatures["serving_default"]
         log.info("HeAR model loaded.")
 
+    @staticmethod
+    def _patch_sklearn_compat(estimator):
+        """Patch sklearn version mismatch: models saved in 1.8+ lack deprecated attrs."""
+        # LogisticRegression.multi_class was removed in sklearn 1.8.0 but
+        # sklearn 1.7.x still expects it via get_params(). Add it back if missing.
+        if hasattr(estimator, "predict") and not hasattr(estimator, "multi_class"):
+            estimator.multi_class = "deprecated"
+
     def _load_classifiers(self, model_dir_3c: Path, model_dir_2c: Path) -> None:
         """Load 3-class (stage 1) and 2-class (stage 2) sklearn classifiers."""
         import joblib
 
         # Stage 1: 3-class (none / dry / wet) — cough detection
         self._clf_3c = joblib.load(model_dir_3c / "classifier.joblib")
+        self._patch_sklearn_compat(self._clf_3c)
         self._le_3c = joblib.load(model_dir_3c / "label_encoder.joblib")
         log.info("Stage 1 (3-class) loaded: classes=%s", list(self._le_3c.classes_))
 
         # Stage 2: 2-class (dry / wet) — cough type classification
         self._clf_2c = joblib.load(model_dir_2c / "classifier.joblib")
+        self._patch_sklearn_compat(self._clf_2c)
         self._le_2c = joblib.load(model_dir_2c / "label_encoder.joblib")
         log.info("Stage 2 (2-class) loaded: classes=%s", list(self._le_2c.classes_))
 

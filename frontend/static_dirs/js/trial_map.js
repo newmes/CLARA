@@ -63,10 +63,11 @@ function _buildBubbleText(p) {
 }
 
 class TrialMap {
-  constructor(containerId, patients, onPatientClick, runId) {
+  constructor(containerId, patients, onPatientClick, runId, options) {
     this.patients = patients || [];
     this.onPatientClick = onPatientClick;
     this.runId = runId;
+    this.options = options || {};
     this.sprites = {};
     this.nameLabels = {};
     this.statusDots = {};
@@ -461,7 +462,12 @@ class TrialMap {
       const bh = (cb.max_y - cb.min_y + 1) * TILE;
       const fitZoom = Math.min(this.game.config.width / bw, this.game.config.height / bh) * 0.9;
       camera.setZoom(Math.max(fitZoom, 1.0));
-      camera.centerOn((cb.min_x + cb.max_x + 1) / 2 * TILE, (cb.min_y + cb.max_y + 1) / 2 * TILE);
+      // Center on hospital when requested (landing page), otherwise on content bounds center
+      if (this.options.centerOnHospital && this.hospitalPos) {
+        camera.centerOn(this.hospitalPos.x * TILE + TILE / 2, this.hospitalPos.y * TILE + TILE / 2);
+      } else {
+        camera.centerOn((cb.min_x + cb.max_x + 1) / 2 * TILE, (cb.min_y + cb.max_y + 1) / 2 * TILE);
+      }
     } else {
       const fitZoom = Math.min(this.game.config.width / map.widthInPixels, this.game.config.height / map.heightInPixels) * 0.95;
       camera.setZoom(Math.max(fitZoom, 1.0));

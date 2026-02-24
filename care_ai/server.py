@@ -62,6 +62,7 @@ DEFAULT_RULE_SET = os.getenv(
 
 HEAR_GPU = os.getenv("HEAR_GPU", None)  # None = CPU (default, ~400-750ms)
 MEDASR_GPU = os.getenv("MEDASR_GPU", None)  # None = CPU (default, Conformer 105M is fast on CPU)
+MEDASR_MODEL_PATH = os.getenv("MEDASR_MODEL_PATH", "google/medasr")
 SEGMENTATION_DIR = os.getenv(
     "SEGMENTATION_DIR",
     str(CARE_AI_DIR / "models" / "segmentation"),
@@ -80,11 +81,15 @@ COUGH_MODEL_DIR_2C = os.getenv(
 # ===================================================================
 
 class ConsultRequest(BaseModel):
-    siglip_vector: list[float] = Field(
-        ...,
-        description="1152-dim SigLIP embedding from the mobile app's MedSigLIP encoder",
+    siglip_vector: Optional[list[float]] = Field(
+        None,
+        description="1152-dim SigLIP embedding (required if image_b64 not provided)",
         min_length=1152,
         max_length=1152,
+    )
+    image_b64: Optional[str] = Field(
+        None,
+        description="Base64-encoded image (PNG/JPEG). Server encodes via MedSigLIP-448. Use this OR siglip_vector.",
     )
     patient_text: str = Field(
         ...,
@@ -208,6 +213,13 @@ async def startup():
     log.info("SigLIP head loaded.")
 
     try:
+        siglip_encoder_model = os.getenv("SIGLIP_ENCODER_MODEL", "google/medsiglip-448")
+        siglip_encoder_device = os.getenv("SIGLIP_ENCODER_DEVICE", "cpu")
+        classifier.load_encoder(siglip_encoder_model, siglip_encoder_device)
+    except Exception as exc:
+        log.warning("SigLIP encoder failed to load — image mode disabled: %s", exc)
+
+    try:
         log.info("Loading CoughClassifier (3c=%s, 2c=%s, gpu=%s)", COUGH_MODEL_DIR_3C, COUGH_MODEL_DIR_2C, HEAR_GPU)
         cough_clf = CoughClassifier(
             segmentation_dir=SEGMENTATION_DIR,
@@ -222,8 +234,8 @@ async def startup():
 
     try:
         medasr_device = f"cuda:{MEDASR_GPU}" if MEDASR_GPU is not None else "cpu"
-        log.info("Loading MedASR (device=%s)", medasr_device)
-        medasr = MedASRService(device=medasr_device)
+        log.info("Loading MedASR (model=%s, device=%s)", MEDASR_MODEL_PATH, medasr_device)
+        medasr = MedASRService(model_path=MEDASR_MODEL_PATH, device=medasr_device)
         log.info("MedASR ready.")
     except Exception as exc:
         log.warning("MedASR failed to load — medical transcription disabled: %s", exc)
@@ -267,6 +279,7 @@ async def health():
     return {
         "status": "ok",
         "classifier_loaded": classifier is not None,
+        "encoder_loaded": classifier.encoder_loaded if classifier else False,
         "cough_classifier_loaded": cough_clf is not None,
         "medasr_loaded": medasr is not None,
         "nurse_loaded": nurse is not None,
@@ -279,11 +292,23 @@ async def health():
 async def consult(req: ConsultRequest):
     if not classifier or not nurse:
         raise HTTPException(status_code=503, detail="Models not loaded yet")
+    if not req.siglip_vector and not req.image_b64:
+        raise HTTPException(status_code=422, detail="Either siglip_vector or image_b64 is required")
+
+    log.info("=== /v1/consult ===")
+    log.info("patient_text: %s", req.patient_text[:200])
+    log.info("drug_name: %s | image: %s | audio: %s",
+             req.drug_name, bool(req.image_b64), bool(req.audio_b64))
 
     timings = {}
 
     t0 = time.time()
-    visual_assessment = classifier.build_visual_assessment(req.siglip_vector)
+    if req.image_b64:
+        if not classifier.encoder_loaded:
+            raise HTTPException(status_code=503, detail="SigLIP encoder not loaded — image mode unavailable")
+        visual_assessment = classifier.build_visual_assessment_from_image(req.image_b64)
+    else:
+        visual_assessment = classifier.build_visual_assessment(req.siglip_vector)
     timings["siglip_ms"] = round((time.time() - t0) * 1000)
 
     # Cough analysis (optional — only if audio provided and classifier loaded)
@@ -371,6 +396,15 @@ async def consult(req: ConsultRequest):
         "last_active": now,
         "drug_name": drug_name,
     }
+
+    log.info("=== consult response ===")
+    log.info("visual: %s", [f.get("ae_term") for f in visual_assessment.get("findings", [])][:5])
+    log.info("audio: cough=%s type=%s",
+             audio_assessment.get("cough_detected") if audio_assessment else None,
+             audio_assessment.get("majority_type") if audio_assessment else None)
+    log.info("medasr: %s", (medical_transcript or "")[:100])
+    log.info("nurse_text (%d chars): %s", len(speech_text), speech_text[:200])
+    log.info("latency: %s", timings)
 
     return ConsultResponse(
         session_id=session_id,
