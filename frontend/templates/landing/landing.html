@@ -1385,8 +1385,8 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
             </a>
           </div>
-          <div class="tc-image-placeholder">
-            Coming soon
+          <div class="tc-image-wrap">
+            <img src="{% static 'assets/demos/data_analysis_agent.webp' %}" alt="Data Analysis Agent — Anti-hallucination MedGemma" loading="lazy">
           </div>
         </div>
       </div>
@@ -1411,7 +1411,7 @@
      ================================================================ -->
 {% if demo_run_id %}
 <script src="https://cdn.jsdelivr.net/npm/phaser@3.90.0/dist/phaser.min.js"></script>
-<script src="{% static 'js/trial_map.js' %}?v=4"></script>
+<script src="{% static 'js/trial_map.js' %}?v=5"></script>
 {% endif %}
 <script>
 (function() {

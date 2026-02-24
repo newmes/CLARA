@@ -21,8 +21,16 @@ const SPRITE_MAP = {
     dark:   [4,19,22,23,27,35,39,43,47,57,60],
   },
 };
-// Flat list of ALL indices (for preloading)
+// Flat list of ALL indices (sorted for atlas mapping)
 const SPRITE_INDICES = [].concat(...Object.values(SPRITE_MAP.F), ...Object.values(SPRITE_MAP.M));
+// Sorted unique indices — position in this array = cell position in atlas
+const _SORTED_INDICES = [...new Set(SPRITE_INDICES)].sort((a, b) => a - b);
+const _ATLAS_COLS = 10;
+const _ATLAS_CELL_W = 96;   // 3 cols × 32px per character sheet
+const _ATLAS_CELL_H = 128;  // 4 rows × 32px per character sheet
+// Map sprite index → atlas cell position
+const _ATLAS_POS = {};
+_SORTED_INDICES.forEach((idx, pos) => { _ATLAS_POS[idx] = pos; });
 
 // Per-run sprite offset — set via setSpriteOffset(runId) from each page
 let _spriteOffset = 0;
@@ -225,7 +233,7 @@ class TrialMap {
   _preload() {
     const s = this.game.scene.scenes[0];
     // Tilemap from per-run API (sized to actual patient count)
-    s.load.tilemapTiledJSON('map', `/api/map/${this.runId}/tilemap/?v=${Date.now()}`);
+    s.load.tilemapTiledJSON('map', `/api/map/${this.runId}/tilemap/?v=4`);
     s.load.image('tiny-town', `${STATIC}/tiles/kenney/tiny-town/Tilemap/tilemap_packed.png`);
     // Custom building sprites
     s.load.image('hospital-building', `${STATIC}/buildings/hospital.png`);
@@ -244,19 +252,32 @@ class TrialMap {
     // Auto-tile road & grass spritesheets
     s.load.spritesheet('road-autotile', `${STATIC}/tiles/road_autotile.png`, { frameWidth: 16, frameHeight: 16 });
     s.load.spritesheet('grass-tiles', `${STATIC}/tiles/grass_tiles.png`, { frameWidth: 16, frameHeight: 16 });
-    // Character spritesheets
-    SPRITE_INDICES.forEach(i => {
-      const key = `patient_${String(i).padStart(2, '0')}`;
-      s.load.spritesheet(key, `${STATIC}/characters/${key}.png`, {
-        frameWidth: 32, frameHeight: 32,
-      });
-    });
+    // Character atlas (97 sprites in one image — 98 HTTP requests → 1)
+    s.load.image('patient-atlas', `${STATIC}/characters/patient_atlas.png`);
   }
 
   // ─── Create ──────────────────────────────────────────
   _create() {
     this._scene = this.game.scene.scenes[0];
     const scene = this._scene;
+
+    // ── Extract individual spritesheets from atlas ──
+    const atlasTex = scene.textures.get('patient-atlas');
+    const atlasSource = atlasTex.source[0];
+    _SORTED_INDICES.forEach((idx, pos) => {
+      const col = pos % _ATLAS_COLS;
+      const row = Math.floor(pos / _ATLAS_COLS);
+      const key = `patient_${String(idx).padStart(2, '0')}`;
+      const sx = col * _ATLAS_CELL_W;
+      const sy = row * _ATLAS_CELL_H;
+      // Create a spritesheet texture from the atlas region (3×4 grid of 32×32 frames)
+      const canvas = document.createElement('canvas');
+      canvas.width = _ATLAS_CELL_W;
+      canvas.height = _ATLAS_CELL_H;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(atlasSource.image, sx, sy, _ATLAS_CELL_W, _ATLAS_CELL_H, 0, 0, _ATLAS_CELL_W, _ATLAS_CELL_H);
+      scene.textures.addSpriteSheet(key, canvas, { frameWidth: 32, frameHeight: 32 });
+    });
 
     // Load tilemap for layout data (positions, tile types)
     const map = scene.make.tilemap({ key: 'map' });
