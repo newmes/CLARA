@@ -1417,6 +1417,13 @@
 (function() {
   'use strict';
 
+  /* ─── Prefetch map data immediately ─── */
+  {% if demo_run_id %}
+  var _RUN_ID = '{{ demo_run_id }}';
+  var _prefetchMeta = fetch('/api/run/' + _RUN_ID + '/').then(function(r) { return r.json(); }).catch(function() { return {}; });
+  var _prefetchDay = fetch('/api/day/' + _RUN_ID + '/1/').then(function(r) { return r.json(); }).catch(function() { return null; });
+  {% endif %}
+
   /* ─── Hero Two-Stage Animation ─── */
 
   function initHeroAnimation() {
@@ -1469,7 +1476,7 @@
 
     /* Init Phaser map — Stage 2 triggers after zoom-in completes */
     {% if demo_run_id %}
-    setTimeout(function() { initSimMap(triggerStage2); }, 800);
+    initSimMap(triggerStage2);
     {% else %}
     /* No map — Stage 2 on fixed timer */
     setTimeout(triggerStage2, 2000);
@@ -1609,18 +1616,13 @@
     var autoTimer = null;
     var INTERVAL = 1800;
 
-    /* Fetch run meta for total days */
-    fetch('/api/run/' + RUN_ID + '/')
-      .then(function(r) { return r.json(); })
-      .then(function(meta) {
-        totalDays = meta.total_days || 84;
-      })
-      .catch(function() {});
+    /* Use prefetched data */
+    _prefetchMeta.then(function(meta) {
+      totalDays = meta.total_days || 84;
+    });
 
-    /* Fetch initial day data + init map */
-    fetch('/api/day/' + RUN_ID + '/1/')
-      .then(function(r) { return r.json(); })
-      .then(function(data) {
+    _prefetchDay.then(function(data) {
+      if (!data) { container.style.display = 'none'; if (onZoomDone) onZoomDone(); return; }
         var patients = data.patients || [];
         setSpriteOffset(RUN_ID);
         /* Hide canvas until ready — prevents green flash */
@@ -1649,7 +1651,6 @@
             /* Start zoomed out, fade in + zoom in simultaneously */
             cam.setZoom(finalZoom * 0.45);
 
-            container.style.transition = 'opacity 0.6s ease';
             container.style.opacity = '1';
 
             /* Show zoomed-out view for a moment, then zoom in */
@@ -1664,10 +1665,6 @@
             }, 4500);
           }
         });
-      })
-      .catch(function(e) {
-        console.warn('Sim map preview: failed to load', e);
-        container.style.display = 'none';
       });
 
     function advanceDay() {
