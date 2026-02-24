@@ -57,12 +57,18 @@ def load_simulation_data(sim_dir: Path, mode: str) -> dict[str, list[dict]]:
     pattern = f"*_{mode}.jsonl"
 
     for f in sorted(sim_dir.glob(pattern)):
+        if f.stat().st_size == 0:
+            continue
         pid = f.stem.replace(f"_{mode}", "")
         days = []
         for line in f.read_text(encoding="utf-8").strip().split("\n"):
             if line.strip():
-                days.append(json.loads(line))
-        patients[pid] = days
+                try:
+                    days.append(json.loads(line))
+                except json.JSONDecodeError:
+                    continue
+        if days:
+            patients[pid] = days
 
     return patients
 
@@ -73,7 +79,9 @@ def load_simulation_data(sim_dir: Path, mode: str) -> dict[str, list[dict]]:
 
 def compute_patient_metrics(pid: str, days: list[dict], mode: str) -> dict:
     """환자 1명의 시뮬레이션 결과에서 모든 지표를 계산한다."""
-    assert days, f"Empty day list for {pid}/{mode}"
+    if not days:
+        _logger.warning(f"Empty day list for {pid}/{mode}, returning minimal metrics")
+        return {"patient_id": pid, "mode": mode, "total_days": 0, "skipped": True}
 
     metrics: dict[str, Any] = {
         "patient_id": pid,
@@ -670,15 +678,28 @@ def run_evaluation(run_dir: Path) -> dict:
 
     # JSON 저장
     report_path = run_dir / "comparison_report.json"
-    report_path.write_text(
-        json.dumps(comparison, indent=2, ensure_ascii=False, default=str),
-        encoding="utf-8",
-    )
-    _logger.info(f"Comparison report saved to {report_path}")
+    try:
+        report_path.write_text(
+            json.dumps(comparison, indent=2, ensure_ascii=False, default=str),
+            encoding="utf-8",
+        )
+        _logger.info(f"Comparison report saved to {report_path}")
+    except PermissionError:
+        alt_path = run_dir / "comparison_report_new.json"
+        alt_path.write_text(
+            json.dumps(comparison, indent=2, ensure_ascii=False, default=str),
+            encoding="utf-8",
+        )
+        _logger.warning(f"PermissionError on {report_path}, saved to {alt_path}")
 
     # 텍스트 저장
     report_text = print_comparison_report(comparison)
     text_path = run_dir / "comparison_report.txt"
-    text_path.write_text(report_text, encoding="utf-8")
+    try:
+        text_path.write_text(report_text, encoding="utf-8")
+    except PermissionError:
+        alt_text = run_dir / "comparison_report_new.txt"
+        alt_text.write_text(report_text, encoding="utf-8")
+        _logger.warning(f"PermissionError on {text_path}, saved to {alt_text}")
 
     return comparison

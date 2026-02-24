@@ -1261,6 +1261,83 @@
           <div class="tc-image-wrap">
             <img src="{% static 'assets/demos/simulation_engine.png' %}" alt="Simulation Engine — 10-Step Pipeline Daily Loop">
           </div>
+          <!-- Patient Init visual -->
+          <div id="ctsPatientRight" style="display:none;">
+            <div style="text-align:center;padding:16px;">
+              <img src="{% static 'assets/characters/patient_01.png' %}" style="width:80px;height:80px;image-rendering:pixelated;margin-bottom:12px;">
+              <div style="background:rgba(57,210,192,0.06);border:1px solid rgba(57,210,192,0.2);border-radius:12px;padding:14px;text-align:left;">
+                <div style="font:600 0.65em 'JetBrains Mono',monospace;color:var(--accent-cyan);margin-bottom:8px;text-transform:uppercase;letter-spacing:1px;">Generated Patient</div>
+                <div style="font:0.72em 'JetBrains Mono',monospace;color:var(--text-secondary);line-height:1.7;">
+                  <div>Age: <span style="color:var(--text-primary);">67</span> &middot; Sex: <span style="color:var(--text-primary);">Male</span></div>
+                  <div>ECOG: <span style="color:var(--text-primary);">1</span> &middot; Stage: <span style="color:var(--text-primary);">IV</span></div>
+                  <div>Comorbidities: <span style="color:var(--text-primary);">T2DM, HTN</span></div>
+                  <div>Persona: <span style="color:var(--accent-cyan);">stoic_minimizer</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Daily Sim visual (hazard canvas) -->
+          <div id="ctsDailyRight" style="display:none;">
+            <div class="hz-canvas-wrap">
+              <canvas id="hazardMiniCanvas" width="440" height="140"></canvas>
+              <div class="hz-label-row">
+                <span>Day 1</span>
+                <span>Day 84</span>
+              </div>
+              <div class="hz-formula">h(t) = I &middot; f(t) / (1 &minus; I &middot; F(t&minus;1))</div>
+              <div class="hz-legend">
+                <div class="hz-legend-item">
+                  <div class="hz-legend-dot" style="background:rgba(57,210,192,0.7);"></div>
+                  Early onset
+                </div>
+                <div class="hz-legend-item">
+                  <div class="hz-legend-dot" style="background:rgba(188,140,255,0.6);"></div>
+                  Mid-cycle
+                </div>
+                <div class="hz-legend-item">
+                  <div class="hz-legend-dot" style="background:rgba(210,153,34,0.5);"></div>
+                  Late onset
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Validate visual -->
+          <div id="ctsValidateRight" style="display:none;">
+            <div class="rs-mini-grid">
+              <div class="rs-mini-stat">
+                <div class="rs-mini-val">168</div>
+                <div class="rs-mini-label">Comparisons</div>
+              </div>
+              <div class="rs-mini-stat">
+                <div class="rs-mini-val">12</div>
+                <div class="rs-mini-label">Dimensions</div>
+              </div>
+              <div class="rs-mini-stat">
+                <div class="rs-mini-val" style="color:#d29922;">C</div>
+                <div class="rs-mini-label">Overall Grade</div>
+              </div>
+              <div class="rs-mini-stat">
+                <div class="rs-mini-val">55.2</div>
+                <div class="rs-mini-label">Score / 100</div>
+              </div>
+            </div>
+            <div class="hz-canvas-wrap" style="padding:14px 16px;">
+              <div style="font:600 0.6em 'JetBrains Mono',monospace;color:var(--text-muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Rule Set vs Sim</div>
+              <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                <span style="font:600 0.72em 'JetBrains Mono',monospace;color:var(--accent-cyan);padding:4px 10px;border:1px solid rgba(57,210,192,0.25);border-radius:8px;background:rgba(57,210,192,0.06);">Rule Set</span>
+                <span style="color:var(--text-muted);font-size:0.8em;">vs</span>
+                <span style="font:600 0.72em 'JetBrains Mono',monospace;color:var(--accent-blue);padding:4px 10px;border:1px solid rgba(88,166,255,0.25);border-radius:8px;background:rgba(88,166,255,0.06);">Sim Data</span>
+                <span style="color:var(--text-muted);font-size:0.8em;">&#8594;</span>
+                <span style="font:600 0.72em 'JetBrains Mono',monospace;color:var(--accent-green);padding:4px 10px;border:1px solid rgba(63,185,80,0.25);border-radius:8px;background:rgba(63,185,80,0.06);">SMD + TOST + FDR</span>
+              </div>
+              <div style="margin-top:10px;display:flex;gap:6px;flex-wrap:wrap;">
+                <span style="font:0.62em 'JetBrains Mono',monospace;padding:2px 6px;border-radius:3px;background:rgba(63,185,80,0.12);color:#3fb950;">Demo A</span>
+                <span style="font:0.62em 'JetBrains Mono',monospace;padding:2px 6px;border-radius:3px;background:rgba(63,185,80,0.12);color:#3fb950;">ECOG A</span>
+                <span style="font:0.62em 'JetBrains Mono',monospace;padding:2px 6px;border-radius:3px;background:rgba(88,166,255,0.12);color:#58a6ff;">Survival B</span>
+                <span style="font:0.62em 'JetBrains Mono',monospace;padding:2px 6px;border-radius:3px;background:rgba(210,153,34,0.12);color:#d29922;">AE Onset C</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 

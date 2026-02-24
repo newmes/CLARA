@@ -1,0 +1,332 @@
+{% extends "base/base.html" %}
+{% load static %}
+
+{% block title %}Validate Simulation — CLARA{% endblock %}
+
+{% block nav_items %}
+<span class="nav-sep">/</span>
+<a href="/" class="nav-crumb">Home</a>
+<span class="nav-sep">/</span>
+<span class="nav-crumb nav-active">Validate Simulation</span>
+{% endblock %}
+
+{% block extra_head %}
+<style>
+  :root {
+    --bg-main: #0d1117; --bg-card: #161b22; --bg-elevated: #1c2129;
+    --border: #30363d; --text-primary: #e6edf3; --text-secondary: #8b949e;
+    --text-muted: #6e7681; --accent-cyan: #39d2c0; --accent-blue: #58a6ff;
+    --accent-green: #3fb950; --accent-purple: #bc8cff; --accent-orange: #d29922;
+    --accent-red: #f85149;
+  }
+  body { background: var(--bg-main); color: var(--text-primary); }
+
+  .page-wrap { max-width: 1200px; margin: 0 auto; padding: 40px 32px 80px; }
+  .page-title { font: 700 1.6em -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin-bottom: 6px; }
+  .page-subtitle { color: var(--text-secondary); font-size: 0.88em; margin-bottom: 32px; }
+  .section-title {
+    font: 700 1em -apple-system, sans-serif; color: var(--text-primary);
+    margin: 36px 0 16px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  /* Grade badge */
+  .grade { display: inline-flex; align-items: center; justify-content: center;
+    width: 32px; height: 32px; border-radius: 8px; font: 700 0.9em 'JetBrains Mono', monospace; }
+  .grade-lg { width: 64px; height: 64px; font-size: 1.8em; border-radius: 14px; }
+  .grade-A { background: rgba(63,185,80,0.15); color: var(--accent-green); border: 1px solid rgba(63,185,80,0.3); }
+  .grade-B { background: rgba(88,166,255,0.15); color: var(--accent-blue); border: 1px solid rgba(88,166,255,0.3); }
+  .grade-C { background: rgba(210,153,34,0.15); color: var(--accent-orange); border: 1px solid rgba(210,153,34,0.3); }
+  .grade-D { background: rgba(248,81,73,0.15); color: var(--accent-red); border: 1px solid rgba(248,81,73,0.3); }
+
+  /* Overall card */
+  .overall-card {
+    display: flex; align-items: center; gap: 32px; padding: 28px 32px;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
+    margin-bottom: 28px;
+  }
+  .overall-score { text-align: center; }
+  .overall-score .score-num { font: 700 2.4em 'JetBrains Mono', monospace; color: var(--accent-cyan); }
+  .overall-score .score-denom { font: 0.75em 'JetBrains Mono', monospace; color: var(--text-muted); }
+  .overall-stats { flex: 1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+  .os-item { text-align: center; }
+  .os-val { font: 700 1.1em 'JetBrains Mono', monospace; color: var(--text-primary); }
+  .os-label { font-size: 0.65em; color: var(--text-secondary); margin-top: 2px; text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Section cards grid */
+  .section-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 28px; }
+  .sec-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 16px; display: flex; flex-direction: column; gap: 8px;
+    transition: border-color 0.2s; cursor: pointer;
+  }
+  .sec-card:hover { border-color: rgba(57,210,192,0.4); }
+  .sec-card.selected { border-color: var(--accent-cyan); background: rgba(57,210,192,0.04); }
+  .sec-header { display: flex; justify-content: space-between; align-items: center; }
+  .sec-name { font: 600 0.8em -apple-system, sans-serif; color: var(--text-primary); }
+  .sec-score-bar { height: 6px; border-radius: 3px; background: var(--bg-elevated); overflow: hidden; }
+  .sec-score-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
+  .sec-meta { display: flex; justify-content: space-between; font: 0.65em 'JetBrains Mono', monospace; color: var(--text-muted); }
+  .sec-grade-dist { display: flex; gap: 4px; }
+  .sec-gd { padding: 1px 5px; border-radius: 3px; font: 600 0.6em 'JetBrains Mono', monospace; }
+
+  /* Stats overview */
+  .stats-row { display: grid; grid-template-columns: repeat(5, 1fr); gap: 14px; margin-bottom: 28px; }
+  .stat-card {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px;
+    padding: 16px; text-align: center;
+  }
+  .stat-val { font: 700 1.2em 'JetBrains Mono', monospace; color: var(--accent-cyan); margin-bottom: 4px; }
+  .stat-label { font-size: 0.65em; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; }
+
+  /* Detail table */
+  .detail-table {
+    width: 100%; border-collapse: separate; border-spacing: 0;
+    font-size: 0.76em;
+  }
+  .detail-table th {
+    text-align: left; padding: 8px 10px;
+    font: 600 0.7em 'JetBrains Mono', monospace; color: var(--accent-cyan);
+    text-transform: uppercase; letter-spacing: 0.8px;
+    border-bottom: 1px solid var(--border); background: var(--bg-elevated);
+    position: sticky; top: 0; z-index: 1;
+  }
+  .detail-table th:first-child { border-radius: 8px 0 0 0; }
+  .detail-table th:last-child { border-radius: 0 8px 0 0; }
+  .detail-table td {
+    padding: 7px 10px; border-bottom: 1px solid rgba(48,54,61,0.3);
+    color: var(--text-secondary);
+  }
+  .detail-table tr:hover td { background: rgba(57,210,192,0.03); }
+  .detail-table .mono { font-family: 'JetBrains Mono', monospace; }
+  .detail-table .r { text-align: right; }
+  .smd-bar { display: inline-block; height: 8px; border-radius: 2px; vertical-align: middle; margin-left: 4px; }
+
+  .detail-wrap {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 0; overflow: hidden; max-height: 500px; overflow-y: auto;
+  }
+
+  .method-box {
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px; margin-bottom: 24px;
+  }
+  .method-title {
+    font: 700 0.7em 'JetBrains Mono', monospace; color: var(--accent-cyan);
+    text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px;
+  }
+  .method-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .method-item { font-size: 0.76em; color: var(--text-secondary); line-height: 1.6; }
+  .method-item strong { color: var(--text-primary); }
+
+  @media (max-width: 900px) {
+    .section-grid { grid-template-columns: repeat(2, 1fr); }
+    .stats-row { grid-template-columns: repeat(3, 1fr); }
+    .overall-stats { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-wrap">
+  <div class="page-title">Simulation Validation</div>
+  <div class="page-subtitle">
+    Rule-set ground truth vs simulated data — statistical comparison across 12 dimensions ({{ drug_name|default:"Etoposide + Cisplatin" }}, 100 patients &times; 126 days)
+  </div>
+
+  <!-- Overall Grade -->
+  <div class="overall-card" id="overallCard">
+    <div class="overall-score">
+      <div class="grade grade-lg" id="overallGrade">-</div>
+      <div style="margin-top:8px;">
+        <span class="score-num" id="overallScoreNum">-</span>
+        <span class="score-denom">/ 100</span>
+      </div>
+    </div>
+    <div class="overall-stats" id="overallStats"></div>
+  </div>
+
+  <!-- Methodology -->
+  <div class="method-box">
+    <div class="method-title">Validation Methodology</div>
+    <div class="method-grid">
+      <div class="method-item"><strong>SMD</strong> (Standardized Mean Difference) — clinical trial Table 1 standard; &lt;0.1 negligible, &lt;0.2 small</div>
+      <div class="method-item"><strong>TOST</strong> (Two One-Sided Tests) — FDA bioequivalence standard for proving equivalence within margin</div>
+      <div class="method-item"><strong>Chi-square GoF</strong> — categorical distribution fit test for demographics, response categories</div>
+      <div class="method-item"><strong>BH-FDR</strong> — Benjamini-Hochberg correction for multiple comparisons; controls false discovery rate</div>
+      <div class="method-item"><strong>Coverage</strong> — rule-set expected value within simulation 95% CI (Wilson for proportions)</div>
+      <div class="method-item"><strong>Grading</strong> — A (&ge;75) B (&ge;50) C (&ge;25) D (&lt;25), weighted by clinical importance</div>
+    </div>
+  </div>
+
+  <!-- Global Stats -->
+  <div class="stats-row" id="globalStats"></div>
+
+  <!-- Section Cards -->
+  <div class="section-title">Per-Section Grades</div>
+  <div class="section-grid" id="sectionGrid"></div>
+
+  <!-- Detail Table -->
+  <div class="section-title">Detail Comparisons — <span id="detailSectionName">All Sections</span></div>
+  <div class="detail-wrap">
+    <table class="detail-table" id="detailTable">
+      <thead>
+        <tr>
+          <th>Variable</th>
+          <th>Section</th>
+          <th class="r">Observed</th>
+          <th class="r">Expected</th>
+          <th class="r">|SMD|</th>
+          <th>Grade</th>
+          <th class="r">p (FDR)</th>
+          <th>TOST</th>
+          <th>Cover</th>
+        </tr>
+      </thead>
+      <tbody id="detailBody"></tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block js_content %}
+<script>
+(function() {
+  'use strict';
+
+  var DATA = {{ validation_json|safe }};
+  var summary = DATA.summary || {};
+  var statSum = DATA.statistical_summary || {};
+  var details = DATA.details || [];
+  var sections = summary.sections || {};
+
+  var gradeColors = {A:'#3fb950', B:'#58a6ff', C:'#d29922', D:'#f85149'};
+
+  function setOverall() {
+    var g = summary.overall_grade || '?';
+    var s = summary.overall_score || 0;
+    var el = document.getElementById('overallGrade');
+    el.textContent = g;
+    el.className = 'grade grade-lg grade-' + g;
+    document.getElementById('overallScoreNum').textContent = s.toFixed(1);
+
+    var statsHtml = [
+      {v: statSum.n_comparisons||0, l:'Comparisons'},
+      {v: (statSum.mean_abs_smd||0).toFixed(3), l:'Mean |SMD|'},
+      {v: (statSum.tost_rate||0).toFixed(1)+'%', l:'TOST Equivalent'},
+      {v: (statSum.coverage_rate||0).toFixed(1)+'%', l:'95% CI Coverage'},
+      {v: (statSum.pct_smd_lt_0_2||statSum['pct_smd_lt_0.2']||0).toFixed(1)+'%', l:'SMD < 0.2'},
+      {v: (statSum.fdr_non_significant_rate||0).toFixed(1)+'%', l:'FDR Non-sig'},
+      {v: (statSum.median_abs_smd||0).toFixed(3), l:'Median |SMD|'},
+      {v: Object.keys(sections).length, l:'Dimensions'},
+    ];
+    document.getElementById('overallStats').innerHTML = statsHtml.map(function(s) {
+      return '<div class="os-item"><div class="os-val">' + s.v + '</div><div class="os-label">' + s.l + '</div></div>';
+    }).join('');
+  }
+
+  function setGlobalStats() {
+    var items = [
+      {v: statSum.smd_negligible||0, l:'SMD < 0.1 (Negligible)', c:'var(--accent-green)'},
+      {v: statSum.smd_small||0, l:'SMD < 0.2 (Small)', c:'var(--accent-blue)'},
+      {v: statSum.smd_medium||0, l:'0.2 ≤ SMD < 0.5 (Medium)', c:'var(--accent-orange)'},
+      {v: statSum.smd_large||0, l:'SMD ≥ 0.5 (Large)', c:'var(--accent-red)'},
+      {v: statSum.fdr_significant||0, l:'FDR Significant (q<0.05)', c:'var(--accent-purple)'},
+    ];
+    document.getElementById('globalStats').innerHTML = items.map(function(it) {
+      return '<div class="stat-card"><div class="stat-val" style="color:'+it.c+'">'+it.v+'</div><div class="stat-label">'+it.l+'</div></div>';
+    }).join('');
+  }
+
+  function scoreFillColor(score) {
+    if (score >= 75) return 'var(--accent-green)';
+    if (score >= 50) return 'var(--accent-blue)';
+    if (score >= 25) return 'var(--accent-orange)';
+    return 'var(--accent-red)';
+  }
+
+  var selectedSection = null;
+
+  function setSectionGrid() {
+    var order = ['Demographics','Comorbidities','Disease Baseline','AE Incidence',
+      'AE Grade Distribution','AE Onset Timing','Efficacy','Dose Modification',
+      'Supportive Care','Survival','ECOG','AE Cascade'];
+    var html = '';
+    order.forEach(function(sec) {
+      var d = sections[sec];
+      if (!d) return;
+      var gd = d.grade_dist || {};
+      var gdHtml = '';
+      ['A','B','C','D'].forEach(function(g) {
+        if (gd[g]) gdHtml += '<span class="sec-gd grade-' + g + '">' + g + ':' + gd[g] + '</span>';
+      });
+      html += '<div class="sec-card" data-sec="' + sec + '" onclick="window._selectSection(\'' + sec + '\')">' +
+        '<div class="sec-header"><span class="sec-name">' + sec + '</span><span class="grade grade-' +
+        (d.avg_score >= 75 ? 'A' : d.avg_score >= 50 ? 'B' : d.avg_score >= 25 ? 'C' : 'D') +
+        '" style="width:26px;height:26px;font-size:0.72em;">' + d.avg_score.toFixed(0) + '</span></div>' +
+        '<div class="sec-score-bar"><div class="sec-score-fill" style="width:' + d.avg_score +
+        '%;background:' + scoreFillColor(d.avg_score) + ';"></div></div>' +
+        '<div class="sec-meta"><span>n=' + d.n_items + '</span><div class="sec-grade-dist">' + gdHtml + '</div></div></div>';
+    });
+    document.getElementById('sectionGrid').innerHTML = html;
+  }
+
+  window._selectSection = function(sec) {
+    if (selectedSection === sec) {
+      selectedSection = null;
+      document.getElementById('detailSectionName').textContent = 'All Sections';
+    } else {
+      selectedSection = sec;
+      document.getElementById('detailSectionName').textContent = sec;
+    }
+    document.querySelectorAll('.sec-card').forEach(function(c) {
+      c.classList.toggle('selected', c.dataset.sec === selectedSection);
+    });
+    fillDetailTable();
+  };
+
+  function smdBarWidth(smd) { return Math.min(smd / 2.0 * 100, 100); }
+  function smdBarColor(smd) {
+    if (smd < 0.1) return 'var(--accent-green)';
+    if (smd < 0.2) return 'var(--accent-blue)';
+    if (smd < 0.5) return 'var(--accent-orange)';
+    return 'var(--accent-red)';
+  }
+
+  function fillDetailTable() {
+    var filtered = details;
+    if (selectedSection) {
+      filtered = details.filter(function(d) { return d.section === selectedSection; });
+    }
+    filtered.sort(function(a, b) { return (b.abs_smd || 0) - (a.abs_smd || 0); });
+    var html = '';
+    filtered.forEach(function(d) {
+      var smd = d.abs_smd || 0;
+      var obs = typeof d.observed === 'number' ? d.observed.toFixed(3) : (d.observed || '-');
+      var exp = typeof d.expected === 'number' ? d.expected.toFixed(3) : (d.expected || '-');
+      var fdr_p = d.fdr_p != null ? d.fdr_p.toFixed(4) : '-';
+      var fdr_cls = d.fdr_significant ? 'color:var(--accent-red)' : 'color:var(--text-muted)';
+      var tost = d.tost_equiv ? '<span style="color:var(--accent-green)">&#10003;</span>' : '<span style="color:var(--text-muted)">&times;</span>';
+      var cov = d.covered === 'True' || d.covered === true ? '<span style="color:var(--accent-green)">&#10003;</span>' : '<span style="color:var(--text-muted)">&times;</span>';
+      html += '<tr>' +
+        '<td>' + (d.label || d.variable || '-') + '</td>' +
+        '<td>' + (d.section || '-') + '</td>' +
+        '<td class="mono r">' + obs + '</td>' +
+        '<td class="mono r">' + exp + '</td>' +
+        '<td class="mono r">' + smd.toFixed(3) +
+          '<span class="smd-bar" style="width:' + smdBarWidth(smd) + 'px;background:' + smdBarColor(smd) + ';"></span></td>' +
+        '<td><span class="grade grade-' + (d.grade||'D') + '" style="width:22px;height:22px;font-size:0.65em;">' + (d.grade||'?') + '</span></td>' +
+        '<td class="mono r" style="' + fdr_cls + '">' + fdr_p + '</td>' +
+        '<td style="text-align:center;">' + tost + '</td>' +
+        '<td style="text-align:center;">' + cov + '</td></tr>';
+    });
+    document.getElementById('detailBody').innerHTML = html || '<tr><td colspan="9" style="text-align:center;color:var(--text-muted);padding:20px;">No data</td></tr>';
+  }
+
+  setOverall();
+  setGlobalStats();
+  setSectionGrid();
+  fillDetailTable();
+})();
+</script>
+{% endblock %}

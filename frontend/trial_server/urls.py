@@ -20,6 +20,12 @@ urlpatterns = [
          views.demo_care_agent, name='demo_care_agent_live'),
     path('demo/hazard/',
          views.demo_hazard, name='demo_hazard'),
+    path('demo/patient-init/',
+         views.demo_patient_init, name='demo_patient_init'),
+    path('demo/daily-sim/',
+         views.demo_daily_sim, name='demo_daily_sim'),
+    path('demo/validate-sim/',
+         views.demo_validate_sim, name='demo_validate_sim'),
 
     # Trial viewer
     path('trial/<str:run_id>/', views.trial_viewer, name='trial_viewer'),

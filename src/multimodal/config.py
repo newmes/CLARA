@@ -249,10 +249,7 @@ class MultimodalConfig:
 
     # --- HuggingFace token (for gated models like MedGemma) ---
     hf_token: str = field(
-        default_factory=lambda: os.environ.get(
-            "HF_TOKEN",
-            "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",
-        )
+        default_factory=lambda: os.environ.get("HF_TOKEN", "")
     )
 
     # --- MedGemma 27B (face analysis — local VLM) ---

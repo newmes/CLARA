@@ -89,12 +89,17 @@ class DailySimulator:
         self.demographics = emr.get("demographics")
         if not self.demographics:
             raise ValueError(f"Patient {patient.get('patient_id', '?')}: 'emr.demographics' is missing.")
-        self.conditions = {h.get("condition", "").lower() for h in emr.get("medical_history", [])}
+        self.conditions = {h.get("condition", "").lower() for h in (emr.get("medical_history") or [])}
         self.age = self.demographics.get("age")
         if self.age is None:
             raise ValueError(f"Patient {patient.get('patient_id', '?')}: 'demographics.age' is missing.")
-        _raw_wt = emr.get("baseline_vitals", {}).get("weight_kg", 70)
-        self.weight_kg = float(_raw_wt) if _raw_wt is not None else 70.0
+        _raw_wt = (emr.get("baseline_vitals") or {}).get("weight_kg", 70)
+        try:
+            self.weight_kg = float(_raw_wt) if _raw_wt is not None else 70.0
+        except (ValueError, TypeError):
+            import re as _re
+            _digits = _re.findall(r'[\d.]+', str(_raw_wt))
+            self.weight_kg = float(_digits[0]) if _digits else 70.0
 
         # ── 상태 변수 초기화 ──
         self.occurred_aes: dict[str, dict] = {}
@@ -117,7 +122,7 @@ class DailySimulator:
 
         # ── Baseline CM (기저 약물) ──
         self.active_cm: list[dict] = []
-        for history in emr.get("medical_history", []):
+        for history in (emr.get("medical_history") or []):
             med = history.get("medication")
             if med and history.get("ongoing", True):
                 if isinstance(med, dict):
@@ -170,15 +175,16 @@ class DailySimulator:
 
         # ── Baseline labs/vitals (pre-treatment, from EMR) ──
         self.baseline_labs: dict[str, float] = {}
-        for _lab_name, _lab_data in emr.get("baseline_labs", {}).items():
+        for _lab_name, _lab_data in (emr.get("baseline_labs") or {}).items():
             if isinstance(_lab_data, dict):
                 _v = _lab_data.get("value")
             else:
                 _v = _lab_data
-            if isinstance(_v, (int, float)):
-                self.baseline_labs[_lab_name] = float(_v)
+            _parsed = DailySimulator._extract_number(_v)
+            if _parsed is not None:
+                self.baseline_labs[_lab_name] = _parsed
         self.baseline_vitals: dict[str, float] = DailySimulator._normalize_bt(
-            dict(emr.get("baseline_vitals", {}))
+            dict(emr.get("baseline_vitals") or {})
         )
 
         # ── AE cascade ──
@@ -206,9 +212,13 @@ class DailySimulator:
             )
         self.mortality_config = rule_set["mortality_model"]
         self.ecog_config = rule_set["ecog_model"]
-        self.lab_causality_config = rule_set.get("lab_causality", {})
+        self.lab_causality_config = rule_set.get("lab_causality") or {}
         self.ae_cascade_rules = rule_set["ae_cascade_rules"]
-        self.disposition_config = rule_set["disposition_model"]
+        _disp_raw = rule_set["disposition_model"]
+        if "independent_hazards" in _disp_raw:
+            self.disposition_config = _disp_raw["independent_hazards"]
+        else:
+            self.disposition_config = _disp_raw
 
         # ── 스케줄 파싱 ──
         self.admin_schedule = self._parse_administration_schedule()
@@ -234,12 +244,12 @@ class DailySimulator:
         _logger.info(f"  Drug classification: IO={self.io_drugs}, non-IO={self.non_io_drugs}")
 
         # ── RECIST 스캔 스케줄 ──
-        cycle_len = rule_set.get("trial_design", {}).get("cycle_length_days", 21)
+        cycle_len = (rule_set.get("trial_design") or {}).get("cycle_length_days", 21)
         first_scan_day = cycle_len * 2 + 7
         scan_interval = cycle_len * 2
         self.recist_scan_days: list[int] = []
         scan_day = first_scan_day
-        effective_days = self.actual_duration or rule_set.get("trial_design", {}).get("planned_duration_days", 180)
+        effective_days = self.actual_duration or (rule_set.get("trial_design") or {}).get("planned_duration_days", 180)
         while scan_day <= effective_days:
             self.recist_scan_days.append(scan_day)
             scan_day += scan_interval
@@ -327,7 +337,7 @@ class DailySimulator:
 
     def _parse_administration_schedule(self) -> list[dict]:
         """rule_set에서 투약 스케줄을 파싱한다."""
-        schedule = self.rule_set.get("administration_schedule", [])
+        schedule = self.rule_set.get("administration_schedule") or []
         if not schedule or not isinstance(schedule, list):
             raise ValueError("rule_set.administration_schedule is missing or empty.")
         user_drug_name = self.rule_set.get("drug_name", "")
@@ -361,10 +371,23 @@ class DailySimulator:
         FDA PI 기반 오버라이드를 LLM 생성 규칙 위에 적용하고,
         감량 단계를 FDA 정확값 [1.0, 0.8, 0.6, 0.4]으로 교정한다.
         """
-        rules = self.rule_set.get("dose_modification_rules", [])
+        _ACTION_ALIASES = {
+            "hold_dose": "DRUG INTERRUPTED",
+            "hold": "DRUG INTERRUPTED",
+            "interrupt": "DRUG INTERRUPTED",
+            "discontinue": "DRUG WITHDRAWN",
+            "withdraw": "DRUG WITHDRAWN",
+            "reduce": "DOSE REDUCED",
+            "dose_reduce": "DOSE REDUCED",
+            "no_change": "DOSE NOT CHANGED",
+        }
+        rules = self.rule_set.get("dose_modification_rules") or []
         result: dict[str, dict] = {}
         for rule in rules:
             ae_term = rule.get("ae_term", "default")
+            ga = rule.get("grade_actions") or {}
+            for g, a in ga.items():
+                ga[g] = _ACTION_ALIASES.get(a, a)
             result[ae_term.lower()] = rule
         if "default" not in result:
             result["default"] = {
@@ -394,12 +417,12 @@ class DailySimulator:
 
     def _parse_supportive_care_rules(self) -> dict[str, list[dict]]:
         """supportive_care_rules를 ae_term으로 인덱싱된 dict로 변환."""
-        rules = self.rule_set.get("supportive_care_rules", [])
+        rules = self.rule_set.get("supportive_care_rules") or []
         result: dict[str, list[dict]] = {}
         for rule in rules:
             ae_term = rule.get("ae_term", "")
             if ae_term:
-                result[ae_term.lower()] = rule.get("treatments", [])
+                result[ae_term.lower()] = rule.get("treatments") or []
         return result
 
     # ═══════════════════════════════════════════════════════
@@ -412,7 +435,7 @@ class DailySimulator:
         for ae in self.rule_set["ae_profile"]:
             term = ae["ae_term"]
             base = float(ae.get("incidence_all_grade", 0.1))
-            modifiers = ae.get("risk_modifiers", [])
+            modifiers = ae.get("risk_modifiers") or []
             adjusted = adjust_incidence_by_risk_modifiers(
                 base, modifiers, self.conditions, self.age
             )
@@ -459,10 +482,10 @@ class DailySimulator:
 
     def _sample_tumor_response(self) -> tuple[str, int, float]:
         """종양 반응 카테고리와 onset을 코드로 샘플링한다."""
-        disease_base = self.rule_set.get("disease_baseline", {})
+        disease_base = self.rule_set.get("disease_baseline") or {}
         tumor_dist = disease_base.get("tumor_response_distribution")
         if not tumor_dist:
-            efficacy = self.rule_set.get("efficacy", {})
+            efficacy = self.rule_set.get("efficacy") or {}
             orr = float(efficacy.get("overall_response_rate", 0.50))
             cr_rate = float(efficacy.get("complete_response_rate", 0.10))
             pr_rate = orr - cr_rate
@@ -475,7 +498,7 @@ class DailySimulator:
 
         response = self.sampler.categorical(tumor_dist)
 
-        cycle_len = self.rule_set.get("trial_design", {}).get("cycle_length_days", 21)
+        cycle_len = (self.rule_set.get("trial_design") or {}).get("cycle_length_days", 21)
         onset_day = self.sampler.numeric("normal", {
             "mean": 3 * cycle_len,
             "std": cycle_len,
@@ -496,24 +519,34 @@ class DailySimulator:
     # ═══════════════════════════════════════════════════════
 
     @staticmethod
+    def _extract_number(val) -> float | None:
+        """LLM이 '36.8 (°C, ...)' 같은 문자열을 반환할 때 숫자만 추출."""
+        if isinstance(val, (int, float)):
+            return float(val)
+        if isinstance(val, str):
+            m = re.search(r'-?\d+\.?\d*', val)
+            if m:
+                return float(m.group())
+        return None
+
+    @staticmethod
     def _normalize_bt(vitals: dict) -> dict:
         """체온(BT)을 섭씨로 정규화하고, 모든 수치형 vital을 float으로 변환한다."""
-        # 모든 vital 값을 숫자로 강제 변환 (LLM이 문자열로 반환하는 경우 대비)
         for key in list(vitals.keys()):
             if key.startswith("_"):
                 continue
             val = vitals[key]
             if isinstance(val, str):
-                try:
-                    vitals[key] = float(val)
-                except (ValueError, TypeError):
-                    pass
+                extracted = DailySimulator._extract_number(val)
+                if extracted is not None:
+                    vitals[key] = extracted
         bt = vitals.get("BT", vitals.get("body_temperature", vitals.get("temperature")))
         if bt is not None:
-            bt = float(bt)
-            if bt > 45:  # Fahrenheit
-                bt = round((bt - 32) * 5 / 9, 1)
-            vitals["BT"] = bt
+            bt = DailySimulator._extract_number(bt)
+            if bt is not None:
+                if bt > 45:  # Fahrenheit
+                    bt = round((bt - 32) * 5 / 9, 1)
+                vitals["BT"] = bt
         return vitals
 
     def is_administration_day(self, cycle_day: int) -> bool:
@@ -768,7 +801,7 @@ class DailySimulator:
             cascade_mult = self.ae_cascade_multipliers.get(term, 1.0)
             effective_incidence = min(incidence * cascade_mult, MAX_AE_CASCADE_HAZARD)
 
-            onset_spec = ae.get("onset_day", {"distribution": "normal", "params": {"mean": 42, "std": 14, "min": 1, "max": 180}})
+            onset_spec = ae.get("onset_day") or {"distribution": "normal", "params": {"mean": 42, "std": 14, "min": 1, "max": 180}}
 
             # 원인 약물의 상태 확인
             causative = self._get_causative_drugs(term)
@@ -805,7 +838,7 @@ class DailySimulator:
                                     count=self.ae_recurrence_count[term])
 
                 # Grade 결정
-                grade_dist = ae.get("grade_distribution", {"1": 0.5, "2": 0.3, "3": 0.15, "4": 0.04, "5": 0.01})
+                grade_dist = ae.get("grade_distribution") or {"1": 0.5, "2": 0.3, "3": 0.15, "4": 0.04, "5": 0.01}
                 grade_dist_clean = {}
                 for g, p in grade_dist.items():
                     g_int = int(g)
@@ -860,7 +893,7 @@ class DailySimulator:
 
             # AE 프로파일에서 duration spec 가져오기
             ae_profile = next((a for a in self.rule_set["ae_profile"] if a["ae_term"] == ae_term), None)
-            duration_spec = ae_profile.get("duration_days") if ae_profile else None
+            duration_spec = (ae_profile.get("duration_days") if ae_profile else None) or {"distribution": "normal", "params": {"mean": 21, "std": 10, "min": 3, "max": 90}}
             is_cumulative = ae_profile.get("cumulative", False) if ae_profile else False
             is_reversible = ae_profile.get("reversible", True) if ae_profile else True
 
@@ -1166,24 +1199,27 @@ class DailySimulator:
         if not self.baseline_labs and prev_labs:
             for name, data in prev_labs.items():
                 val = data.get("value", data) if isinstance(data, dict) else data
-                if isinstance(val, (int, float)):
-                    self.baseline_labs[name] = float(val)
+                _parsed = DailySimulator._extract_number(val)
+                if _parsed is not None:
+                    self.baseline_labs[name] = _parsed
         elif not self.baseline_labs:
             bl = self.patient.get("emr", {}).get("baseline_labs", {})
             for name, val in bl.items():
                 if isinstance(val, (int, float)):
                     self.baseline_labs[name] = float(val)
                 elif isinstance(val, dict):
-                    self.baseline_labs[name] = float(val.get("value", val.get("LBORRES", 0)))
+                    _parsed = DailySimulator._extract_number(val.get("value", val.get("LBORRES", 0)))
+                    if _parsed is not None:
+                        self.baseline_labs[name] = _parsed
 
         labs_result = {}
         active_aes = self._get_active_aes_list()
 
         # AE→Lab 링크
-        ae_lab_links = self.lab_causality_config.get("ae_lab_links", [])
+        ae_lab_links = self.lab_causality_config.get("ae_lab_links") or []
         if not ae_lab_links:
             ae_lab_links = DEFAULT_AE_LAB_LINKS
-        cum_dose_effects = self.lab_causality_config.get("cumulative_dose_effects", [])
+        cum_dose_effects = self.lab_causality_config.get("cumulative_dose_effects") or []
         cm_lab_effects = DEFAULT_CM_LAB_EFFECTS
 
         for lab_name, baseline in self.baseline_labs.items():
@@ -1511,8 +1547,8 @@ class DailySimulator:
         orchestrator에서 병원 방문(is_visit)일 때 호출됨.
         rule_set.supportive_care_rules + 기본 fallback 사용.
         """
-        sc_rules = self.rule_set.get("supportive_care_rules", [])
-        sc_map = {r["ae_term"].lower(): r.get("treatments", []) for r in sc_rules}
+        sc_rules = self.rule_set.get("supportive_care_rules") or []
+        sc_map = {r["ae_term"].lower(): (r.get("treatments") or []) for r in sc_rules}
 
         for ae in observed_aes:
             ae_term = ae.get("ae", ae.get("ae_term", ""))
@@ -1530,11 +1566,12 @@ class DailySimulator:
             if already_prescribed:
                 continue
 
-            # G1은 보조약 불필요한 경우가 많음 (모니터링만)
-            if grade < 2 and ae_term.lower() not in ("nausea", "pruritus"):
+            # G1: skip unless rule_set defines SC for this AE, or it's nausea/pruritus
+            has_sc_rule = ae_term.lower() in sc_map
+            if grade < 2 and not has_sc_rule and ae_term.lower() not in ("nausea", "pruritus"):
                 continue
 
-            treatments = sc_map.get(ae_term.lower(), [])
+            treatments = sc_map.get(ae_term.lower()) or []
             if not treatments:
                 treatments = self._default_conmed_for_ae(ae_term)
             if not treatments:
@@ -1832,7 +1869,7 @@ class DailySimulator:
         for drug in self.admin_schedule:
             dname = drug["drug_name"]
             cycle_days = drug.get("cycle_days", [1])
-            cycle_len = self.rule_set.get("trial_design", {}).get("cycle_length_days", 21)
+            cycle_len = (self.rule_set.get("trial_design") or {}).get("cycle_length_days", 21)
 
             # 다음 투약 예정일 계산
             next_admin = None
@@ -1856,7 +1893,7 @@ class DailySimulator:
 
     def _get_lab_unit(self, lab_name: str) -> str:
         """lab 단위를 반환한다."""
-        ref = self.rule_set.get("lab_reference_ranges", {})
+        ref = self.rule_set.get("lab_reference_ranges") or {}
         if lab_name in ref:
             return ref[lab_name].get("unit", "")
         defaults = {
@@ -2144,8 +2181,8 @@ class DailySimulator:
             if grade < 1:
                 continue
 
-            rule = self.dose_mod_rules.get(ae_term.lower(), self.dose_mod_rules.get("default", {}))
-            grade_actions = rule.get("grade_actions", {})
+            rule = self.dose_mod_rules.get(ae_term.lower()) or self.dose_mod_rules.get("default") or {}
+            grade_actions = rule.get("grade_actions") or {}
             action = grade_actions.get(str(grade), "DOSE NOT CHANGED")
 
             if action == "DOSE NOT CHANGED":

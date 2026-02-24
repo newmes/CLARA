@@ -93,8 +93,18 @@ def _distribution_cdf(x, distribution='normal', params=None):
         std = params.get('std', 10)
         return _truncated_cdf(_normal_cdf, x, lo, hi, mean=mean, std=std)
     if distribution == 'lognormal':
-        mu = params.get('mu', math.log(30))
-        sigma = params.get('sigma', 0.5)
+        if 'mu' in params:
+            mu = params['mu']
+            sigma = params.get('sigma', 0.5)
+        elif 'mean' in params:
+            mean = max(params['mean'], 1)
+            std = max(params.get('std', mean * 0.5), 0.1)
+            sigma_sq = math.log(1 + (std / mean) ** 2)
+            mu = math.log(mean) - sigma_sq / 2
+            sigma = math.sqrt(sigma_sq)
+        else:
+            mu = math.log(30)
+            sigma = 0.5
         return _truncated_cdf(_lognormal_cdf, x, lo, hi, mu=mu, sigma=sigma)
     if distribution == 'uniform':
         return _uniform_cdf(x, lo, hi)
@@ -122,6 +132,8 @@ def daily_onset_hazard(day, incidence, onset_spec, is_drug_held=False, is_dose_r
     '''
     if incidence <= 0 or day < 1:
         return 0
+    if not onset_spec:
+        onset_spec = {"distribution": "normal", "params": {"mean": 42, "std": 14, "min": 1, "max": 180}}
     dist = onset_spec.get('distribution', 'normal')
     params = onset_spec.get('params', onset_spec)
     F_t = _distribution_cdf(day, dist, params)
@@ -337,6 +349,8 @@ def adjust_incidence_by_risk_modifiers(base_incidence, risk_modifiers, patient_c
         조정된 incidence (0-1 범위 클램프)
     '''
     adjusted = base_incidence
+    if not risk_modifiers:
+        return min(max(adjusted, 0.0), 1.0)
     for modifier in risk_modifiers:
         condition = modifier.get('condition', '').lower()
         multiplier = modifier.get('incidence_multiplier', 1.0)
@@ -415,46 +429,49 @@ def _check_threshold(condition_key, current_val, uln=None, lln=None, baseline=No
 
 
 def compute_daily_mortality(day, active_aes, tumor_status, ecog, treatment_discontinued=False, response_onset_day=None, risk_config=None, cumulative_doses=None, discontinuation_day=None):
-    '''2-channel mortality + ECOG multiplier.
+    '''Log-linear hazard mortality model.
 
-    Channels (LLM 생성 파라미터):
-      1. disease_progression — 질환 진행/반응 상태
-      2. treatment_toxicity  — AE 부담, 중증 독성
+    Uses log(hazard) = log(base) + severity_weight * log(HR) to avoid
+    double-counting between correlated factors (ECOG, AE grade, tumor status).
 
-    ECOG multiplier (config/defaults.py):
-      - ECOG 0-1: ×1, ECOG 2: ×1.5, ECOG 3: ×2.5, ECOG 4: ×5
+    Components:
+      - base_risk: guaranteed daily hazard from underlying disease
+      - severity_risk: state-dependent hazard scaled by clinical severity
+      - HR (hazard ratio): combined from disease_progression, treatment_toxicity, ECOG
 
-    기존 comorbidity/acute_crisis 채널은 제거.
-    → 동반질환, lab/vitals 이상은 ECOG를 통해 간접 반영.
+    The severity_weight (0~1) prevents the compounding problem where
+    correlated factors (PD↔ECOG, AE↔ECOG, AE↔CSF) multiply each other.
 
     Returns:
-        (daily_mortality_probability, {channel_name: multiplier})
+        (daily_mortality_probability, {channel_name: value})
     '''
     annual = risk_config.get('baseline_annual_mortality', 0.25)
     if annual <= 0:
-        return (0, { })
-    daily_base = 1 - (1 - min(annual, 0.99)) ** (1/365)
-    channels_cfg = risk_config.get('channels', { })
-    contributions = { }
-    dp = channels_cfg.get('disease_progression', { })
-    dp_mult = 1
+        return (0, {})
+    daily_base = 1 - (1 - min(annual, 0.99)) ** (1 / 365)
+    channels_cfg = risk_config.get('channels') or {}
+    contributions = {}
+
+    # ── Channel 1: Disease Progression ──
+    dp_cfg = channels_cfg.get('disease_progression') or {}
+    dp_mult = 1.0
     if tumor_status == 'PD':
-        dp_mult = float(dp.get('pd_multiplier', 4))
+        dp_mult = float(dp_cfg.get('pd_multiplier', 4))
     elif tumor_status in ('CR', 'PR') and response_onset_day and day > response_onset_day:
-        lag = int(dp.get('response_lag_days', 21))
-        reduction = float(dp.get('response_reduction', 0.3))
+        lag = int(dp_cfg.get('response_lag_days', 21))
+        reduction = float(dp_cfg.get('response_reduction', 0.3))
         elapsed = day - response_onset_day
         if elapsed > lag:
             progress = min((elapsed - lag) / 28, 1)
             dp_mult = 1 - (1 - reduction) * progress
     contributions['disease_progression'] = round(dp_mult, 4)
-    tt = channels_cfg.get('treatment_toxicity', { })
-    tt_mult = 1
-    ae_grade_mults = tt.get('ae_grade_multipliers', {
-        '3': 1.5,
-        '4': 3 })
-    concurrent_threshold = int(tt.get('concurrent_ae_threshold', 3))
-    concurrent_mult = float(tt.get('concurrent_ae_multiplier', 2))
+
+    # ── Channel 2: Treatment Toxicity (no coherence cap) ──
+    tt_cfg = channels_cfg.get('treatment_toxicity', {})
+    tt_mult = 1.0
+    ae_grade_mults = tt_cfg.get('ae_grade_multipliers', {'3': 1.5, '4': 3})
+    concurrent_threshold = int(tt_cfg.get('concurrent_ae_threshold', 3))
+    concurrent_mult = float(tt_cfg.get('concurrent_ae_multiplier', 2))
     significant_count = 0
     for ae in active_aes:
         if ae.get('status') == 'resolved':
@@ -476,7 +493,12 @@ def compute_daily_mortality(day, active_aes, tumor_status, ecog, treatment_disco
             cum_factor = 1 + (cum_factor - 1) * decay
         tt_mult *= cum_factor
     contributions['treatment_toxicity'] = round(tt_mult, 4)
-    contributions['ecog'] = ECOG_MORTALITY_MAP.get(min(ecog, 4), 1)
+
+    # ── Channel 3: ECOG ──
+    ecog_mult = ECOG_MORTALITY_MAP.get(min(ecog, 4), 1)
+    contributions['ecog'] = ecog_mult
+
+    # ── Channel 4: Treatment Discontinued ──
     if treatment_discontinued:
         discont_mult = TREATMENT_DISCONTINUED_MORTALITY_MULT
         if discontinuation_day is not None:
@@ -484,59 +506,68 @@ def compute_daily_mortality(day, active_aes, tumor_status, ecog, treatment_disco
             decay = math.exp(-0.023 * days_since)
             discont_mult = 1 + (discont_mult - 1) * decay
         contributions['treatment_discontinued'] = round(discont_mult, 4)
-    has_life_threatening_ae = any(
-        ae.get('grade', 1) >= 4 and ae.get('status') != 'resolved'
-        for ae in active_aes
-    )
-    has_critical_ecog = ecog >= 3
-    has_disease_progression = tumor_status == 'PD'
-    if not has_life_threatening_ae and not has_critical_ecog and not has_disease_progression:
-        if tt_mult > 1:
-            tt_mult = 1
-            contributions['treatment_toxicity'] = 1
-            contributions['_coherence_capped'] = True
+
+    # ── Compute combined HR (multiplicative) ──
+    hr = 1.0
+    for k, v in contributions.items():
+        if not k.startswith('_'):
+            hr *= v
+
+    # ── Severity weight: how "clinically endangered" is this patient ──
+    # Uses the max of three orthogonal severity signals.
+    # Unlike old CSF, this only scales the HR exponent, not the base.
     max_ae_grade = max(
         (ae.get('grade', 0) for ae in active_aes if ae.get('status') != 'resolved'),
         default=0,
     )
     n_active_aes = sum(1 for ae in active_aes if ae.get('status') != 'resolved')
 
-    # Clinical Severity Factor (CSF): 0~1 범위
-    # 임상적으로 의미 있는 사망 위험이 있는 상태인지 판단
     if tumor_status == 'PD':
-        csf_tumor = 0.6
+        sw_tumor = 0.8
     elif tumor_status == 'SD':
-        csf_tumor = 0.15
+        sw_tumor = 0.3
     elif tumor_status in ('CR', 'PR'):
-        csf_tumor = 0.05
+        sw_tumor = 0.15
     else:
-        csf_tumor = 0.1
+        sw_tumor = 0.2
 
-    csf_ecog_map = {0: 0.02, 1: 0.1, 2: 0.35, 3: 0.6, 4: 1.0}
-    csf_ecog = csf_ecog_map.get(min(ecog, 4), 0.5)
+    sw_ecog_map = {0: 0.05, 1: 0.15, 2: 0.45, 3: 0.75, 4: 1.0}
+    sw_ecog = sw_ecog_map.get(min(ecog, 4), 0.5)
 
     if max_ae_grade >= 4:
-        csf_ae = 1.0
+        sw_ae = 1.0
     elif max_ae_grade >= 3:
-        csf_ae = 0.25
+        sw_ae = 0.4
     elif n_active_aes >= 3:
-        csf_ae = 0.20
+        sw_ae = 0.3
     elif max_ae_grade == 2:
-        csf_ae = 0.10
+        sw_ae = 0.15
     else:
-        csf_ae = 0.03
+        sw_ae = 0.05
 
-    csf = max(csf_tumor, csf_ecog, csf_ae)
-    contributions['_csf_tumor'] = round(csf_tumor, 4)
-    contributions['_csf_ecog'] = round(csf_ecog, 4)
-    contributions['_csf_ae'] = round(csf_ae, 4)
-    contributions['_csf_combined'] = round(csf, 6)
+    severity_weight = max(sw_tumor, sw_ecog, sw_ae)
+    contributions['_sw_tumor'] = round(sw_tumor, 4)
+    contributions['_sw_ecog'] = round(sw_ecog, 4)
+    contributions['_sw_ae'] = round(sw_ae, 4)
+    contributions['_sw_combined'] = round(severity_weight, 6)
 
-    total = 1
-    for k, v in contributions.items():
-        if not k.startswith('_'):
-            total *= v
-    daily_risk = min(daily_base * total * csf, MAX_DAILY_MORTALITY)
+    # ── Log-linear hazard: exp(log(base) + severity_weight * log(HR)) ──
+    log_base = math.log(max(daily_base, 1e-12))
+    log_hr = math.log(max(hr, 1e-12))
+    daily_risk = math.exp(log_base + severity_weight * log_hr)
+
+    base_floor = daily_base * 0.15
+    daily_risk = max(daily_risk, base_floor)
+
+    # Grace period: patients screened into trial are stable enough to start.
+    # Ramp mortality linearly over first cycle (21 days) unless G4+ AE present.
+    GRACE_DAYS = 21
+    has_g4 = any(ae.get('grade', 0) >= 4 for ae in active_aes)
+    if day <= GRACE_DAYS and not has_g4:
+        ramp = day / GRACE_DAYS
+        daily_risk *= ramp
+
+    daily_risk = min(daily_risk, MAX_DAILY_MORTALITY)
     return daily_risk, contributions
 
 
@@ -630,7 +661,7 @@ def compute_causal_lab_target(
             if ae_state.get('status') == 'resolved':
                 continue
             grade = ae_state.get('grade', 1)
-            grade_fx = link.get('grade_effects', {})
+            grade_fx = link.get('grade_effects') or {}
             mult = float(grade_fx.get(str(grade), 1.0))
             target *= mult
 
@@ -703,9 +734,9 @@ def compute_discontinuation_risk(
     hazards = {}
 
     # Channel 1: 환자 동의 철회
-    pw_cfg = disposition_config.get('consent_withdrawal', {})
+    pw_cfg = disposition_config.get('consent_withdrawal') or {}
     pw_base = float(pw_cfg.get('base_daily_rate', 0.0004))
-    pw_rf = pw_cfg.get('risk_factors', {})
+    pw_rf = pw_cfg.get('risk_factors') or {}
     pw_mult = 1.0
     has_severe_ae = any(
         ae.get('grade', 0) >= 3 and ae.get('status') != 'resolved'
@@ -724,9 +755,9 @@ def compute_discontinuation_risk(
     hazards['patient_withdrawal'] = round(patient_withdrawal, 6)
 
     # Channel 2: 의사 결정
-    pd_cfg = disposition_config.get('physician_decision', {})
+    pd_cfg = disposition_config.get('physician_decision') or {}
     pd_base = float(pd_cfg.get('base_daily_rate', 0.00012))
-    pd_rf = pd_cfg.get('risk_factors', {})
+    pd_rf = pd_cfg.get('risk_factors') or {}
     pd_mult = 1.0
     if ecog >= 3:
         pd_mult *= float(pd_rf.get('ecog_ge_3', 3.0))
