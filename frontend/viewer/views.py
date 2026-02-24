@@ -2557,9 +2557,8 @@ def api_sim_start(request):
         import sys as _sys
         _sys.path.insert(0, str(Path(settings.BASE_DIR).parent))
 
-        # 사용자 API 키가 있으면 우선 사용, 없으면 .env 폴백
+        # 사용자 API 키가 있으면 현재 스레드에만 설정 (다른 요청에 영향 없음)
         if user_api_key:
-            os.environ["GOOGLE_API_KEY"] = user_api_key
             from src.agents.llm_client import set_api_key
             set_api_key(user_api_key)
         else:
@@ -5289,10 +5288,11 @@ def api_ruleset_generate(request):
         _sys.path.insert(0, str(Path(settings.BASE_DIR).parent / "src" / "ruleset_generation"))
         _sys.path.insert(0, str(Path(settings.BASE_DIR).parent))
 
-        # 사용자 API 키가 있으면 우선 사용, 없으면 .env 폴백
+        # 사용자 API 키가 있으면 현재 스레드에만 설정 (다른 요청에 영향 없음)
         if user_api_key:
-            os.environ["GOOGLE_API_KEY"] = user_api_key
-            os.environ["RULE_ENGINE_LLM_API_KEY"] = user_api_key
+            from src.agents.llm_client import set_api_key
+            set_api_key(user_api_key)
+            os.environ.setdefault("RULE_ENGINE_LLM_API_KEY", user_api_key)
         else:
             env_path = Path(settings.BASE_DIR).parent / ".env"
             if env_path.exists():
