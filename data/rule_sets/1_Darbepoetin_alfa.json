@@ -1,0 +1,1353 @@
+{
+  "drug_name": "Darbepoetin alfa",
+  "indication": "Small Cell Lung Cancer (SCLC), Extensive Stage",
+  "trial_design": {
+    "cycle_length_days": 21
+  },
+  "demographics": {
+    "age": {
+      "type": "numeric",
+      "distribution": "normal",
+      "params": {
+        "mean": 60.9,
+        "std": 9.2,
+        "min": 28,
+        "max": 81
+      }
+    },
+    "sex": {
+      "type": "categorical",
+      "options": {
+        "Male": 0.63,
+        "Female": 0.37
+      }
+    },
+    "race": {
+      "type": "categorical",
+      "options": {
+        "White": 1.0
+      }
+    },
+    "ecog_ps": {
+      "type": "categorical",
+      "options": {
+        "0": 0.2,
+        "1": 0.6,
+        "2": 0.2
+      }
+    },
+    "bmi": {
+      "type": "numeric",
+      "distribution": "normal",
+      "params": {
+        "mean": 24.8,
+        "std": 4.3,
+        "min": 15.6,
+        "max": 41.7
+      }
+    }
+  },
+  "comorbidities": [
+    {
+      "condition": "hypertension",
+      "base_probability": 0.364,
+      "conditional_modifiers": []
+    },
+    {
+      "condition": "cardiovascular_disease",
+      "base_probability": 0.314,
+      "conditional_modifiers": []
+    },
+    {
+      "condition": "copd",
+      "base_probability": 0.326,
+      "conditional_modifiers": []
+    },
+    {
+      "condition": "gastrointestinal_disease",
+      "base_probability": 0.255,
+      "conditional_modifiers": []
+    },
+    {
+      "condition": "diabetes",
+      "base_probability": 0.113,
+      "conditional_modifiers": []
+    },
+    {
+      "condition": "hepatic_impairment",
+      "base_probability": 0.059,
+      "conditional_modifiers": []
+    },
+    {
+      "condition": "chronic_kidney_disease",
+      "base_probability": 0.054,
+      "conditional_modifiers": []
+    },
+    {
+      "condition": "thromboembolism",
+      "base_probability": 0.042,
+      "conditional_modifiers": []
+    }
+  ],
+  "disease_baseline": {
+    "tumor_sites": {
+      "lung": 1.0,
+      "bone": 0.076,
+      "brain": 0.029
+    },
+    "n_target_lesions": {
+      "type": "categorical",
+      "options": {
+        "0": 0.342,
+        "1": 0.252,
+        "2": 0.167,
+        "3": 0.103,
+        "4": 0.021,
+        "5+": 0.115
+      }
+    },
+    "sum_of_diameters_mm": {
+      "type": "numeric",
+      "distribution": "lognormal",
+      "params": {
+        "mean": 166.3,
+        "std": 96.2,
+        "min": 15,
+        "max": 594
+      }
+    },
+    "tumor_response_distribution": {
+      "CR": 0.074,
+      "PR": 0.721,
+      "SD": 0.162,
+      "PD": 0.044
+    },
+    "ldh_uln_ratio": {
+      "type": "numeric",
+      "distribution": "lognormal",
+      "params": {
+        "mean": 2.66,
+        "std": 3.09,
+        "min": 0.46,
+        "max": 33.69
+      }
+    },
+    "albumin_gdl": {
+      "type": "numeric",
+      "distribution": "normal",
+      "params": {
+        "mean": 3.76,
+        "std": 0.5,
+        "min": 2.3,
+        "max": 4.9
+      }
+    }
+  },
+  "ae_profile": [
+    {
+      "ae_term": "nausea",
+      "incidence_all_grade": 0.469,
+      "grade_distribution": {
+        "1": 0.652,
+        "2": 0.304,
+        "3": 0.045
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 31.1,
+          "std": 37.0,
+          "min": 1,
+          "max": 137
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 11.0,
+          "std": 26.3,
+          "min": 1,
+          "max": 154
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "neutropenia",
+      "incidence_all_grade": 0.377,
+      "grade_distribution": {
+        "1": 0.133,
+        "2": 0.433,
+        "3": 0.378,
+        "4": 0.056
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 33.9,
+          "std": 29.7,
+          "min": 1,
+          "max": 155
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 9.7,
+          "std": 7.8,
+          "min": 1,
+          "max": 78
+        }
+      },
+      "risk_modifiers": [
+        {
+          "condition": "comorb_chronic_kidney_disease == 1",
+          "incidence_multiplier": 1.37
+        }
+      ],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "vomiting",
+      "incidence_all_grade": 0.297,
+      "grade_distribution": {
+        "1": 0.352,
+        "2": 0.535,
+        "3": 0.113
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 36.1,
+          "std": 32.5,
+          "min": 1,
+          "max": 118
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 9.6,
+          "std": 21.6,
+          "min": 1,
+          "max": 154
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "alopecia",
+      "incidence_all_grade": 0.238,
+      "grade_distribution": {
+        "1": 0.263,
+        "2": 0.561,
+        "3": 0.175
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 31.5,
+          "std": 20.3,
+          "min": 1,
+          "max": 106
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 88.0,
+          "std": 51.2,
+          "min": 1,
+          "max": 170
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": true,
+      "reversible": true
+    },
+    {
+      "ae_term": "thrombocytopenia",
+      "incidence_all_grade": 0.205,
+      "grade_distribution": {
+        "1": 0.204,
+        "2": 0.408,
+        "3": 0.347,
+        "4": 0.041
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 57.1,
+          "std": 41.0,
+          "min": 1,
+          "max": 156
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 11.0,
+          "std": 13.6,
+          "min": 1,
+          "max": 105
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "anorexia",
+      "incidence_all_grade": 0.172,
+      "grade_distribution": {
+        "1": 0.585,
+        "2": 0.341,
+        "3": 0.073
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 52.2,
+          "std": 48.8,
+          "min": 1,
+          "max": 197
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 18.6,
+          "std": 14.2,
+          "min": 1,
+          "max": 58
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "constipation",
+      "incidence_all_grade": 0.159,
+      "grade_distribution": {
+        "1": 0.605,
+        "2": 0.368,
+        "3": 0.026
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 31.9,
+          "std": 33.0,
+          "min": 1,
+          "max": 154
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 22.4,
+          "std": 60.3,
+          "min": 1,
+          "max": 385
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "fatigue",
+      "incidence_all_grade": 0.146,
+      "grade_distribution": {
+        "1": 0.371,
+        "2": 0.4,
+        "3": 0.229
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 52.7,
+          "std": 44.3,
+          "min": 1,
+          "max": 160
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 17.1,
+          "std": 19.5,
+          "min": 1,
+          "max": 93
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "diarrhoea",
+      "incidence_all_grade": 0.13,
+      "grade_distribution": {
+        "1": 0.387,
+        "2": 0.484,
+        "3": 0.129
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 38.5,
+          "std": 48.9,
+          "min": 1,
+          "max": 166
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 7.6,
+          "std": 10.2,
+          "min": 1,
+          "max": 40
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "insomnia",
+      "incidence_all_grade": 0.126,
+      "grade_distribution": {
+        "1": 0.767,
+        "2": 0.233
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 55.6,
+          "std": 54.8,
+          "min": 1,
+          "max": 180
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 11.7,
+          "std": 19.2,
+          "min": 1,
+          "max": 82
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "cough",
+      "incidence_all_grade": 0.121,
+      "grade_distribution": {
+        "1": 0.517,
+        "2": 0.414,
+        "3": 0.069
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 72.3,
+          "std": 50.6,
+          "min": 1,
+          "max": 173
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 18.3,
+          "std": 20.8,
+          "min": 1,
+          "max": 78
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "anaemia",
+      "incidence_all_grade": 0.121,
+      "grade_distribution": {
+        "1": 0.034,
+        "2": 0.586,
+        "3": 0.276,
+        "4": 0.103
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 61.1,
+          "std": 44.8,
+          "min": 1,
+          "max": 159
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 13.6,
+          "std": 15.5,
+          "min": 1,
+          "max": 68
+        }
+      },
+      "risk_modifiers": [
+        {
+          "condition": "comorb_chronic_kidney_disease == 1",
+          "incidence_multiplier": 2.01
+        }
+      ],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "dyspnoea",
+      "incidence_all_grade": 0.121,
+      "grade_distribution": {
+        "1": 0.321,
+        "2": 0.536,
+        "3": 0.143
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 46.0,
+          "std": 40.9,
+          "min": 1,
+          "max": 164
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 25.3,
+          "std": 25.6,
+          "min": 1,
+          "max": 100
+        }
+      },
+      "risk_modifiers": [
+        {
+          "condition": "comorb_copd == 1",
+          "incidence_multiplier": 1.61
+        }
+      ],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "leukopenia",
+      "incidence_all_grade": 0.113,
+      "grade_distribution": {
+        "1": 0.074,
+        "2": 0.444,
+        "3": 0.37,
+        "4": 0.111
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 42.5,
+          "std": 40.2,
+          "min": 1,
+          "max": 155
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 9.3,
+          "std": 10.5,
+          "min": 1,
+          "max": 70
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "asthenia",
+      "incidence_all_grade": 0.113,
+      "grade_distribution": {
+        "1": 0.63,
+        "2": 0.333,
+        "3": 0.037
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 47.3,
+          "std": 41.0,
+          "min": 1,
+          "max": 133
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 20.0,
+          "std": 31.4,
+          "min": 1,
+          "max": 135
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "pyrexia",
+      "incidence_all_grade": 0.113,
+      "grade_distribution": {
+        "1": 0.296,
+        "2": 0.519,
+        "3": 0.185
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 39.2,
+          "std": 37.5,
+          "min": 1,
+          "max": 134
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 6.5,
+          "std": 5.3,
+          "min": 1,
+          "max": 18
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "small_cell_lung_cancer_stage_unspecified",
+      "incidence_all_grade": 0.088,
+      "grade_distribution": {
+        "2": 0.048,
+        "3": 0.143,
+        "4": 0.143,
+        "5": 0.667
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 75.0,
+          "std": 56.0,
+          "min": 1,
+          "max": 169
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 13.6,
+          "std": 22.4,
+          "min": 1,
+          "max": 85
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": false
+    },
+    {
+      "ae_term": "headache",
+      "incidence_all_grade": 0.088,
+      "grade_distribution": {
+        "1": 0.667,
+        "2": 0.286,
+        "3": 0.048
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 54.9,
+          "std": 43.4,
+          "min": 1,
+          "max": 151
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 7.9,
+          "std": 21.6,
+          "min": 1,
+          "max": 96
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "non-cardiac_chest_pain",
+      "incidence_all_grade": 0.084,
+      "grade_distribution": {
+        "1": 0.6,
+        "2": 0.25,
+        "3": 0.15
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 73.6,
+          "std": 62.0,
+          "min": 1,
+          "max": 189
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 12.5,
+          "std": 17.2,
+          "min": 1,
+          "max": 55
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "back_pain",
+      "incidence_all_grade": 0.067,
+      "grade_distribution": {
+        "1": 0.5,
+        "2": 0.375,
+        "3": 0.125
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 92.5,
+          "std": 52.1,
+          "min": 1,
+          "max": 171
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 7.9,
+          "std": 8.0,
+          "min": 1,
+          "max": 22
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "abdominal_pain",
+      "incidence_all_grade": 0.067,
+      "grade_distribution": {
+        "1": 0.375,
+        "2": 0.562,
+        "3": 0.062
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 47.4,
+          "std": 43.5,
+          "min": 1,
+          "max": 158
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 8.9,
+          "std": 9.6,
+          "min": 1,
+          "max": 29
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "hypertension",
+      "incidence_all_grade": 0.054,
+      "grade_distribution": {
+        "1": 0.231,
+        "2": 0.692,
+        "3": 0.077
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 38.8,
+          "std": 25.7,
+          "min": 1,
+          "max": 87
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 15.5,
+          "std": 34.7,
+          "min": 1,
+          "max": 119
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "paraesthesia",
+      "incidence_all_grade": 0.05,
+      "grade_distribution": {
+        "1": 0.75,
+        "2": 0.25
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 73.2,
+          "std": 52.7,
+          "min": 1,
+          "max": 176
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 12.9,
+          "std": 6.7,
+          "min": 1,
+          "max": 22
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": true,
+      "reversible": true
+    },
+    {
+      "ae_term": "cancer_pain",
+      "incidence_all_grade": 0.05,
+      "grade_distribution": {
+        "1": 0.167,
+        "2": 0.5,
+        "3": 0.333
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 63.4,
+          "std": 56.2,
+          "min": 1,
+          "max": 176
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 11.5,
+          "std": 23.5,
+          "min": 1,
+          "max": 69
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "hypokalaemia",
+      "incidence_all_grade": 0.05,
+      "grade_distribution": {
+        "1": 0.583,
+        "2": 0.333,
+        "3": 0.083
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 47.2,
+          "std": 52.1,
+          "min": 1,
+          "max": 162
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 18.9,
+          "std": 29.0,
+          "min": 1,
+          "max": 102
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    },
+    {
+      "ae_term": "injection_site_reaction",
+      "incidence_all_grade": 0.008,
+      "grade_distribution": {
+        "1": 1.0
+      },
+      "onset_day": {
+        "type": "numeric",
+        "distribution": "lognormal",
+        "params": {
+          "mean": 66.3,
+          "std": 56.8,
+          "min": 1,
+          "max": 113
+        }
+      },
+      "duration_days": {
+        "type": "numeric",
+        "distribution": "normal",
+        "params": {
+          "mean": 1.0,
+          "std": 0.0,
+          "min": 1,
+          "max": 1
+        }
+      },
+      "risk_modifiers": [],
+      "cumulative": false,
+      "reversible": true
+    }
+  ],
+  "efficacy": {
+    "overall_response_rate": 0.678,
+    "complete_response_rate": 0.063,
+    "progression_free_survival_months": {
+      "type": "numeric",
+      "distribution": "exponential",
+      "params": {
+        "mean": 6.2,
+        "std": 5.3,
+        "min": 0.03,
+        "max": 38.4
+      }
+    },
+    "overall_survival_months": {
+      "type": "numeric",
+      "distribution": "exponential",
+      "params": {
+        "mean": 10.3,
+        "std": 7.9,
+        "min": 0.03,
+        "max": 39.7
+      }
+    }
+  },
+  "lab_reference_ranges": {
+    "hemoglobin": {
+      "unit": "g/dL",
+      "LLN": 11.5,
+      "ULN": 15.8,
+      "normal_range": {
+        "min": 11.5,
+        "max": 15.8
+      }
+    },
+    "wbc": {
+      "unit": "x10^9/L",
+      "LLN": 4.0,
+      "ULN": 11.0,
+      "normal_range": {
+        "min": 4.0,
+        "max": 11.0
+      }
+    },
+    "platelets": {
+      "unit": "x10^9/L",
+      "LLN": 150,
+      "ULN": 400,
+      "normal_range": {
+        "min": 150,
+        "max": 400
+      }
+    },
+    "anc": {
+      "unit": "x10^9/L",
+      "LLN": 1.5,
+      "ULN": 8.0,
+      "normal_range": {
+        "min": 1.5,
+        "max": 8.0
+      }
+    },
+    "creatinine": {
+      "unit": "umol/L",
+      "LLN": 53,
+      "ULN": 106,
+      "normal_range": {
+        "min": 53,
+        "max": 106
+      }
+    },
+    "ast": {
+      "unit": "U/L",
+      "LLN": 9,
+      "ULN": 34,
+      "normal_range": {
+        "min": 9,
+        "max": 34
+      }
+    },
+    "alt": {
+      "unit": "U/L",
+      "LLN": 6,
+      "ULN": 34,
+      "normal_range": {
+        "min": 6,
+        "max": 34
+      }
+    },
+    "ldh": {
+      "unit": "U/L",
+      "LLN": 53,
+      "ULN": 234,
+      "normal_range": {
+        "min": 53,
+        "max": 234
+      }
+    },
+    "albumin": {
+      "unit": "g/L",
+      "LLN": 33,
+      "ULN": 49,
+      "normal_range": {
+        "min": 33,
+        "max": 49
+      }
+    },
+    "sodium": {
+      "unit": "mmol/L",
+      "LLN": 135,
+      "ULN": 145,
+      "normal_range": {
+        "min": 135,
+        "max": 145
+      }
+    },
+    "potassium": {
+      "unit": "mmol/L",
+      "LLN": 3.5,
+      "ULN": 5.0,
+      "normal_range": {
+        "min": 3.5,
+        "max": 5.0
+      }
+    },
+    "glucose": {
+      "unit": "mmol/L",
+      "LLN": 3.9,
+      "ULN": 6.1,
+      "normal_range": {
+        "min": 3.9,
+        "max": 6.1
+      }
+    },
+    "total_bilirubin": {
+      "unit": "umol/L",
+      "LLN": 3.4,
+      "ULN": 20.5,
+      "normal_range": {
+        "min": 3.4,
+        "max": 20.5
+      }
+    },
+    "alkaline_phosphatase": {
+      "unit": "U/L",
+      "LLN": 30,
+      "ULN": 120,
+      "normal_range": {
+        "min": 30,
+        "max": 120
+      }
+    }
+  },
+  "administration_schedule": [
+    {
+      "drug_name": "Darbepoetin alfa",
+      "dose_per_administration": "300 mcg",
+      "dose_value": 300,
+      "dose_unit": "mcg",
+      "route": "SUBCUTANEOUS",
+      "cycle_days": [
+        1
+      ]
+    }
+  ],
+  "dose_modification_rules": [
+    {
+      "ae_term": "default",
+      "grade_actions": {
+        "1": "DOSE NOT CHANGED",
+        "2": "DOSE NOT CHANGED",
+        "3": "DRUG INTERRUPTED",
+        "4": "DRUG WITHDRAWN"
+      },
+      "dose_reduction_levels": [
+        1.0,
+        0.75,
+        0.5
+      ],
+      "rechallenge_criteria": "If toxicity resolves to Grade 1 or less, may resume at next lower dose level."
+    }
+  ],
+  "supportive_care_rules": [
+    {
+      "ae_term": "nausea",
+      "treatments": [
+        {
+          "drug": "Ondansetron",
+          "dose": "8",
+          "unit": "mg",
+          "route": "IV/PO",
+          "frequency": "BID",
+          "probability": 0.715
+        },
+        {
+          "drug": "Metoclopramide",
+          "dose": "10",
+          "unit": "mg",
+          "route": "PO/IV",
+          "frequency": "TID PRN",
+          "probability": 0.464
+        },
+        {
+          "drug": "Dexamethasone",
+          "dose": "8",
+          "unit": "mg",
+          "route": "IV",
+          "frequency": "pre-chemo",
+          "probability": 0.469
+        },
+        {
+          "drug": "Granisetron",
+          "dose": "1",
+          "unit": "mg",
+          "route": "IV",
+          "frequency": "pre-chemo",
+          "probability": 0.318
+        }
+      ]
+    },
+    {
+      "ae_term": "neutropenia",
+      "treatments": [
+        {
+          "drug": "Filgrastim",
+          "dose": "5",
+          "unit": "mcg/kg",
+          "route": "SC",
+          "frequency": "QD",
+          "probability": 0.188
+        }
+      ]
+    },
+    {
+      "ae_term": "anaemia",
+      "treatments": [
+        {
+          "drug": "RBC Transfusion",
+          "dose": "2",
+          "unit": "units",
+          "route": "IV",
+          "frequency": "PRN",
+          "probability": 0.176
+        }
+      ]
+    },
+    {
+      "ae_term": "constipation",
+      "treatments": [
+        {
+          "drug": "Lactulose",
+          "dose": "15",
+          "unit": "mL",
+          "route": "PO",
+          "frequency": "BID PRN",
+          "probability": 0.226
+        }
+      ]
+    },
+    {
+      "ae_term": "infection",
+      "treatments": [
+        {
+          "drug": "Ciprofloxacin",
+          "dose": "500",
+          "unit": "mg",
+          "route": "PO/IV",
+          "frequency": "BID",
+          "probability": 0.201
+        }
+      ]
+    }
+  ],
+  "mortality_model": {
+    "baseline_annual_mortality": 0.656,
+    "channels": {
+      "disease_progression": {
+        "pd_multiplier": 3.5,
+        "response_lag_days": 28,
+        "response_reduction": 0.25
+      },
+      "treatment_toxicity": {
+        "ae_grade_multipliers": {
+          "3": 1.5,
+          "4": 3.0
+        },
+        "concurrent_ae_threshold": 3,
+        "concurrent_ae_multiplier": 1.75
+      }
+    }
+  },
+  "ecog_model": {
+    "ae_burden_weight": 0.034,
+    "disease_weight": 0.069,
+    "response_lag_days": 42,
+    "response_benefit": -0.395,
+    "comorbidity_penalty": 0.033
+  },
+  "ae_cascade_rules": [
+    {
+      "trigger_ae": "neutropenia",
+      "grade_threshold": 3,
+      "target_ae": "febrile_neutropenia",
+      "multiplier": 4.17
+    },
+    {
+      "trigger_ae": "nausea",
+      "grade_threshold": 2,
+      "target_ae": "vomiting",
+      "multiplier": 1.79
+    },
+    {
+      "trigger_ae": "nausea",
+      "grade_threshold": 2,
+      "target_ae": "anorexia",
+      "multiplier": 1.2
+    },
+    {
+      "trigger_ae": "anaemia",
+      "grade_threshold": 2,
+      "target_ae": "fatigue",
+      "multiplier": 1.95
+    },
+    {
+      "trigger_ae": "anaemia",
+      "grade_threshold": 2,
+      "target_ae": "dyspnoea",
+      "multiplier": 1.87
+    },
+    {
+      "trigger_ae": "thrombocytopenia",
+      "grade_threshold": 3,
+      "target_ae": "bleeding",
+      "multiplier": 1.89
+    }
+  ],
+  "disposition_model": {
+    "independent_hazards": {
+      "consent_withdrawal": {
+        "base_daily_rate": 0.000142,
+        "risk_factors": {
+          "active_ae_grade_3_plus": 2.5,
+          "ecog_worsened": 2.0,
+          "treatment_weeks_gt_12": 1.5,
+          "poor_response": 1.3
+        }
+      },
+      "physician_decision": {
+        "base_daily_rate": 0.000142,
+        "risk_factors": {
+          "ecog_ge_3": 3.0,
+          "multiple_dose_reductions": 2.0,
+          "poor_tumor_response": 2.0,
+          "severe_ae": 1.5
+        }
+      }
+    }
+  }
+}

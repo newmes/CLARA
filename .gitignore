@@ -39,6 +39,7 @@ Thumbs.db
 data/*
 !data/schema/
 !data/rule_set.json
+!data/rule_sets/
 logs/
 
 # Generated output (regenerable)
