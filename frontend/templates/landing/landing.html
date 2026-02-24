@@ -1433,15 +1433,12 @@
       heroLeft.classList.add('hero-left--entering');
     });
 
-    /* Init Phaser map early so it renders during Stage 1 */
-    setTimeout(function() {
-      {% if demo_run_id %}
-      initSimMap();
-      {% endif %}
-    }, 1200);
+    /* Stage 2 transition — called when map zoom-in finishes (or fallback timer) */
+    var stage2Done = false;
+    function triggerStage2() {
+      if (stage2Done) return;
+      stage2Done = true;
 
-    /* Stage 2: Map settles left, cards slide in (2s ~ 3s) */
-    setTimeout(function() {
       heroText.classList.remove('hero-text--entering');
       heroText.style.opacity = '1';
 
@@ -1463,12 +1460,23 @@
 
       /* Draw flow connector after cards settle */
       setTimeout(drawFlowConnector, 1100);
-    }, 2000);
 
-    /* Stage 3: Post-animation cleanup */
-    setTimeout(function() {
-      sessionStorage.setItem('clara_hero_animated', '1');
-    }, 3500);
+      /* Mark animation done */
+      setTimeout(function() {
+        sessionStorage.setItem('clara_hero_animated', '1');
+      }, 1500);
+    }
+
+    /* Init Phaser map — Stage 2 triggers after zoom-in completes */
+    {% if demo_run_id %}
+    setTimeout(function() { initSimMap(triggerStage2); }, 800);
+    {% else %}
+    /* No map — Stage 2 on fixed timer */
+    setTimeout(triggerStage2, 2000);
+    {% endif %}
+
+    /* Fallback: if map takes too long, proceed anyway after 5s */
+    setTimeout(triggerStage2, 5000);
   }
 
   function applyFinalState() {
@@ -1564,10 +1572,10 @@
 
   /* ─── Simulation Map Auto-Play ─── */
   {% if demo_run_id %}
-  function initSimMap() {
+  function initSimMap(onZoomDone) {
     var RUN_ID = '{{ demo_run_id }}';
     var container = document.getElementById('simMapContainer');
-    if (!container || typeof TrialMap === 'undefined') return;
+    if (!container || typeof TrialMap === 'undefined') { if (onZoomDone) onZoomDone(); return; }
 
     /* Prevent double-init */
     if (container.dataset.mapInit) return;
@@ -1594,15 +1602,16 @@
       .then(function(data) {
         var patients = data.patients || [];
         setSpriteOffset(RUN_ID);
+        /* Hide canvas until ready — prevents green flash */
+        container.style.opacity = '0';
+
         trialMap = new TrialMap('simMapContainer', patients, null, RUN_ID, {
           centerOnHospital: true,
           onReady: function(map) {
-            /* Scene is now guaranteed to exist — zoom in from hospital center */
             var cam = map._scene.cameras.main;
             var hospX = map.hospitalPos.x * 16 + 8;
             var hospY = map.hospitalPos.y * 16 + 8;
 
-            /* Recalculate fitZoom using actual game canvas size (RESIZE mode) */
             var cb = map.mapMeta && map.mapMeta.content_bounds;
             var targetZoom;
             if (cb) {
@@ -1613,14 +1622,25 @@
               targetZoom = cam.zoom || 1.5;
             }
 
-            /* Remove camera bounds during zoom-out so hospital center isn't clamped */
             cam.removeBounds();
             cam.centerOn(hospX, hospY);
             var finalZoom = targetZoom * 1.8;
-            cam.setZoom(finalZoom * 0.3);
-            cam.zoomTo(finalZoom, 2500, 'Cubic.easeOut');
-            /* Start auto-play after zoom-in completes */
-            setTimeout(advanceDay, 2800);
+            /* Start zoomed out, fade in + zoom in simultaneously */
+            cam.setZoom(finalZoom * 0.45);
+
+            container.style.transition = 'opacity 0.6s ease';
+            container.style.opacity = '1';
+
+            /* Show zoomed-out view for a moment, then zoom in */
+            setTimeout(function() {
+              cam.zoomTo(finalZoom, 3000, 'Cubic.easeOut');
+            }, 1200);
+
+            /* Trigger Stage 2 after zoom-in completes (1.2s pause + 3s zoom) */
+            setTimeout(function() {
+              if (onZoomDone) onZoomDone();
+              advanceDay();
+            }, 4500);
           }
         });
       })
