@@ -4,8 +4,8 @@
 
 # CLARA: Clinical Longitudinal AI Research Assistant
 
-**A simulation-powered framework that proves AI nursing care saves lives —**
-**then deploys it as a real-world multimodal application.**
+**Daily multimodal capture — voice and video together — and longitudinal reasoning across time.**
+**A simulation-powered framework that proves continuous AI monitoring saves lives, then deploys it as a real-world application.**
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](#)
 [![License](https://img.shields.io/badge/License-Apache_2.0-green.svg)](#license)
@@ -39,30 +39,30 @@ Most patients tend to underreport their discomfort. Missing these implicit signa
 
 **CLARA** simulates the complex dynamics of clinical trials, emulating hundreds of patients' daily health statuses and their psychological tendency to underreport symptoms, then quantifies the measurable impact of proactive daily monitoring on patient outcomes.
 
-> **Drug name in → Simulated trial out → Evidence that AI nursing care works → Deploy as real-world app**
+> **Drug name in → Simulated trial out → Evidence that daily monitoring works → Deploy as real-world app**
 
-We then transitioned the AI nurse from simulation to a **production mobile application** powered by MedGemma and HAI-DEF models.
+CLARA consists of two MedGemma-based agents. We transitioned them from simulation to a **production mobile application** powered by MedGemma and HAI-DEF models, enabling continuous clinical visibility between visits.
 
 <table>
 <tr>
 <td width="100" align="center">
 <img src="docs/assets/nurse.png" width="80" /><br/>
-<sub><b>AI Nurse</b></sub>
+<sub><b>DCA</b></sub>
 </td>
 <td>
 
-**Data Collection Agent** — Conducts daily structured video calls with patients. Detects visual AEs (rash, swelling) via MedSigLIP, audio AEs (cough) via HeAR, and assesses symptoms through empathetic MedGemma-powered conversation. Operates strictly within nursing scope: detect, report, refer.
+**Data Collection Agent (DCA)** — Runs on the patient's device. Conducts daily ~60-second CLARA Call check-ins via video + voice interaction. Extracts structured clinical signals through multimodal processing: voice → context representation (MedGemma), audio → cough classification (HeAR), video → on-device feature map → server-side classification (MedSigLIP). Operates strictly within nursing scope: detect, report, refer.
 
 </td>
 </tr>
 <tr>
 <td width="100" align="center">
 <img src="docs/assets/gemma.png" width="60" /><br/>
-<sub><b>RLFR Model</b></sub>
+<sub><b>DAA</b></sub>
 </td>
 <td>
 
-**Data Analysis Agent** — Generates CDISC-compliant CRF records, SAE narratives, and FDA MedWatch 3500A reports. Powered by MedGemma 4B fine-tuned with RLFR (Reinforcement Learning Feature Reward), where a frozen hallucination detection probe serves as the reward signal, reducing hallucination rate from 37.3% to 6.7%.
+**Data Analysis Agent (DAA)** — Runs on the platform. Transforms daily signals into continuous patient timelines with AE/SAE flagging, auto-generated briefings, and report generation (CDISC-compliant CRF records, SAE narratives, FDA MedWatch 3500A, E2B XML). Powered by MedGemma 4B fine-tuned with RLFR (Reinforcement Learning Feature Reward), reducing hallucination rate from 37.3% to 6.7%.
 
 </td>
 </tr>
@@ -72,18 +72,25 @@ We then transitioned the AI nurse from simulation to a **production mobile appli
 
 ## Results
 
-### A/B Comparison: Natural vs. Care AI
+### A/B Comparison: Standard Visit vs. CLARA Call
 
-CLARA runs A/B comparisons on identical cohorts (N≥50, same seed): Run A (no agent, bi-weekly visits only) vs. Run B (daily agent). Run B achieved a significantly smaller GT–HR gap, fewer grade escalations, and better patient outcomes.
+CLARA runs A/B comparisons on identical cohorts (N=100, same seed): Group A (no agent, bi-weekly visits only) vs. Group B (same trial + CLARA Call daily monitoring).
 
 ```
-Run A (Natural)                        Run B (Care AI)
-No AI nurse                            Daily 4-turn video calls
+Group A (Standard Visit-Based)             Group B (+ CLARA Call)
+No daily monitoring                        Daily ~60s video + voice check-ins
 
-Hospital ──── 13 days ──── Hospital    Hospital ── 3 days ── Early Visit ── Hospital
-              AE hidden                            AE detected    dose adjusted
-              AE worsens                           early referral  faster recovery
+Hospital ──── 13 days ──── Hospital        Hospital ── 3 days ── Early Visit ── Hospital
+              AE hidden                                AE detected    dose adjusted
+              AE worsens                               early referral  faster recovery
 ```
+
+| Metric | Group A (Standard) | Group B (CLARA Call) | Improvement |
+|--------|-------------------|---------------------|-------------|
+| AE Detection Delay (mean) | 4.6 days | **1.2 days** | **↓74%** |
+| Discontinued (out of 100) | 21 | **17** | **↓19%** |
+| Deaths (out of 100) | 21 | **16** | **↓24%** |
+| Grade 3+ AE Duration (mean) | 1.4 days | **1.3 days** | **↓7%** |
 
 ### Anti-Hallucination (RLFR Fine-Tuning)
 
@@ -103,6 +110,8 @@ Hospital ──── 13 days ──── Hospital    Hospital ── 3 days �
 
 ## How It Works
 
+> **Why Simulation?** Real-world daily multimodal longitudinal datasets do not yet exist at scale. So we built one. We constructed a rule-based simulation engine grounded in real clinical datasets and published drug safety profiles, validated against 7 known drug profiles.
+
 CLARA operates through **three mechanisms**:
 
 ### 1. Data-Driven Ruleset Generation
@@ -120,9 +129,22 @@ The simulation maintains two strict data layers:
 
 All treatment decisions (dose hold, reduce, withdraw) are made from HR only — never from GT. This gap mirrors real-world blind spots.
 
-### 3. Data Collection Agent (AI Nurse)
+### 3. Data Collection Agent — CLARA Call
 
-Daily structured video calls following a **4-turn protocol**:
+Patients complete a short, ~60-second daily check-in via the CLARA Call. It feels like a natural conversation. Behind the scenes, MedGemma enables multimodal understanding — extracting structured clinical signals from voice, audio, and video.
+
+**Multimodal Pipeline:**
+
+```
+Voice → Context Representation              (MedGemma conversation)
+Audio → Cough Classification (Dry/Wet/None) (HeAR audio classification)
+Video → On-device Feature Map               (MedSigLIP vision analysis)
+      → Server-side Classification
+
+Signal Fusion → MedGemma Reasoning → Structured Clinical Variables
+```
+
+**4-Turn Protocol:**
 
 ```
 Turn 1: Patient describes how they feel        (speech → MedASR transcription)
@@ -130,6 +152,8 @@ Turn 2: Nurse asks targeted follow-up questions (MedGemma conversation)
 Turn 3: Patient shows affected area on camera   (image → MedSigLIP classification)
 Turn 4: Nurse summarizes and refers if needed   (MedGemma → early visit recommendation)
 ```
+
+CLARA's contribution is not daily collection alone — it is daily multimodal capture and **longitudinal reasoning across time**. This transforms raw interaction into structured clinical signals that medical teams can act on.
 
 A **7-dimension mood model** governs each patient's reporting behavior. The agent adapts its strategy accordingly — probing, requesting visual inspection, or escalating tone as needed.
 
@@ -183,8 +207,8 @@ Drug Name + Indication
 │                        ┌──────────────────────┼──────────────┐      │
 │                        ▼                      ▼              │      │
 │              ┌──────────────────┐   ┌──────────────────┐     │      │
-│              │ Hospital Record  │   │  Care AI Nurse   │     │      │
-│              │ (clinic visits)  │   │  (daily calls)   │     │      │
+│              │ Hospital Record  │   │  CLARA Call     │     │      │
+│              │ (clinic visits)  │   │  (daily calls)  │     │      │
 │              │ → dose decisions │   │  → early referral│     │      │
 │              └──────────────────┘   └──────────────────┘     │      │
 └─────────────────────────────────────────────────────────────────────┘
@@ -205,7 +229,7 @@ Drug Name + Indication
 | **Ground Truth vs. Hospital Record** | Dose decisions use observed data only — never omniscient GT |
 | **Drug-agnostic** | Change the drug name → system auto-discovers rules from 10+ databases |
 | **No fate table** | Daily hazard functions replace pre-determined event timelines |
-| **Care AI detects, doctors decide** | AI nurse flags and refers; only physicians modify treatment |
+| **CLARA Call detects, doctors decide** | CLARA Call flags and refers; only physicians modify treatment |
 | **Seed-reproducible** | Same seed → identical simulation for scientific rigor |
 
 ---
@@ -222,11 +246,11 @@ Each HAI-DEF model serves a distinct clinical role within CLARA:
 
 | Model | Role in CLARA | Details |
 |-------|--------------|---------|
-| <img src="docs/assets/gemma.png" width="16" /> [**MedGemma 1.5 4B**](https://huggingface.co/google/medgemma-1.5-4b-it) | Data Collection Agent — conversational AI medical staff that conducts the daily video call protocol | Generates clinically appropriate questions and assessments |
-| <img src="docs/assets/gemma.png" width="16" /> [**MedSigLIP**](https://huggingface.co/google/medsiglip-448) | Visual AE detection — processes patients' facial images captured during video calls to detect visible AE symptoms (e.g., rash, swelling) and classify their CTCAE grade | Trained on 210 Gemini-generated synthetic patient images (147/21/42 split); W-F1 = 90% |
-| <img src="docs/assets/gemma.png" width="16" /> [**HeAR**](https://huggingface.co/google/hear-pytorch) | Audio AE detection — analyzes patient audio through a cough detection and classification pipeline, distinguishing dry from wet cough | Fine-tuned on 956 randomly sampled recordings (478 dry / 478 wet) from the [COUGHVID dataset](https://www.kaggle.com/datasets/nasrulhakim86/coughvid-wav), tested on Gemini-generated synthetic audio |
+| <img src="docs/assets/gemma.png" width="16" /> [**MedGemma 1.5 4B**](https://huggingface.co/google/medgemma-1.5-4b-it) | DCA — powers the conversational AI medical staff during daily CLARA Call check-ins | Generates clinically appropriate questions and assessments |
+| <img src="docs/assets/gemma.png" width="16" /> [**MedSigLIP**](https://huggingface.co/google/medsiglip-448) | DCA — processes video frames captured during CLARA Call to detect visible AE symptoms (e.g., rash, swelling) and classify their CTCAE grade | Trained on 210 Gemini-generated synthetic patient images (147/21/42 split); W-F1 = 90% |
+| <img src="docs/assets/gemma.png" width="16" /> [**HeAR**](https://huggingface.co/google/hear-pytorch) | DCA — analyzes patient audio through a cough detection and classification pipeline, distinguishing dry from wet cough | Fine-tuned on 956 randomly sampled recordings (478 dry / 478 wet) from the [COUGHVID dataset](https://www.kaggle.com/datasets/nasrulhakim86/coughvid-wav), tested on Gemini-generated synthetic audio |
 | <img src="docs/assets/gemini.png" width="16" /> [**Gemini 2.0 Flash**](https://ai.google.dev/) | Simulation orchestrator — rule discovery, patient generation, narration | API-based; no local GPU needed |
-| <img src="docs/assets/gemma.png" width="16" /> **MedGemma 4B + RLFR** | Data Analysis Agent — whenever a SAE occurs, autonomously generates reports in FDA MedWatch and E2B XML format | Hallucination rate 37.3% → 6.7% |
+| <img src="docs/assets/gemma.png" width="16" /> **MedGemma 4B + RLFR** | DAA — whenever a SAE occurs, autonomously generates reports in FDA MedWatch and E2B XML format | Hallucination rate 37.3% → 6.7% |
 
 ### Multimodal Detection Channels
 
@@ -250,11 +274,9 @@ CLARA ships with **5 Jupyter notebooks** demonstrating each component:
 |---|----------|---------------|-----|
 | 1 | `medgemma_anti-hallucination` | RLFR fine-tuning — hallucination probe training and RL optimization | ~10 GB |
 | 2 | `medgemma+medsiglip+HeAR_SAE-detection` | Multimodal AE detection — vision (MedSigLIP) + audio (HeAR) pipelines | ~20 GB |
-| 3 | `simulate-clinical-trial` | Ruleset generation pipeline — evidence collection from 10+ biomedical DBs, ground truth validation against 7 real clinical trials | None (API) |
-| 4 | `application_voice_call` | Care AI voice call demo — MedASR + TTS + nurse conversation | ~10 GB |
+| 3 | `simulate-clinical-trial` | End-to-end trial simulation — rule discovery, patient generation, daily loop | None (API) |
+| 4 | `application_voice_call` | CLARA Call voice call demo — MedASR + TTS + nurse conversation | ~10 GB |
 | 5 | `application_SAE_report_generation` | FDA MedWatch 3500A + E2B XML report generation from CRF data | ~10 GB |
-
-Notebooks use `notebooks/src/` as a local module providing shared source code — simulation engine, LLM agents, multimodal pipelines, ruleset generation, and the document agent.
 
 All models and data **download automatically** from HuggingFace on first run:
 - Models: [AlphaRaven/medgemma-ae-detection](https://huggingface.co/AlphaRaven/medgemma-ae-detection), [AlphaRaven/medgemma-4b-antihallu](https://huggingface.co/AlphaRaven/medgemma-4b-antihallu)
@@ -322,74 +344,19 @@ python src/run_simulation_v2.py --drug "Ozempic" --indication "type 2 diabetes" 
 
 ## Docker Deployment
 
-CLARA deploys as a multi-service Docker stack with GPU acceleration.
-
-### Prerequisites
-
-1. **Docker network** — create the external network before starting:
-   ```bash
-   docker network create vital-net
-   ```
-
-2. **`.env` file** — create at the project root:
-   ```bash
-   GOOGLE_API_KEY=<your-google-api-key>
-   HF_TOKEN=<your-huggingface-token>
-   ```
-
-3. **Model weights** — the following must be available locally:
-   - `google/medgemma-1.5-4b-it` (HF cache)
-   - `google/medgemma-4b-it` (HF cache)
-   - `AlphaRaven/medgemma-4b-antihallu` (HF cache)
-   - `google/medasr` — **gated repo**, requires [access request](https://huggingface.co/google/medasr). Without it, the data-collection-agent starts but audio transcription (MedASR) is unavailable.
-
-4. **SigLIP classification head** — required by data-collection-agent:
-   ```bash
-   mkdir -p dca_server/models
-   # Download from HuggingFace dataset:
-   python -c "
-   from huggingface_hub import hf_hub_download
-   hf_hub_download(
-       repo_id='AlphaRaven/clinical-trial-engine-data',
-       filename='siglip_ft_head/best_model_wf1.pt',
-       repo_type='dataset',
-       local_dir='/tmp/cte_data'
-   )
-   " && cp /tmp/cte_data/siglip_ft_head/best_model_wf1.pt dca_server/models/siglip_head.pt
-   ```
-   Source: [AlphaRaven/clinical-trial-engine-data](https://huggingface.co/datasets/AlphaRaven/clinical-trial-engine-data/blob/main/siglip_ft_head/best_model_wf1.pt)
-
-### Volume Path Configuration
-
-`docker-compose.yaml` volume paths must match your local HuggingFace cache location. The default config assumes `/data2/huggingface/hub/...`. If your cache is elsewhere (e.g., `~/.cache/huggingface/hub/`), update all volume mounts accordingly.
-
-> **Important: HF cache symlink issue** — HuggingFace stores model files as content-addressed blobs, with snapshot directories containing relative symlinks (`../../blobs/...`). When mounting into Docker, you must mount the **entire model directory** (e.g., `models--google--medgemma-1.5-4b-it/`) so that relative symlinks resolve correctly inside the container. Mounting only the snapshot subdirectory will result in broken symlinks.
-
-### GPU Memory
-
-vLLM `latest` (v0.15+) requires more GPU overhead for torch.compile and multimodal encoder profiling than older versions. If you see `No available memory for the cache blocks` errors, increase `--gpu-memory-utilization` (recommended: `0.6` for 24GB GPUs).
-
-### Starting Services
+CLARA deploys as a multi-service Docker stack with GPU acceleration:
 
 ```bash
-# Django frontend only
-docker compose up -d django
-
-# All GPU services
-docker compose --profile medgemma4b-base --profile medgemma4b-antihallu --profile antihallu --profile data-collection-agent up -d
+docker compose up -d
 ```
 
-### Service Map
-
-| Service | Port | Default GPU | Purpose |
-|---------|------|-------------|---------|
+| Service | Port | GPU | Purpose |
+|---------|------|-----|---------|
 | `django` | 19001 | — | Web interface (trial viewer, CRF tables, SAE reports) |
-| `medgemma4b-base` | 38004 | GPU 2 | Care AI nurse backend (vLLM, medgemma-1.5-4b-it) |
-| `medgemma4b-antihallu-ft` | 38002 | GPU 3 | Anti-hallucination model (vLLM, medgemma-4b-antihallu) |
-| `antihallu-server` | 38003 | GPU 1 | Hallucination detection API (original vs RLFR side-by-side) |
-| `data-collection-agent` | 38005 | GPU 1 | Multimodal detection (SigLIP + HeAR + MedASR + TTS) |
-
-> **Note:** `antihallu-server` loads **two** full models (original + RLFR fine-tuned) on a single GPU (~16GB total). It must not share a GPU with vLLM services. GPU assignments can be overridden via environment variables: `GPU_MEDGEMMA4B`, `GPU_ANTIHALLU`, `GPU_CARE_AI`.
+| `medgemma4b-base` | 38004 | GPU 2 | CLARA Call nurse backend (vLLM) |
+| `medgemma4b-antihallu-ft` | 38002 | GPU 3 | Doc Agent + anti-hallucination (vLLM + LoRA) |
+| `antihallu-server` | 38003 | GPU 2 | Hallucination fact-checking API |
+| `data-collection-agent` | 38005 | GPU 3 | Multimodal detection (SigLIP + HeAR + MedASR + TTS) |
 
 ---
 
@@ -398,16 +365,6 @@ docker compose --profile medgemma4b-base --profile medgemma4b-antihallu --profil
 ```
 CLARA/
 ├── notebooks/                     5 demo notebooks (anti-hallu → SAE reports)
-│   └── src/                       Local module shared across notebooks
-│       ├── agents/                LLM agents (rule, patient, daily, care)
-│       ├── engine/                Probability engine (hazard, observation, sampler, mood)
-│       ├── doc_agent/             SAE report generation (MedWatch, E2B XML, MedDRA)
-│       ├── multimodal/            Multimodal AE detection (SigLIP + HeAR)
-│       ├── multimodal_v2/         Multimodal AE detection v2
-│       ├── ruleset_generation/    Drug rule discovery from 10+ DBs
-│       │   └── ground_truth/      7 real clinical trial datasets for validation
-│       ├── cough_detection/       HeAR-based cough classification
-│       └── experiments/           Experiment management
 │
 ├── src/
 │   ├── engine/                    Probability engine (LLM-independent)
@@ -421,14 +378,14 @@ CLARA/
 │   │   ├── rule_agent.py          Phase 0: drug rule discovery
 │   │   ├── patient_agent.py       Phase 1: virtual cohort generation
 │   │   ├── daily_agent.py         Phase 2: daily simulation
-│   │   └── care_agent.py          Care AI: 4-turn video calls
+│   │   └── care_agent.py          CLARA Call: 4-turn video calls
 │   │
 │   ├── multimodal_v2/             Multimodal AE detection pipeline
 │   ├── cough_detection/           HeAR-based cough classification
 │   ├── orchestrator_v2.py         3-Phase simulation orchestrator
 │   └── run_simulation_v2.py       CLI entry point
 │
-├── dca_server/                       Care AI Nurse API (FastAPI)
+├── dca_server/                       CLARA Call Nurse API (FastAPI)
 │   ├── server.py                  Endpoints: classify, cough, transcribe, nurse
 │   ├── nurse_engine.py            Medical conversation engine
 │   ├── siglip_classifier.py       SigLIP vision classifier head
@@ -472,7 +429,7 @@ Where:
 AE grade transitions use daily Markov probabilities:
 - Base worsen rate: 1.5%/day (increases with cumulative toxicity)
 - Base improve rate: 0.5%/day
-- Care AI intervention: worsen ×0.3, improve ×3.0
+- CLARA Call intervention: worsen ×0.3, improve ×3.0
 
 </details>
 
@@ -488,7 +445,7 @@ The observation model implements a **whitelist-based filter** — HR only receiv
 | Scheduled visit | Full exam: labs, vitals, physical exam, AE assessment | Treatment cycle day |
 | Scheduled scan | Tumor/RECIST data | Protocol-defined intervals |
 | Self-report | Patient-reported AEs only | Mood-dependent probability |
-| Video call (Care AI) | video_detectable + patient_reported AEs | Daily (Care AI mode) |
+| Video call (CLARA Call) | video_detectable + patient_reported AEs | Daily (CLARA Call mode) |
 | ER visit | Full exam | Grade 4+ AE or dangerous vitals |
 
 HR never falls back to GT. If a lab value wasn't measured, it stays stale.
@@ -510,9 +467,9 @@ Each virtual patient has a persistent psychological profile that evolves over ti
 | **Irritability** | High → terminates calls early, refuses visual inspection |
 | **Hopefulness** | High → better treatment adherence, attends visits |
 | **Defensiveness** | High → minimizes symptoms (reports Grade 2 as Grade 1) |
-| **Trust** | High → accurate reporting, engages fully with AI nurse |
+| **Trust** | High → accurate reporting, engages fully with CLARA Call |
 
-Persona-specific baselines are set at patient generation. Events (new AE, good scan result, Care AI empathy) cause daily micro-adjustments.
+Persona-specific baselines are set at patient generation. Events (new AE, good scan result, CLARA Call empathy) cause daily micro-adjustments.
 
 </details>
 
