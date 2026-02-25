@@ -8,7 +8,9 @@
 **A simulation-powered framework that proves continuous AI monitoring saves lives, then deploys it as a real-world application.**
 
 <br>
+
 [![Live Demo](https://img.shields.io/badge/🔴_Live_Demo-clara.parrotvox.com-FF4444?style=for-the-badge&logoColor=white)](https://clara.parrotvox.com)
+
 <br>
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](#)
