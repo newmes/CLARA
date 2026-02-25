@@ -2,11 +2,12 @@
 
 <img src="docs/assets/logo.svg" width="100" alt="CLARA Logo" />
 
-# CLARA: Clinical Longitudinal AI Research Assistant ([![Live Demo](https://img.shields.io/badge/🔴_Live_Demo-clara.parrotvox.com-red?style=for-the-badge)](https://clara.parrotvox.com)
-)
+# CLARA: Clinical Longitudinal AI Research Assistant
 
 **Daily multimodal capture — voice and video together — and longitudinal reasoning across time.**
 **A simulation-powered framework that proves continuous AI monitoring saves lives, then deploys it as a real-world application.**
+**[![Live Demo](https://img.shields.io/badge/🔴_Live_Demo-clara.parrotvox.com-red?style=for-the-badge)](https://clara.parrotvox.com)**
+
 
 
 [![Python](https://img.shields.io/badge/Python-3.10+-3776AB?logo=python&logoColor=white)](#)
