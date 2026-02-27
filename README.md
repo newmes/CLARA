@@ -9,7 +9,7 @@
 
 <div align="center">
 
-### 🔴 [Visit Our Live Demo Page](https://clara.parrotvox.com)
+### [Visit Our Live Demo Page](https://clara.parrotvox.com) and [Try Our App - CLARA voice call](https://github.com/newmes/CLARA_Call)
 
 
 </div>
