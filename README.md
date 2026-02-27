@@ -91,13 +91,23 @@ CLARA consists of two MedGemma-based agents. We transitioned them from simulatio
 
 Each HAI-DEF model serves a distinct clinical role within CLARA:
 
-| Model | Role in CLARA | Details |
-|-------|--------------|---------|
-| [**MedGemma 1.5 4B**](https://huggingface.co/google/medgemma-1.5-4b-it) | DCA — powers the conversational AI medical staff during daily CLARA Call check-ins | Generates clinically appropriate questions and assessments |
-| [**MedSigLIP**](https://huggingface.co/google/medsiglip-448) | DCA — processes video frames captured during CLARA Call to detect visible AE symptoms (e.g., rash, swelling) and classify their CTCAE grade | Trained on 210 Gemini-generated synthetic patient images (147/21/42 split); W-F1 = 90% |
-| [**HeAR**](https://huggingface.co/google/hear-pytorch) | DCA — analyzes patient audio through a cough detection and classification pipeline, distinguishing dry from wet cough | Fine-tuned on 956 randomly sampled recordings (478 dry / 478 wet) from the [COUGHVID dataset](https://www.kaggle.com/datasets/nasrulhakim86/coughvid-wav), tested on Gemini-generated synthetic audio |
-| [**MedASR**](https://huggingface.co/google/medasr) | DCA — medical speech recognition for patient speech transcription during CLARA Call | Medical terminology-aware ASR |
-| [**MedGemma 1.5 4B + RLFR**](https://huggingface.co/AlphaRaven/medgemma-4b-antihallu) | DAA — whenever a SAE occurs, autonomously generates reports in FDA MedWatch and E2B XML format | Hallucination rate 37.3% → 6.7% |
+### Base Models
+
+| Model | Base Model |
+|-------|-----------|
+| [**MedGemma 1.5 4B**](https://huggingface.co/google/medgemma-1.5-4b-it) | DCA — powers the conversational AI medical staff during daily CLARA Call check-ins, generating clinically appropriate questions and assessments |
+| [**MedSigLIP**](https://huggingface.co/google/medsiglip-448) | DCA — medical vision encoder that provides image representations for AE symptom detection from CLARA Call video frames |
+| [**HeAR**](https://huggingface.co/google/hear-pytorch) | DCA — health audio representation model that extracts embeddings for respiratory sound analysis during CLARA Call |
+| [**MedASR**](https://huggingface.co/google/medasr) | DCA — medical terminology-aware speech recognition for patient speech transcription during CLARA Call |
+
+### Fine-tuned Models
+
+| Model | Base Model | Role in CLARA | Details |
+|-------|-----------|--------------|---------|
+| [**MedGemma 1.5 4B + RLFR**](https://huggingface.co/AlphaRaven/medgemma-4b-antihallu) | MedGemma 1.5 4B | DAA — whenever a SAE occurs, autonomously generates reports in FDA MedWatch and E2B XML format | MMLU Medical Acc 60.7% → 64.3%<br>Hallucination rate 37.3% → 6.7% |
+| [**MedGemma AE Detection**](https://huggingface.co/AlphaRaven/medgemma-ae-detection) | MedGemma 1.5 4B Anti-Hallucination | DCA — compares baseline and current patient photographs captured during CLARA Call to detect and grade new adverse events using CTCAE criteria | Acc 23.8% → 90.5% |
+| [**HeAR Classifier Head**](https://huggingface.co/datasets/AlphaRaven/clinical-trial-engine-data/tree/main/hear_cough_only_model) | HeAR | DCA — classifies cough segments from CLARA Call audio, distinguishing dry from wet cough via 2-stage pipeline | Fine-tuned on 956 randomly sampled recordings (478 dry / 478 wet) from the [COUGHVID dataset](https://www.kaggle.com/datasets/nasrulhakim86/coughvid-wav), tested on Gemini-generated synthetic audio |
+| [**MedSigLIP Classifier Head**](https://huggingface.co/datasets/AlphaRaven/clinical-trial-engine-data/blob/main/siglip_ft_head/best_model_wf1.pt) | MedSigLIP | DCA — processes video frames captured during CLARA Call to detect visible AE symptoms (e.g., rash, swelling) and classify their CTCAE grade | MLP classifier head on frozen encoder; Trained on 210 Gemini-generated synthetic patient images (147/21/42 split)<br>Acc 26.2% → Acc 61.9% |
 
 ---
 
@@ -150,11 +160,20 @@ Hospital ──── 13 days ──── Hospital        Hospital ── 3 day
 | Hallucination Rate (MedHallu Hard) | 37.3% | **6.7%** | -82% |
 | MMLU Medical Score | 60.7% | **64.3%** | +5.9% |
 
+### Visual AE Classification (MedGemma 1.5 4B Anti-Hallucination)
+
+| Metric | Score |
+|--------|-------|
+| Accuracy | **90.5%** 
+| Weighted F1 | **90%** |
+| Training data | 210 Gemini-generated images (147/21/42 split) |
+
 ### Visual AE Classification (MedSigLIP)
 
 | Metric | Score |
 |--------|-------|
-| Weighted F1 (skin AE grading) | **90%** |
+| Accuracy | **61.9%** |
+| Weighted F1 | **57.1%** |
 | Training data | 210 Gemini-generated images (147/21/42 split) |
 
 ---
