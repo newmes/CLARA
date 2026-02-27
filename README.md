@@ -9,7 +9,7 @@
 
 <div align="center">
 
-### [Visit Our Live Demo Page](https://clara.parrotvox.com) and [Try Our App - CLARA voice call](https://github.com/newmes/CLARA_Call)
+### [Visit Our <img width="21" height="24" alt="clara_web_24x24" src="https://github.com/user-attachments/assets/1299b263-3173-42a5-9af8-1745ae345484" /> Live Demo Page](https://clara.parrotvox.com) and [Try Our App - <img width="24" height="24" alt="clara_app_24x24" src="https://github.com/user-attachments/assets/1a5d7812-0e2f-4645-8d10-463cc4785886" /> CLARA voice call](https://github.com/newmes/CLARA_Call)
 
 
 </div>
