@@ -28,6 +28,7 @@
 <div align="center">
 
 <a href="https://youtu.be/yKJ42HMvynI?si=rUtMuF7P_yDimNjA"><img src="https://img.shields.io/badge/YouTube-FF0000?logo=youtube&logoColor=white"/></a> Med-Gemma Impact Challenge main video &nbsp;&nbsp;&nbsp;
+<br/>
 <a href="https://www.youtube.com/watch?v=I6SLzs3jzL0"><img src="https://img.shields.io/badge/YouTube-FF0000?logo=youtube&logoColor=white"/></a> CLARA Web Demo &nbsp;&nbsp;&nbsp;
 <a href="https://youtu.be/tN14DQBrKUg?si=tTGk7lVcz1IP8wFB"><img src="https://img.shields.io/badge/YouTube-FF0000?logo=youtube&logoColor=white"/></a> CLARA App Demo
 
